@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+  <!-- ==================== أذونات الموقع ==================== -->
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+  <!-- ==================== أذونات الاستشعار ==================== -->
+  <uses-permission android:name="android.permission.ACCESS_MAGNETOMETER" />
+  
+  <!-- ==================== أذونات الإشعارات والتنبيهات ==================== -->
+  <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+  <uses-permission android:name="android.permission.VIBRATE" />
+  <uses-permission android:name="android.permission.WAKE_LOCK"/>
+  <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+  <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+  
+  <!-- ==================== أذونات الإنترنت والشبكة ==================== -->
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+  
+  <!-- ==================== أذونات إضافية ==================== -->
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+      android:maxSdkVersion="28" />
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
+      android:maxSdkVersion="32" />
+  
+  <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+  <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+  
+  <!-- ==================== الميزات المطلوبة ==================== -->
+  <uses-feature 
+      android:name="android.hardware.location" 
+      android:required="false" />
+  <uses-feature 
+      android:name="android.hardware.location.gps" 
+      android:required="false" />
+  <uses-feature 
+      android:name="android.hardware.location.network" 
+      android:required="false" />
+  
+  <uses-feature 
+      android:name="android.hardware.sensor.compass" 
+      android:required="false" />
+  <uses-feature 
+      android:name="android.hardware.sensor.accelerometer" 
+      android:required="false" />
+
+  <application
+      android:label="تطبيق الأذكار"
+      android:name="${applicationName}">
+
+      <!-- ==================== خدمات Firebase ==================== -->
+      
+      <service
+          android:name="com.example.test_athkar_app.MyFirebaseMessagingService"
+          android:exported="false"
+          android:directBootAware="true">
+          <intent-filter>
+              <action android:name="com.google.firebase.MESSAGING_EVENT" />
+          </intent-filter>
+      </service>
+
+      <!-- ==================== مستقبلات وخدمات الإشعارات المحلية ==================== -->
+      
+      <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
+          android:exported="false">
+          <intent-filter>
+              <action android:name="android.intent.action.BOOT_COMPLETED"/>
+              <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+              <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+              <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+          </intent-filter>
+      </receiver>
+      
+      <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" 
+          android:exported="false" />
+
+      <service
+          android:name="dev.fluttercommunity.plus.androidalarmmanager.AlarmService"
+          android:permission="android.permission.BIND_JOB_SERVICE"
+          android:exported="false"/>
+          
+      <receiver
+          android:name="dev.fluttercommunity.plus.androidalarmmanager.AlarmBroadcastReceiver"
+          android:enabled="true"
+          android:exported="false">
+          <intent-filter>
+              <action android:name="android.intent.action.BOOT_COMPLETED"/>
+          </intent-filter>
+      </receiver>
+          
+      <receiver
+          android:name="dev.fluttercommunity.plus.androidalarmmanager.RebootBroadcastReceiver"
+          android:enabled="true"
+          android:exported="false">
+          <intent-filter>
+              <action android:name="android.intent.action.BOOT_COMPLETED" />
+              <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+              <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+          </intent-filter>
+      </receiver>
+
+      <!-- ==================== خدمة الموقع في الخلفية ==================== -->
+      <service
+          android:name="com.example.test_athkar_app.LocationBackgroundService"
+          android:enabled="true"
+          android:exported="false"
+          android:foregroundServiceType="location" />
+
+      <!-- ==================== النشاط الرئيسي ==================== -->
+      <activity
+          android:name=".MainActivity"
+          android:exported="true"
+          android:launchMode="singleTop"
+          android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+          android:hardwareAccelerated="true"
+          android:windowSoftInputMode="adjustResize"
+          android:showWhenLocked="true"
+          android:turnScreenOn="true">
+          
+          <meta-data
+            android:name="io.flutter.embedding.android.DefaultFlutterActivity"
+            android:value="true" />
+            
+          <intent-filter>
+              <action android:name="android.intent.action.MAIN"/>
+              <category android:name="android.intent.category.LAUNCHER"/>
+          </intent-filter>
+          
+          <intent-filter>
+              <action android:name="FLUTTER_NOTIFICATION_CLICK" />
+              <category android:name="android.intent.category.DEFAULT" />
+          </intent-filter>
+
+          <intent-filter>
+              <action android:name="android.intent.action.VIEW" />
+              <category android:name="android.intent.category.DEFAULT" />
+              <category android:name="android.intent.category.BROWSABLE" />
+              <data android:scheme="athkar" />
+          </intent-filter>
+          
+          <intent-filter>
+              <action android:name="android.intent.action.SEND" />
+              <category android:name="android.intent.category.DEFAULT" />
+              <data android:mimeType="text/plain" />
+          </intent-filter>
+      </activity>
+      
+      <!-- ==================== نشاط إعدادات الموقع ==================== -->
+      <activity
+          android:name=".LocationPermissionActivity"
+          android:exported="false"
+          android:theme="@style/Theme.AppCompat.Light.Dialog" />
+      
+      <!-- ==================== إعدادات Firebase (Android فقط) ==================== -->
+      
+      <meta-data
+          android:name="com.google.firebase.messaging.default_notification_channel_id"
+          android:value="athkar_channel_id" />
+
+      <meta-data
+          android:name="com.google.firebase.messaging.default_notification_icon"
+          android:resource="@drawable/ic_notification" />
+
+      <meta-data
+          android:name="com.google.firebase.messaging.default_notification_color"
+          android:resource="@color/notification_color" />
+
+      <!-- ==================== إعدادات الموقع ==================== -->
+      
+      <meta-data
+          android:name="com.google.android.geo.API_KEY"
+          android:value="YOUR_GOOGLE_MAPS_API_KEY_HERE" />
+      
+      <meta-data
+          android:name="location_background_service_enabled"
+          android:value="true" />
+
+      <!-- ==================== إعدادات Flutter ==================== -->
+      
+      <meta-data
+          android:name="flutterEmbedding"
+          android:value="2" />
+          
+      <meta-data
+          android:name="io.flutter.embedding.android.EnableHardwareAcceleration"
+          android:value="true" />
+          
+      <meta-data
+          android:name="io.flutter.embedding.android.DefaultFontFamily"
+          android:value="Cairo" />
+
+  </application>
+
+  <!-- ==================== استعلامات التطبيق (Android 11+) ==================== -->
+  <queries>
+      <intent>
+          <action android:name="android.intent.action.VIEW" />
+          <data android:scheme="market" />
+      </intent>
+      
+      <intent>
+          <action android:name="android.intent.action.VIEW" />
+          <data android:scheme="https" />
+      </intent>
+      
+      <intent>
+          <action android:name="android.intent.action.SEND" />
+          <data android:mimeType="text/plain" />
+      </intent>
+      
+      <intent>
+          <action android:name="android.intent.action.VIEW" />
+          <data android:scheme="geo" />
+      </intent>
+      
+      <intent>
+          <action android:name="android.settings.APPLICATION_DETAILS_SETTINGS" />
+      </intent>
+      
+      <intent>
+          <action android:name="android.settings.LOCATION_SOURCE_SETTINGS" />
+      </intent>
+  </queries>
+  
+</manifest>
