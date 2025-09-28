@@ -15,7 +15,7 @@ import 'notification_settings_screen.dart';
 
 
 class AthkarDetailsScreen extends StatefulWidget {
-  String categoryId;
+  final String categoryId;
   
   AthkarDetailsScreen({
     super.key,

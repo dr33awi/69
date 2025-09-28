@@ -46,7 +46,6 @@ class _QiblaCompassState extends State<QiblaCompass>
   late Animation<Color?> _qiblaColorAnimation;
 
   // حالة البوصلة
-  double _previousDirection = 0;
   double _smoothDirection = 0;
   bool _hasVibratedForQibla = false;
   bool _isPointingToQibla = false;
@@ -63,7 +62,7 @@ class _QiblaCompassState extends State<QiblaCompass>
   void initState() {
     super.initState();
     _initializeAnimations();
-    _previousDirection = widget.currentDirection;
+
     _smoothDirection = widget.currentDirection;
     _startSmoothingTimer();
   }

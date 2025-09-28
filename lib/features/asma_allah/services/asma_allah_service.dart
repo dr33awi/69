@@ -6,7 +6,6 @@ import '../data/asma_allah_data.dart';
 
 /// خدمة إدارة أسماء الله الحسنى (مبسطة)
 class AsmaAllahService extends ChangeNotifier {
-  final StorageService _storage;
   
   // قائمة الأسماء
   List<AsmaAllahModel> _asmaAllahList = [];
@@ -18,7 +17,7 @@ class AsmaAllahService extends ChangeNotifier {
   
   AsmaAllahService({
     required StorageService storage,
-  }) : _storage = storage {
+  }) {
     _init();
   }
   

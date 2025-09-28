@@ -80,7 +80,7 @@ class FirebaseMessagingService {
       _isInitialized = true;
       debugPrint('FirebaseMessagingService initialized successfully ✓');
       
-    } catch (e, stackTrace) {
+    } catch (e) {
       debugPrint('Error initializing Firebase Messaging: $e');
       
       // المحاولة باستخدام Native methods كـ fallback
@@ -393,7 +393,7 @@ class FirebaseMessagingService {
   /// معالجة إشعارات التذكير
   Future<void> _processReminderNotification(Map<String, dynamic> data) async {
     final reminderType = data['reminder_type'] as String?;
-    final reminderText = data['reminder_text'] as String?;
+
     
     debugPrint('Reminder notification: $reminderType');
     

@@ -53,7 +53,7 @@ class RemoteConfigManager {
       _isInitialized = true;
       debugPrint('RemoteConfigManager initialized successfully');
       
-    } catch (e, stackTrace) {
+    } catch (e) {
       debugPrint('Error initializing RemoteConfigManager: $e');
     }
   }

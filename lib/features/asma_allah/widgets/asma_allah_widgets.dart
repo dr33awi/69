@@ -624,39 +624,7 @@ class DetailedAsmaAllahCard extends StatelessWidget {
     );
   }
 
-  Widget _buildReferenceSection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(ThemeConstants.space3),
-      decoration: BoxDecoration(
-        color: ThemeConstants.tertiary.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
-        border: Border.all(
-          color: ThemeConstants.tertiary.withValues(alpha: 0.2),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.menu_book_rounded,
-            color: ThemeConstants.tertiary,
-            size: 16,
-          ),
-          ThemeConstants.space2.w,
-          Expanded(
-            child: Text(
-              '﴿${item.reference}﴾',
-              style: context.bodySmall?.copyWith(
-                color: ThemeConstants.tertiary,
-                fontFamily: ThemeConstants.fontFamilyQuran,
-                height: 1.6,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildViewDetailsButton(BuildContext context, Color color) {
     return SizedBox(

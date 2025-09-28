@@ -11,7 +11,11 @@ class CategoryGrid extends StatefulWidget {
   State<CategoryGrid> createState() => _CategoryGridState();
 }
 
-class _CategoryGridState extends State<CategoryGrid> {
+class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClientMixin {
+  
+  // ✅ تحسين: حفظ حالة الـ Widget لمنع إعادة البناء غير الضرورية
+  @override
+  bool get wantKeepAlive => true;
 
   // بيانات ثابتة للأداء مع المسار الصحيح لأسماء الله الحسنى
   static const List<CategoryItem> _categories = [
@@ -192,63 +196,85 @@ class _CategoryGridState extends State<CategoryGrid> {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ تحسين: استدعاء super.build للحفاظ على الحالة
+    super.build(context);
+    
+    // ✅ تحسين: تنظيم البيانات في صفوف للبناء المحسن
+    final rows = _buildCategoryRows();
+    
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: ThemeConstants.space4),
       sliver: SliverList(
-        delegate: SliverChildListDelegate([
-          // الصف الأول: المفضلة وإنجاز اليوم
-          Row(
-            children: [
-              // المفضلة (عريضة)
-              Expanded(
-                flex: 2,
-                child: _buildCategoryItem(context, _categories[4]), // tasbih
-              ),
-              ThemeConstants.space4.w,
-              // إنجاز اليوم (مربعة)
-              Expanded(
-                child: _buildSquareCategoryItem(context, _categories[1]), // athkar
-              ),
-            ],
-          ),
-          
-          ThemeConstants.space4.h,
-          
-          // الصف الثاني: أسماء الله الحسنى ومواقيت الصلاة
-          Row(
-            children: [
-              // أسماء الله الحسنى (مربعة)
-              Expanded(
-                child: _buildSquareCategoryItem(context, _categories[2]), // asma_allah
-              ),
-              ThemeConstants.space4.w,
-              // مواقيت الصلاة (عريضة)
-              Expanded(
-                flex: 2,
-                child: _buildCategoryItem(context, _categories[0]), // prayer_times
-              ),
-            ],
-          ),
-          
-          ThemeConstants.space4.h,
-          
-          // الصف الثالث: اتجاه القبلة والأدعية
-          Row(
-            children: [
-              // اتجاه القبلة
-              Expanded(
-                child: _buildCategoryItem(context, _categories[3]), // qibla
-              ),
-              ThemeConstants.space4.w,
-              // الأدعية
-              Expanded(
-                child: _buildCategoryItem(context, _categories[5]), // dua
-              ),
-            ],
-          ),
-        ]),
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            if (index >= rows.length) return null;
+            return Column(
+              children: [
+                rows[index],
+                if (index < rows.length - 1) ThemeConstants.space4.h,
+              ],
+            );
+          },
+          childCount: rows.length,
+          // ✅ تحسين: تحديد حجم العناصر للأداء
+          addAutomaticKeepAlives: false,
+          addRepaintBoundaries: true,
+          addSemanticIndexes: true,
+        ),
       ),
     );
+  }
+
+  // ✅ تحسين: تنظيم الصفوف للبناء المحسن
+  List<Widget> _buildCategoryRows() {
+    return [
+      // الصف الأول: المفضلة وإنجاز اليوم
+      Row(
+        children: [
+          // المفضلة (عريضة)
+          Expanded(
+            flex: 2,
+            child: _buildCategoryItem(context, _categories[4]), // tasbih
+          ),
+          ThemeConstants.space4.w,
+          // إنجاز اليوم (مربعة)
+          Expanded(
+            child: _buildSquareCategoryItem(context, _categories[1]), // athkar
+          ),
+        ],
+      ),
+      
+      // الصف الثاني: أسماء الله الحسنى ومواقيت الصلاة
+      Row(
+        children: [
+          // أسماء الله الحسنى (مربعة)
+          Expanded(
+            child: _buildSquareCategoryItem(context, _categories[2]), // asma_allah
+          ),
+          ThemeConstants.space4.w,
+          // مواقيت الصلاة (عريضة)
+          Expanded(
+            flex: 2,
+            child: _buildCategoryItem(context, _categories[0]), // prayer_times
+          ),
+        ],
+      ),
+      
+      // الصف الثالث: اتجاه القبلة والأدعية
+      Row(
+        children: [
+          // اتجاه القبلة
+          Expanded(
+            child: _buildCategoryItem(context, _categories[3]), // qibla
+          ),
+          ThemeConstants.space4.w,
+          // الأدعية
+          Expanded(
+            child: _buildCategoryItem(context, _categories[5]), // dua
+          ),
+        ],
+      ),
+    ];
   }
 
   Widget _buildSquareCategoryItem(BuildContext context, CategoryItem category) {

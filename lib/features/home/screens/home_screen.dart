@@ -23,32 +23,31 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   bool get wantKeepAlive => true;
   
-  // متغيرات للوقت والتاريخ
+  // ✅ تحسين: استخدام ValueNotifier بدلاً من setState
   late Timer _timer;
-  DateTime _currentTime = DateTime.now();
+  final ValueNotifier<DateTime> _currentTimeNotifier = ValueNotifier(DateTime.now());
 
   @override
   void initState() {
     super.initState();
     // لا نفحص الأذونات هنا - سيتم من PermissionGateway
     
-    // تحديث الوقت كل ثانية
+    // ✅ تحسين: تحديث الوقت بدون إعادة بناء الـ widget كاملاً
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        _currentTime = DateTime.now();
-      });
+      _currentTimeNotifier.value = DateTime.now();
     });
   }
   
   @override
   void dispose() {
     _timer.cancel();
+    _currentTimeNotifier.dispose(); // ✅ تنظيف الذاكرة
     super.dispose();
   }
 
   // دالة للحصول على رسالة الترحيب حسب الوقت
   Map<String, dynamic> _getMessage() {
-    final hour = DateTime.now().hour;
+    final hour = _currentTimeNotifier.value.hour;
     
     if (hour >= 5 && hour < 12) {
       return {
@@ -170,11 +169,14 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildCustomAppBar(BuildContext context) {
     final messageData = _getMessage();
     
-    // تنسيق التاريخ والوقت
-    final arabicFormatter = DateFormat('EEEE, d MMMM yyyy', 'ar');
-    final timeFormatter = DateFormat('hh:mm a', 'ar');
-    final dateString = arabicFormatter.format(_currentTime);
-    final timeString = timeFormatter.format(_currentTime);
+    return ValueListenableBuilder<DateTime>(
+      valueListenable: _currentTimeNotifier,
+      builder: (context, currentTime, child) {
+        // ✅ تحسين: تنسيق التاريخ والوقت فقط عند التحديث
+        final arabicFormatter = DateFormat('EEEE, d MMMM yyyy', 'ar');
+        final timeFormatter = DateFormat('hh:mm a', 'ar');
+        final dateString = arabicFormatter.format(currentTime);
+        final timeString = timeFormatter.format(currentTime);
     
     return Container(
       padding: const EdgeInsets.all(ThemeConstants.space4),
@@ -278,16 +280,18 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ],
                 ),
-                child: Icon(
-                  Icons.settings_outlined,
-                  color: context.textPrimaryColor,
-                  size: ThemeConstants.iconMd,
+                    child: Icon(
+                      Icons.settings_outlined,
+                      color: context.textPrimaryColor,
+                      size: ThemeConstants.iconMd,
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

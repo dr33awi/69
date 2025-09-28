@@ -1,4 +1,4 @@
-// lib/main.dart - محسن نهائياً بدون onboarding
+// lib/main.dart - محدث مع نظام Onboarding
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -14,6 +14,7 @@ import 'app/di/service_locator.dart';
 import 'app/themes/core/theme_notifier.dart';
 import 'core/infrastructure/services/permissions/permission_manager.dart';
 import 'core/infrastructure/services/permissions/widgets/permission_monitor.dart';
+import 'core/infrastructure/services/storage/storage_service.dart';
 
 // Firebase services
 import 'core/infrastructure/firebase/firebase_initializer.dart';
@@ -24,8 +25,9 @@ import 'app/routes/app_router.dart';
 
 // الشاشات
 import 'features/home/screens/home_screen.dart';
+import 'features/onboarding/screens/onboarding_flow_screen.dart';
 
-/// نقطة دخول التطبيق - محسن نهائياً للسرعة القصوى
+/// نقطة دخول التطبيق - محسن مع نظام Onboarding
 Future<void> main() async {
   // تهيئة ربط Flutter
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,7 +46,7 @@ Future<void> main() async {
         await _fastBootstrap();
         
         // تشغيل التطبيق فوراً
-        runApp(AthkarApp());
+        runApp(const AthkarApp());
         
         // تهيئة الباقي في الخلفية
         _backgroundInitialization();
@@ -93,9 +95,8 @@ Future<void> _fastBootstrap() async {
   }
 }
 
-/// تهيئة الخدمات المتبقية في الخلفية (بعد ظهور الواجهة)
+/// تهيئة الخدمات المتبقية في الخلفية
 void _backgroundInitialization() {
-  // تأخير قصير للسماح للواجهة بالظهور
   Future.delayed(const Duration(milliseconds: 800), () async {
     try {
       debugPrint('========== Background Initialization Starting ==========');
@@ -122,16 +123,14 @@ void _backgroundInitialization() {
       
       stopwatch.stop();
       debugPrint('========== Background Initialization Completed in ${stopwatch.elapsedMilliseconds}ms 🚀 ==========');
-      debugPrint('App is now fully ready with all services registered lazily!');
       
     } catch (e) {
       debugPrint('❌ Background initialization error: $e');
-      // لا نوقف التطبيق، فقط نسجل الخطأ
     }
   });
 }
 
-/// تطبيق محسن بدون onboarding
+/// التطبيق الرئيسي مع نظام Onboarding
 class AthkarApp extends StatefulWidget {
   const AthkarApp({super.key});
 
@@ -141,22 +140,51 @@ class AthkarApp extends StatefulWidget {
 
 class _AthkarAppState extends State<AthkarApp> {
   late final UnifiedPermissionManager _permissionManager;
+  late final StorageService _storage;
   
+  bool? _shouldShowOnboarding;
+
   @override
   void initState() {
     super.initState();
     
     _permissionManager = getIt<UnifiedPermissionManager>();
+    _storage = getIt<StorageService>();
     
-    // جدولة الفحص الأولي مع تأخير
-    _scheduleInitialCheck();
+    _checkOnboardingStatus();
   }
-  
-  /// جدولة الفحص الأولي مع تأخير
-  void _scheduleInitialCheck() {
+
+  /// فحص حالة الـ Onboarding
+  Future<void> _checkOnboardingStatus() async {
+    try {
+      // فحص إذا كان الـ onboarding مكتمل
+      final isCompleted = _storage.getBool('onboarding_completed') ?? false;
+      
+      setState(() {
+        _shouldShowOnboarding = !isCompleted;
+      });
+      
+      debugPrint('Onboarding status: ${isCompleted ? 'Completed' : 'Needed'}');
+      
+      // إذا كان مكتمل، قم بالفحص التلقائي للأذونات
+      if (isCompleted) {
+        _schedulePermissionCheck();
+      }
+      
+    } catch (e) {
+      debugPrint('Error checking onboarding status: $e');
+      // في حالة الخطأ، افترض أنه يحتاج onboarding
+      setState(() {
+        _shouldShowOnboarding = true;
+      });
+    }
+  }
+
+  /// جدولة فحص الأذونات للمستخدمين المُكملين للـ onboarding
+  void _schedulePermissionCheck() {
     Future.delayed(const Duration(seconds: 2), () async {
       if (mounted && !_permissionManager.hasCheckedThisSession) {
-        debugPrint('[AthkarApp] Performing delayed permission check');
+        debugPrint('[AthkarApp] Performing delayed permission check for existing user');
         await _permissionManager.performInitialCheck();
       }
     });
@@ -169,7 +197,7 @@ class _AthkarAppState extends State<AthkarApp> {
       builder: (context, themeMode, child) {
         return MaterialApp(
           // معلومات التطبيق
-          title: 'تطبيق الأذكار',
+          title: 'حصن المسلم',
           debugShowCheckedModeBanner: false,
           
           // الثيمات
@@ -189,36 +217,178 @@ class _AthkarAppState extends State<AthkarApp> {
           // التنقل
           navigatorKey: AppRouter.navigatorKey,
           
-          // الشاشة الرئيسية
-          home: const HomeScreen(),
+          // الشاشة الرئيسية (مع تحديد onboarding)
+          home: _buildInitialScreen(),
           
           // توليد المسارات
           onGenerateRoute: AppRouter.onGenerateRoute,
           
           // Builder مع مراقب الأذونات
           builder: (context, child) {
-            // التأكد من وجود child صالح
             if (child == null) {
               return const Scaffold(
-                body: Center(
-                  child: CircularProgressIndicator(),
-                ),
+                body: Center(child: CircularProgressIndicator()),
               );
             }
             
-            // تطبيق المراقب دائماً
-            return PermissionMonitor(
-              showNotifications: true,
-              child: child,
-            );
+            // تطبيق مراقب الأذونات فقط إذا لم يكن onboarding
+            if (_shouldShowOnboarding == false) {
+              return PermissionMonitor(
+                showNotifications: true,
+                child: child,
+              );
+            }
+            
+            // إذا كان onboarding، لا تطبق المراقب
+            return child;
           },
         );
       },
     );
   }
+
+  /// بناء الشاشة الأولية حسب حالة الـ onboarding
+  Widget _buildInitialScreen() {
+    // أثناء فحص الحالة، عرض شاشة تحميل
+    if (_shouldShowOnboarding == null) {
+      return const _LoadingScreen();
+    }
+    
+    // إذا كان يحتاج onboarding
+    if (_shouldShowOnboarding == true) {
+      return const OnboardingFlowScreen();
+    }
+    
+    // إذا كان مكتمل، اعرض الشاشة الرئيسية
+    return const HomeScreen();
+  }
 }
 
-/// شاشة الخطأ محسنة
+/// شاشة التحميل الأولية
+class _LoadingScreen extends StatefulWidget {
+  const _LoadingScreen();
+
+  @override
+  State<_LoadingScreen> createState() => _LoadingScreenState();
+}
+
+class _LoadingScreenState extends State<_LoadingScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+    
+    _pulseAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+    
+    _animationController.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [Color(0xFF5D7052), Color(0xFF7A8B6F)],
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // اللوجو المتحرك
+              AnimatedBuilder(
+                animation: _pulseAnimation,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: _pulseAnimation.value,
+                    child: Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.3),
+                          width: 2,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.menu_book,
+                        size: 60,
+                        color: Colors.white,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              
+              const SizedBox(height: 32),
+              
+              // اسم التطبيق
+              const Text(
+                'حصن المسلم',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  fontFamily: 'Cairo',
+                ),
+              ),
+              
+              const SizedBox(height: 8),
+              
+              // الوصف
+              Text(
+                'رفيقك الروحاني اليومي',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.white.withValues(alpha: 0.8),
+                  fontFamily: 'Cairo',
+                ),
+              ),
+              
+              const SizedBox(height: 48),
+              
+              // مؤشر التحميل
+              const SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// شاشة الخطأ
 class _ErrorApp extends StatelessWidget {
   final String error;
   
@@ -241,33 +411,22 @@ class _ErrorApp extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // أيقونة الخطأ مع حركة
-                    TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0, end: 1),
-                      duration: const Duration(milliseconds: 800),
-                      curve: Curves.elasticOut,
-                      builder: (context, value, child) {
-                        return Transform.scale(
-                          scale: value,
-                          child: Container(
-                            padding: const EdgeInsets.all(32),
-                            decoration: BoxDecoration(
-                              color: Colors.red.withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.error_outline,
-                              size: 80,
-                              color: Colors.red.shade700,
-                            ),
-                          ),
-                        );
-                      },
+                    // أيقونة الخطأ
+                    Container(
+                      padding: const EdgeInsets.all(32),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.error_outline,
+                        size: 80,
+                        color: Colors.red.shade700,
+                      ),
                     ),
                     
                     const SizedBox(height: 32),
                     
-                    // النص
                     const Text(
                       'عذراً، حدث خطأ',
                       style: TextStyle(
@@ -292,65 +451,8 @@ class _ErrorApp extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                     
-                    const SizedBox(height: 32),
-                    
-                    // تفاصيل الخطأ
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.info_outline,
-                                size: 20,
-                                color: Colors.grey.shade600,
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                'تفاصيل تقنية',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey.shade700,
-                                  fontFamily: 'Cairo',
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              error,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
-                                fontFamily: 'monospace',
-                              ),
-                              maxLines: 4,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    
                     const SizedBox(height: 48),
                     
-                    // زر إعادة المحاولة
                     SizedBox(
                       width: double.infinity,
                       height: 56,
@@ -371,7 +473,6 @@ class _ErrorApp extends StatelessWidget {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          elevation: 2,
                         ),
                       ),
                     ),

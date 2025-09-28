@@ -857,8 +857,6 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
         return Icons.location_on;
       case AppPermissionType.batteryOptimization:
         return Icons.battery_charging_full;
-      default:
-        return Icons.security;
     }
   }
   
@@ -870,8 +868,6 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
         return 'الموقع';
       case AppPermissionType.batteryOptimization:
         return 'تحسين البطارية';
-      default:
-        return 'إذن غير معروف';
     }
   }
   
@@ -883,8 +879,6 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
         return 'لحساب أوقات الصلاة حسب موقعك';
       case AppPermissionType.batteryOptimization:
         return 'لضمان عمل الإشعارات في الخلفية';
-      default:
-        return '';
     }
   }
   

@@ -1,5 +1,6 @@
-// lib/app/routes/app_router.dart - مُحدث مع إضافة مسار أسماء الله الحسنى
+// lib/app/routes/app_router.dart - محدث مع Onboarding
 import 'package:athkar_app/features/asma_allah/screens/asma_allah_screen.dart';
+import 'package:athkar_app/features/onboarding/screens/onboarding_flow_screen.dart';
 import 'package:flutter/material.dart';
 import '../../app/themes/app_theme.dart';
 import '../../features/home/screens/home_screen.dart';
@@ -30,12 +31,13 @@ class AppRouter {
   // Main Routes
   static const String initialRoute = '/';
   static const String home = '/';
+  static const String onboarding = '/onboarding';
   
   // Feature Routes
   static const String prayerTimes = '/prayer-times';
   static const String athkar = '/athkar';
-  static const String asmaAllah = '/asma-allah';  // إضافة مسار أسماء الله الحسنى
-  static const String quran = '/quran';  // للتوافق المستقبلي
+  static const String asmaAllah = '/asma-allah';
+  static const String quran = '/quran';
   static const String qibla = '/qibla';
   static const String tasbih = '/tasbih';
   static const String dua = '/dua';
@@ -72,6 +74,10 @@ class AppRouter {
       case home:
         return _fadeRoute(const HomeScreen(), settings);
       
+      // ==================== Onboarding ====================
+      case onboarding:
+        return _fadeRoute(const OnboardingFlowScreen(), settings);
+      
       // ==================== Main Features ====================
       case prayerTimes:
         return _slideRoute(const PrayerTimesScreen(), settings);
@@ -95,7 +101,6 @@ class AppRouter {
       // ==================== أسماء الله الحسنى ====================
       case asmaAllah:
         return _slideRoute(const AsmaAllahScreen(), settings);
-        
         
       case qibla:
         return _slideRoute(const QiblaScreen(), settings);
@@ -433,7 +438,7 @@ class AppRouter {
         return Icons.mosque;
       case 'الأذكار':
         return Icons.menu_book;
-      case 'أسماء الله الحسنى':  // إضافة أيقونة أسماء الله الحسنى
+      case 'أسماء الله الحسنى':
         return Icons.star_purple500_outlined;
       case 'القرآن الكريم':
         return Icons.book;
@@ -494,5 +499,20 @@ class AppRouter {
 
   static void popUntil(bool Function(Route<dynamic>) predicate) {
     return _navigatorKey.currentState!.popUntil(predicate);
+  }
+
+  // ==================== Onboarding Specific Methods ====================
+  
+  /// إعادة تعيين التطبيق وعرض الـ onboarding مرة أخرى
+  static Future<void> resetToOnboarding() async {
+    await _navigatorKey.currentState!.pushNamedAndRemoveUntil(
+      onboarding,
+      (route) => false,
+    );
+  }
+  
+  /// الانتقال للشاشة الرئيسية بعد إكمال الـ onboarding
+  static Future<void> finishOnboarding() async {
+    await _navigatorKey.currentState!.pushReplacementNamed(home);
   }
 }

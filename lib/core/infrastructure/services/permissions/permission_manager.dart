@@ -13,7 +13,6 @@ import '../storage/storage_service.dart';
 /// مدير الأذونات الموحد المحسن - بدون onboarding
 class UnifiedPermissionManager {
   final PermissionService _permissionService;
-  final StorageService _storage;
   
   // Singleton instance
   static UnifiedPermissionManager? _instance;
@@ -44,8 +43,7 @@ class UnifiedPermissionManager {
   UnifiedPermissionManager._({
     required PermissionService permissionService,
     required StorageService storage,
-  }) : _permissionService = permissionService,
-       _storage = storage {
+  }) : _permissionService = permissionService {
     _initialize();
   }
   

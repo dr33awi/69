@@ -22,7 +22,6 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
   late final PermissionService _permissionService;
   
   late Future<List<AthkarCategory>> _futureCategories;
-  bool _notificationsEnabled = false;
 
   @override
   void initState() {
@@ -39,14 +38,9 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
   }
 
   Future<void> _checkNotificationPermission() async {
-    final status = await _permissionService.checkPermissionStatus(
+    await _permissionService.checkPermissionStatus(
       AppPermissionType.notification,
     );
-    if (mounted) {
-      setState(() {
-        _notificationsEnabled = status == AppPermissionStatus.granted;
-      });
-    }
   }
 
   Future<void> _refreshData() async {

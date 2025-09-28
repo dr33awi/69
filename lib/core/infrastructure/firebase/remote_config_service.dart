@@ -45,7 +45,7 @@ class FirebaseRemoteConfigService {
       _isInitialized = true;
       debugPrint('FirebaseRemoteConfigService initialized successfully');
       
-    } catch (e, stackTrace) {
+    } catch (e) {
       debugPrint('Error initializing Firebase Remote Config: $e');
       throw Exception('Failed to initialize Firebase Remote Config: $e');
     }
