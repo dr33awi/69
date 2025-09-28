@@ -1,4 +1,4 @@
-// lib/main.dart - محدث بدون نظام Onboarding
+// lib/main.dart - محدث مع نظام Onboarding
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -14,6 +14,7 @@ import 'app/di/service_locator.dart';
 import 'app/themes/core/theme_notifier.dart';
 import 'core/infrastructure/services/permissions/permission_manager.dart';
 import 'core/infrastructure/services/permissions/widgets/permission_monitor.dart';
+import 'core/infrastructure/services/storage/storage_service.dart';
 
 // Firebase services
 import 'core/infrastructure/firebase/firebase_initializer.dart';
@@ -22,8 +23,10 @@ import 'core/infrastructure/firebase/firebase_initializer.dart';
 import 'app/themes/app_theme.dart';
 import 'app/routes/app_router.dart';
 
-// الشاشة الرئيسية
+// الشاشات
 import 'features/home/screens/home_screen.dart';
+import 'features/onboarding/screens/onboarding_screen.dart';
+import 'features/onboarding/services/onboarding_service.dart';
 
 /// نقطة دخول التطبيق
 Future<void> main() async {
@@ -77,7 +80,14 @@ Future<void> _fastBootstrap() async {
     // 2. الخدمات الأساسية فقط
     await ServiceLocator.initEssential();
     
-    // 3. فحص جاهزية الخدمات الأساسية
+    // 3. تسجيل OnboardingService
+    if (!getIt.isRegistered<OnboardingService>()) {
+      getIt.registerLazySingleton<OnboardingService>(
+        () => OnboardingService(getIt<StorageService>()),
+      );
+    }
+    
+    // 4. فحص جاهزية الخدمات الأساسية
     if (!ServiceLocator.areEssentialServicesReady()) {
       throw Exception('فشل في تهيئة الخدمات الأساسية');
     }
@@ -138,15 +148,51 @@ class AthkarApp extends StatefulWidget {
 
 class _AthkarAppState extends State<AthkarApp> {
   late final UnifiedPermissionManager _permissionManager;
+  late final OnboardingService _onboardingService;
+  
+  Widget? _initialScreen;
+  bool _isInitializing = true;
 
   @override
   void initState() {
     super.initState();
     
     _permissionManager = getIt<UnifiedPermissionManager>();
+    _onboardingService = getIt<OnboardingService>();
     
-    // فحص الأذونات بعد تحميل التطبيق
-    _schedulePermissionCheck();
+    _determineInitialScreen();
+  }
+
+  /// تحديد الشاشة الأولى
+  void _determineInitialScreen() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        // فحص إذا كان يحتاج onboarding
+        if (_onboardingService.shouldShowOnboarding) {
+          debugPrint('🎯 Showing onboarding screen');
+          setState(() {
+            _initialScreen = const OnboardingScreen();
+            _isInitializing = false;
+          });
+        } else {
+          debugPrint('🏠 Showing home screen directly');
+          setState(() {
+            _initialScreen = const HomeScreen();
+            _isInitializing = false;
+          });
+          
+          // فحص الأذونات إذا لم يكن onboarding
+          _schedulePermissionCheck();
+        }
+      } catch (e) {
+        debugPrint('❌ Error determining initial screen: $e');
+        // في حالة الخطأ، انتقل للشاشة الرئيسية
+        setState(() {
+          _initialScreen = const HomeScreen();
+          _isInitializing = false;
+        });
+      }
+    });
   }
 
   /// جدولة فحص الأذونات
@@ -186,8 +232,8 @@ class _AthkarAppState extends State<AthkarApp> {
           // التنقل
           navigatorKey: AppRouter.navigatorKey,
           
-          // الشاشة الرئيسية
-          home: const HomeScreen(),
+          // الشاشة الأولى
+          home: _isInitializing ? const _SplashScreen() : _initialScreen,
           
           // توليد المسارات
           onGenerateRoute: AppRouter.onGenerateRoute,
@@ -200,13 +246,94 @@ class _AthkarAppState extends State<AthkarApp> {
               );
             }
             
-            return PermissionMonitor(
-              showNotifications: true,
-              child: child,
-            );
+            // تطبيق مراقب الأذونات فقط على الشاشة الرئيسية
+            if (child is HomeScreen) {
+              return PermissionMonitor(
+                showNotifications: true,
+                child: child,
+              );
+            }
+            
+            return child;
           },
         );
       },
+    );
+  }
+}
+
+/// شاشة تحميل بسيطة
+class _SplashScreen extends StatelessWidget {
+  const _SplashScreen();
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.primary,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // شعار التطبيق
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  width: 2,
+                ),
+              ),
+              child: const Icon(
+                Icons.mosque,
+                color: Colors.white,
+                size: 60,
+              ),
+            ),
+            
+            const SizedBox(height: 32),
+            
+            // اسم التطبيق
+            const Text(
+              'حصن المسلم',
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                fontFamily: 'Cairo',
+              ),
+            ),
+            
+            const SizedBox(height: 8),
+            
+            // وصف مختصر
+            Text(
+              'رفيقك في الذكر والدعاء',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.white.withValues(alpha: 0.8),
+                fontFamily: 'Cairo',
+              ),
+            ),
+            
+            const SizedBox(height: 48),
+            
+            // مؤشر التحميل
+            SizedBox(
+              width: 32,
+              height: 32,
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Colors.white.withValues(alpha: 0.8),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
