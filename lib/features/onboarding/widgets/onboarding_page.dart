@@ -1,6 +1,5 @@
-// lib/features/onboarding/widgets/onboarding_page.dart
+// lib/features/onboarding/widgets/onboarding_page.dart - محدث
 import 'package:flutter/material.dart';
-import '../../../app/themes/app_theme.dart';
 import '../../../app/themes/widgets/core/islamic_pattern_painter.dart';
 import '../models/onboarding_item.dart';
 
@@ -45,57 +44,34 @@ class OnboardingPage extends StatelessWidget {
               padding: const EdgeInsets.all(32),
               child: Column(
                 children: [
-                  const Spacer(flex: 1),
+                  const SizedBox(height: 40),
                   
                   // الصورة/الأيقونة
                   _buildImage(),
                   
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 40),
                   
                   // العنوان الرئيسي
                   Text(
                     item.title,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w300,
-                      color: Colors.white.withValues(alpha: 0.9),
+                    style: const TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                       height: 1.2,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 32),
                   
-                  // العنوان الفرعي
-                  Text(
-                    item.subtitle,
-                    style: const TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      height: 1.1,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+                  // الميزات (للفئات فقط)
+                  if (item.features != null && item.features!.isNotEmpty) ...[
+                    const SizedBox(height: 32),
+                    _buildFeaturesList(),
+                  ],
                   
-                  const SizedBox(height: 24),
-                  
-                  // الوصف
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      item.description,
-                      style: TextStyle(
-                        fontSize: 17,
-                        color: Colors.white.withValues(alpha: 0.85),
-                        height: 1.6,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  
-                  const Spacer(flex: 2),
+                  const Spacer(),
                   
                   // زر المتابعة
                   _buildActionButton(),
@@ -111,43 +87,98 @@ class OnboardingPage extends StatelessWidget {
   }
 
   Widget _buildImage() {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 800),
+      builder: (context, value, child) {
+        return Transform.scale(
+          scale: 0.8 + (0.2 * value),
+          child: Opacity(
+            opacity: value,
+            child: Container(
+              width: 160,
+              height: 160,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.15),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    blurRadius: 20,
+                    spreadRadius: 5,
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.1),
+                  ),
+                  child: Icon(
+                    item.iconData,
+                    size: 50,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFeaturesList() {
     return Container(
-      width: 200,
-      height: 200,
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white.withValues(alpha: 0.15),
+        color: Colors.white.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.3),
-          width: 2,
+          color: Colors.white.withValues(alpha: 0.2),
+          width: 1,
         ),
       ),
-      child: Center(
-        child: Icon(
-          _getIconForPage(),
-          size: 80,
-          color: Colors.white,
-        ),
+      child: Column(
+        children: item.features!.map((feature) => _buildFeatureItem(feature)).toList(),
       ),
     );
   }
 
-  IconData _getIconForPage() {
-    // يمكن تخصيص الأيقونات حسب المحتوى
-    switch (item.title) {
-      case 'مرحباً بك في':
-        return Icons.mosque;
-      case 'أذكار وأدعية':
-        return Icons.menu_book_rounded;
-      case 'أوقات الصلاة':
-        return Icons.access_time_rounded;
-      case 'القبلة والتسبيح':
-        return Icons.explore_rounded;
-      case 'أذونات مطلوبة':
-        return Icons.security_rounded;
-      default:
-        return Icons.star_rounded;
-    }
+  Widget _buildFeatureItem(String feature) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.8),
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              feature,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white.withValues(alpha: 0.85),
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildActionButton() {
@@ -156,11 +187,25 @@ class OnboardingPage extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
-        color: Colors.white.withValues(alpha: 0.2),
+        gradient: LinearGradient(
+          colors: [
+            Colors.white.withValues(alpha: 0.2),
+            Colors.white.withValues(alpha: 0.1),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         border: Border.all(
           color: Colors.white.withValues(alpha: 0.3),
           width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.white.withValues(alpha: 0.1),
+            blurRadius: 10,
+            spreadRadius: 2,
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,

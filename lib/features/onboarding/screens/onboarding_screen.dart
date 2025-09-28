@@ -1,6 +1,8 @@
-// lib/features/onboarding/screens/onboarding_screen.dart
+// lib/features/onboarding/screens/onboarding_screen.dart - محدث
 import 'package:athkar_app/core/infrastructure/services/permissions/permission_service.dart';
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
+import 'package:athkar_app/features/onboarding/models/onboarding_item.dart';
+import 'package:athkar_app/features/onboarding/widgets/page_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:concentric_transition/concentric_transition.dart';
@@ -10,7 +12,6 @@ import '../../../core/infrastructure/services/permissions/permission_manager.dar
 import '../../../features/home/screens/home_screen.dart';
 import '../data/onboarding_data.dart';
 import '../widgets/onboarding_page.dart';
-import '../widgets/page_indicator.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -26,6 +27,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _currentIndex = 0;
   bool _isLastPage = false;
   bool _isProcessingPermissions = false;
+  final List<OnboardingItem> _items = OnboardingData.items;
 
   @override
   void initState() {
@@ -48,7 +50,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _onPageChanged(int index) {
     setState(() {
       _currentIndex = index;
-      _isLastPage = index == OnboardingData.items.length - 1;
+      _isLastPage = index == _items.length - 1;
     });
     
     HapticFeedback.lightImpact();
@@ -130,26 +132,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  void _skipOnboarding() async {
-    HapticFeedback.lightImpact();
-    
-    try {
-      final storage = getIt<StorageService>();
-      await storage.setBool('onboarding_skipped', true);
-      
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
-      }
-    } catch (e) {
-      debugPrint('Error skipping onboarding: $e');
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
-      }
-    }
+  void _goToPage(int index) {
+    _pageController.animateToPage(
+      index,
+      duration: ThemeConstants.durationNormal,
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -159,20 +147,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           // Concentric Transition PageView
           ConcentricPageView(
-            colors: OnboardingData.items.map((item) => item.primaryColor).toList(),
-            radius: MediaQuery.of(context).size.width * 0.8,
+            colors: _items.map((item) => item.primaryColor).toList(),
+            radius: MediaQuery.of(context).size.width * 0.85,
             curve: Curves.easeInOutCubic,
             duration: ThemeConstants.durationSlow,
-            opacityFactor: 2.0,
-            scaleFactor: 0.2,
-            verticalPosition: 0.8,
+            opacityFactor: 2.5,
+            scaleFactor: 0.3,
+            verticalPosition: 0.82,
             direction: Axis.vertical,
-            itemCount: OnboardingData.items.length,
+            itemCount: _items.length,
             physics: const BouncingScrollPhysics(),
+            onChange: _onPageChanged,
             itemBuilder: (index) {
               return OnboardingPage(
-                item: OnboardingData.items[index],
-                isLastPage: index == OnboardingData.items.length - 1,
+                item: _items[index],
+                isLastPage: index == _items.length - 1,
                 onNext: _handleNext,
                 isProcessing: _isProcessingPermissions,
               );
@@ -180,43 +169,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             onFinish: _handleFinish,
           ),
           
-          // مؤشر الصفحات
+          // مؤشر الصفحات في الأعلى
           Positioned(
-            bottom: MediaQuery.of(context).padding.bottom + 120,
+            top: MediaQuery.of(context).padding.top + 20,
             left: 0,
             right: 0,
             child: Center(
               child: PageIndicator(
                 currentIndex: _currentIndex,
-                itemCount: OnboardingData.items.length,
-                colors: OnboardingData.items.map((item) => item.primaryColor).toList(),
+                items: _items,
+                onPageTap: _goToPage,
               ),
             ),
           ),
           
-          // زر التخطي
-          if (!_isLastPage)
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 16,
-              left: 24,
-              child: TextButton(
-                onPressed: _isProcessingPermissions ? null : _skipOnboarding,
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.white.withValues(alpha: 0.8),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                ),
-                child: const Text(
-                  'تخطي',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
+
         ],
       ),
     );
