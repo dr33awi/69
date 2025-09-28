@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,13 +13,29 @@ import '../services/notifications/models/notification_models.dart' as LocalNotif
 /// معالج الرسائل في الخلفية
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // تهيئة Firebase للمعالج في الخلفية
+  await Firebase.initializeApp();
+  
   debugPrint('Background message received: ${message.messageId}');
   debugPrint('Background message data: ${message.data}');
   debugPrint('Background message notification: ${message.notification?.toMap()}');
   
-  // يمكن إضافة معالجة مخصصة هنا
+  // معالجة البيانات
   if (message.data.isNotEmpty) {
     debugPrint('Processing background message data: ${message.data}');
+    
+    // يمكن إضافة معالجة مخصصة هنا
+    final type = message.data['type'];
+    switch (type) {
+      case 'prayer':
+        debugPrint('Background prayer notification received');
+        break;
+      case 'athkar':
+        debugPrint('Background athkar notification received');
+        break;
+      default:
+        debugPrint('Background notification type: $type');
+    }
   }
 }
 
@@ -28,7 +45,7 @@ class FirebaseMessagingService {
   factory FirebaseMessagingService() => _instance;
   FirebaseMessagingService._internal();
 
-  late FirebaseMessaging _messaging;
+  FirebaseMessaging? _messaging;
   late StorageService _storage;
   NotificationService? _notificationService;
   
@@ -60,6 +77,11 @@ class FirebaseMessagingService {
     try {
       debugPrint('Initializing Firebase Messaging...');
       
+      // فحص إذا كان Firebase مُهيأ
+      if (Firebase.apps.isEmpty) {
+        throw Exception('Firebase not initialized. Call Firebase.initializeApp() first.');
+      }
+      
       _messaging = FirebaseMessaging.instance;
       
       // تعيين معالج الرسائل في الخلفية
@@ -83,33 +105,22 @@ class FirebaseMessagingService {
     } catch (e) {
       debugPrint('Error initializing Firebase Messaging: $e');
       
-      // المحاولة باستخدام Native methods كـ fallback
-      await _initializeWithNativeMethods();
-    }
-  }
-
-  /// تهيئة باستخدام الطرق الأصلية كـ fallback
-  Future<void> _initializeWithNativeMethods() async {
-    try {
-      debugPrint('Trying native Firebase methods...');
+      // في حالة الفشل، نحفظ الحالة كغير متاح
+      _isInitialized = false;
+      _messaging = null;
       
-      // الحصول على التوكن من النظام الأصلي
-      final token = await _fcmChannel.invokeMethod<String>('getToken');
-      if (token != null) {
-        _fcmToken = token;
-        await _storage.setString('fcm_token', token);
-        debugPrint('Got FCM token via native method: ${token.substring(0, 20)}...');
-      }
+      // محاولة حفظ خطأ التهيئة
+      await _storage.setBool('firebase_messaging_available', false);
+      await _storage.setString('firebase_messaging_error', e.toString());
       
-      _isInitialized = true;
-    } catch (e) {
-      debugPrint('Native Firebase methods also failed: $e');
-      throw Exception('Complete Firebase initialization failure: $e');
+      rethrow;
     }
   }
 
   /// طلب أذونات الإشعارات
   Future<void> _requestPermissions() async {
+    if (_messaging == null) return;
+    
     try {
       debugPrint('Requesting Firebase Messaging permissions...');
       
@@ -117,7 +128,7 @@ class FirebaseMessagingService {
       
       if (Platform.isIOS) {
         // أذونات iOS
-        settings = await _messaging.requestPermission(
+        settings = await _messaging!.requestPermission(
           alert: true,
           announcement: false,
           badge: true,
@@ -128,7 +139,7 @@ class FirebaseMessagingService {
         );
       } else {
         // أذونات Android
-        settings = await _messaging.requestPermission(
+        settings = await _messaging!.requestPermission(
           alert: true,
           badge: true,
           sound: true,
@@ -143,29 +154,41 @@ class FirebaseMessagingService {
       
       if (!isGranted) {
         debugPrint('Firebase Messaging permission not granted');
+        
+        // في Android، يمكن أن تكون الأذونات غير مطلوبة صراحة
+        if (Platform.isAndroid && settings.authorizationStatus == AuthorizationStatus.notDetermined) {
+          debugPrint('Android: Permission not determined, assuming granted');
+          await _storage.setBool('fcm_permission_granted', true);
+        }
       }
         
     } catch (e) {
       debugPrint('Error requesting FCM permissions: $e');
+      // في حالة الخطأ، نفترض عدم الإذن
+      await _storage.setBool('fcm_permission_granted', false);
     }
   }
 
   /// الحصول على FCM Token
   Future<void> _getFCMToken() async {
+    if (_messaging == null) return;
+    
     try {
       debugPrint('Getting FCM Token...');
       
-      // محاولة الحصول على التوكن من Firebase مباشرة
-      _fcmToken = await _messaging.getToken();
+      // محاولة الحصول على التوكن
+      _fcmToken = await _messaging!.getToken();
       
-      if (_fcmToken != null) {
+      if (_fcmToken != null && _fcmToken!.isNotEmpty) {
         debugPrint('FCM Token received: ${_fcmToken!.substring(0, 20)}...');
         await _storage.setString('fcm_token', _fcmToken!);
+        await _storage.setBool('firebase_messaging_available', true);
         
         // إرسال التوكن للخادم
         await _sendTokenToServer(_fcmToken!);
       } else {
-        debugPrint('FCM Token is null');
+        debugPrint('FCM Token is null or empty');
+        await _storage.setBool('firebase_messaging_available', false);
         
         // محاولة الحصول على التوكن من النظام الأصلي
         try {
@@ -173,6 +196,7 @@ class FirebaseMessagingService {
           if (nativeToken != null) {
             _fcmToken = nativeToken;
             await _storage.setString('fcm_token', nativeToken);
+            await _storage.setBool('firebase_messaging_available', true);
             debugPrint('Got FCM token from native: ${nativeToken.substring(0, 20)}...');
           }
         } catch (e) {
@@ -181,7 +205,7 @@ class FirebaseMessagingService {
       }
       
       // الاستماع لتحديثات التوكن
-      _messaging.onTokenRefresh.listen((newToken) async {
+      _messaging!.onTokenRefresh.listen((newToken) async {
         try {
           _fcmToken = newToken;
           await _storage.setString('fcm_token', newToken);
@@ -194,6 +218,8 @@ class FirebaseMessagingService {
       
     } catch (e) {
       debugPrint('Error getting FCM token: $e');
+      await _storage.setBool('firebase_messaging_available', false);
+      await _storage.setString('fcm_token_error', e.toString());
     }
   }
 
@@ -204,20 +230,32 @@ class FirebaseMessagingService {
       
       // TODO: إضافة API call لإرسال التوكن للخادم
       // مثال:
-      // await ApiService.sendTokenToServer(token);
+      // final response = await http.post(
+      //   Uri.parse('https://your-server.com/api/register-token'),
+      //   headers: {'Content-Type': 'application/json'},
+      //   body: jsonEncode({
+      //     'token': token,
+      //     'platform': Platform.isIOS ? 'ios' : 'android',
+      //     'device_id': await _getDeviceId(),
+      //   }),
+      // );
       
       // حفظ وقت آخر إرسال
       await _storage.setString('last_token_sent', DateTime.now().toIso8601String());
+      await _storage.setBool('token_sent_to_server', true);
       
       debugPrint('Token sent to server successfully');
       
     } catch (e) {
       debugPrint('Error sending token to server: $e');
+      await _storage.setBool('token_sent_to_server', false);
     }
   }
 
   /// إعداد معالجي الرسائل
   void _setupMessageHandlers() {
+    if (_messaging == null) return;
+    
     try {
       // معالج الرسائل عندما يكون التطبيق مفتوحاً
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -275,7 +313,7 @@ class FirebaseMessagingService {
   /// معالجة الرسالة الأولية عند فتح التطبيق من إشعار
   Future<void> _handleInitialMessage() async {
     try {
-      final initialMessage = await _messaging.getInitialMessage();
+      final initialMessage = await _messaging!.getInitialMessage();
       if (initialMessage != null) {
         debugPrint('App opened from notification: ${initialMessage.messageId}');
         await _handleMessageOpened(initialMessage);
@@ -393,7 +431,6 @@ class FirebaseMessagingService {
   /// معالجة إشعارات التذكير
   Future<void> _processReminderNotification(Map<String, dynamic> data) async {
     final reminderType = data['reminder_type'] as String?;
-
     
     debugPrint('Reminder notification: $reminderType');
     
@@ -436,7 +473,7 @@ class FirebaseMessagingService {
     try {
       // محاولة الاشتراك عبر Firebase أولاً
       try {
-        await _messaging.subscribeToTopic(topic);
+        await _messaging!.subscribeToTopic(topic);
       } catch (e) {
         // محاولة الاشتراك عبر Native method كـ fallback
         await _fcmChannel.invokeMethod('subscribeToTopic', {'topic': topic});
@@ -461,7 +498,7 @@ class FirebaseMessagingService {
     try {
       // محاولة إلغاء الاشتراك عبر Firebase أولاً
       try {
-        await _messaging.unsubscribeFromTopic(topic);
+        await _messaging!.unsubscribeFromTopic(topic);
       } catch (e) {
         // محاولة إلغاء الاشتراك عبر Native method كـ fallback
         await _fcmChannel.invokeMethod('unsubscribeFromTopic', {'topic': topic});
@@ -534,6 +571,22 @@ class FirebaseMessagingService {
     'subscribed_topics': getSubscribedTopics(),
   };
 
+  /// فحص حالة Firebase Messaging للتشخيص
+  Map<String, dynamic> get debugInfo => {
+    'is_initialized': _isInitialized,
+    'messaging_available': _messaging != null,
+    'has_token': _fcmToken != null,
+    'token_length': _fcmToken?.length ?? 0,
+    'permission_granted': _storage.getBool('fcm_permission_granted') ?? false,
+    'token_sent_to_server': _storage.getBool('token_sent_to_server') ?? false,
+    'last_token_sent': _storage.getString('last_token_sent'),
+    'firebase_apps_count': Firebase.apps.length,
+    'subscribed_topics': getSubscribedTopics(),
+    'last_error': _storage.getString('firebase_messaging_error'),
+    'token_error': _storage.getString('fcm_token_error'),
+    'messaging_available_flag': _storage.getBool('firebase_messaging_available') ?? false,
+  };
+
   // ==================== إعادة تهيئة وتنظيف ====================
 
   /// إعادة تهيئة الخدمة
@@ -553,14 +606,37 @@ class FirebaseMessagingService {
     try {
       debugPrint('Manually refreshing FCM token...');
       
-      // حذف التوكن القديم
-      await _messaging.deleteToken();
-      
-      // الحصول على توكن جديد
-      await _getFCMToken();
+      if (_messaging != null) {
+        // حذف التوكن القديم
+        await _messaging!.deleteToken();
+        
+        // الحصول على توكن جديد
+        await _getFCMToken();
+      }
       
     } catch (e) {
       debugPrint('Error refreshing token: $e');
+    }
+  }
+
+  /// اختبار إرسال إشعار محلي
+  Future<void> testLocalNotification() async {
+    if (_notificationService == null) return;
+    
+    try {
+      final testData = LocalNotificationModels.NotificationData(
+        id: 'test_${DateTime.now().millisecondsSinceEpoch}',
+        title: 'اختبار Firebase',
+        body: 'هذا إشعار اختبار من Firebase Messaging Service',
+        category: LocalNotificationModels.NotificationCategory.system,
+        priority: LocalNotificationModels.NotificationPriority.normal,
+      );
+      
+      await _notificationService!.showNotification(testData);
+      debugPrint('Test notification sent successfully');
+      
+    } catch (e) {
+      debugPrint('Error sending test notification: $e');
     }
   }
 
@@ -568,6 +644,7 @@ class FirebaseMessagingService {
   void dispose() {
     _isInitialized = false;
     _fcmToken = null;
+    _messaging = null;
     debugPrint('FirebaseMessagingService disposed');
   }
 }

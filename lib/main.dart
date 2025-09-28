@@ -1,4 +1,4 @@
-// lib/main.dart - محدث مع نظام Onboarding
+// lib/main.dart - محدث مع نظام Onboarding و Firebase صحيح
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -18,6 +18,8 @@ import 'core/infrastructure/services/storage/storage_service.dart';
 
 // Firebase services
 import 'core/infrastructure/firebase/firebase_initializer.dart';
+import 'core/infrastructure/firebase/firebase_messaging_service.dart';
+import 'core/infrastructure/firebase/remote_config_service.dart';
 
 // الثيمات والمسارات
 import 'app/themes/app_theme.dart';
@@ -43,7 +45,7 @@ Future<void> main() async {
   runZonedGuarded(
     () async {
       try {
-        // تهيئة سريعة جداً (< 300ms)
+        // تهيئة سريعة جداً (< 500ms)
         await _fastBootstrap();
         
         // تشغيل التطبيق فوراً
@@ -65,17 +67,24 @@ Future<void> main() async {
   );
 }
 
-/// تهيئة سريعة جداً - أقل من 300ms
+/// تهيئة سريعة جداً - أقل من 500ms
 Future<void> _fastBootstrap() async {
   debugPrint('========== Fast Bootstrap Starting ==========');
   final stopwatch = Stopwatch()..start();
   
   try {
-    // 1. Firebase Core فقط (سريع)
+    // 1. تهيئة Firebase بشكل صحيح
     debugPrint('تهيئة Firebase Core...');
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    
+    // فحص نجاح تهيئة Firebase
+    if (Firebase.apps.isEmpty) {
+      throw Exception('فشل في تهيئة Firebase');
+    }
+    
+    debugPrint('Firebase initialized successfully. Apps: ${Firebase.apps.length}');
     
     // 2. الخدمات الأساسية فقط
     await ServiceLocator.initEssential();
@@ -105,7 +114,7 @@ Future<void> _fastBootstrap() async {
 
 /// تهيئة الخدمات المتبقية في الخلفية
 void _backgroundInitialization() {
-  Future.delayed(const Duration(milliseconds: 800), () async {
+  Future.delayed(const Duration(milliseconds: 1000), () async {
     try {
       debugPrint('========== Background Initialization Starting ==========');
       final stopwatch = Stopwatch()..start();
@@ -113,20 +122,12 @@ void _backgroundInitialization() {
       // 1. تسجيل خدمات الميزات (بدون تهيئة فعلية)
       await ServiceLocator.registerFeatureServices();
       
-      // 2. Firebase services في الخلفية
+      // 2. Firebase services في الخلفية مع فحص صحيح
       try {
-        await ServiceLocator.initializeFirebaseInBackground();
+        await _initializeFirebaseServices();
         debugPrint('✅ Firebase services initialized in background');
       } catch (e) {
         debugPrint('⚠️ Firebase background init warning: $e');
-      }
-      
-      // 3. Firebase additional services
-      try {
-        await FirebaseInitializer.initialize();
-        debugPrint('✅ Firebase additional services initialized');
-      } catch (e) {
-        debugPrint('⚠️ Firebase additional services warning: $e');
       }
       
       stopwatch.stop();
@@ -136,6 +137,50 @@ void _backgroundInitialization() {
       debugPrint('❌ Background initialization error: $e');
     }
   });
+}
+
+/// تهيئة خدمات Firebase بشكل صحيح
+Future<void> _initializeFirebaseServices() async {
+  try {
+    // فحص إذا كان Firebase مُهيأ
+    if (Firebase.apps.isEmpty) {
+      debugPrint('Firebase not initialized, skipping services');
+      return;
+    }
+    
+    // تهيئة Firebase services عبر Service Locator
+    await ServiceLocator.initializeFirebaseInBackground();
+    
+    // طباعة حالة الخدمات للتشخيص
+    _printFirebaseStatus();
+    
+  } catch (e) {
+    debugPrint('Error initializing Firebase services: $e');
+  }
+}
+
+/// طباعة حالة Firebase للتشخيص
+void _printFirebaseStatus() {
+  try {
+    debugPrint('========== Firebase Status ==========');
+    debugPrint('Firebase Apps: ${Firebase.apps.length}');
+    
+    for (final app in Firebase.apps) {
+      debugPrint('App: ${app.name}, Options: ${app.options.projectId}');
+    }
+    
+    // فحص الخدمات المسجلة
+    final hasMessaging = getIt.isRegistered<FirebaseMessagingService>();
+    final hasRemoteConfig = getIt.isRegistered<FirebaseRemoteConfigService>();
+    
+    debugPrint('Firebase Messaging Service: ${hasMessaging ? "مسجلة" : "غير مسجلة"}');
+    debugPrint('Firebase Remote Config Service: ${hasRemoteConfig ? "مسجلة" : "غير مسجلة"}');
+    
+    debugPrint('=====================================');
+    
+  } catch (e) {
+    debugPrint('Error printing Firebase status: $e');
+  }
 }
 
 /// التطبيق الرئيسي
@@ -399,6 +444,43 @@ class _ErrorApp extends StatelessWidget {
                         fontFamily: 'Cairo',
                       ),
                       textAlign: TextAlign.center,
+                    ),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // تفاصيل الخطأ
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'تفاصيل الخطأ:',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade700,
+                              fontFamily: 'Cairo',
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            error,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
+                              fontFamily: 'Cairo',
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     
                     const SizedBox(height: 48),
