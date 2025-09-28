@@ -1,4 +1,4 @@
-// lib/features/onboarding/widgets/enhanced_page_indicator.dart
+// lib/features/onboarding/widgets/page_indicator.dart - محدث بدون إيموجي
 import 'package:flutter/material.dart';
 import '../models/onboarding_item.dart';
 
@@ -18,59 +18,18 @@ class PageIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.3),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 15,
-            spreadRadius: 3,
-          ),
-        ],
-      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // مؤشر الصفحة الحالية
-          _buildCurrentPageInfo(),
-          const SizedBox(width: 16),
-          // النقاط
+          // النقاط فقط
           ..._buildDots(),
         ],
       ),
     );
   }
 
-  Widget _buildCurrentPageInfo() {
-    final currentItem = items[currentIndex];
-    
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // الإيموجي
-        Text(
-          currentItem.emoji,
-          style: const TextStyle(fontSize: 20),
-        ),
-        const SizedBox(width: 8),
-        // رقم الصفحة
-        Text(
-          '${currentIndex + 1}/${items.length}',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.white.withValues(alpha: 0.9),
-          ),
-        ),
-      ],
-    );
-  }
+  // تم إزالة دالة _buildCurrentPageInfo() لأنها لم تعد مطلوبة
 
   List<Widget> _buildDots() {
     return List.generate(

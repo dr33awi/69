@@ -1,4 +1,4 @@
-// lib/features/onboarding/data/onboarding_data.dart - محدث بدون subtitle و description
+// lib/features/onboarding/data/onboarding_data.dart - مع دعم Lottie
 import 'package:flutter/material.dart';
 import '../models/onboarding_item.dart';
 import '../../../app/themes/app_theme.dart';
@@ -8,7 +8,8 @@ class OnboardingData {
     // الشاشة الأولى - مرحباً
     OnboardingItem(
       title: 'حصن المسلم',
-      imagePath: 'assets/images/onboarding/welcome.png',
+      lottiePath: 'assets/animations/mosque_welcome.json',
+      useLottie: true,
       primaryColor: AppColors.primary,
       secondaryColor: AppColors.primaryLight,
       darkColor: AppColors.primaryDark,
@@ -20,7 +21,8 @@ class OnboardingData {
     // الشاشة الثانية - الأذكار اليومية
     OnboardingItem(
       title: '🌅 الأذكار اليومية',
-      imagePath: 'assets/images/onboarding/athkar.png',
+      lottiePath: 'assets/animations/book_reading.json',
+      useLottie: true,
       primaryColor: AppColors.getCategoryGradient('athkar').colors[0],
       secondaryColor: AppColors.getCategoryGradient('athkar').colors[1],
       darkColor: AppColors.getCategoryGradient('athkar').colors[1],
@@ -39,7 +41,8 @@ class OnboardingData {
     // الشاشة الثالثة - الأدعية الإسلامية
     OnboardingItem(
       title: '🤲 الأدعية الإسلامية',
-      imagePath: 'assets/images/onboarding/dua.png',
+      lottiePath: 'assets/animations/book_reading.json',
+      useLottie: true,
       primaryColor: AppColors.getCategoryGradient('dua').colors[0],
       secondaryColor: AppColors.getCategoryGradient('dua').colors[1],
       darkColor: AppColors.getCategoryGradient('dua').colors[1],
@@ -58,7 +61,8 @@ class OnboardingData {
     // الشاشة الرابعة - التسبيح الرقمي
     OnboardingItem(
       title: '📿 التسبيح الرقمي',
-      imagePath: 'assets/images/onboarding/tasbih.png',
+      lottiePath: 'assets/animations/tasbih_beads.json',
+      useLottie: true,
       primaryColor: AppColors.getCategoryGradient('tasbih').colors[0],
       secondaryColor: AppColors.getCategoryGradient('tasbih').colors[1],
       darkColor: AppColors.getCategoryGradient('tasbih').colors[1],
@@ -77,7 +81,8 @@ class OnboardingData {
     // الشاشة الخامسة - اتجاه القبلة
     OnboardingItem(
       title: '🧭 اتجاه القبلة',
-      imagePath: 'assets/images/onboarding/qibla.png',
+      lottiePath: 'assets/animations/compass_qibla.json',
+      useLottie: true,
       primaryColor: AppColors.getCategoryGradient('qibla').colors[0],
       secondaryColor: AppColors.getCategoryGradient('qibla').colors[1],
       darkColor: AppColors.getCategoryGradient('qibla').colors[1],
@@ -96,7 +101,8 @@ class OnboardingData {
     // الشاشة السادسة - أوقات الصلاة
     OnboardingItem(
       title: '🕐 أوقات الصلاة',
-      imagePath: 'assets/images/onboarding/prayer.png',
+      lottiePath: 'assets/animations/clock_prayer.json',
+      useLottie: true,
       primaryColor: AppColors.getCategoryGradient('prayer_times').colors[0],
       secondaryColor: AppColors.getCategoryGradient('prayer_times').colors[1],
       darkColor: AppColors.getCategoryGradient('prayer_times').colors[1],
@@ -115,7 +121,8 @@ class OnboardingData {
     // الشاشة السابعة - أسماء الله الحسنى
     OnboardingItem(
       title: '🌟 أسماء الله الحسنى',
-      imagePath: 'assets/images/onboarding/asma.png',
+      lottiePath: 'assets/animations/star_names.json',
+      useLottie: true,
       primaryColor: AppColors.getCategoryGradient('asma_allah').colors[0],
       secondaryColor: AppColors.getCategoryGradient('asma_allah').colors[1],
       darkColor: AppColors.getCategoryGradient('asma_allah').colors[1],
@@ -134,7 +141,8 @@ class OnboardingData {
     // الشاشة الأخيرة - الأذونات
     OnboardingItem(
       title: 'أذونات مطلوبة',
-      imagePath: 'assets/images/onboarding/permissions.png',
+      lottiePath: 'assets/animations/security_shield.json',
+      useLottie: true,
       primaryColor: AppColors.info,
       secondaryColor: Colors.blue.shade300,
       darkColor: Colors.blue.shade700,
@@ -150,4 +158,63 @@ class OnboardingData {
   /// الحصول على شاشات الفئات فقط
   static List<OnboardingItem> get categoryItems => 
       items.where((item) => item.features != null).toList();
+  
+  /// إعدادات خاصة لكل نوع من أنواع Lottie
+  static Map<OnboardingAnimationType, LottieConfig> get lottieConfigs => {
+    OnboardingAnimationType.welcome: const LottieConfig(
+      repeat: true,
+      autoStart: true,
+      speed: 0.8,
+    ),
+    OnboardingAnimationType.dailyAthkar: const LottieConfig(
+      repeat: true,
+      autoStart: true,
+      speed: 1.0,
+    ),
+    OnboardingAnimationType.islamicDuaa: const LottieConfig(
+      repeat: true,
+      autoStart: true,
+      speed: 1.0,
+    ),
+    OnboardingAnimationType.digitalTasbih: const LottieConfig(
+      repeat: true,
+      autoStart: true,
+      speed: 1.2,
+    ),
+    OnboardingAnimationType.qiblaDirection: const LottieConfig(
+      repeat: true,
+      autoStart: true,
+      speed: 0.6, // بطء أكثر للبوصلة
+    ),
+    OnboardingAnimationType.prayerTimes: const LottieConfig(
+      repeat: true,
+      autoStart: true,
+      speed: 1.0,
+    ),
+    OnboardingAnimationType.asmaAlHusna: const LottieConfig(
+      repeat: true,
+      autoStart: true,
+      speed: 0.7,
+    ),
+    OnboardingAnimationType.permissions: const LottieConfig(
+      repeat: false,
+      autoStart: true,
+      speed: 1.0,
+    ),
+  };
+}
+
+/// فئة إعدادات Lottie
+class LottieConfig {
+  final bool repeat;
+  final bool autoStart;
+  final double speed;
+  final Duration? duration;
+  
+  const LottieConfig({
+    this.repeat = true,
+    this.autoStart = true,
+    this.speed = 1.0,
+    this.duration,
+  });
 }
