@@ -122,9 +122,9 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // بناء الإشعار
+        // بناء الإشعار بدون أيقونة مخصصة
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
+            .setSmallIcon(android.R.drawable.ic_dialog_info) // استخدام أيقونة النظام
             .setContentTitle(title)
             .setContentText(body)
             .setAutoCancel(true)
@@ -133,9 +133,9 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
 
-        // إضافة لون للإشعار
+        // إضافة لون للإشعار (لون افتراضي)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            notificationBuilder.setColor(resources.getColor(R.color.notification_color, null))
+            notificationBuilder.color = 0xFF2E7D32.toInt() // اللون الأخضر مباشرة
         }
 
         // عرض الإشعار

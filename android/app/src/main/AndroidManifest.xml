@@ -160,19 +160,11 @@
           android:exported="false"
           android:theme="@style/Theme.AppCompat.Light.Dialog" />
       
-      <!-- ==================== إعدادات Firebase (Android فقط) ==================== -->
+      <!-- ==================== إعدادات Firebase (مبسطة) ==================== -->
       
       <meta-data
           android:name="com.google.firebase.messaging.default_notification_channel_id"
           android:value="athkar_channel_id" />
-
-      <meta-data
-          android:name="com.google.firebase.messaging.default_notification_icon"
-          android:resource="@drawable/ic_notification" />
-
-      <meta-data
-          android:name="com.google.firebase.messaging.default_notification_color"
-          android:resource="@color/notification_color" />
 
       <!-- ==================== إعدادات الموقع ==================== -->
       
