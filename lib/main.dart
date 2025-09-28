@@ -1,7 +1,6 @@
-// lib/main.dart - محسن نهائياً مع Lazy Loading حقيقي
+// lib/main.dart - محسن نهائياً بدون onboarding
 
 import 'dart:async';
-import 'package:athkar_app/core/infrastructure/services/permissions/permission_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -15,7 +14,6 @@ import 'app/di/service_locator.dart';
 import 'app/themes/core/theme_notifier.dart';
 import 'core/infrastructure/services/permissions/permission_manager.dart';
 import 'core/infrastructure/services/permissions/widgets/permission_monitor.dart';
-import 'core/infrastructure/services/permissions/screens/permission_onboarding_screen.dart';
 
 // Firebase services
 import 'core/infrastructure/firebase/firebase_initializer.dart';
@@ -133,7 +131,7 @@ void _backgroundInitialization() {
   });
 }
 
-/// تطبيق محسن مع Lazy Loading حقيقي
+/// تطبيق محسن بدون onboarding
 class AthkarApp extends StatefulWidget {
   const AthkarApp({super.key});
 
@@ -143,53 +141,23 @@ class AthkarApp extends StatefulWidget {
 
 class _AthkarAppState extends State<AthkarApp> {
   late final UnifiedPermissionManager _permissionManager;
-  bool _enableMonitor = true;
-  String? _initialRoute;
   
   @override
   void initState() {
     super.initState();
     
     _permissionManager = getIt<UnifiedPermissionManager>();
-    _initialRoute = _determineInitialRoute();
     
-    // إعداد المراقب
-    if (_permissionManager.isNewUser) {
-      _enableMonitor = false;
-    } else {
-      _scheduleInitialCheck();
-    }
-  }
-  
-  /// تحديد المسار الأولي
-  String _determineInitialRoute() {
-    if (_permissionManager.isNewUser) {
-      debugPrint('مستخدم جديد - عرض شاشة Onboarding');
-      return '/onboarding';
-    }
-    
-    debugPrint('مستخدم عائد - عرض الشاشة الرئيسية');
-    return AppRouter.home;
+    // جدولة الفحص الأولي مع تأخير
+    _scheduleInitialCheck();
   }
   
   /// جدولة الفحص الأولي مع تأخير
   void _scheduleInitialCheck() {
-    Future.delayed(const Duration(seconds: 3), () async {
+    Future.delayed(const Duration(seconds: 2), () async {
       if (mounted && !_permissionManager.hasCheckedThisSession) {
         debugPrint('[AthkarApp] Performing delayed permission check');
         await _permissionManager.performInitialCheck();
-      }
-    });
-  }
-  
-  /// تفعيل المراقب بعد Onboarding
-  void _enableMonitorAfterOnboarding() {
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        setState(() {
-          _enableMonitor = true;
-        });
-        debugPrint('[AthkarApp] Monitor enabled after onboarding');
       }
     });
   }
@@ -220,72 +188,31 @@ class _AthkarAppState extends State<AthkarApp> {
           
           // التنقل
           navigatorKey: AppRouter.navigatorKey,
-          initialRoute: _initialRoute,
           
-          // المسارات
-          routes: {
-            AppRouter.home: (context) => const HomeScreen(),
-            '/onboarding': (context) => _OnboardingWrapper(
-              onComplete: _enableMonitorAfterOnboarding,
-            ),
-          },
+          // الشاشة الرئيسية
+          home: const HomeScreen(),
           
           // توليد المسارات
           onGenerateRoute: AppRouter.onGenerateRoute,
           
           // Builder مع مراقب الأذونات
           builder: (context, child) {
-            if (child == null) return const SizedBox();
-            
-            // عدم تطبيق المراقب على Onboarding
-            final currentRoute = ModalRoute.of(context)?.settings.name;
-            if (currentRoute == '/onboarding') {
-              return child;
-            }
-            
-            // تطبيق المراقب إذا كان مفعلاً
-            if (_enableMonitor) {
-              return PermissionMonitor(
-                showNotifications: true,
-                child: child,
+            // التأكد من وجود child صالح
+            if (child == null) {
+              return const Scaffold(
+                body: Center(
+                  child: CircularProgressIndicator(),
+                ),
               );
             }
             
-            return child;
+            // تطبيق المراقب دائماً
+            return PermissionMonitor(
+              showNotifications: true,
+              child: child,
+            );
           },
         );
-      },
-    );
-  }
-}
-
-/// Wrapper محسن لشاشة Onboarding
-class _OnboardingWrapper extends StatelessWidget {
-  final VoidCallback? onComplete;
-  
-  const _OnboardingWrapper({this.onComplete});
-  
-  @override
-  Widget build(BuildContext context) {
-    final permissionService = getIt<PermissionService>();
-    final permissionManager = getIt<UnifiedPermissionManager>();
-    
-    return PermissionOnboardingScreen(
-      permissionService: permissionService,
-      onComplete: (result) async {
-        await permissionManager.completeOnboarding(
-          skipped: result.skipped,
-          grantedPermissions: result.selectedPermissions,
-        );
-        
-        onComplete?.call();
-        
-        if (context.mounted) {
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRouter.home,
-            (route) => false,
-          );
-        }
       },
     );
   }

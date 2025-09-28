@@ -10,16 +10,13 @@ import 'models/permission_state.dart';
 import 'widgets/permission_dialogs.dart';
 import '../storage/storage_service.dart';
 
-/// مدير الأذونات الموحد المحسن - بدون فحص دوري
+/// مدير الأذونات الموحد المحسن - بدون onboarding
 class UnifiedPermissionManager {
   final PermissionService _permissionService;
   final StorageService _storage;
   
   // Singleton instance
   static UnifiedPermissionManager? _instance;
-  
-  // حالة Onboarding
-  late OnboardingState _onboardingState;
   
   // آخر نتيجة فحص
   PermissionCheckResult? _lastCheckResult;
@@ -66,19 +63,8 @@ class UnifiedPermissionManager {
   
   /// التهيئة
   void _initialize() {
-    _loadOnboardingState();
     _setupPermissionChangeListener();
-    _log('Initialized (Optimized Mode)');
-  }
-  
-  /// تحميل حالة Onboarding
-  void _loadOnboardingState() {
-    _onboardingState = OnboardingState.fromStorage(_storage);
-    _log('Onboarding state loaded', {
-      'isNewUser': _onboardingState.isNewUser,
-      'isCompleted': _onboardingState.isCompleted,
-      'wasSkipped': _onboardingState.wasSkipped,
-    });
+    _log('Initialized (Without Onboarding)');
   }
   
   /// الاستماع لتغييرات الأذونات من PermissionService
@@ -102,10 +88,8 @@ class UnifiedPermissionManager {
   
   // ==================== Getters ====================
   
-  bool get isNewUser => _onboardingState.isNewUser;
   bool get hasCheckedThisSession => _hasCheckedThisSession;
   PermissionCheckResult? get lastCheckResult => _lastCheckResult;
-  OnboardingState get onboardingState => _onboardingState;
   
   // ==================== الدوال الرئيسية ====================
   
@@ -123,12 +107,6 @@ class UnifiedPermissionManager {
     _log('Performing initial check');
     
     try {
-      // إذا كان مستخدم جديد، لا نفحص
-      if (isNewUser) {
-        _log('New user - skipping permission check');
-        return PermissionCheckResult.success();
-      }
-      
       // فحص الأذونات الحرجة فقط
       final result = await _checkCriticalPermissions();
       
@@ -380,31 +358,6 @@ class UnifiedPermissionManager {
     return result;
   }
   
-  /// إكمال Onboarding
-  Future<void> completeOnboarding({
-    bool skipped = false,
-    List<AppPermissionType>? grantedPermissions,
-  }) async {
-    _log('Completing onboarding', {
-      'skipped': skipped,
-      'grantedCount': grantedPermissions?.length ?? 0,
-    });
-    
-    _onboardingState = OnboardingState(
-      isCompleted: !skipped,
-      wasSkipped: skipped,
-      completedAt: DateTime.now(),
-      grantedPermissions: grantedPermissions?.map((p) => p.toString()).toList(),
-    );
-    
-    await _onboardingState.saveToStorage(_storage);
-    
-    // فحص الأذونات بعد Onboarding
-    if (!skipped) {
-      await performInitialCheck();
-    }
-  }
-  
   /// فتح إعدادات التطبيق
   Future<bool> openAppSettings() async {
     _log('Opening app settings');
@@ -418,13 +371,6 @@ class UnifiedPermissionManager {
     _hasCheckedThisSession = false;
     _lastCheckTime = null;
     _lastCheckResult = null;
-    _onboardingState = const OnboardingState();
-    
-    // حذف من التخزين
-    await _storage.remove('permission_onboarding_completed');
-    await _storage.remove('user_skipped_onboarding');
-    await _storage.remove('onboarding_completed_at');
-    await _storage.remove('granted_permissions');
     
     _log('Reset completed');
   }

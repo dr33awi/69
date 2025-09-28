@@ -8,7 +8,7 @@ class ThemeConstants {
   ThemeConstants._();
 
   // ===== استخدام الألوان من AppColors =====
-  static const Color primary = AppColors.primary;
+  static const Color primary = Color(0xFF5D7052);
   static const Color primaryLight = AppColors.primaryLight;
   static const Color primaryDark = AppColors.primaryDark;
   static const Color primarySoft = AppColors.primarySoft;
