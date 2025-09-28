@@ -1,4 +1,4 @@
-// lib/main.dart - محدث مع مراقب التحديث الإجباري
+// lib/main.dart - محدث مع نظام Onboarding و Firebase صحيح
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -17,9 +17,9 @@ import 'core/infrastructure/services/permissions/widgets/permission_monitor.dart
 import 'core/infrastructure/services/storage/storage_service.dart';
 
 // Firebase services
+import 'core/infrastructure/firebase/firebase_initializer.dart';
 import 'core/infrastructure/firebase/firebase_messaging_service.dart';
-import 'core/infrastructure/firebase/widgets/force_update_monitor.dart';
-import 'package:athkar_app/core/infrastructure/firebase/remote_config_service.dart';
+import 'core/infrastructure/firebase/remote_config_service.dart';
 
 // الثيمات والمسارات
 import 'app/themes/app_theme.dart';
@@ -86,32 +86,17 @@ Future<void> _fastBootstrap() async {
     
     debugPrint('Firebase initialized successfully. Apps: ${Firebase.apps.length}');
     
-    // 2. تهيئة Enhanced Remote Config للتحديث الإجباري
-    try {
-      final enhancedConfigService = EnhancedRemoteConfigService();
-      await enhancedConfigService.initialize();
-      
-      // تسجيل الخدمة في Service Locator
-      if (!getIt.isRegistered<EnhancedRemoteConfigService>()) {
-        getIt.registerSingleton<EnhancedRemoteConfigService>(enhancedConfigService);
-      }
-      
-      debugPrint('Enhanced Remote Config initialized ✅');
-    } catch (e) {
-      debugPrint('Enhanced Remote Config initialization failed: $e');
-    }
-    
-    // 3. الخدمات الأساسية فقط
+    // 2. الخدمات الأساسية فقط
     await ServiceLocator.initEssential();
     
-    // 4. تسجيل OnboardingService
+    // 3. تسجيل OnboardingService
     if (!getIt.isRegistered<OnboardingService>()) {
       getIt.registerLazySingleton<OnboardingService>(
         () => OnboardingService(getIt<StorageService>()),
       );
     }
     
-    // 5. فحص جاهزية الخدمات الأساسية
+    // 4. فحص جاهزية الخدمات الأساسية
     if (!ServiceLocator.areEssentialServicesReady()) {
       throw Exception('فشل في تهيئة الخدمات الأساسية');
     }
@@ -186,17 +171,10 @@ void _printFirebaseStatus() {
     
     // فحص الخدمات المسجلة
     final hasMessaging = getIt.isRegistered<FirebaseMessagingService>();
-    final hasEnhancedConfig = getIt.isRegistered<EnhancedRemoteConfigService>();
+    final hasRemoteConfig = getIt.isRegistered<FirebaseRemoteConfigService>();
     
     debugPrint('Firebase Messaging Service: ${hasMessaging ? "مسجلة" : "غير مسجلة"}');
-    debugPrint('Enhanced Remote Config Service: ${hasEnhancedConfig ? "مسجلة" : "غير مسجلة"}');
-    
-    // فحص التحديث الإجباري
-    if (hasEnhancedConfig) {
-      final configService = getIt<EnhancedRemoteConfigService>();
-      final forceUpdateRequired = configService.isForceUpdateRequired();
-      debugPrint('Force Update Required: $forceUpdateRequired');
-    }
+    debugPrint('Firebase Remote Config Service: ${hasRemoteConfig ? "مسجلة" : "غير مسجلة"}');
     
     debugPrint('=====================================');
     
@@ -300,32 +278,31 @@ class _AthkarAppState extends State<AthkarApp> {
           navigatorKey: AppRouter.navigatorKey,
           
           // الشاشة الأولى
-          home: _isInitializing ? const _SplashScreen() : _buildScreenWithMonitors(),
+          home: _isInitializing ? const _SplashScreen() : _initialScreen,
           
           // توليد المسارات
           onGenerateRoute: AppRouter.onGenerateRoute,
+          
+          // Builder مع مراقب الأذونات
+          builder: (context, child) {
+            if (child == null) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+            
+            // تطبيق مراقب الأذونات فقط على الشاشة الرئيسية
+            if (child is HomeScreen) {
+              return PermissionMonitor(
+                showNotifications: true,
+                child: child,
+              );
+            }
+            
+            return child;
+          },
         );
       },
-    );
-  }
-
-  /// بناء الشاشة مع المراقبين
-  Widget _buildScreenWithMonitors() {
-    Widget screen = _initialScreen!;
-    
-    // تطبيق مراقب الأذونات على الشاشة الرئيسية فقط
-    if (screen is HomeScreen) {
-      screen = PermissionMonitor(
-        showNotifications: true,
-        child: screen,
-      );
-    }
-    
-    // تطبيق مراقب التحديث الإجباري على جميع الشاشات
-    return ForceUpdateMonitor(
-      checkOnStart: true,
-      checkInterval: const Duration(minutes: 5), // فحص كل 5 دقائق
-      child: screen,
     );
   }
 }
@@ -451,6 +428,19 @@ class _ErrorApp extends StatelessWidget {
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: Colors.black87,
+                        fontFamily: 'Cairo',
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    const Text(
+                      'حدث خطأ أثناء تهيئة التطبيق\nيرجى إعادة المحاولة',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.black54,
+                        height: 1.5,
                         fontFamily: 'Cairo',
                       ),
                       textAlign: TextAlign.center,
