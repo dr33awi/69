@@ -1,11 +1,10 @@
-// lib/app/app.dart
+// lib/app/app.dart - محدث بدون onboarding
+import 'package:athkar_app/app/routes/app_router.dart';
+import 'package:athkar_app/app/themes/app_theme.dart';
+import 'package:athkar_app/app/themes/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-// استيراد الثيمات
-import 'app_theme.dart';
-import 'constants/app_constants.dart';
-import '../routes/app_router.dart';
 
 class AthkarApp extends StatelessWidget {
   final bool isDarkMode;
