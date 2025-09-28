@@ -43,7 +43,6 @@ class FirebaseMessagingService {
   static const String _athkarTopic = 'athkar_reminders';
   static const String _generalTopic = 'general_notifications';
   static const String _updatesTopicArabic = 'updates_ar';
-  static const String _updatesTopicEnglish = 'updates_en';
 
   /// تهيئة الخدمة
   Future<void> initialize({
@@ -422,13 +421,8 @@ class FirebaseMessagingService {
       // الاشتراك في الموضوع العام
       await subscribeToTopic(_generalTopic);
       
-      // الاشتراك بناءً على اللغة
-      final language = _storage.getString('language') ?? 'ar';
-      if (language == 'ar') {
-        await subscribeToTopic(_updatesTopicArabic);
-      } else {
-        await subscribeToTopic(_updatesTopicEnglish);
-      }
+      // الاشتراك في الموضوع العربي (اللغة الافتراضية)
+      await subscribeToTopic(_updatesTopicArabic);
       
       debugPrint('Default topics subscription completed');
       

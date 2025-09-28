@@ -75,7 +75,6 @@ class SettingsServicesManager {
   bool get prayerNotificationsEnabled => _currentSettings.prayerNotificationsEnabled;
   bool get athkarNotificationsEnabled => _currentSettings.athkarNotificationsEnabled;
   bool get soundEnabled => _currentSettings.soundEnabled;
-  String get language => _currentSettings.language;
   double get fontSize => _currentSettings.fontSize;
   
   // Getter للوصول المباشر لخدمة الأذونات
@@ -132,11 +131,7 @@ class SettingsServicesManager {
     debugPrint('[SettingsManager] Sound toggled - enabled: $enabled');
   }
 
-  Future<void> changeLanguage(String language) async {
-    _currentSettings = _currentSettings.copyWith(language: language);
-    await _saveSettings();
-    debugPrint('[SettingsManager] Language changed - language: $language');
-  }
+
 
   Future<void> changeFontSize(double size) async {
     _currentSettings = _currentSettings.copyWith(fontSize: size);

@@ -306,22 +306,5 @@ class DuaService {
     }
   }
 
-  /// تصدير البيانات
-  Future<Map<String, dynamic>> exportData() async {
-    try {
-      final favorites = getFavoriteDuas();
-      final allDuas = await getAllDuas();
-      final readDuas = allDuas.where((dua) => getDuaReadCount(dua.id) > 0).length;
-      
-      return {
-        'favorites': favorites,
-        'totalDuas': allDuas.length,
-        'readDuas': readDuas,
-        'exportDate': DateTime.now().toIso8601String(),
-      };
-    } catch (e) {
-      debugPrint('خطأ في تصدير بيانات الأدعية: $e');
-      return {};
-    }
-  }
+
 }

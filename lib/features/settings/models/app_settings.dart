@@ -13,7 +13,6 @@ class AppSettings {
   final bool athkarNotificationsEnabled;
   
   // إعدادات أخرى يمكن إضافتها هنا
-  final String language;
   final double fontSize;
   final bool soundEnabled;
 
@@ -23,7 +22,6 @@ class AppSettings {
     this.vibrationEnabled = true,
     this.prayerNotificationsEnabled = true,
     this.athkarNotificationsEnabled = true,
-    this.language = 'ar',
     this.fontSize = 1.0,
     this.soundEnabled = true,
   });
@@ -35,7 +33,6 @@ class AppSettings {
     bool? vibrationEnabled,
     bool? prayerNotificationsEnabled,
     bool? athkarNotificationsEnabled,
-    String? language,
     double? fontSize,
     bool? soundEnabled,
   }) {
@@ -45,7 +42,6 @@ class AppSettings {
       vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
       prayerNotificationsEnabled: prayerNotificationsEnabled ?? this.prayerNotificationsEnabled,
       athkarNotificationsEnabled: athkarNotificationsEnabled ?? this.athkarNotificationsEnabled,
-      language: language ?? this.language,
       fontSize: fontSize ?? this.fontSize,
       soundEnabled: soundEnabled ?? this.soundEnabled,
     );
@@ -59,7 +55,6 @@ class AppSettings {
       'vibrationEnabled': vibrationEnabled,
       'prayerNotificationsEnabled': prayerNotificationsEnabled,
       'athkarNotificationsEnabled': athkarNotificationsEnabled,
-      'language': language,
       'fontSize': fontSize,
       'soundEnabled': soundEnabled,
     };
@@ -73,7 +68,6 @@ class AppSettings {
       vibrationEnabled: json['vibrationEnabled'] ?? true,
       prayerNotificationsEnabled: json['prayerNotificationsEnabled'] ?? true,
       athkarNotificationsEnabled: json['athkarNotificationsEnabled'] ?? true,
-      language: json['language'] ?? 'ar',
       fontSize: (json['fontSize'] ?? 1.0).toDouble(),
       soundEnabled: json['soundEnabled'] ?? true,
     );

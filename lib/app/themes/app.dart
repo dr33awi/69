@@ -9,12 +9,10 @@ import '../routes/app_router.dart';
 
 class AthkarApp extends StatelessWidget {
   final bool isDarkMode;
-  final String language;
   
   const AthkarApp({
     super.key,
     this.isDarkMode = false,
-    this.language = 'ar',
   });
 
   @override
@@ -24,10 +22,9 @@ class AthkarApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      locale: Locale(language),
+      locale: const Locale('ar'),
       supportedLocales: const [
         Locale('ar'), // العربية
-        Locale('en'), // الإنجليزية
       ],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,

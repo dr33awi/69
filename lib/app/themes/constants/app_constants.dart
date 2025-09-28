@@ -162,11 +162,6 @@ class AppConstants {
 
   // ===== الثوابت المفقودة التي يحتاجها التطبيق =====
   
-  // اللغات
-  static const String defaultLanguage = 'ar';
-  static const String arabicLanguage = 'ar';
-  static const String englishLanguage = 'en';
-  
   // مسارات ملفات البيانات
   static const String athkarDataFile = 'assets/data/athkar.json';
   static const String asmaAllahDataFile = 'assets/data/asma_allah.json';
@@ -179,7 +174,6 @@ class AppConstants {
   static const String favoritesKey = 'favorites';
   static const String settingsKey = 'app_settings';
   static const String themeKey = 'theme_mode';
-  static const String languageKey = 'language';
   static const String notificationsKey = 'notifications_enabled';
   static const String locationKey = 'user_location';
   static const String prayerNotificationsKey = 'prayer_notifications';
