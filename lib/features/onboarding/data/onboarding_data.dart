@@ -1,5 +1,6 @@
-// lib/features/onboarding/data/onboarding_data.dart - مع دعم Lottie
+// lib/features/onboarding/data/onboarding_data.dart - مع دعم Lottie محدث
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import '../models/onboarding_item.dart';
 import '../../../app/themes/app_theme.dart';
 
@@ -165,56 +166,154 @@ class OnboardingData {
       repeat: true,
       autoStart: true,
       speed: 0.8,
+      frameRate: 60,
+      enableMergePaths: true,
     ),
     OnboardingAnimationType.dailyAthkar: const LottieConfig(
       repeat: true,
       autoStart: true,
       speed: 1.0,
+      frameRate: 30,
+      enableMergePaths: true,
     ),
     OnboardingAnimationType.islamicDuaa: const LottieConfig(
       repeat: true,
       autoStart: true,
-      speed: 1.0,
+      speed: 0.9,
+      frameRate: 30,
+      enableMergePaths: true,
     ),
     OnboardingAnimationType.digitalTasbih: const LottieConfig(
       repeat: true,
       autoStart: true,
       speed: 1.2,
+      frameRate: 30,
+      enableMergePaths: true,
     ),
     OnboardingAnimationType.qiblaDirection: const LottieConfig(
       repeat: true,
       autoStart: true,
       speed: 0.6, // بطء أكثر للبوصلة
+      frameRate: 24,
+      enableMergePaths: true,
     ),
     OnboardingAnimationType.prayerTimes: const LottieConfig(
       repeat: true,
       autoStart: true,
       speed: 1.0,
+      frameRate: 30,
+      enableMergePaths: true,
     ),
     OnboardingAnimationType.asmaAlHusna: const LottieConfig(
       repeat: true,
       autoStart: true,
       speed: 0.7,
+      frameRate: 24,
+      enableMergePaths: true,
     ),
     OnboardingAnimationType.permissions: const LottieConfig(
-      repeat: false,
+      repeat: false, // مرة واحدة فقط
       autoStart: true,
       speed: 1.0,
+      frameRate: 30,
+      enableMergePaths: true,
     ),
   };
+  
+  /// إعدادات الألوان المخصصة لكل أنيميشن
+  static Map<OnboardingAnimationType, List<Color>> get animationColors => {
+    OnboardingAnimationType.welcome: [
+      Colors.white,
+      Colors.amber.shade100,
+    ],
+    OnboardingAnimationType.dailyAthkar: [
+      Colors.white,
+      Colors.orange.shade100,
+    ],
+    OnboardingAnimationType.islamicDuaa: [
+      Colors.white,
+      Colors.blue.shade100,
+    ],
+    OnboardingAnimationType.digitalTasbih: [
+      Colors.white,
+      Colors.green.shade100,
+    ],
+    OnboardingAnimationType.qiblaDirection: [
+      Colors.white,
+      Colors.purple.shade100,
+    ],
+    OnboardingAnimationType.prayerTimes: [
+      Colors.white,
+      Colors.teal.shade100,
+    ],
+    OnboardingAnimationType.asmaAlHusna: [
+      Colors.white,
+      Colors.yellow.shade100,
+    ],
+    OnboardingAnimationType.permissions: [
+      Colors.white,
+      Colors.blue.shade100,
+    ],
+  };
+  
+  /// التحقق من صحة ملف Lottie
+  static bool isValidLottieFile(String? path) {
+    return path != null && 
+           path.isNotEmpty && 
+           path.endsWith('.json') &&
+           path.startsWith('assets/animations/');
+  }
+  
+  /// الحصول على مسار الأنيميشن الاحتياطي
+  static String getFallbackIconPath(OnboardingAnimationType type) {
+    switch (type) {
+      case OnboardingAnimationType.welcome:
+        return 'assets/icons/mosque.svg';
+      case OnboardingAnimationType.dailyAthkar:
+        return 'assets/icons/sun.svg';
+      case OnboardingAnimationType.islamicDuaa:
+        return 'assets/icons/hands.svg';
+      case OnboardingAnimationType.digitalTasbih:
+        return 'assets/icons/beads.svg';
+      case OnboardingAnimationType.qiblaDirection:
+        return 'assets/icons/compass.svg';
+      case OnboardingAnimationType.prayerTimes:
+        return 'assets/icons/clock.svg';
+      case OnboardingAnimationType.asmaAlHusna:
+        return 'assets/icons/star.svg';
+      case OnboardingAnimationType.permissions:
+        return 'assets/icons/shield.svg';
+      default:
+        return 'assets/icons/default.svg';
+    }
+  }
 }
 
-/// فئة إعدادات Lottie
+/// فئة إعدادات Lottie محدثة
 class LottieConfig {
   final bool repeat;
   final bool autoStart;
   final double speed;
   final Duration? duration;
+  final int frameRate;
+  final bool enableMergePaths;
+  final bool enableApplyingOpacityToLayers;
   
   const LottieConfig({
     this.repeat = true,
     this.autoStart = true,
     this.speed = 1.0,
     this.duration,
+    this.frameRate = 30,
+    this.enableMergePaths = true,
+    this.enableApplyingOpacityToLayers = false,
   });
+  
+  /// تحويل إلى LottieOptions
+  LottieOptions toLottieOptions() {
+    return LottieOptions(
+      enableMergePaths: enableMergePaths,
+      enableApplyingOpacityToLayers: enableApplyingOpacityToLayers,
+    );
+  }
 }

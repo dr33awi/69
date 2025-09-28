@@ -20,78 +20,55 @@ class MainActivity: FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         
-        // Create the DND handler instance
         doNotDisturbHandler = DoNotDisturbHandler(applicationContext)
         
-        // Set up the method channel for Do Not Disturb
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, DND_CHANNEL).setMethodCallHandler(
-            doNotDisturbHandler
-        )
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, DND_CHANNEL)
+            .setMethodCallHandler(doNotDisturbHandler)
         
-        // Set up the events channel for Do Not Disturb status updates
-        EventChannel(flutterEngine.dartExecutor.binaryMessenger, DND_EVENTS_CHANNEL).setStreamHandler(
-            doNotDisturbHandler?.getDndStreamHandler() ?: object : EventChannel.StreamHandler {
-                override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {}
-                override fun onCancel(arguments: Any?) {}
-            }
-        )
+        EventChannel(flutterEngine.dartExecutor.binaryMessenger, DND_EVENTS_CHANNEL)
+            .setStreamHandler(doNotDisturbHandler?.getDndStreamHandler())
         
-        // Set up the method channel for Battery Optimization
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, BATTERY_CHANNEL).setMethodCallHandler { call, result ->
-            when (call.method) {
-                "isBatteryOptimizationEnabled" -> {
-                    result.success(isBatteryOptimizationEnabled())
-                }
-                "requestBatteryOptimizationDisable" -> {
-                    result.success(requestBatteryOptimizationDisable())
-                }
-                else -> {
-                    result.notImplemented()
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, BATTERY_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "isBatteryOptimizationEnabled" -> {
+                        result.success(isBatteryOptimizationEnabled())
+                    }
+                    "requestBatteryOptimizationDisable" -> {
+                        result.success(requestBatteryOptimizationDisable())
+                    }
+                    else -> result.notImplemented()
                 }
             }
-        }
         
-        // Configure notification channels for proper Do Not Disturb handling
         doNotDisturbHandler?.configureNotificationChannelsForDoNotDisturb()
     }
     
     override fun onResume() {
         super.onResume()
-        // Notify listeners about potential DND status changes when app comes to foreground
         doNotDisturbHandler?.notifyDndStatusChange()
     }
     
-    // Check if battery optimization is enabled for the app
     private fun isBatteryOptimizationEnabled(): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-            val packageName = packageName
             return !powerManager.isIgnoringBatteryOptimizations(packageName)
         }
         return false
     }
     
-    // Request to disable battery optimization
     private fun requestBatteryOptimizationDisable(): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val intent = Intent()
-            val packageName = packageName
+            val intent = Intent().apply {
+                action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+                data = Uri.parse("package:$packageName")
+            }
             
-            intent.action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-            intent.data = Uri.parse("package:$packageName")
-            
-            try {
+            return try {
                 startActivity(intent)
-                return true
+                true
             } catch (e: Exception) {
-                // Fallback to battery settings if direct request fails
-                try {
-                    val settingsIntent = Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS)
-                    startActivity(settingsIntent)
-                    return true
-                } catch (e2: Exception) {
-                    return false
-                }
+                false
             }
         }
         return false
