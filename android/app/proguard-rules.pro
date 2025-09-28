@@ -1,55 +1,73 @@
-# ProGuard rules for Flutter app with Firebase
-
-# Keep Flutter classes
+# ==================== Flutter Rules ====================
 -keep class io.flutter.** { *; }
 -keep class io.flutter.plugins.** { *; }
 -keep class io.flutter.embedding.** { *; }
 -keep class io.flutter.util.** { *; }
 -keep class io.flutter.view.** { *; }
 -keep class io.flutter.plugin.** { *; }
+-dontwarn io.flutter.**
 
-# Keep Firebase classes
+# ==================== Firebase Rules ====================
 -keep class com.google.firebase.** { *; }
 -keep class com.google.android.gms.** { *; }
 -dontwarn com.google.firebase.**
 -dontwarn com.google.android.gms.**
 
-# Keep notification classes
+# Firebase Messaging specific
+-keep class com.google.firebase.messaging.** { *; }
+-keep class com.google.firebase.iid.** { *; }
+-keep class com.google.firebase.remoteconfig.** { *; }
+
+# Firebase Analytics
+-keep class com.google.firebase.analytics.** { *; }
+-keep class com.google.android.gms.measurement.** { *; }
+
+# ==================== Notification Classes ====================
 -keep class com.dexterous.flutterlocalnotifications.** { *; }
 -keep class dev.fluttercommunity.plus.androidalarmmanager.** { *; }
+-dontwarn com.dexterous.flutterlocalnotifications.**
 
-# Keep Kotlin metadata
--keepattributes *Annotation*
--keepattributes Signature
--keepattributes InnerClasses
--keepattributes EnclosingMethod
+# ==================== App Specific Classes ====================
+-keep class com.example.test_athkar_app.** { *; }
+-keep class com.example.test_athkar_app.MainActivity { *; }
+-keep class com.example.test_athkar_app.MyFirebaseMessagingService { *; }
+-keep class com.example.test_athkar_app.DoNotDisturbHandler { *; }
 
-# Keep Kotlin classes
+# ==================== Kotlin Rules ====================
 -keep class kotlin.** { *; }
 -keep class kotlinx.** { *; }
 -dontwarn kotlin.**
 -dontwarn kotlinx.**
 
-# Keep protobuf classes
+# Kotlin Metadata
+-keepattributes *Annotation*
+-keepattributes Signature
+-keepattributes InnerClasses
+-keepattributes EnclosingMethod
+-keepattributes RuntimeVisibleAnnotations
+-keepattributes RuntimeVisibleParameterAnnotations
+
+# ==================== Protobuf Rules ====================
 -keep class com.google.protobuf.** { *; }
 -dontwarn com.google.protobuf.**
 
-# Keep main activity and application
--keep class com.example.test_athkar_app.MainActivity { *; }
--keep class com.example.test_athkar_app.DoNotDisturbHandler { *; }
+# ==================== JSON/Gson Rules ====================
+-keepattributes Signature
+-keep class sun.misc.Unsafe { *; }
+-keep class com.google.gson.** { *; }
 
-# Prevent obfuscation of native methods
+# ==================== Native Methods ====================
 -keepclasseswithmembernames class * {
     native <methods>;
 }
 
-# Keep enums
+# ==================== Enums ====================
 -keepclassmembers enum * {
     public static **[] values();
     public static ** valueOf(java.lang.String);
 }
 
-# Keep Serializable classes
+# ==================== Serializable ====================
 -keepclassmembers class * implements java.io.Serializable {
     static final long serialVersionUID;
     private static final java.io.ObjectStreamField[] serialPersistentFields;
@@ -59,7 +77,17 @@
     java.lang.Object readResolve();
 }
 
-# Remove logging
+# ==================== Parcelable ====================
+-keepclassmembers class * implements android.os.Parcelable {
+    public static final ** CREATOR;
+}
+
+# ==================== WebView ====================
+-keepclassmembers class fqcn.of.javascript.interface.for.webview {
+    public *;
+}
+
+# ==================== Remove Logs (Release Only) ====================
 -assumenosideeffects class android.util.Log {
     public static boolean isLoggable(java.lang.String, int);
     public static int v(...);
@@ -68,3 +96,22 @@
     public static int d(...);
     public static int e(...);
 }
+
+# ==================== OkHttp/Retrofit (إذا استخدم) ====================
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-dontwarn retrofit2.**
+
+# ==================== AndroidX ====================
+-keep class androidx.** { *; }
+-dontwarn androidx.**
+
+# ==================== General Rules ====================
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
+
+# تجنب تحذيرات غير مهمة
+-dontwarn javax.annotation.**
+-dontwarn org.conscrypt.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.openjsse.**
