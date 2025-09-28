@@ -1,27 +1,37 @@
-// lib/core/infrastructure/services/firebase/widgets/force_update_screen.dart
+// lib/core/infrastructure/firebase/widgets/enhanced_force_update_screen.dart
 
+import 'dart:io';
+import 'package:athkar_app/core/infrastructure/firebase/remote_config_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
-/// شاشة التحديث الإجباري
-class ForceUpdateScreen extends StatefulWidget {
-  const ForceUpdateScreen({super.key});
+/// شاشة التحديث الإجباري المحسنة
+class EnhancedForceUpdateScreen extends StatefulWidget {
+  final ForceUpdateConfig config;
+  final String currentVersion;
+  
+  const EnhancedForceUpdateScreen({
+    super.key,
+    required this.config,
+    required this.currentVersion,
+  });
 
   @override
-  State<ForceUpdateScreen> createState() => _ForceUpdateScreenState();
+  State<EnhancedForceUpdateScreen> createState() => _EnhancedForceUpdateScreenState();
 }
 
-class _ForceUpdateScreenState extends State<ForceUpdateScreen>
+class _EnhancedForceUpdateScreenState extends State<EnhancedForceUpdateScreen>
     with TickerProviderStateMixin {
   late AnimationController _bounceController;
   late AnimationController _fadeController;
+  late AnimationController _pulseController;
+  
   late Animation<double> _bounceAnimation;
   late Animation<double> _fadeAnimation;
+  late Animation<double> _pulseAnimation;
   
-  String _currentVersion = '';
-  String _targetVersion = '';
+  bool _isUpdating = false;
 
   @override
   void initState() {
@@ -34,6 +44,11 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
     
     _bounceController = AnimationController(
       duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+    
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
     
@@ -53,39 +68,36 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
       curve: Curves.elasticOut,
     ));
     
+    _pulseAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.1,
+    ).animate(CurvedAnimation(
+      parent: _pulseController,
+      curve: Curves.elasticInOut,
+    ));
+    
     // بدء الأنيميشن
     _fadeController.forward();
     Future.delayed(const Duration(milliseconds: 400), () {
       _bounceController.forward();
     });
     
-    _loadVersionInfo();
-  }
-
-  /// تحميل معلومات الإصدار
-  Future<void> _loadVersionInfo() async {
-    try {
-      final packageInfo = await PackageInfo.fromPlatform();
-      setState(() {
-        _currentVersion = packageInfo.version;
-        _targetVersion = '1.1.0'; // يجب الحصول عليه من Remote Config
-      });
-    } catch (e) {
-      debugPrint('Error loading version info: $e');
-    }
+    // أنيميشن النبض المستمر
+    _pulseController.repeat(reverse: true);
   }
 
   @override
   void dispose() {
     _bounceController.dispose();
     _fadeController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async => false, // منع الرجوع
+      onWillPop: () async => widget.config.dismissible,
       child: Scaffold(
         backgroundColor: const Color(0xFF0D1421),
         body: FadeTransition(
@@ -98,8 +110,10 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                 colors: [
                   Color(0xFF0D1421),
                   Color(0xFF1A2332),
+                  Color(0xFF2C3E50),
                   Color(0xFF0D1421),
                 ],
+                stops: [0.0, 0.3, 0.7, 1.0],
               ),
             ),
             child: SafeArea(
@@ -109,32 +123,46 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                   children: [
                     const Spacer(),
                     
-                    // أيقونة التحديث
+                    // أيقونة التحديث مع أنيميشن
                     ScaleTransition(
                       scale: _bounceAnimation,
-                      child: Container(
-                        padding: const EdgeInsets.all(32),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.blue.shade400,
-                              Colors.blue.shade600,
-                            ],
-                          ),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.blue.withOpacity(0.3),
-                              blurRadius: 20,
-                              spreadRadius: 5,
+                      child: AnimatedBuilder(
+                        animation: _pulseAnimation,
+                        builder: (context, child) {
+                          return Transform.scale(
+                            scale: _pulseAnimation.value,
+                            child: Container(
+                              padding: const EdgeInsets.all(32),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.blue.shade400,
+                                    Colors.blue.shade600,
+                                    Colors.indigo.shade700,
+                                  ],
+                                ),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.blue.withOpacity(0.4),
+                                    blurRadius: 25,
+                                    spreadRadius: 8,
+                                  ),
+                                  BoxShadow(
+                                    color: Colors.indigo.withOpacity(0.3),
+                                    blurRadius: 40,
+                                    spreadRadius: 15,
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.system_update_alt,
+                                size: 80,
+                                color: Colors.white,
+                              ),
                             ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.system_update,
-                          size: 80,
-                          color: Colors.white,
-                        ),
+                          );
+                        },
                       ),
                     ),
                     
@@ -143,9 +171,9 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                     // العنوان الرئيسي
                     FadeTransition(
                       opacity: _fadeAnimation,
-                      child: const Text(
-                        'تحديث مطلوب',
-                        style: TextStyle(
+                      child: Text(
+                        widget.config.title,
+                        style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -161,7 +189,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                     FadeTransition(
                       opacity: _fadeAnimation,
                       child: Text(
-                        'يجب تحديث التطبيق للإصدار الأحدث\nللاستمرار في الاستخدام',
+                        widget.config.message,
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey.shade300,
@@ -181,12 +209,24 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                         width: double.infinity,
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade900.withOpacity(0.5),
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.grey.shade900.withOpacity(0.7),
+                              Colors.grey.shade800.withOpacity(0.5),
+                            ],
+                          ),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: Colors.blue.shade700.withOpacity(0.3),
                             width: 1,
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
                         ),
                         child: Column(
                           children: [
@@ -201,13 +241,23 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                                     fontFamily: 'Cairo',
                                   ),
                                 ),
-                                Text(
-                                  _currentVersion,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontFamily: 'Cairo',
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.shade600.withOpacity(0.8),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    widget.currentVersion,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Cairo',
+                                    ),
                                   ),
                                 ),
                               ],
@@ -232,11 +282,23 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.blue.shade600,
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.green.shade600,
+                                        Colors.green.shade700,
+                                      ],
+                                    ),
                                     borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.green.withOpacity(0.3),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
                                   ),
                                   child: Text(
-                                    _targetVersion,
+                                    widget.config.currentVersion,
                                     style: const TextStyle(
                                       fontSize: 14,
                                       color: Colors.white,
@@ -252,73 +314,81 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                       ),
                     ),
                     
-                    const SizedBox(height: 32),
-                    
-                    // مميزات التحديث
-                    FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.green.shade900.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Colors.green.shade700.withOpacity(0.5),
-                            width: 1,
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.new_releases,
-                                  color: Colors.green.shade300,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'ميزات جديدة في هذا التحديث:',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green.shade300,
-                                    fontFamily: 'Cairo',
-                                  ),
-                                ),
+                    if (widget.config.features.isNotEmpty) ...[
+                      const SizedBox(height: 32),
+                      
+                      // مميزات التحديث
+                      FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.green.shade900.withOpacity(0.4),
+                                Colors.green.shade800.withOpacity(0.2),
                               ],
                             ),
-                            
-                            const SizedBox(height: 12),
-                            
-                            ...['تحسينات الأداء', 'إصلاح الأخطاء', 'ميزات جديدة']
-                                .map((feature) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: Row(
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.green.shade700.withOpacity(0.5),
+                              width: 1,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
                                 children: [
                                   Icon(
-                                    Icons.check_circle,
-                                    color: Colors.green.shade400,
-                                    size: 16,
+                                    Icons.new_releases,
+                                    color: Colors.green.shade300,
+                                    size: 20,
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    feature,
+                                    'ميزات جديدة في هذا التحديث:',
                                     style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey.shade300,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green.shade300,
                                       fontFamily: 'Cairo',
                                     ),
                                   ),
                                 ],
                               ),
-                            )),
-                          ],
+                              
+                              const SizedBox(height: 12),
+                              
+                              ...widget.config.features.map((feature) => Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.check_circle,
+                                      color: Colors.green.shade400,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        feature,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade300,
+                                          fontFamily: 'Cairo',
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                     
                     const Spacer(),
                     
@@ -332,18 +402,29 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                             width: double.infinity,
                             height: 56,
                             child: ElevatedButton.icon(
-                              onPressed: _updateApp,
-                              icon: const Icon(Icons.download),
-                              label: const Text(
-                                'تحديث التطبيق الآن',
-                                style: TextStyle(
+                              onPressed: _isUpdating ? null : _updateApp,
+                              icon: _isUpdating 
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      ),
+                                    )
+                                  : const Icon(Icons.download, size: 24),
+                              label: Text(
+                                _isUpdating ? 'جارٍ فتح المتجر...' : 'تحديث التطبيق الآن',
+                                style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   fontFamily: 'Cairo',
                                 ),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue.shade600,
+                                backgroundColor: _isUpdating 
+                                    ? Colors.grey.shade600 
+                                    : Colors.blue.shade600,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
@@ -354,27 +435,51 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                           ),
                         ),
                         
-                        const SizedBox(height: 16),
-                        
-                        // زر إغلاق التطبيق
-                        FadeTransition(
-                          opacity: _fadeAnimation,
-                          child: TextButton.icon(
-                            onPressed: _exitApp,
-                            icon: Icon(
-                              Icons.exit_to_app,
-                              color: Colors.grey.shade400,
-                            ),
-                            label: Text(
-                              'إغلاق التطبيق',
-                              style: TextStyle(
-                                fontSize: 14,
+                        if (widget.config.dismissible) ...[
+                          const SizedBox(height: 16),
+                          
+                          // زر تأجيل التحديث
+                          FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: TextButton.icon(
+                              onPressed: _dismissUpdate,
+                              icon: Icon(
+                                Icons.schedule,
                                 color: Colors.grey.shade400,
-                                fontFamily: 'Cairo',
+                              ),
+                              label: Text(
+                                'تأجيل التحديث',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade400,
+                                  fontFamily: 'Cairo',
+                                ),
                               ),
                             ),
                           ),
-                        ),
+                        ] else ...[
+                          const SizedBox(height: 16),
+                          
+                          // زر إغلاق التطبيق
+                          FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: TextButton.icon(
+                              onPressed: _exitApp,
+                              icon: Icon(
+                                Icons.exit_to_app,
+                                color: Colors.grey.shade400,
+                              ),
+                              label: Text(
+                                'إغلاق التطبيق',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade400,
+                                  fontFamily: 'Cairo',
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ],
@@ -389,13 +494,24 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
   
   /// تحديث التطبيق
   Future<void> _updateApp() async {
+    if (_isUpdating) return;
+    
+    setState(() {
+      _isUpdating = true;
+    });
+    
     HapticFeedback.mediumImpact();
     
     try {
-      // رابط متجر التطبيقات
-      final String storeUrl = Theme.of(context).platform == TargetPlatform.iOS
-          ? 'https://apps.apple.com/app/id1234567890' // استبدل بـ App Store ID الحقيقي
-          : 'https://play.google.com/store/apps/details?id=com.example.test_athkar_app';
+      // تحديد رابط المتجر حسب المنصة
+      final String storeUrl = Platform.isIOS
+          ? widget.config.updateUrlIos
+          : widget.config.updateUrlAndroid;
+      
+      if (storeUrl.isEmpty) {
+        _showErrorSnackBar('رابط المتجر غير متوفر');
+        return;
+      }
       
       final Uri url = Uri.parse(storeUrl);
       
@@ -409,7 +525,19 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
       }
     } catch (e) {
       _showErrorSnackBar('حدث خطأ أثناء فتح متجر التطبيقات');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUpdating = false;
+        });
+      }
     }
+  }
+  
+  /// تأجيل التحديث
+  void _dismissUpdate() {
+    HapticFeedback.lightImpact();
+    Navigator.of(context).pop();
   }
   
   /// إغلاق التطبيق
@@ -420,6 +548,9 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
         title: const Text(
           'إغلاق التطبيق',
           style: TextStyle(
@@ -428,7 +559,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
           ),
         ),
         content: const Text(
-          'هل أنت متأكد من رغبتك في إغلاق التطبيق؟',
+          'هل أنت متأكد من رغبتك في إغلاق التطبيق؟\nلن تتمكن من استخدام التطبيق بدون التحديث.',
           style: TextStyle(
             color: Colors.grey,
             fontFamily: 'Cairo',
@@ -449,6 +580,9 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
             onPressed: () => SystemNavigator.pop(),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.shade600,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             child: const Text(
               'إغلاق',
@@ -465,6 +599,8 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
   
   /// عرض رسالة خطأ
   void _showErrorSnackBar(String message) {
+    if (!mounted) return;
+    
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
