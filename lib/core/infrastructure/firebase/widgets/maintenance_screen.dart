@@ -1,9 +1,9 @@
-// lib/core/infrastructure/services/firebase/widgets/maintenance_screen.dart
+// lib/core/infrastructure/firebase/widgets/maintenance_screen.dart - مصحح
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// شاشة الصيانة
+/// شاشة الصيانة المصححة
 class MaintenanceScreen extends StatefulWidget {
   const MaintenanceScreen({super.key});
 
@@ -64,8 +64,8 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false, // منع الرجوع
+    return PopScope(
+      canPop: false, // منع الرجوع
       child: Scaffold(
         backgroundColor: const Color(0xFF1E1E1E),
         body: FadeTransition(
@@ -95,10 +95,10 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                         child: Container(
                           padding: const EdgeInsets.all(32),
                           decoration: BoxDecoration(
-                            color: Colors.orange.withOpacity(0.1),
+                            color: Colors.orange.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: Colors.orange.withOpacity(0.3),
+                              color: Colors.orange.withValues(alpha: 0.3),
                               width: 2,
                             ),
                           ),
@@ -196,10 +196,10 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.blue.shade900.withOpacity(0.3),
+                            color: Colors.blue.shade900.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: Colors.blue.shade700.withOpacity(0.5),
+                              color: Colors.blue.shade700.withValues(alpha: 0.5),
                               width: 1,
                             ),
                           ),

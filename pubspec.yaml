@@ -51,7 +51,7 @@ dependencies:
   concentric_transition: ^1.0.3
   lottie: ^3.3.1
   url_launcher: ^6.3.2
-
+  package_info_plus: ^8.3.1
 
 
 dev_dependencies:

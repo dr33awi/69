@@ -1,13 +1,19 @@
-// lib/core/infrastructure/services/firebase/widgets/force_update_screen.dart
+// lib/core/infrastructure/firebase/widgets/force_update_screen.dart - بدون package_info_plus
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+import '../remote_config_service.dart';
 
-/// شاشة التحديث الإجباري
+/// شاشة التحديث الإجباري بدون اعتماد على package_info_plus
 class ForceUpdateScreen extends StatefulWidget {
-  const ForceUpdateScreen({super.key});
+  final FirebaseRemoteConfigService? remoteConfig;
+  
+  const ForceUpdateScreen({
+    super.key,
+    this.remoteConfig,
+  });
 
   @override
   State<ForceUpdateScreen> createState() => _ForceUpdateScreenState();
@@ -20,8 +26,9 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
   late Animation<double> _bounceAnimation;
   late Animation<double> _fadeAnimation;
   
-  String _currentVersion = '';
+  String _currentVersion = '1.0.0'; // يمكن تحديثها يدوياً
   String _targetVersion = '';
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -63,16 +70,11 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
   }
 
   /// تحميل معلومات الإصدار
-  Future<void> _loadVersionInfo() async {
-    try {
-      final packageInfo = await PackageInfo.fromPlatform();
-      setState(() {
-        _currentVersion = packageInfo.version;
-        _targetVersion = '1.1.0'; // يجب الحصول عليه من Remote Config
-      });
-    } catch (e) {
-      debugPrint('Error loading version info: $e');
-    }
+  void _loadVersionInfo() {
+    setState(() {
+      // الحصول على الإصدار المطلوب من Remote Config
+      _targetVersion = widget.remoteConfig?.requiredAppVersion ?? '1.1.0';
+    });
   }
 
   @override
@@ -84,8 +86,8 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false, // منع الرجوع
+    return PopScope(
+      canPop: false, // منع الرجوع
       child: Scaffold(
         backgroundColor: const Color(0xFF0D1421),
         body: FadeTransition(
@@ -124,7 +126,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.blue.withOpacity(0.3),
+                              color: Colors.blue.withValues(alpha: 0.3),
                               blurRadius: 20,
                               spreadRadius: 5,
                             ),
@@ -181,10 +183,10 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                         width: double.infinity,
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade900.withOpacity(0.5),
+                          color: Colors.grey.shade900.withValues(alpha: 0.5),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Colors.blue.shade700.withOpacity(0.3),
+                            color: Colors.blue.shade700.withValues(alpha: 0.3),
                             width: 1,
                           ),
                         ),
@@ -261,10 +263,10 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                         width: double.infinity,
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.green.shade900.withOpacity(0.3),
+                          color: Colors.green.shade900.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Colors.green.shade700.withOpacity(0.5),
+                            color: Colors.green.shade700.withValues(alpha: 0.5),
                             width: 1,
                           ),
                         ),
@@ -332,11 +334,20 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                             width: double.infinity,
                             height: 56,
                             child: ElevatedButton.icon(
-                              onPressed: _updateApp,
-                              icon: const Icon(Icons.download),
-                              label: const Text(
-                                'تحديث التطبيق الآن',
-                                style: TextStyle(
+                              onPressed: _isLoading ? null : _updateApp,
+                              icon: _isLoading 
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      ),
+                                    )
+                                  : const Icon(Icons.download),
+                              label: Text(
+                                _isLoading ? 'جارٍ فتح المتجر...' : 'تحديث التطبيق الآن',
+                                style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   fontFamily: 'Cairo',
@@ -375,6 +386,30 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                             ),
                           ),
                         ),
+                        
+                        const SizedBox(height: 16),
+                        
+                        // زر فحص التحديث (للتطوير)
+                        if (widget.remoteConfig != null)
+                          FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: TextButton.icon(
+                              onPressed: _checkForUpdates,
+                              icon: Icon(
+                                Icons.refresh,
+                                color: Colors.orange.shade400,
+                                size: 18,
+                              ),
+                              label: Text(
+                                'فحص التحديثات',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.orange.shade400,
+                                  fontFamily: 'Cairo',
+                                ),
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ],
@@ -389,13 +424,16 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
   
   /// تحديث التطبيق
   Future<void> _updateApp() async {
+    if (_isLoading) return;
+    
+    setState(() => _isLoading = true);
     HapticFeedback.mediumImpact();
     
     try {
       // رابط متجر التطبيقات
-      final String storeUrl = Theme.of(context).platform == TargetPlatform.iOS
+      final String storeUrl = Platform.isIOS
           ? 'https://apps.apple.com/app/id1234567890' // استبدل بـ App Store ID الحقيقي
-          : 'https://play.google.com/store/apps/details?id=com.example.test_athkar_app';
+          : 'https://play.google.com/store/apps/details?id=com.athkar.app'; // استبدل بـ Package Name الحقيقي
       
       final Uri url = Uri.parse(storeUrl);
       
@@ -409,6 +447,32 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
       }
     } catch (e) {
       _showErrorSnackBar('حدث خطأ أثناء فتح متجر التطبيقات');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+  
+  /// فحص التحديثات يدوياً
+  Future<void> _checkForUpdates() async {
+    try {
+      HapticFeedback.lightImpact();
+      
+      if (widget.remoteConfig != null) {
+        final success = await widget.remoteConfig!.refresh();
+        
+        if (success && !widget.remoteConfig!.isForceUpdateRequired) {
+          // إذا لم يعد التحديث مطلوب، العودة للتطبيق
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
+        } else {
+          _showInfoSnackBar('لا توجد تحديثات جديدة');
+        }
+      }
+    } catch (e) {
+      _showErrorSnackBar('حدث خطأ أثناء فحص التحديثات');
     }
   }
   
@@ -465,6 +529,8 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
   
   /// عرض رسالة خطأ
   void _showErrorSnackBar(String message) {
+    if (!mounted) return;
+    
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -472,6 +538,26 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
           style: const TextStyle(fontFamily: 'Cairo'),
         ),
         backgroundColor: Colors.red.shade600,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+  
+  /// عرض رسالة معلومات
+  void _showInfoSnackBar(String message) {
+    if (!mounted) return;
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(fontFamily: 'Cairo'),
+        ),
+        backgroundColor: Colors.blue.shade600,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(

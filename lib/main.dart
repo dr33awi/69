@@ -1,4 +1,4 @@
-// lib/main.dart - محدث مع نظام Onboarding و Firebase صحيح
+// lib/main.dart - مع مراقب التحديث الإجباري
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -17,9 +17,8 @@ import 'core/infrastructure/services/permissions/widgets/permission_monitor.dart
 import 'core/infrastructure/services/storage/storage_service.dart';
 
 // Firebase services
-import 'core/infrastructure/firebase/firebase_initializer.dart';
-import 'core/infrastructure/firebase/firebase_messaging_service.dart';
-import 'core/infrastructure/firebase/remote_config_service.dart';
+import 'core/infrastructure/firebase/remote_config_manager.dart';
+import 'core/infrastructure/firebase/widgets/app_status_monitor.dart';
 
 // الثيمات والمسارات
 import 'app/themes/app_theme.dart';
@@ -169,13 +168,6 @@ void _printFirebaseStatus() {
       debugPrint('App: ${app.name}, Options: ${app.options.projectId}');
     }
     
-    // فحص الخدمات المسجلة
-    final hasMessaging = getIt.isRegistered<FirebaseMessagingService>();
-    final hasRemoteConfig = getIt.isRegistered<FirebaseRemoteConfigService>();
-    
-    debugPrint('Firebase Messaging Service: ${hasMessaging ? "مسجلة" : "غير مسجلة"}');
-    debugPrint('Firebase Remote Config Service: ${hasRemoteConfig ? "مسجلة" : "غير مسجلة"}');
-    
     debugPrint('=====================================');
     
   } catch (e) {
@@ -277,8 +269,8 @@ class _AthkarAppState extends State<AthkarApp> {
           // التنقل
           navigatorKey: AppRouter.navigatorKey,
           
-          // الشاشة الأولى
-          home: _isInitializing ? const _SplashScreen() : _initialScreen,
+          // الشاشة الأولى مع مراقب التحديث
+          home: _buildHomeWithMonitor(),
           
           // توليد المسارات
           onGenerateRoute: AppRouter.onGenerateRoute,
@@ -304,6 +296,30 @@ class _AthkarAppState extends State<AthkarApp> {
         );
       },
     );
+  }
+
+  /// بناء الشاشة الرئيسية مع مراقب التحديث
+  Widget _buildHomeWithMonitor() {
+    final screen = _isInitializing ? const _SplashScreen() : _initialScreen!;
+    
+    // إذا كان Remote Config متوفر، استخدم مراقب التحديث
+    try {
+      final configManager = getIt.isRegistered<RemoteConfigManager>() 
+          ? getIt<RemoteConfigManager>() 
+          : null;
+      
+      if (configManager != null && configManager.isInitialized) {
+        return AppStatusMonitor(
+          configManager: configManager,
+          child: screen,
+        );
+      }
+    } catch (e) {
+      debugPrint('Remote Config Manager not available: $e');
+    }
+    
+    // إذا لم يكن Remote Config متوفر، عرض الشاشة مباشرة
+    return screen;
   }
 }
 
@@ -444,43 +460,6 @@ class _ErrorApp extends StatelessWidget {
                         fontFamily: 'Cairo',
                       ),
                       textAlign: TextAlign.center,
-                    ),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // تفاصيل الخطأ
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'تفاصيل الخطأ:',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade700,
-                              fontFamily: 'Cairo',
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            error,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
-                              fontFamily: 'Cairo',
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
                     
                     const SizedBox(height: 48),

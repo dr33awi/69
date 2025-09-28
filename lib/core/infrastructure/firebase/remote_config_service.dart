@@ -1,11 +1,11 @@
-// lib/core/infrastructure/firebase/remote_config_service.dart
+// lib/core/infrastructure/firebase/remote_config_service.dart - محدث للـ JSON
 
 import 'dart:async';
 import 'dart:convert';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 
-/// خدمة Firebase Remote Config
+/// خدمة Firebase Remote Config محدثة للتعامل مع JSON
 class FirebaseRemoteConfigService {
   static final FirebaseRemoteConfigService _instance = FirebaseRemoteConfigService._internal();
   factory FirebaseRemoteConfigService() => _instance;
@@ -15,6 +15,7 @@ class FirebaseRemoteConfigService {
   bool _isInitialized = false;
   
   // مفاتيح الإعدادات
+  static const String _keyTestConfig = 'Test'; // اسم المعلمة كما في Firebase
   static const String _keyAppVersion = 'app_version';
   static const String _keyForceUpdate = 'force_update';
   static const String _keyMaintenanceMode = 'maintenance_mode';
@@ -54,6 +55,11 @@ class FirebaseRemoteConfigService {
   /// تعيين القيم الافتراضية
   Future<void> _setDefaults() async {
     await _remoteConfig.setDefaults({
+      _keyTestConfig: jsonEncode({
+        'force_update': false,
+        'app_version': '1.0.0',
+        'maintenance_mode': false,
+      }),
       _keyAppVersion: '1.0.0',
       _keyForceUpdate: false,
       _keyMaintenanceMode: false,
@@ -108,16 +114,67 @@ class FirebaseRemoteConfigService {
     return await _fetchAndActivate();
   }
 
-  // ==================== الحصول على القيم ====================
+  // ==================== الحصول على القيم من JSON الرئيسي ====================
 
-  /// الحصول على إصدار التطبيق المطلوب
-  String get requiredAppVersion => _remoteConfig.getString(_keyAppVersion);
+  /// الحصول على JSON الرئيسي من معلمة "Test"
+  Map<String, dynamic> get testConfig {
+    try {
+      final jsonString = _remoteConfig.getString(_keyTestConfig);
+      if (jsonString.isEmpty) {
+        return {
+          'force_update': false,
+          'app_version': '1.0.0',
+          'maintenance_mode': false,
+        };
+      }
+      return jsonDecode(jsonString) as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('Error parsing test config: $e');
+      return {
+        'force_update': false,
+        'app_version': '1.0.0',
+        'maintenance_mode': false,
+      };
+    }
+  }
 
-  /// هل يجب فرض التحديث
-  bool get isForceUpdateRequired => _remoteConfig.getBool(_keyForceUpdate);
+  /// الحصول على إصدار التطبيق المطلوب من JSON أو معلمة منفصلة
+  String get requiredAppVersion {
+    // محاولة الحصول من JSON أولاً
+    final testConfig = this.testConfig;
+    if (testConfig.containsKey('app_version')) {
+      return testConfig['app_version'] as String? ?? '1.0.0';
+    }
+    
+    // إذا لم يجد، استخدم المعلمة المنفصلة
+    return _remoteConfig.getString(_keyAppVersion);
+  }
 
-  /// هل التطبيق في وضع الصيانة
-  bool get isMaintenanceModeEnabled => _remoteConfig.getBool(_keyMaintenanceMode);
+  /// هل يجب فرض التحديث من JSON أو معلمة منفصلة
+  bool get isForceUpdateRequired {
+    // محاولة الحصول من JSON أولاً
+    final testConfig = this.testConfig;
+    if (testConfig.containsKey('force_update')) {
+      return testConfig['force_update'] as bool? ?? false;
+    }
+    
+    // إذا لم يجد، استخدم المعلمة المنفصلة
+    return _remoteConfig.getBool(_keyForceUpdate);
+  }
+
+  /// هل التطبيق في وضع الصيانة من JSON أو معلمة منفصلة
+  bool get isMaintenanceModeEnabled {
+    // محاولة الحصول من JSON أولاً
+    final testConfig = this.testConfig;
+    if (testConfig.containsKey('maintenance_mode')) {
+      return testConfig['maintenance_mode'] as bool? ?? false;
+    }
+    
+    // إذا لم يجد، استخدم المعلمة المنفصلة
+    return _remoteConfig.getBool(_keyMaintenanceMode);
+  }
+
+  // ==================== باقي الإعدادات ====================
 
   /// إعدادات الميزات
   Map<String, dynamic> get featuresConfig {
@@ -239,7 +296,18 @@ class FirebaseRemoteConfigService {
   /// هل الخدمة مهيأة
   bool get isInitialized => _isInitialized;
 
-  // ==================== معالجة الأخطاء وإعادة التهيئة ====================
+  /// معلومات تشخيصية
+  Map<String, dynamic> get debugInfo => {
+    'is_initialized': _isInitialized,
+    'last_fetch_status': lastFetchStatus.toString(),
+    'last_fetch_time': lastFetchTime.toIso8601String(),
+    'test_config': testConfig,
+    'force_update': isForceUpdateRequired,
+    'maintenance_mode': isMaintenanceModeEnabled,
+    'app_version': requiredAppVersion,
+  };
+
+  // ==================== إعادة تهيئة وتنظيف ====================
 
   /// إعادة تهيئة الخدمة
   Future<void> reinitialize() async {
