@@ -1,12 +1,12 @@
-// lib/core/infrastructure/firebase/remote_config_service.dart - مع روابط التحديث
+// lib/core/infrastructure/firebase/remote_config_service.dart
+// Android Only - iOS support removed
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 
-/// خدمة Firebase Remote Config مع دعم روابط التحديث
+/// خدمة Firebase Remote Config - Android Only
 class FirebaseRemoteConfigService {
   static final FirebaseRemoteConfigService _instance = FirebaseRemoteConfigService._internal();
   factory FirebaseRemoteConfigService() => _instance;
@@ -23,7 +23,6 @@ class FirebaseRemoteConfigService {
   static const String _keyForceUpdate = 'force_update';
   static const String _keyMaintenanceMode = 'maintenance_mode';
   static const String _keyUpdateUrlAndroid = 'update_url_android';
-  static const String _keyUpdateUrlIos = 'update_url_ios';
   
   // باقي المعلمات
   static const String _keyFeaturesConfig = 'features_config';
@@ -47,7 +46,7 @@ class FirebaseRemoteConfigService {
       await _fetchAndActivate();
       
       _isInitialized = true;
-      debugPrint('FirebaseRemoteConfigService initialized successfully');
+      debugPrint('FirebaseRemoteConfigService initialized successfully (Android)');
       _printDebugInfo();
       
     } catch (e) {
@@ -65,15 +64,13 @@ class FirebaseRemoteConfigService {
         'app_version': '1.0.0',
         'maintenance_mode': false,
         'update_url_android': 'https://play.google.com/store/apps/details?id=com.example.test_athkar_app',
-        'update_url_ios': 'https://apps.apple.com/app/id1234567890',
       }),
       
-      // Separate parameters (الطريقة المفضلة)
+      // Separate parameters
       _keyAppVersion: '1.0.0',
       _keyForceUpdate: false,
       _keyMaintenanceMode: false,
       _keyUpdateUrlAndroid: 'https://play.google.com/store/apps/details?id=com.example.test_athkar_app',
-      _keyUpdateUrlIos: 'https://apps.apple.com/app/id1234567890',
       
       // باقي الإعدادات
       _keyFeaturesConfig: jsonEncode({
@@ -150,7 +147,6 @@ class FirebaseRemoteConfigService {
           'app_version': '1.0.0',
           'maintenance_mode': false,
           'update_url_android': 'https://play.google.com/store/apps/details?id=com.example.test_athkar_app',
-          'update_url_ios': 'https://apps.apple.com/app/id1234567890',
         };
       }
       
@@ -162,7 +158,6 @@ class FirebaseRemoteConfigService {
         'app_version': '1.0.0',
         'maintenance_mode': false,
         'update_url_android': 'https://play.google.com/store/apps/details?id=com.example.test_athkar_app',
-        'update_url_ios': 'https://apps.apple.com/app/id1234567890',
       };
     }
   }
@@ -239,14 +234,9 @@ class FirebaseRemoteConfigService {
     return false;
   }
 
-  /// رابط التحديث حسب المنصة
+  /// رابط التحديث - Android Only
   String get updateUrl {
-    if (Platform.isAndroid) {
-      return updateUrlAndroid;
-    } else if (Platform.isIOS) {
-      return updateUrlIos;
-    }
-    return updateUrlAndroid; // افتراضي
+    return updateUrlAndroid;
   }
 
   /// رابط التحديث Android
@@ -268,27 +258,6 @@ class FirebaseRemoteConfigService {
     
     // 3. الافتراضي
     return 'https://play.google.com/store/apps/details?id=com.example.test_athkar_app';
-  }
-
-  /// رابط التحديث iOS
-  String get updateUrlIos {
-    // 1. جرب المعلمة المنفصلة
-    final separateUrl = _remoteConfig.getString(_keyUpdateUrlIos);
-    if (separateUrl.isNotEmpty) {
-      debugPrint('Update URL iOS (separate): $separateUrl');
-      return separateUrl;
-    }
-    
-    // 2. جرب JSON
-    final testConfig = this.testConfig;
-    final jsonUrl = testConfig['update_url_ios'] as String?;
-    if (jsonUrl != null && jsonUrl.isNotEmpty) {
-      debugPrint('Update URL iOS (JSON): $jsonUrl');
-      return jsonUrl;
-    }
-    
-    // 3. الافتراضي
-    return 'https://apps.apple.com/app/id1234567890';
   }
 
   // ==================== باقي الإعدادات ====================
@@ -429,7 +398,7 @@ class FirebaseRemoteConfigService {
 
   void _printDebugInfo() {
     try {
-      debugPrint('========== Remote Config Debug Info ==========');
+      debugPrint('========== Remote Config Debug Info (Android) ==========');
       debugPrint('Is initialized: $_isInitialized');
       debugPrint('Last fetch status: ${_remoteConfig.lastFetchStatus}');
       debugPrint('Last fetch time: ${_remoteConfig.lastFetchTime}');
@@ -439,7 +408,6 @@ class FirebaseRemoteConfigService {
       debugPrint('App Version (separate): ${_remoteConfig.getString(_keyAppVersion)}');
       debugPrint('Maintenance Mode (separate): ${_remoteConfig.getBool(_keyMaintenanceMode)}');
       debugPrint('Update URL Android: ${_remoteConfig.getString(_keyUpdateUrlAndroid)}');
-      debugPrint('Update URL iOS: ${_remoteConfig.getString(_keyUpdateUrlIos)}');
       
       debugPrint('--- Parsed Values ---');
       debugPrint('Final Force Update: $isForceUpdateRequired');
@@ -447,7 +415,7 @@ class FirebaseRemoteConfigService {
       debugPrint('Final Maintenance Mode: $isMaintenanceModeEnabled');
       debugPrint('Final Update URL: $updateUrl');
       
-      debugPrint('===============================================');
+      debugPrint('=======================================================');
     } catch (e) {
       debugPrint('Error printing debug info: $e');
     }
@@ -459,6 +427,7 @@ class FirebaseRemoteConfigService {
 
   Map<String, dynamic> get debugInfo => {
     'is_initialized': _isInitialized,
+    'platform': 'android',
     'last_fetch_status': lastFetchStatus.toString(),
     'last_fetch_time': lastFetchTime.toIso8601String(),
     
@@ -466,7 +435,6 @@ class FirebaseRemoteConfigService {
     'raw_app_version_separate': _remoteConfig.getString(_keyAppVersion),
     'raw_maintenance_mode_separate': _remoteConfig.getBool(_keyMaintenanceMode),
     'raw_update_url_android': _remoteConfig.getString(_keyUpdateUrlAndroid),
-    'raw_update_url_ios': _remoteConfig.getString(_keyUpdateUrlIos),
     
     'final_force_update': isForceUpdateRequired,
     'final_app_version': requiredAppVersion,
@@ -507,6 +475,6 @@ class FirebaseRemoteConfigService {
 
   void dispose() {
     _isInitialized = false;
-    debugPrint('FirebaseRemoteConfigService disposed');
+    debugPrint('FirebaseRemoteConfigService disposed (Android)');
   }
 }

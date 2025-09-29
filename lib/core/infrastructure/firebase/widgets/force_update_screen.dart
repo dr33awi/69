@@ -1,12 +1,12 @@
-// lib/core/infrastructure/firebase/widgets/force_update_screen.dart - بدون package_info_plus
+// lib/core/infrastructure/firebase/widgets/force_update_screen.dart
+// Android Only - iOS support removed
 
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../remote_config_service.dart';
 
-/// شاشة التحديث الإجباري بدون اعتماد على package_info_plus
+/// شاشة التحديث الإجباري - Android Only
 class ForceUpdateScreen extends StatefulWidget {
   final FirebaseRemoteConfigService? remoteConfig;
   
@@ -26,7 +26,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
   late Animation<double> _bounceAnimation;
   late Animation<double> _fadeAnimation;
   
-  String _currentVersion = '1.0.0'; // يمكن تحديثها يدوياً
+  String _currentVersion = '1.0.0';
   String _targetVersion = '';
   bool _isLoading = false;
 
@@ -60,7 +60,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
       curve: Curves.elasticOut,
     ));
     
-    // بدء الأنيميشن
     _fadeController.forward();
     Future.delayed(const Duration(milliseconds: 400), () {
       _bounceController.forward();
@@ -69,10 +68,8 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
     _loadVersionInfo();
   }
 
-  /// تحميل معلومات الإصدار
   void _loadVersionInfo() {
     setState(() {
-      // الحصول على الإصدار المطلوب من Remote Config
       _targetVersion = widget.remoteConfig?.requiredAppVersion ?? '1.1.0';
     });
   }
@@ -87,7 +84,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false, // منع الرجوع
+      canPop: false,
       child: Scaffold(
         backgroundColor: const Color(0xFF0D1421),
         body: FadeTransition(
@@ -142,7 +139,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                     
                     const SizedBox(height: 40),
                     
-                    // العنوان الرئيسي
                     FadeTransition(
                       opacity: _fadeAnimation,
                       child: const Text(
@@ -159,7 +155,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                     
                     const SizedBox(height: 16),
                     
-                    // الوصف
                     FadeTransition(
                       opacity: _fadeAnimation,
                       child: Text(
@@ -324,10 +319,10 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                     
                     const Spacer(),
                     
-                    // أزرار الإجراءات
+                    // الأزرار
                     Column(
                       children: [
-                        // زر التحديث الرئيسي
+                        // زر التحديث
                         ScaleTransition(
                           scale: _bounceAnimation,
                           child: SizedBox(
@@ -367,7 +362,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                         
                         const SizedBox(height: 16),
                         
-                        // زر إغلاق التطبيق
+                        // زر إغلاق
                         FadeTransition(
                           opacity: _fadeAnimation,
                           child: TextButton.icon(
@@ -389,7 +384,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                         
                         const SizedBox(height: 16),
                         
-                        // زر فحص التحديث (للتطوير)
+                        // زر فحص التحديث
                         if (widget.remoteConfig != null)
                           FadeTransition(
                             opacity: _fadeAnimation,
@@ -422,7 +417,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
     );
   }
   
-  /// تحديث التطبيق
+  /// تحديث التطبيق - Android Only
   Future<void> _updateApp() async {
     if (_isLoading) return;
     
@@ -430,10 +425,9 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
     HapticFeedback.mediumImpact();
     
     try {
-      // رابط متجر التطبيقات
-      final String storeUrl = Platform.isIOS
-          ? 'https://apps.apple.com/app/id1234567890' // استبدل بـ App Store ID الحقيقي
-          : 'https://play.google.com/store/apps/details?id=com.athkar.app'; // استبدل بـ Package Name الحقيقي
+      // رابط Google Play Store
+      String storeUrl = widget.remoteConfig?.updateUrlAndroid ?? 
+          'https://play.google.com/store/apps/details?id=com.example.test_athkar_app';
       
       final Uri url = Uri.parse(storeUrl);
       
@@ -443,10 +437,10 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
           mode: LaunchMode.externalApplication,
         );
       } else {
-        _showErrorSnackBar('لا يمكن فتح متجر التطبيقات');
+        _showErrorSnackBar('لا يمكن فتح متجر Google Play');
       }
     } catch (e) {
-      _showErrorSnackBar('حدث خطأ أثناء فتح متجر التطبيقات');
+      _showErrorSnackBar('حدث خطأ أثناء فتح المتجر');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -454,7 +448,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
     }
   }
   
-  /// فحص التحديثات يدوياً
   Future<void> _checkForUpdates() async {
     try {
       HapticFeedback.lightImpact();
@@ -463,7 +456,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
         final success = await widget.remoteConfig!.refresh();
         
         if (success && !widget.remoteConfig!.isForceUpdateRequired) {
-          // إذا لم يعد التحديث مطلوب، العودة للتطبيق
           if (mounted) {
             Navigator.of(context).pop();
           }
@@ -476,7 +468,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
     }
   }
   
-  /// إغلاق التطبيق
   void _exitApp() {
     HapticFeedback.lightImpact();
     
@@ -527,7 +518,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
     );
   }
   
-  /// عرض رسالة خطأ
   void _showErrorSnackBar(String message) {
     if (!mounted) return;
     
@@ -547,7 +537,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
     );
   }
   
-  /// عرض رسالة معلومات
   void _showInfoSnackBar(String message) {
     if (!mounted) return;
     
