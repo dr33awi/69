@@ -8,6 +8,8 @@ import '../../../app/themes/app_theme.dart';
 import '../widgets/category_grid.dart';
 import 'package:athkar_app/features/home/daily_quotes/daily_quotes_card.dart';
 import 'package:athkar_app/features/home/widgets/home_prayer_times_card.dart';
+import 'package:athkar_app/app/di/service_locator.dart';
+import 'package:athkar_app/core/infrastructure/firebase/remote_config_manager.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,20 +21,19 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> 
     with AutomaticKeepAliveClientMixin {
   
-  // للحفاظ على الحالة
   @override
   bool get wantKeepAlive => true;
   
-  // ✅ تحسين: استخدام ValueNotifier بدلاً من setState
   late Timer _timer;
   final ValueNotifier<DateTime> _currentTimeNotifier = ValueNotifier(DateTime.now());
+  
+  // إضافة متغير لحالة التحديث
+  bool _isRefreshing = false;
 
   @override
   void initState() {
     super.initState();
-    // لا نفحص الأذونات هنا - سيتم من PermissionGateway
     
-    // ✅ تحسين: تحديث الوقت بدون إعادة بناء الـ widget كاملاً
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _currentTimeNotifier.value = DateTime.now();
     });
@@ -41,11 +42,10 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void dispose() {
     _timer.cancel();
-    _currentTimeNotifier.dispose(); // ✅ تنظيف الذاكرة
+    _currentTimeNotifier.dispose();
     super.dispose();
   }
 
-  // دالة للحصول على رسالة الترحيب حسب الوقت
   Map<String, dynamic> _getMessage() {
     final hour = _currentTimeNotifier.value.hour;
     
@@ -85,14 +85,11 @@ class _HomeScreenState extends State<HomeScreen>
       body: SafeArea(
         child: Column(
           children: [
-            // Custom AppBar
             _buildCustomAppBar(context),
             
-            // المحتوى الرئيسي
             Expanded(
               child: Stack(
                 children: [
-                  // خلفية ثابتة مبسطة
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -114,7 +111,6 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ),
                   
-                  // المحتوى الرئيسي
                   RefreshIndicator(
                     onRefresh: _handlePullToRefresh,
                     color: context.primaryColor,
@@ -129,17 +125,14 @@ class _HomeScreenState extends State<HomeScreen>
                             delegate: SliverChildListDelegate([
                               ThemeConstants.space2.h,
                               
-                              // بطاقة مواقيت الصلاة
                               const PrayerTimesCard(),
                               
                               ThemeConstants.space4.h,
                               
-                              // بطاقة الاقتباسات
                               const DailyQuotesCard(),
                               
                               ThemeConstants.space6.h,
                               
-                              // عنوان الأقسام
                               _buildSectionsHeader(context),
                               
                               ThemeConstants.space4.h,
@@ -147,10 +140,8 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                         ),
                         
-                        // شبكة الفئات
                         const CategoryGrid(),
                         
-                        // مساحة في الأسفل
                         SliverToBoxAdapter(
                           child: ThemeConstants.space12.h,
                         ),
@@ -172,114 +163,111 @@ class _HomeScreenState extends State<HomeScreen>
     return ValueListenableBuilder<DateTime>(
       valueListenable: _currentTimeNotifier,
       builder: (context, currentTime, child) {
-        // ✅ تحسين: تنسيق التاريخ والوقت فقط عند التحديث
         final arabicFormatter = DateFormat('EEEE, d MMMM yyyy', 'ar');
         final timeFormatter = DateFormat('hh:mm a', 'ar');
         final dateString = arabicFormatter.format(currentTime);
         final timeString = timeFormatter.format(currentTime);
     
-    return Container(
-      padding: const EdgeInsets.all(ThemeConstants.space4),
-      child: Row(
-        children: [
-          // رسالة الترحيب على اليمين (البداية في RTL)
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+        return Container(
+          padding: const EdgeInsets.all(ThemeConstants.space4),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      messageData['icon'] as IconData,
-                      color: context.primaryColor,
-                      size: ThemeConstants.iconMd,
-                    ),
-                    ThemeConstants.space2.w,
-                    Text(
-                      messageData['greeting'] as String,
-                      style: context.titleMedium?.copyWith(
-                        fontWeight: ThemeConstants.bold,
-                        color: context.textPrimaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-                ThemeConstants.space1.h,
-                Padding(
-                  padding: const EdgeInsets.only(right: ThemeConstants.space8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        messageData['message'] as String,
-                        style: context.bodySmall?.copyWith(
-                          color: context.textSecondaryColor,
+                    Row(
+                      children: [
+                        Icon(
+                          messageData['icon'] as IconData,
+                          color: context.primaryColor,
+                          size: ThemeConstants.iconMd,
                         ),
-                      ),
-                      ThemeConstants.space1.h,
-                      Row(
+                        ThemeConstants.space2.w,
+                        Text(
+                          messageData['greeting'] as String,
+                          style: context.titleMedium?.copyWith(
+                            fontWeight: ThemeConstants.bold,
+                            color: context.textPrimaryColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    ThemeConstants.space1.h,
+                    Padding(
+                      padding: const EdgeInsets.only(right: ThemeConstants.space8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.calendar_today_outlined,
-                            size: 12,
-                            color: context.textSecondaryColor.withValues(alpha: 0.7),
-                          ),
-                          ThemeConstants.space1.w,
                           Text(
-                            dateString,
-                            style: context.labelSmall?.copyWith(
-                              color: context.textSecondaryColor.withValues(alpha: 0.8),
+                            messageData['message'] as String,
+                            style: context.bodySmall?.copyWith(
+                              color: context.textSecondaryColor,
                             ),
                           ),
-                          ThemeConstants.space3.w,
-                          Icon(
-                            Icons.access_time,
-                            size: 12,
-                            color: context.textSecondaryColor.withValues(alpha: 0.7),
-                          ),
-                          ThemeConstants.space1.w,
-                          Text(
-                            timeString,
-                            style: context.labelSmall?.copyWith(
-                              color: context.textSecondaryColor.withValues(alpha: 0.8),
-                              fontWeight: FontWeight.w500,
-                            ),
+                          ThemeConstants.space1.h,
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.calendar_today_outlined,
+                                size: 12,
+                                color: context.textSecondaryColor.withValues(alpha: 0.7),
+                              ),
+                              ThemeConstants.space1.w,
+                              Text(
+                                dateString,
+                                style: context.labelSmall?.copyWith(
+                                  color: context.textSecondaryColor.withValues(alpha: 0.8),
+                                ),
+                              ),
+                              ThemeConstants.space3.w,
+                              Icon(
+                                Icons.access_time,
+                                size: 12,
+                                color: context.textSecondaryColor.withValues(alpha: 0.7),
+                              ),
+                              ThemeConstants.space1.w,
+                              Text(
+                                timeString,
+                                style: context.labelSmall?.copyWith(
+                                  color: context.textSecondaryColor.withValues(alpha: 0.8),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
-          // زر الإعدادات على اليسار (النهاية في RTL)
-          Material(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
-            child: InkWell(
-              onTap: () {
-                HapticFeedback.lightImpact();
-                Navigator.pushNamed(context, '/settings');
-              },
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
-              child: Container(
-                padding: const EdgeInsets.all(ThemeConstants.space2),
-                decoration: BoxDecoration(
-                  color: context.cardColor,
-                  borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
-                  border: Border.all(
-                    color: context.dividerColor.withValues(alpha: 0.3),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
+              ),
+              
+              Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                child: InkWell(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    Navigator.pushNamed(context, '/settings');
+                  },
+                  borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                  child: Container(
+                    padding: const EdgeInsets.all(ThemeConstants.space2),
+                    decoration: BoxDecoration(
+                      color: context.cardColor,
+                      borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                      border: Border.all(
+                        color: context.dividerColor.withValues(alpha: 0.3),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
                     child: Icon(
                       Icons.settings_outlined,
                       color: context.textPrimaryColor,
@@ -359,16 +347,116 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // معالج Pull to Refresh - بسيط
+  /// معالج Pull to Refresh - مع تحديث Remote Config
   Future<void> _handlePullToRefresh() async {
+    if (_isRefreshing) return;
+    
+    setState(() => _isRefreshing = true);
     HapticFeedback.mediumImpact();
     
     try {
-      // تأخير قصير لإظهار التحديث
-      await Future.delayed(const Duration(milliseconds: 500));
+      debugPrint('🔄 [HomeScreen] Starting refresh...');
+      
+      // 1. محاولة تحديث Remote Config
+      await _refreshRemoteConfig();
+      
+      // 2. تأخير قصير لتجربة مستخدم أفضل
+      await Future.delayed(const Duration(milliseconds: 800));
+      
+      debugPrint('✅ [HomeScreen] Refresh completed successfully');
       
     } catch (e) {
-      debugPrint('[HomeScreen] خطأ في التحديث: $e');
+      debugPrint('❌ [HomeScreen] Refresh error: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isRefreshing = false);
+      }
     }
+  }
+
+  /// تحديث Remote Config
+  Future<bool> _refreshRemoteConfig() async {
+    try {
+      debugPrint('🔧 [HomeScreen] Fetching Remote Config updates...');
+      
+      // التحقق من توفر RemoteConfigManager
+      if (!getIt.isRegistered<RemoteConfigManager>()) {
+        debugPrint('⚠️ [HomeScreen] RemoteConfigManager not registered');
+        return false;
+      }
+      
+      final configManager = getIt<RemoteConfigManager>();
+      
+      // التحقق من أنه مُهيأ
+      if (!configManager.isInitialized) {
+        debugPrint('⚠️ [HomeScreen] RemoteConfigManager not initialized');
+        return false;
+      }
+      
+      // تحديث الإعدادات
+      final success = await configManager.refreshConfig();
+      
+      if (success) {
+        debugPrint('✅ [HomeScreen] Remote Config updated successfully');
+        
+        // طباعة القيم المحدثة
+        debugPrint('📊 Updated Config Values:');
+        debugPrint('  - Prayer Times Enabled: ${configManager.isPrayerTimesFeatureEnabled}');
+        debugPrint('  - Qibla Enabled: ${configManager.isQiblaFeatureEnabled}');
+        debugPrint('  - Athkar Enabled: ${configManager.isAthkarFeatureEnabled}');
+        debugPrint('  - Notifications Enabled: ${configManager.isNotificationsFeatureEnabled}');
+        debugPrint('  - Maintenance Mode: ${configManager.isMaintenanceModeActive}');
+        debugPrint('  - Force Update: ${configManager.isForceUpdateRequired}');
+        
+        return true;
+      } else {
+        debugPrint('⚠️ [HomeScreen] Remote Config update returned false');
+        return false;
+      }
+      
+    } catch (e) {
+      debugPrint('❌ [HomeScreen] Remote Config refresh error: $e');
+      return false;
+    }
+  }
+
+  /// إظهار رسالة التحديث
+  void _showRefreshMessage(String message, Color color) {
+    if (!mounted) return;
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              color == Colors.green 
+                ? Icons.check_circle_outline 
+                : Icons.info_outline,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontFamily: 'Cairo',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 }
