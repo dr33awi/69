@@ -1,11 +1,12 @@
-// lib/core/infrastructure/firebase/remote_config_service.dart - محسن ومصحح
+// lib/core/infrastructure/firebase/remote_config_service.dart - مع روابط التحديث
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 
-/// خدمة Firebase Remote Config محسنة مع دعم JSON والمعلمات المنفصلة
+/// خدمة Firebase Remote Config مع دعم روابط التحديث
 class FirebaseRemoteConfigService {
   static final FirebaseRemoteConfigService _instance = FirebaseRemoteConfigService._internal();
   factory FirebaseRemoteConfigService() => _instance;
@@ -14,13 +15,17 @@ class FirebaseRemoteConfigService {
   late FirebaseRemoteConfig _remoteConfig;
   bool _isInitialized = false;
   
-  // مفاتيح الإعدادات - طريقتان مختلفتان
-  static const String _keyTestConfig = 'Test'; // JSON method
+  // مفاتيح الإعدادات
+  static const String _keyTestConfig = 'Test';
   
-  // المعلمات المنفصلة (أفضل)
+  // المعلمات المنفصلة
   static const String _keyAppVersion = 'app_version';
   static const String _keyForceUpdate = 'force_update';
   static const String _keyMaintenanceMode = 'maintenance_mode';
+  static const String _keyUpdateUrlAndroid = 'update_url_android';
+  static const String _keyUpdateUrlIos = 'update_url_ios';
+  
+  // باقي المعلمات
   static const String _keyFeaturesConfig = 'features_config';
   static const String _keyNotificationConfig = 'notification_config';
   static const String _keyThemeConfig = 'theme_config';
@@ -33,22 +38,16 @@ class FirebaseRemoteConfigService {
     try {
       _remoteConfig = FirebaseRemoteConfig.instance;
       
-      // إعداد التحديث التلقائي
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(minutes: 1),
-        minimumFetchInterval: const Duration(minutes: 5), // تقليل المدة للاختبار
+        minimumFetchInterval: const Duration(minutes: 5),
       ));
       
-      // تعيين القيم الافتراضية
       await _setDefaults();
-      
-      // جلب الإعدادات الأولية
       await _fetchAndActivate();
       
       _isInitialized = true;
       debugPrint('FirebaseRemoteConfigService initialized successfully');
-      
-      // طباعة معلومات التشخيص
       _printDebugInfo();
       
     } catch (e) {
@@ -57,20 +56,24 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  /// تعيين القيم الافتراضية - دعم الطريقتين
+  /// تعيين القيم الافتراضية
   Future<void> _setDefaults() async {
     await _remoteConfig.setDefaults({
-      // JSON method (طريقة واحدة)
+      // JSON method
       _keyTestConfig: jsonEncode({
         'force_update': false,
         'app_version': '1.0.0',
         'maintenance_mode': false,
+        'update_url_android': 'https://play.google.com/store/apps/details?id=com.example.test_athkar_app',
+        'update_url_ios': 'https://apps.apple.com/app/id1234567890',
       }),
       
-      // Separate parameters method (الطريقة المفضلة)
+      // Separate parameters (الطريقة المفضلة)
       _keyAppVersion: '1.0.0',
       _keyForceUpdate: false,
       _keyMaintenanceMode: false,
+      _keyUpdateUrlAndroid: 'https://play.google.com/store/apps/details?id=com.example.test_athkar_app',
+      _keyUpdateUrlIos: 'https://apps.apple.com/app/id1234567890',
       
       // باقي الإعدادات
       _keyFeaturesConfig: jsonEncode({
@@ -133,64 +136,56 @@ class FirebaseRemoteConfigService {
     return result;
   }
 
-  // ==================== الحصول على القيم - دعم الطريقتين ====================
+  // ==================== الحصول على القيم ====================
 
-  /// الحصول على JSON الرئيسي من معلمة "Test"
+  /// الحصول على JSON الرئيسي
   Map<String, dynamic> get testConfig {
     try {
       final jsonString = _remoteConfig.getString(_keyTestConfig);
       debugPrint('Test config JSON string: $jsonString');
       
       if (jsonString.isEmpty) {
-        debugPrint('Test config is empty, using defaults');
         return {
           'force_update': false,
           'app_version': '1.0.0',
           'maintenance_mode': false,
+          'update_url_android': 'https://play.google.com/store/apps/details?id=com.example.test_athkar_app',
+          'update_url_ios': 'https://apps.apple.com/app/id1234567890',
         };
       }
       
-      final decoded = jsonDecode(jsonString) as Map<String, dynamic>;
-      debugPrint('Test config decoded: $decoded');
-      return decoded;
-      
+      return jsonDecode(jsonString) as Map<String, dynamic>;
     } catch (e) {
       debugPrint('Error parsing test config: $e');
       return {
         'force_update': false,
         'app_version': '1.0.0',
         'maintenance_mode': false,
+        'update_url_android': 'https://play.google.com/store/apps/details?id=com.example.test_athkar_app',
+        'update_url_ios': 'https://apps.apple.com/app/id1234567890',
       };
     }
   }
 
-  /// إصدار التطبيق المطلوب - أولوية للمعلمة المنفصلة
+  /// إصدار التطبيق المطلوب
   String get requiredAppVersion {
-    // 1. جرب المعلمة المنفصلة أولاً
     final separateVersion = _remoteConfig.getString(_keyAppVersion);
     if (separateVersion.isNotEmpty) {
-      debugPrint('App version from separate parameter: $separateVersion');
       return separateVersion;
     }
     
-    // 2. جرب JSON كبديل
-    final testConfig = this.testConfig;
-    final jsonVersion = testConfig['app_version'] as String? ?? '1.0.0';
-    debugPrint('App version from JSON: $jsonVersion');
-    return jsonVersion;
+    return testConfig['app_version'] as String? ?? '1.0.0';
   }
 
-  /// هل يجب فرض التحديث - أولوية للمعلمة المنفصلة
+  /// هل يجب فرض التحديث
   bool get isForceUpdateRequired {
-    // 1. جرب المعلمة المنفصلة أولاً
     try {
       final separateForceUpdate = _remoteConfig.getBool(_keyForceUpdate);
-      debugPrint('Force update from separate parameter: $separateForceUpdate');
       
-      // تحقق إضافي - إذا كانت القيمة true، طباعة معلومات إضافية
       if (separateForceUpdate) {
         debugPrint('🚨 FORCE UPDATE REQUIRED FROM SEPARATE PARAMETER!');
-        debugPrint('Required version: ${requiredAppVersion}');
+        debugPrint('Required version: $requiredAppVersion');
+        debugPrint('Update URL: $updateUrl');
       }
       
       return separateForceUpdate;
@@ -198,11 +193,9 @@ class FirebaseRemoteConfigService {
       debugPrint('Error getting force update from separate parameter: $e');
     }
     
-    // 2. جرب JSON كبديل
     try {
       final testConfig = this.testConfig;
       final jsonForceUpdate = testConfig['force_update'] as bool? ?? false;
-      debugPrint('Force update from JSON: $jsonForceUpdate');
       
       if (jsonForceUpdate) {
         debugPrint('🚨 FORCE UPDATE REQUIRED FROM JSON!');
@@ -216,12 +209,10 @@ class FirebaseRemoteConfigService {
     return false;
   }
 
-  /// هل التطبيق في وضع الصيانة - أولوية للمعلمة المنفصلة
+  /// هل التطبيق في وضع الصيانة
   bool get isMaintenanceModeEnabled {
-    // 1. جرب المعلمة المنفصلة أولاً
     try {
       final separateMaintenance = _remoteConfig.getBool(_keyMaintenanceMode);
-      debugPrint('Maintenance mode from separate parameter: $separateMaintenance');
       
       if (separateMaintenance) {
         debugPrint('🔧 MAINTENANCE MODE ENABLED FROM SEPARATE PARAMETER!');
@@ -232,11 +223,9 @@ class FirebaseRemoteConfigService {
       debugPrint('Error getting maintenance mode from separate parameter: $e');
     }
     
-    // 2. جرب JSON كبديل
     try {
       final testConfig = this.testConfig;
       final jsonMaintenance = testConfig['maintenance_mode'] as bool? ?? false;
-      debugPrint('Maintenance mode from JSON: $jsonMaintenance');
       
       if (jsonMaintenance) {
         debugPrint('🔧 MAINTENANCE MODE ENABLED FROM JSON!');
@@ -250,9 +239,60 @@ class FirebaseRemoteConfigService {
     return false;
   }
 
+  /// رابط التحديث حسب المنصة
+  String get updateUrl {
+    if (Platform.isAndroid) {
+      return updateUrlAndroid;
+    } else if (Platform.isIOS) {
+      return updateUrlIos;
+    }
+    return updateUrlAndroid; // افتراضي
+  }
+
+  /// رابط التحديث Android
+  String get updateUrlAndroid {
+    // 1. جرب المعلمة المنفصلة
+    final separateUrl = _remoteConfig.getString(_keyUpdateUrlAndroid);
+    if (separateUrl.isNotEmpty) {
+      debugPrint('Update URL Android (separate): $separateUrl');
+      return separateUrl;
+    }
+    
+    // 2. جرب JSON
+    final testConfig = this.testConfig;
+    final jsonUrl = testConfig['update_url_android'] as String?;
+    if (jsonUrl != null && jsonUrl.isNotEmpty) {
+      debugPrint('Update URL Android (JSON): $jsonUrl');
+      return jsonUrl;
+    }
+    
+    // 3. الافتراضي
+    return 'https://play.google.com/store/apps/details?id=com.example.test_athkar_app';
+  }
+
+  /// رابط التحديث iOS
+  String get updateUrlIos {
+    // 1. جرب المعلمة المنفصلة
+    final separateUrl = _remoteConfig.getString(_keyUpdateUrlIos);
+    if (separateUrl.isNotEmpty) {
+      debugPrint('Update URL iOS (separate): $separateUrl');
+      return separateUrl;
+    }
+    
+    // 2. جرب JSON
+    final testConfig = this.testConfig;
+    final jsonUrl = testConfig['update_url_ios'] as String?;
+    if (jsonUrl != null && jsonUrl.isNotEmpty) {
+      debugPrint('Update URL iOS (JSON): $jsonUrl');
+      return jsonUrl;
+    }
+    
+    // 3. الافتراضي
+    return 'https://apps.apple.com/app/id1234567890';
+  }
+
   // ==================== باقي الإعدادات ====================
 
-  /// إعدادات الميزات
   Map<String, dynamic> get featuresConfig {
     try {
       final jsonString = _remoteConfig.getString(_keyFeaturesConfig);
@@ -280,7 +320,6 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  /// إعدادات الإشعارات
   Map<String, dynamic> get notificationConfig {
     try {
       final jsonString = _remoteConfig.getString(_keyNotificationConfig);
@@ -304,7 +343,6 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  /// إعدادات الثيم
   Map<String, dynamic> get themeConfig {
     try {
       final jsonString = _remoteConfig.getString(_keyThemeConfig);
@@ -328,7 +366,6 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  /// إعدادات الأذكار
   Map<String, dynamic> get athkarSettings {
     try {
       final jsonString = _remoteConfig.getString(_keyAthkarSettings);
@@ -352,15 +389,13 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  // ==================== الحصول على معلومات مخصصة ====================
+  // ==================== Custom Values ====================
 
-  /// الحصول على قيمة مخصصة
   String getCustomString(String key, {String defaultValue = ''}) {
     final value = _remoteConfig.getString(key);
     return value.isEmpty ? defaultValue : value;
   }
 
-  /// الحصول على قيمة منطقية مخصصة
   bool getCustomBool(String key, {bool defaultValue = false}) {
     try {
       return _remoteConfig.getBool(key);
@@ -370,7 +405,6 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  /// الحصول على قيمة رقمية مخصصة
   int getCustomInt(String key, {int defaultValue = 0}) {
     try {
       return _remoteConfig.getInt(key);
@@ -380,7 +414,6 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  /// الحصول على JSON مخصص
   Map<String, dynamic>? getCustomJson(String key) {
     try {
       final jsonString = _remoteConfig.getString(key);
@@ -392,9 +425,8 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  // ==================== التشخيص والمعلومات ====================
+  // ==================== Debug ====================
 
-  /// طباعة معلومات التشخيص
   void _printDebugInfo() {
     try {
       debugPrint('========== Remote Config Debug Info ==========');
@@ -402,18 +434,18 @@ class FirebaseRemoteConfigService {
       debugPrint('Last fetch status: ${_remoteConfig.lastFetchStatus}');
       debugPrint('Last fetch time: ${_remoteConfig.lastFetchTime}');
       
-      // طباعة جميع القيم الحالية
       debugPrint('--- Current Values ---');
       debugPrint('Force Update (separate): ${_remoteConfig.getBool(_keyForceUpdate)}');
       debugPrint('App Version (separate): ${_remoteConfig.getString(_keyAppVersion)}');
       debugPrint('Maintenance Mode (separate): ${_remoteConfig.getBool(_keyMaintenanceMode)}');
-      debugPrint('Test Config JSON: ${_remoteConfig.getString(_keyTestConfig)}');
+      debugPrint('Update URL Android: ${_remoteConfig.getString(_keyUpdateUrlAndroid)}');
+      debugPrint('Update URL iOS: ${_remoteConfig.getString(_keyUpdateUrlIos)}');
       
-      // طباعة القيم المستخلصة
       debugPrint('--- Parsed Values ---');
       debugPrint('Final Force Update: $isForceUpdateRequired');
       debugPrint('Final App Version: $requiredAppVersion');
       debugPrint('Final Maintenance Mode: $isMaintenanceModeEnabled');
+      debugPrint('Final Update URL: $updateUrl');
       
       debugPrint('===============================================');
     } catch (e) {
@@ -421,50 +453,41 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  /// حالة آخر جلب
   RemoteConfigFetchStatus get lastFetchStatus => _remoteConfig.lastFetchStatus;
-
-  /// وقت آخر جلب ناجح
   DateTime get lastFetchTime => _remoteConfig.lastFetchTime;
-
-  /// هل الخدمة مهيأة
   bool get isInitialized => _isInitialized;
 
-  /// معلومات تشخيصية شاملة
   Map<String, dynamic> get debugInfo => {
     'is_initialized': _isInitialized,
     'last_fetch_status': lastFetchStatus.toString(),
     'last_fetch_time': lastFetchTime.toIso8601String(),
     
-    // القيم الخام
     'raw_force_update_separate': _remoteConfig.getBool(_keyForceUpdate),
     'raw_app_version_separate': _remoteConfig.getString(_keyAppVersion),
     'raw_maintenance_mode_separate': _remoteConfig.getBool(_keyMaintenanceMode),
-    'raw_test_config_json': _remoteConfig.getString(_keyTestConfig),
+    'raw_update_url_android': _remoteConfig.getString(_keyUpdateUrlAndroid),
+    'raw_update_url_ios': _remoteConfig.getString(_keyUpdateUrlIos),
     
-    // القيم المستخلصة
     'final_force_update': isForceUpdateRequired,
     'final_app_version': requiredAppVersion,
     'final_maintenance_mode': isMaintenanceModeEnabled,
+    'final_update_url': updateUrl,
     'test_config_parsed': testConfig,
     
-    // معلومات إضافية
     'features_config': featuresConfig,
   };
 
-  // ==================== إدارة دورة الحياة ====================
+  // ==================== Testing ====================
 
-  /// اختبار فوري - للتطوير فقط
   Future<void> forceRefreshForTesting() async {
     if (!_isInitialized) return;
     
     try {
       debugPrint('🧪 FORCE REFRESH FOR TESTING...');
       
-      // تقليل minimum fetch interval للاختبار
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(seconds: 30),
-        minimumFetchInterval: Duration.zero, // بدون حد أدنى للاختبار
+        minimumFetchInterval: Duration.zero,
       ));
       
       final result = await _remoteConfig.fetchAndActivate();
@@ -477,13 +500,11 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  /// إعادة تهيئة الخدمة
   Future<void> reinitialize() async {
     _isInitialized = false;
     await initialize();
   }
 
-  /// تنظيف الموارد
   void dispose() {
     _isInitialized = false;
     debugPrint('FirebaseRemoteConfigService disposed');

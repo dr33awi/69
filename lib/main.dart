@@ -1,4 +1,4 @@
-// lib/main.dart - بدون سبلاش سكرين
+// lib/main.dart - محسّن لضمان عمل Remote Config و Force Update
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +17,7 @@ import 'core/infrastructure/services/storage/storage_service.dart';
 
 // Firebase services
 import 'core/infrastructure/firebase/remote_config_manager.dart';
+import 'core/infrastructure/firebase/remote_config_service.dart';
 import 'core/infrastructure/firebase/widgets/app_status_monitor.dart';
 
 // الثيمات والمسارات
@@ -43,7 +44,7 @@ Future<void> main() async {
   runZonedGuarded(
     () async {
       try {
-        // تهيئة سريعة جداً (< 500ms)
+        // تهيئة سريعة + Firebase بشكل صحيح
         await _fastBootstrap();
         
         // تشغيل التطبيق فوراً
@@ -65,26 +66,24 @@ Future<void> main() async {
   );
 }
 
-/// تهيئة سريعة جداً - أقل من 500ms
+/// تهيئة سريعة - مع Firebase Remote Config
 Future<void> _fastBootstrap() async {
   debugPrint('========== Fast Bootstrap Starting ==========');
   final stopwatch = Stopwatch()..start();
   
   try {
-    // 1. تهيئة Firebase بشكل صحيح
-    debugPrint('تهيئة Firebase Core...');
+    // 1. تهيئة Firebase FIRST
+    debugPrint('🔥 تهيئة Firebase Core...');
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
     
-    // فحص نجاح تهيئة Firebase
     if (Firebase.apps.isEmpty) {
       throw Exception('فشل في تهيئة Firebase');
     }
+    debugPrint('✅ Firebase initialized. Apps: ${Firebase.apps.length}');
     
-    debugPrint('Firebase initialized successfully. Apps: ${Firebase.apps.length}');
-    
-    // 2. الخدمات الأساسية فقط
+    // 2. الخدمات الأساسية
     await ServiceLocator.initEssential();
     
     // 3. تسجيل OnboardingService
@@ -94,7 +93,10 @@ Future<void> _fastBootstrap() async {
       );
     }
     
-    // 4. فحص جاهزية الخدمات الأساسية
+    // 4. تهيئة Firebase Remote Config IMMEDIATELY (مهم جداً!)
+    await _initializeRemoteConfigEarly();
+    
+    // 5. فحص جاهزية الخدمات
     if (!ServiceLocator.areEssentialServicesReady()) {
       throw Exception('فشل في تهيئة الخدمات الأساسية');
     }
@@ -110,19 +112,61 @@ Future<void> _fastBootstrap() async {
   }
 }
 
+/// تهيئة Remote Config مبكراً (قبل عرض أول شاشة)
+Future<void> _initializeRemoteConfigEarly() async {
+  try {
+    debugPrint('🔧 تهيئة Remote Config مبكراً...');
+    
+    // تسجيل الخدمات إذا لم تكن مسجلة
+    if (!getIt.isRegistered<FirebaseRemoteConfigService>()) {
+      getIt.registerLazySingleton<FirebaseRemoteConfigService>(
+        () => FirebaseRemoteConfigService(),
+      );
+    }
+    
+    if (!getIt.isRegistered<RemoteConfigManager>()) {
+      getIt.registerLazySingleton<RemoteConfigManager>(
+        () => RemoteConfigManager(),
+      );
+    }
+    
+    // تهيئة Remote Config Service
+    final remoteConfigService = getIt<FirebaseRemoteConfigService>();
+    await remoteConfigService.initialize();
+    
+    // تهيئة Manager
+    final configManager = getIt<RemoteConfigManager>();
+    await configManager.initialize(
+      remoteConfig: remoteConfigService,
+      storage: getIt<StorageService>(),
+    );
+    
+    // طباعة القيم الحالية للتأكد
+    debugPrint('📊 Remote Config Status:');
+    debugPrint('  - Force Update: ${remoteConfigService.isForceUpdateRequired}');
+    debugPrint('  - Maintenance: ${remoteConfigService.isMaintenanceModeEnabled}');
+    debugPrint('  - App Version: ${remoteConfigService.requiredAppVersion}');
+    debugPrint('✅ Remote Config initialized successfully');
+    
+  } catch (e) {
+    debugPrint('⚠️ Remote Config early init failed (non-critical): $e');
+    // نستمر حتى لو فشلت - التطبيق سيعمل بدون Remote Config
+  }
+}
+
 /// تهيئة الخدمات المتبقية في الخلفية
 void _backgroundInitialization() {
-  Future.delayed(const Duration(milliseconds: 1000), () async {
+  Future.delayed(const Duration(milliseconds: 500), () async {
     try {
       debugPrint('========== Background Initialization Starting ==========');
       final stopwatch = Stopwatch()..start();
       
-      // 1. تسجيل خدمات الميزات (بدون تهيئة فعلية)
+      // 1. تسجيل خدمات الميزات
       await ServiceLocator.registerFeatureServices();
       
-      // 2. Firebase services في الخلفية مع فحص صحيح
+      // 2. باقي Firebase services
       try {
-        await _initializeFirebaseServices();
+        await ServiceLocator.initializeFirebaseInBackground();
         debugPrint('✅ Firebase services initialized in background');
       } catch (e) {
         debugPrint('⚠️ Firebase background init warning: $e');
@@ -137,44 +181,7 @@ void _backgroundInitialization() {
   });
 }
 
-/// تهيئة خدمات Firebase بشكل صحيح
-Future<void> _initializeFirebaseServices() async {
-  try {
-    // فحص إذا كان Firebase مُهيأ
-    if (Firebase.apps.isEmpty) {
-      debugPrint('Firebase not initialized, skipping services');
-      return;
-    }
-    
-    // تهيئة Firebase services عبر Service Locator
-    await ServiceLocator.initializeFirebaseInBackground();
-    
-    // طباعة حالة الخدمات للتشخيص
-    _printFirebaseStatus();
-    
-  } catch (e) {
-    debugPrint('Error initializing Firebase services: $e');
-  }
-}
-
-/// طباعة حالة Firebase للتشخيص
-void _printFirebaseStatus() {
-  try {
-    debugPrint('========== Firebase Status ==========');
-    debugPrint('Firebase Apps: ${Firebase.apps.length}');
-    
-    for (final app in Firebase.apps) {
-      debugPrint('App: ${app.name}, Options: ${app.options.projectId}');
-    }
-    
-    debugPrint('=====================================');
-    
-  } catch (e) {
-    debugPrint('Error printing Firebase status: $e');
-  }
-}
-
-/// التطبيق الرئيسي - بدون سبلاش سكرين
+/// التطبيق الرئيسي
 class AthkarApp extends StatefulWidget {
   const AthkarApp({super.key});
 
@@ -185,6 +192,8 @@ class AthkarApp extends StatefulWidget {
 class _AthkarAppState extends State<AthkarApp> {
   late final UnifiedPermissionManager _permissionManager;
   late final OnboardingService _onboardingService;
+  RemoteConfigManager? _configManager;
+  bool _configManagerReady = false;
 
   @override
   void initState() {
@@ -193,12 +202,47 @@ class _AthkarAppState extends State<AthkarApp> {
     _permissionManager = getIt<UnifiedPermissionManager>();
     _onboardingService = getIt<OnboardingService>();
     
-    // جدولة فحص الأذونات إذا لم يكن onboarding
+    // محاولة الحصول على Config Manager
+    _initializeConfigManager();
+    
+    // جدولة فحص الأذونات
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_onboardingService.shouldShowOnboarding) {
         _schedulePermissionCheck();
       }
     });
+  }
+
+  /// تهيئة Config Manager
+  void _initializeConfigManager() {
+    try {
+      if (getIt.isRegistered<RemoteConfigManager>()) {
+        _configManager = getIt<RemoteConfigManager>();
+        
+        // فحص إذا كان مُهيئاً
+        if (_configManager!.isInitialized) {
+          setState(() => _configManagerReady = true);
+          debugPrint('✅ Config Manager ready in AthkarApp');
+          
+          // طباعة القيم الحالية
+          debugPrint('Current Remote Config Values:');
+          debugPrint('  - Force Update: ${_configManager!.isForceUpdateRequired}');
+          debugPrint('  - Maintenance: ${_configManager!.isMaintenanceModeActive}');
+        } else {
+          debugPrint('⚠️ Config Manager registered but not initialized yet');
+          
+          // محاولة مرة أخرى بعد ثانية
+          Future.delayed(const Duration(seconds: 1), () {
+            if (mounted && _configManager!.isInitialized) {
+              setState(() => _configManagerReady = true);
+              debugPrint('✅ Config Manager ready after delay');
+            }
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ Config Manager not available: $e');
+    }
   }
 
   /// جدولة فحص الأذونات
@@ -226,7 +270,7 @@ class _AthkarAppState extends State<AthkarApp> {
           darkTheme: AppTheme.darkTheme,
           themeMode: themeMode,
           
-          // اللغة العربية فقط
+          // اللغة العربية
           locale: const Locale('ar'),
           supportedLocales: const [Locale('ar')],
           localizationsDelegates: const [
@@ -238,7 +282,7 @@ class _AthkarAppState extends State<AthkarApp> {
           // التنقل
           navigatorKey: AppRouter.navigatorKey,
           
-          // الشاشة الأولى مباشرة (بدون سبلاش)
+          // الشاشة الأولى
           home: _buildInitialScreen(),
           
           // توليد المسارات
@@ -252,7 +296,7 @@ class _AthkarAppState extends State<AthkarApp> {
               );
             }
             
-            // تطبيق مراقب الأذونات فقط على الشاشة الرئيسية
+            // تطبيق مراقب الأذونات على الشاشة الرئيسية فقط
             if (child is HomeScreen) {
               return PermissionMonitor(
                 showNotifications: true,
@@ -267,9 +311,8 @@ class _AthkarAppState extends State<AthkarApp> {
     );
   }
 
-  /// بناء الشاشة الأولى مباشرة
+  /// بناء الشاشة الأولى
   Widget _buildInitialScreen() {
-    // تحديد الشاشة المناسبة مباشرة
     Widget initialScreen;
     
     try {
@@ -282,32 +325,26 @@ class _AthkarAppState extends State<AthkarApp> {
       }
     } catch (e) {
       debugPrint('❌ Error determining initial screen: $e');
-      // في حالة الخطأ، انتقل للشاشة الرئيسية
       initialScreen = const HomeScreen();
     }
     
-    // إضافة مراقب التحديث إذا كان متوفراً
+    // ⚠️ CRITICAL: لف الشاشة بـ AppStatusMonitor إذا كان متوفراً
     return _wrapWithAppMonitor(initialScreen);
   }
 
-  /// إضافة مراقب التحديث إذا كان متوفراً
+  /// لف الشاشة بـ AppStatusMonitor (Force Update & Maintenance)
   Widget _wrapWithAppMonitor(Widget screen) {
-    try {
-      final configManager = getIt.isRegistered<RemoteConfigManager>() 
-          ? getIt<RemoteConfigManager>() 
-          : null;
-      
-      if (configManager != null && configManager.isInitialized) {
-        return AppStatusMonitor(
-          configManager: configManager,
-          child: screen,
-        );
-      }
-    } catch (e) {
-      debugPrint('Remote Config Manager not available: $e');
+    // إذا كان Config Manager جاهزاً، استخدمه
+    if (_configManagerReady && _configManager != null) {
+      debugPrint('✅ Wrapping with AppStatusMonitor (Config Manager ready)');
+      return AppStatusMonitor(
+        configManager: _configManager,
+        child: screen,
+      );
     }
     
-    // إذا لم يكن Remote Config متوفر، عرض الشاشة مباشرة
+    // إذا لم يكن جاهزاً بعد، عرض الشاشة مع إمكانية التحديث لاحقاً
+    debugPrint('⏳ AppStatusMonitor not ready yet, showing screen directly');
     return screen;
   }
 }
