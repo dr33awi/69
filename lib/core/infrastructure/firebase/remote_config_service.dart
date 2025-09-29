@@ -1,11 +1,11 @@
-// lib/core/infrastructure/firebase/remote_config_service.dart - محدث للـ JSON
+// lib/core/infrastructure/firebase/remote_config_service.dart - محسن ومصحح
 
 import 'dart:async';
 import 'dart:convert';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 
-/// خدمة Firebase Remote Config محدثة للتعامل مع JSON
+/// خدمة Firebase Remote Config محسنة مع دعم JSON والمعلمات المنفصلة
 class FirebaseRemoteConfigService {
   static final FirebaseRemoteConfigService _instance = FirebaseRemoteConfigService._internal();
   factory FirebaseRemoteConfigService() => _instance;
@@ -14,8 +14,10 @@ class FirebaseRemoteConfigService {
   late FirebaseRemoteConfig _remoteConfig;
   bool _isInitialized = false;
   
-  // مفاتيح الإعدادات
-  static const String _keyTestConfig = 'Test'; // اسم المعلمة كما في Firebase
+  // مفاتيح الإعدادات - طريقتان مختلفتان
+  static const String _keyTestConfig = 'Test'; // JSON method
+  
+  // المعلمات المنفصلة (أفضل)
   static const String _keyAppVersion = 'app_version';
   static const String _keyForceUpdate = 'force_update';
   static const String _keyMaintenanceMode = 'maintenance_mode';
@@ -34,7 +36,7 @@ class FirebaseRemoteConfigService {
       // إعداد التحديث التلقائي
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(minutes: 1),
-        minimumFetchInterval: const Duration(hours: 1), // تحديث كل ساعة
+        minimumFetchInterval: const Duration(minutes: 5), // تقليل المدة للاختبار
       ));
       
       // تعيين القيم الافتراضية
@@ -46,23 +48,31 @@ class FirebaseRemoteConfigService {
       _isInitialized = true;
       debugPrint('FirebaseRemoteConfigService initialized successfully');
       
+      // طباعة معلومات التشخيص
+      _printDebugInfo();
+      
     } catch (e) {
       debugPrint('Error initializing Firebase Remote Config: $e');
       throw Exception('Failed to initialize Firebase Remote Config: $e');
     }
   }
 
-  /// تعيين القيم الافتراضية
+  /// تعيين القيم الافتراضية - دعم الطريقتين
   Future<void> _setDefaults() async {
     await _remoteConfig.setDefaults({
+      // JSON method (طريقة واحدة)
       _keyTestConfig: jsonEncode({
         'force_update': false,
         'app_version': '1.0.0',
         'maintenance_mode': false,
       }),
+      
+      // Separate parameters method (الطريقة المفضلة)
       _keyAppVersion: '1.0.0',
       _keyForceUpdate: false,
       _keyMaintenanceMode: false,
+      
+      // باقي الإعدادات
       _keyFeaturesConfig: jsonEncode({
         'prayer_times_enabled': true,
         'qibla_enabled': true,
@@ -95,8 +105,13 @@ class FirebaseRemoteConfigService {
   /// جلب وتفعيل الإعدادات
   Future<bool> _fetchAndActivate() async {
     try {
+      debugPrint('Fetching remote config...');
+      
       final fetchResult = await _remoteConfig.fetchAndActivate();
       debugPrint('Remote config fetch result: $fetchResult');
+      debugPrint('Last fetch status: ${_remoteConfig.lastFetchStatus}');
+      debugPrint('Last fetch time: ${_remoteConfig.lastFetchTime}');
+      
       return fetchResult;
     } catch (e) {
       debugPrint('Error fetching remote config: $e');
@@ -111,23 +126,34 @@ class FirebaseRemoteConfigService {
       return false;
     }
     
-    return await _fetchAndActivate();
+    final result = await _fetchAndActivate();
+    if (result) {
+      _printDebugInfo();
+    }
+    return result;
   }
 
-  // ==================== الحصول على القيم من JSON الرئيسي ====================
+  // ==================== الحصول على القيم - دعم الطريقتين ====================
 
   /// الحصول على JSON الرئيسي من معلمة "Test"
   Map<String, dynamic> get testConfig {
     try {
       final jsonString = _remoteConfig.getString(_keyTestConfig);
+      debugPrint('Test config JSON string: $jsonString');
+      
       if (jsonString.isEmpty) {
+        debugPrint('Test config is empty, using defaults');
         return {
           'force_update': false,
           'app_version': '1.0.0',
           'maintenance_mode': false,
         };
       }
-      return jsonDecode(jsonString) as Map<String, dynamic>;
+      
+      final decoded = jsonDecode(jsonString) as Map<String, dynamic>;
+      debugPrint('Test config decoded: $decoded');
+      return decoded;
+      
     } catch (e) {
       debugPrint('Error parsing test config: $e');
       return {
@@ -138,40 +164,90 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  /// الحصول على إصدار التطبيق المطلوب من JSON أو معلمة منفصلة
+  /// إصدار التطبيق المطلوب - أولوية للمعلمة المنفصلة
   String get requiredAppVersion {
-    // محاولة الحصول من JSON أولاً
-    final testConfig = this.testConfig;
-    if (testConfig.containsKey('app_version')) {
-      return testConfig['app_version'] as String? ?? '1.0.0';
+    // 1. جرب المعلمة المنفصلة أولاً
+    final separateVersion = _remoteConfig.getString(_keyAppVersion);
+    if (separateVersion.isNotEmpty) {
+      debugPrint('App version from separate parameter: $separateVersion');
+      return separateVersion;
     }
     
-    // إذا لم يجد، استخدم المعلمة المنفصلة
-    return _remoteConfig.getString(_keyAppVersion);
+    // 2. جرب JSON كبديل
+    final testConfig = this.testConfig;
+    final jsonVersion = testConfig['app_version'] as String? ?? '1.0.0';
+    debugPrint('App version from JSON: $jsonVersion');
+    return jsonVersion;
   }
 
-  /// هل يجب فرض التحديث من JSON أو معلمة منفصلة
+  /// هل يجب فرض التحديث - أولوية للمعلمة المنفصلة
   bool get isForceUpdateRequired {
-    // محاولة الحصول من JSON أولاً
-    final testConfig = this.testConfig;
-    if (testConfig.containsKey('force_update')) {
-      return testConfig['force_update'] as bool? ?? false;
+    // 1. جرب المعلمة المنفصلة أولاً
+    try {
+      final separateForceUpdate = _remoteConfig.getBool(_keyForceUpdate);
+      debugPrint('Force update from separate parameter: $separateForceUpdate');
+      
+      // تحقق إضافي - إذا كانت القيمة true، طباعة معلومات إضافية
+      if (separateForceUpdate) {
+        debugPrint('🚨 FORCE UPDATE REQUIRED FROM SEPARATE PARAMETER!');
+        debugPrint('Required version: ${requiredAppVersion}');
+      }
+      
+      return separateForceUpdate;
+    } catch (e) {
+      debugPrint('Error getting force update from separate parameter: $e');
     }
     
-    // إذا لم يجد، استخدم المعلمة المنفصلة
-    return _remoteConfig.getBool(_keyForceUpdate);
+    // 2. جرب JSON كبديل
+    try {
+      final testConfig = this.testConfig;
+      final jsonForceUpdate = testConfig['force_update'] as bool? ?? false;
+      debugPrint('Force update from JSON: $jsonForceUpdate');
+      
+      if (jsonForceUpdate) {
+        debugPrint('🚨 FORCE UPDATE REQUIRED FROM JSON!');
+      }
+      
+      return jsonForceUpdate;
+    } catch (e) {
+      debugPrint('Error getting force update from JSON: $e');
+    }
+    
+    return false;
   }
 
-  /// هل التطبيق في وضع الصيانة من JSON أو معلمة منفصلة
+  /// هل التطبيق في وضع الصيانة - أولوية للمعلمة المنفصلة
   bool get isMaintenanceModeEnabled {
-    // محاولة الحصول من JSON أولاً
-    final testConfig = this.testConfig;
-    if (testConfig.containsKey('maintenance_mode')) {
-      return testConfig['maintenance_mode'] as bool? ?? false;
+    // 1. جرب المعلمة المنفصلة أولاً
+    try {
+      final separateMaintenance = _remoteConfig.getBool(_keyMaintenanceMode);
+      debugPrint('Maintenance mode from separate parameter: $separateMaintenance');
+      
+      if (separateMaintenance) {
+        debugPrint('🔧 MAINTENANCE MODE ENABLED FROM SEPARATE PARAMETER!');
+      }
+      
+      return separateMaintenance;
+    } catch (e) {
+      debugPrint('Error getting maintenance mode from separate parameter: $e');
     }
     
-    // إذا لم يجد، استخدم المعلمة المنفصلة
-    return _remoteConfig.getBool(_keyMaintenanceMode);
+    // 2. جرب JSON كبديل
+    try {
+      final testConfig = this.testConfig;
+      final jsonMaintenance = testConfig['maintenance_mode'] as bool? ?? false;
+      debugPrint('Maintenance mode from JSON: $jsonMaintenance');
+      
+      if (jsonMaintenance) {
+        debugPrint('🔧 MAINTENANCE MODE ENABLED FROM JSON!');
+      }
+      
+      return jsonMaintenance;
+    } catch (e) {
+      debugPrint('Error getting maintenance mode from JSON: $e');
+    }
+    
+    return false;
   }
 
   // ==================== باقي الإعدادات ====================
@@ -180,6 +256,16 @@ class FirebaseRemoteConfigService {
   Map<String, dynamic> get featuresConfig {
     try {
       final jsonString = _remoteConfig.getString(_keyFeaturesConfig);
+      if (jsonString.isEmpty) {
+        return {
+          'prayer_times_enabled': true,
+          'qibla_enabled': true,
+          'athkar_enabled': true,
+          'tasbih_enabled': true,
+          'dua_enabled': true,
+          'notifications_enabled': true,
+        };
+      }
       return jsonDecode(jsonString) as Map<String, dynamic>;
     } catch (e) {
       debugPrint('Error parsing features config: $e');
@@ -198,6 +284,14 @@ class FirebaseRemoteConfigService {
   Map<String, dynamic> get notificationConfig {
     try {
       final jsonString = _remoteConfig.getString(_keyNotificationConfig);
+      if (jsonString.isEmpty) {
+        return {
+          'prayer_notifications': true,
+          'athkar_reminders': true,
+          'daily_motivations': true,
+          'custom_notifications': true,
+        };
+      }
       return jsonDecode(jsonString) as Map<String, dynamic>;
     } catch (e) {
       debugPrint('Error parsing notification config: $e');
@@ -214,6 +308,14 @@ class FirebaseRemoteConfigService {
   Map<String, dynamic> get themeConfig {
     try {
       final jsonString = _remoteConfig.getString(_keyThemeConfig);
+      if (jsonString.isEmpty) {
+        return {
+          'primary_color': '#2E7D32',
+          'accent_color': '#4CAF50',
+          'dark_mode_enabled': true,
+          'custom_themes': [],
+        };
+      }
       return jsonDecode(jsonString) as Map<String, dynamic>;
     } catch (e) {
       debugPrint('Error parsing theme config: $e');
@@ -230,6 +332,14 @@ class FirebaseRemoteConfigService {
   Map<String, dynamic> get athkarSettings {
     try {
       final jsonString = _remoteConfig.getString(_keyAthkarSettings);
+      if (jsonString.isEmpty) {
+        return {
+          'auto_scroll_enabled': true,
+          'vibration_feedback': true,
+          'sound_effects': false,
+          'reading_mode': 'normal',
+        };
+      }
       return jsonDecode(jsonString) as Map<String, dynamic>;
     } catch (e) {
       debugPrint('Error parsing athkar settings: $e');
@@ -242,38 +352,35 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  // ==================== التحقق من الميزات ====================
-
-  /// التحقق من تفعيل ميزة معينة
-  bool isFeatureEnabled(String featureName) {
-    final features = featuresConfig;
-    return features[featureName] as bool? ?? false;
-  }
-
-  /// التحقق من تفعيل إشعار معين
-  bool isNotificationEnabled(String notificationType) {
-    final notifications = notificationConfig;
-    return notifications[notificationType] as bool? ?? false;
-  }
-
-  // ==================== إدارة الإعدادات المخصصة ====================
+  // ==================== الحصول على معلومات مخصصة ====================
 
   /// الحصول على قيمة مخصصة
   String getCustomString(String key, {String defaultValue = ''}) {
-    return _remoteConfig.getString(key).isEmpty ? defaultValue : _remoteConfig.getString(key);
+    final value = _remoteConfig.getString(key);
+    return value.isEmpty ? defaultValue : value;
   }
 
   /// الحصول على قيمة منطقية مخصصة
   bool getCustomBool(String key, {bool defaultValue = false}) {
-    return _remoteConfig.getBool(key);
+    try {
+      return _remoteConfig.getBool(key);
+    } catch (e) {
+      debugPrint('Error getting custom bool for key $key: $e');
+      return defaultValue;
+    }
   }
 
   /// الحصول على قيمة رقمية مخصصة
   int getCustomInt(String key, {int defaultValue = 0}) {
-    return _remoteConfig.getInt(key);
+    try {
+      return _remoteConfig.getInt(key);
+    } catch (e) {
+      debugPrint('Error getting custom int for key $key: $e');
+      return defaultValue;
+    }
   }
 
-  /// الحصول على قيمة مخصصة كـ JSON
+  /// الحصول على JSON مخصص
   Map<String, dynamic>? getCustomJson(String key) {
     try {
       final jsonString = _remoteConfig.getString(key);
@@ -285,7 +392,34 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  // ==================== معلومات الحالة ====================
+  // ==================== التشخيص والمعلومات ====================
+
+  /// طباعة معلومات التشخيص
+  void _printDebugInfo() {
+    try {
+      debugPrint('========== Remote Config Debug Info ==========');
+      debugPrint('Is initialized: $_isInitialized');
+      debugPrint('Last fetch status: ${_remoteConfig.lastFetchStatus}');
+      debugPrint('Last fetch time: ${_remoteConfig.lastFetchTime}');
+      
+      // طباعة جميع القيم الحالية
+      debugPrint('--- Current Values ---');
+      debugPrint('Force Update (separate): ${_remoteConfig.getBool(_keyForceUpdate)}');
+      debugPrint('App Version (separate): ${_remoteConfig.getString(_keyAppVersion)}');
+      debugPrint('Maintenance Mode (separate): ${_remoteConfig.getBool(_keyMaintenanceMode)}');
+      debugPrint('Test Config JSON: ${_remoteConfig.getString(_keyTestConfig)}');
+      
+      // طباعة القيم المستخلصة
+      debugPrint('--- Parsed Values ---');
+      debugPrint('Final Force Update: $isForceUpdateRequired');
+      debugPrint('Final App Version: $requiredAppVersion');
+      debugPrint('Final Maintenance Mode: $isMaintenanceModeEnabled');
+      
+      debugPrint('===============================================');
+    } catch (e) {
+      debugPrint('Error printing debug info: $e');
+    }
+  }
 
   /// حالة آخر جلب
   RemoteConfigFetchStatus get lastFetchStatus => _remoteConfig.lastFetchStatus;
@@ -296,18 +430,52 @@ class FirebaseRemoteConfigService {
   /// هل الخدمة مهيأة
   bool get isInitialized => _isInitialized;
 
-  /// معلومات تشخيصية
+  /// معلومات تشخيصية شاملة
   Map<String, dynamic> get debugInfo => {
     'is_initialized': _isInitialized,
     'last_fetch_status': lastFetchStatus.toString(),
     'last_fetch_time': lastFetchTime.toIso8601String(),
-    'test_config': testConfig,
-    'force_update': isForceUpdateRequired,
-    'maintenance_mode': isMaintenanceModeEnabled,
-    'app_version': requiredAppVersion,
+    
+    // القيم الخام
+    'raw_force_update_separate': _remoteConfig.getBool(_keyForceUpdate),
+    'raw_app_version_separate': _remoteConfig.getString(_keyAppVersion),
+    'raw_maintenance_mode_separate': _remoteConfig.getBool(_keyMaintenanceMode),
+    'raw_test_config_json': _remoteConfig.getString(_keyTestConfig),
+    
+    // القيم المستخلصة
+    'final_force_update': isForceUpdateRequired,
+    'final_app_version': requiredAppVersion,
+    'final_maintenance_mode': isMaintenanceModeEnabled,
+    'test_config_parsed': testConfig,
+    
+    // معلومات إضافية
+    'features_config': featuresConfig,
   };
 
-  // ==================== إعادة تهيئة وتنظيف ====================
+  // ==================== إدارة دورة الحياة ====================
+
+  /// اختبار فوري - للتطوير فقط
+  Future<void> forceRefreshForTesting() async {
+    if (!_isInitialized) return;
+    
+    try {
+      debugPrint('🧪 FORCE REFRESH FOR TESTING...');
+      
+      // تقليل minimum fetch interval للاختبار
+      await _remoteConfig.setConfigSettings(RemoteConfigSettings(
+        fetchTimeout: const Duration(seconds: 30),
+        minimumFetchInterval: Duration.zero, // بدون حد أدنى للاختبار
+      ));
+      
+      final result = await _remoteConfig.fetchAndActivate();
+      debugPrint('🧪 Force refresh result: $result');
+      
+      _printDebugInfo();
+      
+    } catch (e) {
+      debugPrint('🧪 Error in force refresh: $e');
+    }
+  }
 
   /// إعادة تهيئة الخدمة
   Future<void> reinitialize() async {

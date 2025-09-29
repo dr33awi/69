@@ -1,5 +1,4 @@
-// lib/main.dart - مع مراقب التحديث الإجباري
-
+// lib/main.dart - بدون سبلاش سكرين
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -175,7 +174,7 @@ void _printFirebaseStatus() {
   }
 }
 
-/// التطبيق الرئيسي
+/// التطبيق الرئيسي - بدون سبلاش سكرين
 class AthkarApp extends StatefulWidget {
   const AthkarApp({super.key});
 
@@ -186,9 +185,6 @@ class AthkarApp extends StatefulWidget {
 class _AthkarAppState extends State<AthkarApp> {
   late final UnifiedPermissionManager _permissionManager;
   late final OnboardingService _onboardingService;
-  
-  Widget? _initialScreen;
-  bool _isInitializing = true;
 
   @override
   void initState() {
@@ -197,37 +193,10 @@ class _AthkarAppState extends State<AthkarApp> {
     _permissionManager = getIt<UnifiedPermissionManager>();
     _onboardingService = getIt<OnboardingService>();
     
-    _determineInitialScreen();
-  }
-
-  /// تحديد الشاشة الأولى
-  void _determineInitialScreen() {
+    // جدولة فحص الأذونات إذا لم يكن onboarding
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      try {
-        // فحص إذا كان يحتاج onboarding
-        if (_onboardingService.shouldShowOnboarding) {
-          debugPrint('🎯 Showing onboarding screen');
-          setState(() {
-            _initialScreen = const OnboardingScreen();
-            _isInitializing = false;
-          });
-        } else {
-          debugPrint('🏠 Showing home screen directly');
-          setState(() {
-            _initialScreen = const HomeScreen();
-            _isInitializing = false;
-          });
-          
-          // فحص الأذونات إذا لم يكن onboarding
-          _schedulePermissionCheck();
-        }
-      } catch (e) {
-        debugPrint('❌ Error determining initial screen: $e');
-        // في حالة الخطأ، انتقل للشاشة الرئيسية
-        setState(() {
-          _initialScreen = const HomeScreen();
-          _isInitializing = false;
-        });
+      if (!_onboardingService.shouldShowOnboarding) {
+        _schedulePermissionCheck();
       }
     });
   }
@@ -269,8 +238,8 @@ class _AthkarAppState extends State<AthkarApp> {
           // التنقل
           navigatorKey: AppRouter.navigatorKey,
           
-          // الشاشة الأولى مع مراقب التحديث
-          home: _buildHomeWithMonitor(),
+          // الشاشة الأولى مباشرة (بدون سبلاش)
+          home: _buildInitialScreen(),
           
           // توليد المسارات
           onGenerateRoute: AppRouter.onGenerateRoute,
@@ -298,11 +267,31 @@ class _AthkarAppState extends State<AthkarApp> {
     );
   }
 
-  /// بناء الشاشة الرئيسية مع مراقب التحديث
-  Widget _buildHomeWithMonitor() {
-    final screen = _isInitializing ? const _SplashScreen() : _initialScreen!;
+  /// بناء الشاشة الأولى مباشرة
+  Widget _buildInitialScreen() {
+    // تحديد الشاشة المناسبة مباشرة
+    Widget initialScreen;
     
-    // إذا كان Remote Config متوفر، استخدم مراقب التحديث
+    try {
+      if (_onboardingService.shouldShowOnboarding) {
+        debugPrint('🎯 Starting with onboarding screen');
+        initialScreen = const OnboardingScreen();
+      } else {
+        debugPrint('🏠 Starting with home screen directly');
+        initialScreen = const HomeScreen();
+      }
+    } catch (e) {
+      debugPrint('❌ Error determining initial screen: $e');
+      // في حالة الخطأ، انتقل للشاشة الرئيسية
+      initialScreen = const HomeScreen();
+    }
+    
+    // إضافة مراقب التحديث إذا كان متوفراً
+    return _wrapWithAppMonitor(initialScreen);
+  }
+
+  /// إضافة مراقب التحديث إذا كان متوفراً
+  Widget _wrapWithAppMonitor(Widget screen) {
     try {
       final configManager = getIt.isRegistered<RemoteConfigManager>() 
           ? getIt<RemoteConfigManager>() 
@@ -320,82 +309,6 @@ class _AthkarAppState extends State<AthkarApp> {
     
     // إذا لم يكن Remote Config متوفر، عرض الشاشة مباشرة
     return screen;
-  }
-}
-
-/// شاشة تحميل بسيطة
-class _SplashScreen extends StatelessWidget {
-  const _SplashScreen();
-  
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.primary,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // شعار التطبيق
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.3),
-                  width: 2,
-                ),
-              ),
-              child: const Icon(
-                Icons.mosque,
-                color: Colors.white,
-                size: 60,
-              ),
-            ),
-            
-            const SizedBox(height: 32),
-            
-            // اسم التطبيق
-            const Text(
-              'حصن المسلم',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                fontFamily: 'Cairo',
-              ),
-            ),
-            
-            const SizedBox(height: 8),
-            
-            // وصف مختصر
-            Text(
-              'رفيقك في الذكر والدعاء',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white.withValues(alpha: 0.8),
-                fontFamily: 'Cairo',
-              ),
-            ),
-            
-            const SizedBox(height: 48),
-            
-            // مؤشر التحميل
-            SizedBox(
-              width: 32,
-              height: 32,
-              child: CircularProgressIndicator(
-                strokeWidth: 3,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  Colors.white.withValues(alpha: 0.8),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 
