@@ -1,8 +1,9 @@
-// lib/main.dart - محسّن لضمان عمل Remote Config و Force Update
+// lib/main.dart - محسّن مع flutter_screenutil
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart'; // إضافة ScreenUtil
 
 // Firebase imports
 import 'package:firebase_core/firebase_core.dart';
@@ -260,51 +261,65 @@ class _AthkarAppState extends State<AthkarApp> {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: getIt<ThemeNotifier>(),
       builder: (context, themeMode, child) {
-        return MaterialApp(
-          // معلومات التطبيق
-          title: 'حصن المسلم',
-          debugShowCheckedModeBanner: false,
+        // ⚡ تهيئة ScreenUtil هنا
+        return ScreenUtilInit(
+          // حجم الشاشة المرجعي للتصميم (يمكنك تغييره حسب تصميمك)
+          designSize: const Size(375, 812), // iPhone X size كمرجع
           
-          // الثيمات
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: themeMode,
+          // السماح بتغيير حجم النص
+          minTextAdapt: true,
           
-          // اللغة العربية
-          locale: const Locale('ar'),
-          supportedLocales: const [Locale('ar')],
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          // تقسيم الشاشة (مفيد للأجهزة اللوحية)
+          splitScreenMode: true,
           
-          // التنقل
-          navigatorKey: AppRouter.navigatorKey,
-          
-          // الشاشة الأولى
-          home: _buildInitialScreen(),
-          
-          // توليد المسارات
-          onGenerateRoute: AppRouter.onGenerateRoute,
-          
-          // Builder مع مراقب الأذونات
           builder: (context, child) {
-            if (child == null) {
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
-            }
-            
-            // تطبيق مراقب الأذونات على الشاشة الرئيسية فقط
-            if (child is HomeScreen) {
-              return PermissionMonitor(
-                showNotifications: true,
-                child: child,
-              );
-            }
-            
-            return child;
+            return MaterialApp(
+              // معلومات التطبيق
+              title: 'حصن المسلم',
+              debugShowCheckedModeBanner: false,
+              
+              // الثيمات
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: themeMode,
+              
+              // اللغة العربية
+              locale: const Locale('ar'),
+              supportedLocales: const [Locale('ar')],
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              
+              // التنقل
+              navigatorKey: AppRouter.navigatorKey,
+              
+              // الشاشة الأولى
+              home: _buildInitialScreen(),
+              
+              // توليد المسارات
+              onGenerateRoute: AppRouter.onGenerateRoute,
+              
+              // Builder مع مراقب الأذونات
+              builder: (context, child) {
+                if (child == null) {
+                  return const Scaffold(
+                    body: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                
+                // تطبيق مراقب الأذونات على الشاشة الرئيسية فقط
+                if (child is HomeScreen) {
+                  return PermissionMonitor(
+                    showNotifications: true,
+                    child: child,
+                  );
+                }
+                
+                return child;
+              },
+            );
           },
         );
       },
@@ -357,93 +372,98 @@ class _ErrorApp extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      locale: const Locale('ar'),
-      theme: AppTheme.lightTheme,
-      home: Directionality(
-        textDirection: TextDirection.rtl,
-        child: Scaffold(
-          backgroundColor: Colors.white,
-          body: SafeArea(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // أيقونة الخطأ
-                    Container(
-                      padding: const EdgeInsets.all(32),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.error_outline,
-                        size: 80,
-                        color: Colors.red.shade700,
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 32),
-                    
-                    const Text(
-                      'عذراً، حدث خطأ',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                        fontFamily: 'Cairo',
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    
-                    const SizedBox(height: 16),
-                    
-                    const Text(
-                      'حدث خطأ أثناء تهيئة التطبيق\nيرجى إعادة المحاولة',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.black54,
-                        height: 1.5,
-                        fontFamily: 'Cairo',
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    
-                    const SizedBox(height: 48),
-                    
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton.icon(
-                        onPressed: () => main(),
-                        icon: const Icon(Icons.refresh, size: 24),
-                        label: const Text(
-                          'إعادة المحاولة',
+    return ScreenUtilInit(
+      designSize: const Size(375, 812),
+      builder: (context, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          locale: const Locale('ar'),
+          theme: AppTheme.lightTheme,
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: Scaffold(
+              backgroundColor: Colors.white,
+              body: SafeArea(
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(SizeExtension(24).w),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // أيقونة الخطأ
+                        Container(
+                          padding: EdgeInsets.all(SizeExtension(32).w),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.error_outline,
+                            size: 80.sp,
+                            color: Colors.red.shade700,
+                          ),
+                        ),
+                        
+                        SizedBox(height: SizeExtension(32).h),
+                        
+                        Text(
+                          'عذراً، حدث خطأ',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 28.sp,
                             fontWeight: FontWeight.bold,
+                            color: Colors.black87,
                             fontFamily: 'Cairo',
                           ),
+                          textAlign: TextAlign.center,
                         ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2E7D32),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                        
+                        SizedBox(height: SizeExtension(16).h),
+                        
+                        Text(
+                          'حدث خطأ أثناء تهيئة التطبيق\nيرجى إعادة المحاولة',
+                          style: TextStyle(
+                            fontSize: 18.sp,
+                            color: Colors.black54,
+                            height: 1.5,
+                            fontFamily: 'Cairo',
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        
+                        SizedBox(height: SizeExtension(48).h),
+                        
+                        SizedBox(
+                          width: double.infinity,
+                          height: SizeExtension(56).h,
+                          child: ElevatedButton.icon(
+                            onPressed: () => main(),
+                            icon: Icon(Icons.refresh, size: 24.sp),
+                            label: Text(
+                              'إعادة المحاولة',
+                              style: TextStyle(
+                                fontSize: 18.sp,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Cairo',
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2E7D32),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16.r),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
