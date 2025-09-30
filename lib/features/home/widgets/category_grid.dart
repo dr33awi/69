@@ -1,4 +1,4 @@
-// lib/features/home/widgets/category_grid.dart - مُحدث مع المسار الصحيح
+// lib/features/home/widgets/category_grid.dart - مُحسّن بالكامل
 
 import 'package:athkar_app/app/themes/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +17,28 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
   @override
   bool get wantKeepAlive => true;
 
-  // بيانات ثابتة للأداء مع المسار الصحيح لأسماء الله الحسنى
+  // ✅ Cache للتدرجات اللونية - يحسب مرة واحدة فقط
+  final Map<String, LinearGradient> _gradientCache = {};
+
+  // ✅ دالة محسّنة للحصول على التدرج اللوني مع Cache
+  LinearGradient _getGradient(String categoryId, bool isInDevelopment) {
+    final cacheKey = isInDevelopment ? 'dev_mode' : categoryId;
+    
+    // إذا كان التدرج محفوظ في الـ Cache، استخدمه
+    if (_gradientCache.containsKey(cacheKey)) {
+      return _gradientCache[cacheKey]!;
+    }
+    
+    // وإلا احسبه واحفظه في الـ Cache
+    final gradient = isInDevelopment 
+        ? _getDevelopmentGradient() 
+        : AppColors.getCategoryGradient(categoryId);
+    
+    _gradientCache[cacheKey] = gradient;
+    return gradient;
+  }
+
+  // بيانات ثابتة للأداء - بدون نسبة الإنجاز
   static const List<CategoryItem> _categories = [
     CategoryItem(
       id: 'prayer_times',
@@ -25,16 +46,14 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
       subtitle: 'أوقات الصلوات الخمس',
       icon: Icons.mosque,
       routeName: '/prayer-times',
-      progress: 0.8,
       isInDevelopment: false,
     ),
     CategoryItem(
       id: 'athkar',
       title: 'الأذكار اليومية',
       subtitle: 'أذكار الصباح والمساء',
-      icon: Icons.auto_awesome,
+      icon: Icons.menu_book_rounded,
       routeName: '/athkar',
-      progress: 0.6,
       isInDevelopment: false,
     ),
     CategoryItem(
@@ -42,9 +61,8 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
       title: 'أسماء الله الحسنى',  
       subtitle: 'الأسماء والصفات',  
       icon: Icons.star_purple500_outlined,  
-      routeName: '/asma-allah',  // المسار الصحيح مع الشرطة
-      progress: 0.4,
-      isInDevelopment: false,  // معطلة مؤقتاً
+      routeName: '/asma-allah',
+      isInDevelopment: false,
     ),
     CategoryItem(
       id: 'qibla',
@@ -52,7 +70,6 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
       subtitle: 'البوصلة الذكية',
       icon: Icons.explore,
       routeName: '/qibla',
-      progress: 1.0,
       isInDevelopment: false,
     ),
     CategoryItem(
@@ -61,7 +78,6 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
       subtitle: 'عداد التسبيح',
       icon: Icons.radio_button_checked,
       routeName: '/tasbih',
-      progress: 0.9,
       isInDevelopment: false,
     ),
     CategoryItem(
@@ -70,7 +86,6 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
       subtitle: 'أدعية من الكتاب والسنة',
       icon: Icons.pan_tool_rounded,
       routeName: '/dua',
-      progress: 0.8,
       isInDevelopment: false,
     ),
   ];
@@ -78,7 +93,6 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
   void _onCategoryTap(CategoryItem category) {
     HapticFeedback.lightImpact();
     
-    // إذا كانت الفئة قيد التطوير، اعرض رسالة خاصة
     if (category.isInDevelopment) {
       _showDevelopmentDialog(category);
       return;
@@ -216,7 +230,7 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
             );
           },
           childCount: rows.length,
-          // ✅ تحسين: تحديد حجم العناصر للأداء
+          // ✅ تحسين الأداء
           addAutomaticKeepAlives: false,
           addRepaintBoundaries: true,
           addSemanticIndexes: true,
@@ -228,16 +242,14 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
   // ✅ تحسين: تنظيم الصفوف للبناء المحسن
   List<Widget> _buildCategoryRows() {
     return [
-      // الصف الأول: المفضلة وإنجاز اليوم
+      // الصف الأول: المسبحة الرقمية والأذكار اليومية
       Row(
         children: [
-          // المفضلة (عريضة)
           Expanded(
             flex: 2,
             child: _buildCategoryItem(context, _categories[4]), // tasbih
           ),
           ThemeConstants.space4.w,
-          // إنجاز اليوم (مربعة)
           Expanded(
             child: _buildSquareCategoryItem(context, _categories[1]), // athkar
           ),
@@ -247,12 +259,10 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
       // الصف الثاني: أسماء الله الحسنى ومواقيت الصلاة
       Row(
         children: [
-          // أسماء الله الحسنى (مربعة)
           Expanded(
             child: _buildSquareCategoryItem(context, _categories[2]), // asma_allah
           ),
           ThemeConstants.space4.w,
-          // مواقيت الصلاة (عريضة)
           Expanded(
             flex: 2,
             child: _buildCategoryItem(context, _categories[0]), // prayer_times
@@ -263,12 +273,10 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
       // الصف الثالث: اتجاه القبلة والأدعية
       Row(
         children: [
-          // اتجاه القبلة
           Expanded(
             child: _buildCategoryItem(context, _categories[3]), // qibla
           ),
           ThemeConstants.space4.w,
-          // الأدعية
           Expanded(
             child: _buildCategoryItem(context, _categories[5]), // dua
           ),
@@ -278,121 +286,121 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
   }
 
   Widget _buildSquareCategoryItem(BuildContext context, CategoryItem category) {
-    // حساب الألوان مرة واحدة
-    final gradient = category.isInDevelopment 
-        ? _getDevelopmentGradient() 
-        : AppColors.getCategoryGradient(category.id);
+    // ✅ استخدام Cache للتدرجات اللونية
+    final gradient = _getGradient(category.id, category.isInDevelopment);
     
-    return Container(
-      height: 160,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
-        gradient: gradient,
-        boxShadow: [
-          BoxShadow(
-            color: gradient.colors[0].withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
-        child: InkWell(
-          onTap: () => _onCategoryTap(category),
+    return RepaintBoundary(
+      child: Container(
+        height: 140,
+        decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.2),
-                width: 1,
-              ),
+          gradient: gradient,
+          boxShadow: [
+            BoxShadow(
+              color: gradient.colors[0].withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
             ),
-            child: Stack(
-              children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // الأيقونة
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.2),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.3),
-                          width: 1,
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+          child: InkWell(
+            onTap: () => _onCategoryTap(category),
+            borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+              ),
+              child: Stack(
+                children: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // الأيقونة
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withValues(alpha: 0.2),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Icon(
+                          category.isInDevelopment ? Icons.construction : category.icon,
+                          color: Colors.white,
+                          size: 30,
                         ),
                       ),
-                      child: Icon(
-                        category.isInDevelopment ? Icons.construction : category.icon,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 16),
-                    
-                    // العنوان
-                    Text(
-                      category.title,
-                      style: context.titleMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: ThemeConstants.bold,
-                        fontSize: 16,
-                        height: 1.3,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withValues(alpha: 0.2),
-                            offset: const Offset(0, 1),
-                            blurRadius: 2,
-                          ),
-                        ],
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-                
-                // شارة "قيد التطوير"
-                if (category.isInDevelopment)
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: ThemeConstants.warning,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: ThemeConstants.warning.withValues(alpha: 0.4),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        'قيد التطوير',
-                        style: context.labelSmall?.copyWith(
+                      
+                      const SizedBox(height: 16),
+                      
+                      // العنوان
+                      Text(
+                        category.title,
+                        style: context.titleMedium?.copyWith(
                           color: Colors.white,
                           fontWeight: ThemeConstants.bold,
-                          fontSize: 10,
+                          fontSize: 14,
+                          height: 1.2,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              offset: const Offset(0, 1),
+                              blurRadius: 2,
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                  
+                  // شارة "قيد التطوير"
+                  if (category.isInDevelopment)
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: ThemeConstants.warning,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: ThemeConstants.warning.withValues(alpha: 0.4),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          'قيد التطوير',
+                          style: context.labelSmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: ThemeConstants.bold,
+                            fontSize: 10,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -401,141 +409,121 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
   }
 
   Widget _buildCategoryItem(BuildContext context, CategoryItem category) {
-    // حساب الألوان مرة واحدة
-    final gradient = category.isInDevelopment 
-        ? _getDevelopmentGradient() 
-        : AppColors.getCategoryGradient(category.id);
+    // ✅ استخدام Cache للتدرجات اللونية
+    final gradient = _getGradient(category.id, category.isInDevelopment);
     
-    return Container(
-      height: 160,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
-        gradient: gradient,
-        boxShadow: [
-          BoxShadow(
-            color: gradient.colors[0].withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
-        child: InkWell(
-          onTap: () => _onCategoryTap(category),
+    return RepaintBoundary(
+      child: Container(
+        height: 140,
+        decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.2),
-                width: 1,
-              ),
+          gradient: gradient,
+          boxShadow: [
+            BoxShadow(
+              color: gradient.colors[0].withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
             ),
-            child: Stack(
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // الأيقونة
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.2),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: Icon(
-                        category.isInDevelopment ? Icons.construction : category.icon,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    ),
-                    
-                    const SizedBox(width: 16),
-                    
-                    // النص والتقدم
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // العنوان
-                          Text(
-                            category.title,
-                            style: context.titleMedium?.copyWith(
-                              color: Colors.white,
-                              fontWeight: ThemeConstants.bold,
-                              fontSize: 17,
-                              height: 1.3,
-                              shadows: [
-                                Shadow(
-                                  color: Colors.black.withValues(alpha: 0.2),
-                                  offset: const Offset(0, 1),
-                                  blurRadius: 2,
-                                ),
-                              ],
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          
-                          const SizedBox(height: 16),
-                          
-                          // شريط التقدم
-                          Container(
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: category.isInDevelopment 
-                                  ? Colors.white.withValues(alpha: 0.6)
-                                  : Colors.white,
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+          child: InkWell(
+            onTap: () => _onCategoryTap(category),
+            borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  width: 1,
                 ),
-                
-                // شارة "قيد التطوير"
-                if (category.isInDevelopment)
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: ThemeConstants.warning,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: ThemeConstants.warning.withValues(alpha: 0.4),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
+              ),
+              child: Stack(
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // الأيقونة
+                      Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withValues(alpha: 0.2),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            width: 1,
                           ),
-                        ],
-                      ),
-                      child: Text(
-                        'قيد التطوير',
-                        style: context.labelSmall?.copyWith(
+                        ),
+                        child: Icon(
+                          category.isInDevelopment ? Icons.construction : category.icon,
                           color: Colors.white,
-                          fontWeight: ThemeConstants.bold,
-                          fontSize: 10,
+                          size: 26,
+                        ),
+                      ),
+                      
+                      const SizedBox(width: 14),
+                      
+                      // النص فقط (بدون شريط التقدم)
+                      Expanded(
+                        child: Text(
+                          category.title,
+                          style: context.titleMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: ThemeConstants.bold,
+                            fontSize: 15,
+                            height: 1.2,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withValues(alpha: 0.2),
+                                offset: const Offset(0, 1),
+                                blurRadius: 2,
+                              ),
+                            ],
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  // شارة "قيد التطوير"
+                  if (category.isInDevelopment)
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: ThemeConstants.warning,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: ThemeConstants.warning.withValues(alpha: 0.4),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          'قيد التطوير',
+                          style: context.labelSmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: ThemeConstants.bold,
+                            fontSize: 10,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -543,7 +531,7 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
     );
   }
 
-  // تدرج لوني خاص بالعناصر قيد التطوير
+  // ✅ تدرج لوني خاص بالعناصر قيد التطوير
   LinearGradient _getDevelopmentGradient() {
     return LinearGradient(
       begin: Alignment.topLeft,
@@ -554,16 +542,22 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
       ],
     );
   }
+
+  @override
+  void dispose() {
+    // ✅ تنظيف الـ Cache عند إغلاق الـ Widget
+    _gradientCache.clear();
+    super.dispose();
+  }
 }
 
-/// نموذج بيانات الفئة المحسن مع حالة التطوير
+/// ✅ نموذج بيانات محسّن - بدون نسبة الإنجاز
 class CategoryItem {
   final String id;
   final String title;
   final String subtitle;
   final IconData icon;
   final String? routeName;
-  final double progress;
   final bool isInDevelopment;
 
   const CategoryItem({
@@ -572,7 +566,6 @@ class CategoryItem {
     required this.subtitle,
     required this.icon,
     this.routeName,
-    required this.progress,
     this.isInDevelopment = false,
   });
 }

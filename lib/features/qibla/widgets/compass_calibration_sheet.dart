@@ -1,9 +1,11 @@
-// lib/features/qibla/widgets/compass_calibration_sheet.dart
+// lib/features/qibla/widgets/compass_calibration_sheet.dart - نسخة كاملة محسّنة
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import '../../../app/themes/app_theme.dart';
+import '../services/qibla_service.dart';
 
 class CompassCalibrationSheet extends StatefulWidget {
   final VoidCallback onStartCalibration;
@@ -190,7 +192,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // Figure-8 background - bigger and clearer
+                // Figure-8 background
                 CustomPaint(
                   size: const Size(240, 100),
                   painter: Figure8BackgroundPainter(
@@ -201,12 +203,9 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                 AnimatedBuilder(
                   animation: _figure8Animation,
                   builder: (context, child) {
-                    // Calculate figure-8 path
                     final t = _figure8Animation.value;
                     final x = math.sin(t) * 75;
                     final y = math.sin(2 * t) * 30;
-                    
-                    // Calculate tilt based on position
                     final tilt = math.sin(t) * 0.2;
                     
                     return Transform.translate(
@@ -216,7 +215,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                         transform: Matrix4.identity()
                           ..rotateY(tilt)
                           ..rotateZ(tilt * 0.5),
-                        child: PhoneAnimationWidget(),
+                        child: const PhoneAnimationWidget(),
                       ),
                     );
                   },
@@ -259,7 +258,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
           _buildCalibrationStep(
             context: context,
             number: '4',
-            text: 'انتظر حتى تستقر القراءات',
+            text: 'انتظر حتى تستقر القراءات (15-20 ثانية)',
             icon: Icons.check_circle_outline,
           ),
           
@@ -360,7 +359,6 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
           ),
           ThemeConstants.space3.w,
           if (isStep2) ...[
-            // Small figure-8 icon for step 2
             CustomPaint(
               size: const Size(30, 15),
               painter: SmallFigure8Painter(
@@ -388,13 +386,9 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
   }
   
   Color _getAccuracyColor(int percentage) {
-    if (percentage >= 80) {
-      return ThemeConstants.success;
-    } else if (percentage >= 50) {
-      return ThemeConstants.warning;
-    } else {
-      return ThemeConstants.error;
-    }
+    if (percentage >= 80) return ThemeConstants.success;
+    if (percentage >= 50) return ThemeConstants.warning;
+    return ThemeConstants.error;
   }
 }
 
@@ -432,7 +426,6 @@ class PhoneAnimationWidget extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // Screen
           Positioned(
             top: 7,
             left: 12,
@@ -456,7 +449,6 @@ class PhoneAnimationWidget extends StatelessWidget {
                     size: 20,
                   ),
                   const SizedBox(width: 10),
-                  // Motion waves
                   ...List.generate(3, (index) => Container(
                     width: 3,
                     height: 14 - (index * 2),
@@ -472,7 +464,6 @@ class PhoneAnimationWidget extends StatelessWidget {
               ),
             ),
           ),
-          // Camera notch
           Positioned(
             top: 2,
             left: 0,
@@ -488,7 +479,6 @@ class PhoneAnimationWidget extends StatelessWidget {
               ),
             ),
           ),
-          // Home indicator
           Positioned(
             right: 4,
             top: 0,
@@ -504,7 +494,6 @@ class PhoneAnimationWidget extends StatelessWidget {
               ),
             ),
           ),
-          // Volume buttons
           Positioned(
             left: 4,
             top: 14,
@@ -535,7 +524,7 @@ class PhoneAnimationWidget extends StatelessWidget {
   }
 }
 
-// Custom painter for drawing figure-8 path - Bigger and clearer
+// Custom painter for drawing figure-8 path
 class Figure8BackgroundPainter extends CustomPainter {
   final Color color;
   
@@ -543,14 +532,12 @@ class Figure8BackgroundPainter extends CustomPainter {
   
   @override
   void paint(Canvas canvas, Size size) {
-    // Main path
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = 5
       ..strokeCap = StrokeCap.round;
     
-    // Glow effect
     final glowPaint = Paint()
       ..color = color.withValues(alpha: 0.2)
       ..style = PaintingStyle.stroke
@@ -564,17 +551,14 @@ class Figure8BackgroundPainter extends CustomPainter {
     final radiusX = size.width * 0.42;
     final radiusY = size.height * 0.4;
     
-    // Draw horizontal figure-8 (infinity symbol)
     path.moveTo(centerX - radiusX, centerY);
     
-    // Left loop
     path.cubicTo(
       centerX - radiusX, centerY - radiusY,
       centerX - radiusX * 0.2, centerY - radiusY,
       centerX, centerY,
     );
     
-    // Right loop
     path.cubicTo(
       centerX + radiusX * 0.2, centerY + radiusY,
       centerX + radiusX, centerY + radiusY,
@@ -593,12 +577,9 @@ class Figure8BackgroundPainter extends CustomPainter {
       centerX - radiusX, centerY,
     );
     
-    // Draw glow
     canvas.drawPath(path, glowPaint);
-    // Draw main path
     canvas.drawPath(path, paint);
     
-    // Draw dots along the path for visual guidance
     final dotPaint = Paint()
       ..color = color
       ..style = PaintingStyle.fill;
@@ -610,21 +591,18 @@ class Figure8BackgroundPainter extends CustomPainter {
       canvas.drawCircle(Offset(x, y), 3, dotPaint);
     }
     
-    // Draw arrow indicators
     final arrowPaint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
     
-    // Left arrow
     final leftArrowPath = Path();
     leftArrowPath.moveTo(centerX - radiusX * 0.65, centerY - 8);
     leftArrowPath.lineTo(centerX - radiusX * 0.75, centerY);
     leftArrowPath.lineTo(centerX - radiusX * 0.65, centerY + 8);
     canvas.drawPath(leftArrowPath, arrowPaint);
     
-    // Right arrow
     final rightArrowPath = Path();
     rightArrowPath.moveTo(centerX + radiusX * 0.65, centerY - 8);
     rightArrowPath.lineTo(centerX + radiusX * 0.75, centerY);
@@ -638,7 +616,7 @@ class Figure8BackgroundPainter extends CustomPainter {
   }
 }
 
-// Small Figure-8 painter for step 2
+// Small Figure-8 painter
 class SmallFigure8Painter extends CustomPainter {
   final Color color;
   
@@ -658,17 +636,14 @@ class SmallFigure8Painter extends CustomPainter {
     final radiusX = size.width * 0.4;
     final radiusY = size.height * 0.35;
     
-    // Draw small horizontal figure-8
     path.moveTo(centerX - radiusX, centerY);
     
-    // Left loop
     path.cubicTo(
       centerX - radiusX, centerY - radiusY,
       centerX - radiusX * 0.3, centerY - radiusY,
       centerX, centerY,
     );
     
-    // Right loop
     path.cubicTo(
       centerX + radiusX * 0.3, centerY + radiusY,
       centerX + radiusX, centerY + radiusY,
@@ -689,7 +664,6 @@ class SmallFigure8Painter extends CustomPainter {
     
     canvas.drawPath(path, paint);
     
-    // Small dots for emphasis
     final dotPaint = Paint()
       ..color = color.withValues(alpha: 0.6)
       ..style = PaintingStyle.fill;
@@ -705,20 +679,7 @@ class SmallFigure8Painter extends CustomPainter {
   }
 }
 
-// Calibration Progress Dialog with Animation
-void showCalibrationProgressDialog({
-  required BuildContext context,
-  required VoidCallback onStartCalibration,
-}) {
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) => CalibrationProgressDialog(
-      onStartCalibration: onStartCalibration,
-    ),
-  );
-}
-
+// Calibration Progress Dialog
 class CalibrationProgressDialog extends StatefulWidget {
   final VoidCallback onStartCalibration;
   
@@ -736,6 +697,8 @@ class _CalibrationProgressDialogState extends State<CalibrationProgressDialog>
   
   late AnimationController _animationController;
   late Animation<double> _figure8Animation;
+  bool _hasStartedCalibration = false;
+  bool _hasCompleted = false;
   
   @override
   void initState() {
@@ -753,8 +716,8 @@ class _CalibrationProgressDialogState extends State<CalibrationProgressDialog>
       curve: Curves.easeInOut,
     ));
     
-    // Start calibration
     widget.onStartCalibration();
+    _hasStartedCalibration = true;
   }
   
   @override
@@ -765,78 +728,192 @@ class _CalibrationProgressDialogState extends State<CalibrationProgressDialog>
   
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text(
-        'جاري المعايرة...',
-        textAlign: TextAlign.center,
-      ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Same animation as in the sheet
-          Container(
-            height: 150,
-            width: 280,
-            decoration: BoxDecoration(
-              color: context.cardColor.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+    return Consumer<QiblaService>(
+      builder: (context, qiblaService, child) {
+        if (qiblaService.calibrationProgress >= 100 && 
+            !qiblaService.isCalibrating && 
+            _hasStartedCalibration &&
+            !_hasCompleted) {
+          
+          _hasCompleted = true;
+          
+          Future.delayed(const Duration(milliseconds: 1500), () {
+            if (mounted) {
+              Navigator.of(context).pop();
+            }
+          });
+        }
+        
+        return WillPopScope(
+          onWillPop: () async => !qiblaService.isCalibrating,
+          child: AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
             ),
-            child: Stack(
-              alignment: Alignment.center,
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Figure-8 background
-                CustomPaint(
-                  size: const Size(240, 100),
-                  painter: Figure8BackgroundPainter(
-                    color: ThemeConstants.primary.withValues(alpha: 0.4),
-                  ),
+                Icon(
+                  qiblaService.calibrationProgress >= 100
+                      ? Icons.check_circle_outline
+                      : Icons.compass_calibration,
+                  color: qiblaService.calibrationProgress >= 100
+                      ? ThemeConstants.success
+                      : ThemeConstants.primary,
                 ),
-                // Animated phone
-                AnimatedBuilder(
-                  animation: _figure8Animation,
-                  builder: (context, child) {
-                    final t = _figure8Animation.value;
-                    final x = math.sin(t) * 75;
-                    final y = math.sin(2 * t) * 30;
-                    final tilt = math.sin(t) * 0.2;
-                    
-                    return Transform.translate(
-                      offset: Offset(x, y),
-                      child: Transform(
-                        alignment: Alignment.center,
-                        transform: Matrix4.identity()
-                          ..rotateY(tilt)
-                          ..rotateZ(tilt * 0.5),
-                        child: const PhoneAnimationWidget(),
-                      ),
-                    );
-                  },
+                ThemeConstants.space2.w,
+                Text(
+                  qiblaService.calibrationProgress >= 100
+                      ? 'اكتملت المعايرة!'
+                      : 'جاري المعايرة...',
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  height: 150,
+                  width: 280,
+                  decoration: BoxDecoration(
+                    color: context.cardColor.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      CustomPaint(
+                        size: const Size(240, 100),
+                        painter: Figure8BackgroundPainter(
+                          color: qiblaService.calibrationProgress >= 100
+                              ? ThemeConstants.success.withValues(alpha: 0.4)
+                              : ThemeConstants.primary.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      if (qiblaService.isCalibrating)
+                        AnimatedBuilder(
+                          animation: _figure8Animation,
+                          builder: (context, child) {
+                            final t = _figure8Animation.value;
+                            final x = math.sin(t) * 75;
+                            final y = math.sin(2 * t) * 30;
+                            final tilt = math.sin(t) * 0.2;
+                            
+                            return Transform.translate(
+                              offset: Offset(x, y),
+                              child: Transform(
+                                alignment: Alignment.center,
+                                transform: Matrix4.identity()
+                                  ..rotateY(tilt)
+                                  ..rotateZ(tilt * 0.5),
+                                child: const PhoneAnimationWidget(),
+                              ),
+                            );
+                          },
+                        )
+                      else
+                        const PhoneAnimationWidget(),
+                    ],
+                  ),
+                ),
+                
+                ThemeConstants.space4.h,
+                
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: Text(
+                    qiblaService.calibrationMessage,
+                    key: ValueKey(qiblaService.calibrationMessage),
+                    textAlign: TextAlign.center,
+                    style: context.bodyLarge?.copyWith(
+                      fontWeight: qiblaService.calibrationProgress >= 100
+                          ? ThemeConstants.bold
+                          : ThemeConstants.medium,
+                      color: qiblaService.calibrationProgress >= 100
+                          ? ThemeConstants.success
+                          : context.textPrimaryColor,
+                    ),
+                  ),
+                ),
+                
+                ThemeConstants.space3.h,
+                
+                Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${qiblaService.calibrationProgress}%',
+                          style: context.titleMedium?.bold.textColor(
+                            qiblaService.calibrationProgress >= 100
+                                ? ThemeConstants.success
+                                : ThemeConstants.primary,
+                          ),
+                        ),
+                        if (qiblaService.isCalibrating)
+                          Text(
+                            'استمر بالحركة...',
+                            style: context.bodySmall?.copyWith(
+                              color: context.textSecondaryColor,
+                            ),
+                          )
+                        else if (qiblaService.calibrationProgress >= 100)
+                          Icon(
+                            Icons.check_circle,
+                            color: ThemeConstants.success,
+                            size: ThemeConstants.iconMd,
+                          ),
+                      ],
+                    ),
+                    ThemeConstants.space2.h,
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(ThemeConstants.radiusSm),
+                      child: LinearProgressIndicator(
+                        value: qiblaService.calibrationProgress / 100,
+                        backgroundColor: context.dividerColor.withValues(alpha: 0.3),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          qiblaService.calibrationProgress >= 100
+                              ? ThemeConstants.success
+                              : ThemeConstants.primary,
+                        ),
+                        minHeight: 8,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            actions: [
+              if (qiblaService.isCalibrating)
+                TextButton(
+                  onPressed: () {
+                    qiblaService.resetCalibration();
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('إلغاء'),
+                ),
+              
+              if (!qiblaService.isCalibrating && qiblaService.calibrationProgress >= 100)
+                ElevatedButton.icon(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.check),
+                  label: const Text('تم'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: ThemeConstants.success,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+            ],
           ),
-          ThemeConstants.space4.h,
-          const Text(
-            'حرك هاتفك على شكل الرقم 8 في الهواء',
-            textAlign: TextAlign.center,
-          ),
-          ThemeConstants.space3.h,
-          const LinearProgressIndicator(),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          child: const Text('إلغاء'),
-        ),
-      ],
+        );
+      },
     );
   }
 }
 
-// Helper function to show the calibration sheet
+// Helper function
 void showCompassCalibrationSheet({
   required BuildContext context,
   required VoidCallback onStartCalibration,

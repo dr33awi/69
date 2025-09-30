@@ -1,4 +1,4 @@
-// lib/core/infrastructure/firebase/firebase_messaging_service.dart - محسّن
+// lib/core/infrastructure/firebase/firebase_messaging_service.dart - محدث
 import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -30,11 +30,8 @@ class FirebaseMessagingService {
   
   static const MethodChannel _fcmChannel = MethodChannel('com.athkar.app/firebase_messaging');
   
-  // Topics
-  static const String _prayerTopic = 'prayer_times';
-  static const String _athkarTopic = 'athkar_reminders';
+  // Topic واحد فقط
   static const String _generalTopic = 'general_notifications';
-  static const String _updatesTopicArabic = 'updates_ar';
 
   /// تهيئة الخدمة
   Future<void> initialize({
@@ -99,7 +96,7 @@ class FirebaseMessagingService {
     }
   }
 
-  /// ✅ الحصول على FCM Token - محسّن
+  /// الحصول على FCM Token
   Future<void> _getFCMToken() async {
     if (_messaging == null) return;
     
@@ -283,8 +280,7 @@ class FirebaseMessagingService {
   Future<void> _subscribeToDefaultTopics() async {
     try {
       await subscribeToTopic(_generalTopic);
-      await subscribeToTopic(_updatesTopicArabic);
-      debugPrint('✅ Default topics subscribed');
+      debugPrint('✅ Subscribed to general notifications');
     } catch (e) {
       debugPrint('❌ Error subscribing to default topics: $e');
     }
@@ -322,10 +318,9 @@ class FirebaseMessagingService {
     return _storage.getStringList('subscribed_topics') ?? [];
   }
 
-  Future<void> subscribeToPrayerNotifications() => subscribeToTopic(_prayerTopic);
-  Future<void> unsubscribeFromPrayerNotifications() => unsubscribeFromTopic(_prayerTopic);
-  Future<void> subscribeToAthkarNotifications() => subscribeToTopic(_athkarTopic);
-  Future<void> unsubscribeFromAthkarNotifications() => unsubscribeFromTopic(_athkarTopic);
+  // ✅ دالة واحدة فقط للإشعارات العامة
+  Future<void> subscribeToGeneralNotifications() => subscribeToTopic(_generalTopic);
+  Future<void> unsubscribeFromGeneralNotifications() => unsubscribeFromTopic(_generalTopic);
 
   // ==================== Getters ====================
 

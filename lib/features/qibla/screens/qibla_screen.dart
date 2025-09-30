@@ -1,4 +1,4 @@
-// lib/features/qibla/screens/qibla_screen.dart - نسخة محدثة
+// lib/features/qibla/screens/qibla_screen.dart - نسخة كاملة محسّنة
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -104,29 +104,26 @@ class _QiblaScreenState extends State<QiblaScreen>
       onStartCalibration: () async {
         await _qiblaService.startCalibration();
         
-        // Show progress dialog with animation after starting calibration
+        // Show progress dialog with Provider
         if (mounted) {
-          _showCalibrationProgressDialogWithAnimation();
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (dialogContext) => ChangeNotifierProvider.value(
+              value: _qiblaService,
+              child: CalibrationProgressDialog(
+                onStartCalibration: () {}, // Already started
+              ),
+            ),
+          ).then((_) {
+            if (_qiblaService.isCalibrated) {
+              _showSuccessSnackbar(_qiblaService.calibrationMessage);
+            }
+          });
         }
       },
       initialAccuracy: _qiblaService.compassAccuracy,
     );
-  }
-
-  void _showCalibrationProgressDialogWithAnimation() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => CalibrationProgressDialog(
-        onStartCalibration: () {
-          // Calibration already started, this is just for the animation
-        },
-      ),
-    ).then((_) {
-      if (_qiblaService.isCalibrated) {
-        _showSuccessSnackbar('تمت المعايرة بنجاح');
-      }
-    });
   }
 
   void _showErrorSnackbar(String message) {
@@ -152,6 +149,7 @@ class _QiblaScreenState extends State<QiblaScreen>
       SnackBar(
         content: Text(message),
         backgroundColor: ThemeConstants.success,
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -242,7 +240,7 @@ class _QiblaScreenState extends State<QiblaScreen>
       padding: const EdgeInsets.all(ThemeConstants.space4),
       child: Row(
         children: [
-          // زر الرجوع بنفس شكل prayer_time_screen
+          // زر الرجوع
           AppBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
@@ -294,7 +292,7 @@ class _QiblaScreenState extends State<QiblaScreen>
             ),
           ),
           
-          // زر التحديث بنفس شكل prayer_time_screen
+          // زر التحديث
           _buildActionButton(
             icon: service.isLoading
                 ? Icons.hourglass_empty
