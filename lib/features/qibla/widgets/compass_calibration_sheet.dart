@@ -839,50 +839,12 @@ class _CalibrationProgressDialogState extends State<CalibrationProgressDialog>
                 
                 ThemeConstants.space3.h,
                 
-                Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '${qiblaService.calibrationProgress}%',
-                          style: context.titleMedium?.bold.textColor(
-                            qiblaService.calibrationProgress >= 100
-                                ? ThemeConstants.success
-                                : ThemeConstants.primary,
-                          ),
-                        ),
-                        if (qiblaService.isCalibrating)
-                          Text(
-                            'استمر بالحركة...',
-                            style: context.bodySmall?.copyWith(
-                              color: context.textSecondaryColor,
-                            ),
-                          )
-                        else if (qiblaService.calibrationProgress >= 100)
-                          Icon(
-                            Icons.check_circle,
-                            color: ThemeConstants.success,
-                            size: ThemeConstants.iconMd,
-                          ),
-                      ],
-                    ),
-                    ThemeConstants.space2.h,
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(ThemeConstants.radiusSm),
-                      child: LinearProgressIndicator(
-                        value: qiblaService.calibrationProgress / 100,
-                        backgroundColor: context.dividerColor.withValues(alpha: 0.3),
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          qiblaService.calibrationProgress >= 100
-                              ? ThemeConstants.success
-                              : ThemeConstants.primary,
-                        ),
-                        minHeight: 8,
-                      ),
-                    ),
-                  ],
-                ),
+                if (qiblaService.calibrationProgress >= 100)
+                  Icon(
+                    Icons.check_circle,
+                    color: ThemeConstants.success,
+                    size: ThemeConstants.iconLg,
+                  ),
               ],
             ),
             actions: [

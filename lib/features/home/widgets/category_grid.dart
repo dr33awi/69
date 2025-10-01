@@ -1,4 +1,4 @@
-// lib/features/home/widgets/category_grid.dart - مُحسّن بالكامل
+// lib/features/home/widgets/category_grid.dart - نسخة محسنة ومتناسقة
 
 import 'package:athkar_app/app/themes/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -13,23 +13,18 @@ class CategoryGrid extends StatefulWidget {
 
 class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClientMixin {
   
-  // ✅ تحسين: حفظ حالة الـ Widget لمنع إعادة البناء غير الضرورية
   @override
   bool get wantKeepAlive => true;
 
-  // ✅ Cache للتدرجات اللونية - يحسب مرة واحدة فقط
   final Map<String, LinearGradient> _gradientCache = {};
 
-  // ✅ دالة محسّنة للحصول على التدرج اللوني مع Cache
   LinearGradient _getGradient(String categoryId, bool isInDevelopment) {
     final cacheKey = isInDevelopment ? 'dev_mode' : categoryId;
     
-    // إذا كان التدرج محفوظ في الـ Cache، استخدمه
     if (_gradientCache.containsKey(cacheKey)) {
       return _gradientCache[cacheKey]!;
     }
     
-    // وإلا احسبه واحفظه في الـ Cache
     final gradient = isInDevelopment 
         ? _getDevelopmentGradient() 
         : AppColors.getCategoryGradient(categoryId);
@@ -38,12 +33,10 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
     return gradient;
   }
 
-  // بيانات ثابتة للأداء - بدون نسبة الإنجاز
   static const List<CategoryItem> _categories = [
     CategoryItem(
       id: 'prayer_times',
       title: 'مواقيت الصلاة',
-      subtitle: 'أوقات الصلوات الخمس',
       icon: Icons.mosque,
       routeName: '/prayer-times',
       isInDevelopment: false,
@@ -51,7 +44,6 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
     CategoryItem(
       id: 'athkar',
       title: 'الأذكار اليومية',
-      subtitle: 'أذكار الصباح والمساء',
       icon: Icons.menu_book_rounded,
       routeName: '/athkar',
       isInDevelopment: false,
@@ -59,7 +51,6 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
     CategoryItem(
       id: 'asma_allah',  
       title: 'أسماء الله الحسنى',  
-      subtitle: 'الأسماء والصفات',  
       icon: Icons.star_purple500_outlined,  
       routeName: '/asma-allah',
       isInDevelopment: false,
@@ -67,7 +58,6 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
     CategoryItem(
       id: 'qibla',
       title: 'اتجاه القبلة',
-      subtitle: 'البوصلة الذكية',
       icon: Icons.explore,
       routeName: '/qibla',
       isInDevelopment: false,
@@ -75,7 +65,6 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
     CategoryItem(
       id: 'tasbih',
       title: 'المسبحة الرقمية',
-      subtitle: 'عداد التسبيح',
       icon: Icons.radio_button_checked,
       routeName: '/tasbih',
       isInDevelopment: false,
@@ -83,7 +72,6 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
     CategoryItem(
       id: 'dua',
       title: 'الأدعية المأثورة',
-      subtitle: 'أدعية من الكتاب والسنة',
       icon: Icons.pan_tool_rounded,
       routeName: '/dua',
       isInDevelopment: false,
@@ -210,83 +198,58 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
 
   @override
   Widget build(BuildContext context) {
-    // ✅ تحسين: استدعاء super.build للحفاظ على الحالة
     super.build(context);
-    
-    // ✅ تحسين: تنظيم البيانات في صفوف للبناء المحسن
-    final rows = _buildCategoryRows();
     
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: ThemeConstants.space4),
       sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            if (index >= rows.length) return null;
-            return Column(
-              children: [
-                rows[index],
-                if (index < rows.length - 1) ThemeConstants.space4.h,
-              ],
-            );
-          },
-          childCount: rows.length,
-          // ✅ تحسين الأداء
-          addAutomaticKeepAlives: false,
-          addRepaintBoundaries: true,
-          addSemanticIndexes: true,
-        ),
+        delegate: SliverChildListDelegate([
+          // الصف الأول: مواقيت الصلاة + الأذكار اليومية
+          _buildRow([_categories[0], _categories[1]]),
+          
+          ThemeConstants.space4.h,
+          
+          // الصف الثاني: أسماء الله الحسنى (عريض) + اتجاه القبلة
+          Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: _buildWideCard(context, _categories[2]), // أسماء الله
+              ),
+              ThemeConstants.space4.w,
+              Expanded(
+                flex: 2,
+                child: _buildStandardCard(context, _categories[3]), // القبلة
+              ),
+            ],
+          ),
+          
+          ThemeConstants.space4.h,
+          
+          // الصف الثالث: المسبحة + الأدعية
+          _buildRow([_categories[4], _categories[5]]),
+        ]),
       ),
     );
   }
 
-  // ✅ تحسين: تنظيم الصفوف للبناء المحسن
-  List<Widget> _buildCategoryRows() {
-    return [
-      // الصف الأول: المسبحة الرقمية والأذكار اليومية
-      Row(
-        children: [
-          Expanded(
-            flex: 2,
-            child: _buildCategoryItem(context, _categories[4]), // tasbih
-          ),
-          ThemeConstants.space4.w,
-          Expanded(
-            child: _buildSquareCategoryItem(context, _categories[1]), // athkar
-          ),
-        ],
-      ),
-      
-      // الصف الثاني: أسماء الله الحسنى ومواقيت الصلاة
-      Row(
-        children: [
-          Expanded(
-            child: _buildSquareCategoryItem(context, _categories[2]), // asma_allah
-          ),
-          ThemeConstants.space4.w,
-          Expanded(
-            flex: 2,
-            child: _buildCategoryItem(context, _categories[0]), // prayer_times
-          ),
-        ],
-      ),
-      
-      // الصف الثالث: اتجاه القبلة والأدعية
-      Row(
-        children: [
-          Expanded(
-            child: _buildCategoryItem(context, _categories[3]), // qibla
-          ),
-          ThemeConstants.space4.w,
-          Expanded(
-            child: _buildCategoryItem(context, _categories[5]), // dua
-          ),
-        ],
-      ),
-    ];
+  // بناء صف متساوي
+  Widget _buildRow(List<CategoryItem> categories) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildStandardCard(context, categories[0]),
+        ),
+        ThemeConstants.space4.w,
+        Expanded(
+          child: _buildStandardCard(context, categories[1]),
+        ),
+      ],
+    );
   }
 
-  Widget _buildSquareCategoryItem(BuildContext context, CategoryItem category) {
-    // ✅ استخدام Cache للتدرجات اللونية
+  // بطاقة قياسية
+  Widget _buildStandardCard(BuildContext context, CategoryItem category) {
     final gradient = _getGradient(category.id, category.isInDevelopment);
     
     return RepaintBoundary(
@@ -310,7 +273,7 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
             onTap: () => _onCategoryTap(category),
             borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
             child: Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
                 border: Border.all(
@@ -322,37 +285,36 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
                 children: [
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       // الأيقونة
                       Container(
-                        width: 60,
-                        height: 60,
+                        width: 56,
+                        height: 56,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.white.withValues(alpha: 0.2),
                           border: Border.all(
                             color: Colors.white.withValues(alpha: 0.3),
-                            width: 1,
+                            width: 1.5,
                           ),
                         ),
                         child: Icon(
                           category.isInDevelopment ? Icons.construction : category.icon,
                           color: Colors.white,
-                          size: 30,
+                          size: 28,
                         ),
                       ),
                       
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       
                       // العنوان
                       Text(
                         category.title,
-                        style: context.titleMedium?.copyWith(
+                        style: context.titleSmall?.copyWith(
                           color: Colors.white,
                           fontWeight: ThemeConstants.bold,
                           fontSize: 14,
-                          height: 1.2,
+                          height: 1.3,
                           shadows: [
                             Shadow(
                               color: Colors.black.withValues(alpha: 0.2),
@@ -372,7 +334,7 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
                   if (category.isInDevelopment)
                     Positioned(
                       top: 0,
-                      right: 0,
+                      left: 0,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
@@ -394,7 +356,7 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
                           style: context.labelSmall?.copyWith(
                             color: Colors.white,
                             fontWeight: ThemeConstants.bold,
-                            fontSize: 10,
+                            fontSize: 9,
                           ),
                         ),
                       ),
@@ -408,8 +370,8 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
     );
   }
 
-  Widget _buildCategoryItem(BuildContext context, CategoryItem category) {
-    // ✅ استخدام Cache للتدرجات اللونية
+  // بطاقة عريضة (لأسماء الله الحسنى)
+  Widget _buildWideCard(BuildContext context, CategoryItem category) {
     final gradient = _getGradient(category.id, category.isInDevelopment);
     
     return RepaintBoundary(
@@ -444,48 +406,53 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
               child: Stack(
                 children: [
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       // الأيقونة
                       Container(
-                        width: 50,
-                        height: 50,
+                        width: 56,
+                        height: 56,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.white.withValues(alpha: 0.2),
                           border: Border.all(
                             color: Colors.white.withValues(alpha: 0.3),
-                            width: 1,
+                            width: 1.5,
                           ),
                         ),
                         child: Icon(
                           category.isInDevelopment ? Icons.construction : category.icon,
                           color: Colors.white,
-                          size: 26,
+                          size: 28,
                         ),
                       ),
                       
                       const SizedBox(width: 14),
                       
-                      // النص فقط (بدون شريط التقدم)
+                      // النص
                       Expanded(
-                        child: Text(
-                          category.title,
-                          style: context.titleMedium?.copyWith(
-                            color: Colors.white,
-                            fontWeight: ThemeConstants.bold,
-                            fontSize: 15,
-                            height: 1.2,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black.withValues(alpha: 0.2),
-                                offset: const Offset(0, 1),
-                                blurRadius: 2,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              category.title,
+                              style: context.titleMedium?.copyWith(
+                                color: Colors.white,
+                                fontWeight: ThemeConstants.bold,
+                                fontSize: 16,
+                                height: 1.3,
+                                shadows: [
+                                  Shadow(
+                                    color: Colors.black.withValues(alpha: 0.2),
+                                    offset: const Offset(0, 1),
+                                    blurRadius: 2,
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -495,7 +462,7 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
                   if (category.isInDevelopment)
                     Positioned(
                       top: 0,
-                      right: 0,
+                      left: 0,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
@@ -517,7 +484,7 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
                           style: context.labelSmall?.copyWith(
                             color: Colors.white,
                             fontWeight: ThemeConstants.bold,
-                            fontSize: 10,
+                            fontSize: 9,
                           ),
                         ),
                       ),
@@ -531,7 +498,6 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
     );
   }
 
-  // ✅ تدرج لوني خاص بالعناصر قيد التطوير
   LinearGradient _getDevelopmentGradient() {
     return LinearGradient(
       begin: Alignment.topLeft,
@@ -545,17 +511,14 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
 
   @override
   void dispose() {
-    // ✅ تنظيف الـ Cache عند إغلاق الـ Widget
     _gradientCache.clear();
     super.dispose();
   }
 }
 
-/// ✅ نموذج بيانات محسّن - بدون نسبة الإنجاز
 class CategoryItem {
   final String id;
   final String title;
-  final String subtitle;
   final IconData icon;
   final String? routeName;
   final bool isInDevelopment;
@@ -563,7 +526,6 @@ class CategoryItem {
   const CategoryItem({
     required this.id,
     required this.title,
-    required this.subtitle,
     required this.icon,
     this.routeName,
     this.isInDevelopment = false,
