@@ -1,6 +1,7 @@
-// lib/app/themes/app_theme.dart - مصحح
+// lib/app/themes/app_theme.dart - محدث مع flutter_screenutil
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 // الاستيرادات المصححة
 import 'core/color_helper.dart';
@@ -8,10 +9,7 @@ import 'core/theme_extensions.dart';
 import 'text_styles.dart';
 import 'theme_constants.dart';
 
-// نقل AppConstants إلى المكان الصحيح أو استخدام ThemeConstants
-// import '../../core/constants/app_constants.dart';
-
-// Barrel Exports - مصحح
+// Barrel Exports
 export 'core/color_helper.dart';
 export 'core/color_utils.dart';
 export 'core/theme_extensions.dart';
@@ -57,7 +55,7 @@ class AppTheme {
     dividerColor: AppColors.darkDivider,
   );
 
-  /// بناء الثيم الموحد
+  /// بناء الثيم الموحد مع ScreenUtil
   static ThemeData _buildTheme({
     required Brightness brightness,
     required Color primaryColor,
@@ -83,7 +81,7 @@ class AppTheme {
       primaryColor: primaryColor,
       scaffoldBackgroundColor: backgroundColor,
       useMaterial3: true,
-      fontFamily: ThemeConstants.fontFamily, // استخدام ThemeConstants
+      fontFamily: ThemeConstants.fontFamily,
       
       // ColorScheme
       colorScheme: ColorScheme(
@@ -103,7 +101,7 @@ class AppTheme {
         outline: dividerColor,
       ),
       
-      // AppBar Theme
+      // AppBar Theme مع ScreenUtil
       appBarTheme: AppBarTheme(
         backgroundColor: backgroundColor,
         foregroundColor: textPrimaryColor,
@@ -112,7 +110,7 @@ class AppTheme {
         titleTextStyle: AppTextStyles.h4.copyWith(color: textPrimaryColor),
         iconTheme: IconThemeData(
           color: textPrimaryColor,
-          size: ThemeConstants.iconMd,
+          size: 24.sp,
         ),
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
@@ -122,20 +120,20 @@ class AppTheme {
         ),
       ),
       
-      // Card Theme
+      // Card Theme مع ScreenUtil
       cardTheme: CardThemeData(
         color: cardColor,
         elevation: ThemeConstants.elevationNone,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+          borderRadius: BorderRadius.circular(12.r),
         ),
       ),
       
       // Text Theme
       textTheme: textTheme,
       
-      // Button Themes
+      // Button Themes مع ScreenUtil
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: _elevatedButtonStyle(primaryColor, onPrimaryColor),
       ),
@@ -148,7 +146,7 @@ class AppTheme {
         style: _textButtonStyle(primaryColor),
       ),
       
-      // Input Theme
+      // Input Theme مع ScreenUtil
       inputDecorationTheme: _inputDecorationTheme(
         isDark: isDark,
         primaryColor: primaryColor,
@@ -157,16 +155,16 @@ class AppTheme {
         textSecondaryColor: textSecondaryColor,
       ),
       
-      // Other Themes
+      // Other Themes مع ScreenUtil
       dividerTheme: DividerThemeData(
         color: dividerColor,
-        thickness: ThemeConstants.borderLight,
-        space: ThemeConstants.space1,
+        thickness: 1.w,
+        space: 4.h,
       ),
       
       iconTheme: IconThemeData(
         color: textPrimaryColor,
-        size: ThemeConstants.iconMd,
+        size: 24.sp,
       ),
       
       progressIndicatorTheme: ProgressIndicatorThemeData(
@@ -183,7 +181,7 @@ class AppTheme {
         },
       ),
       
-      // Bottom Navigation
+      // Bottom Navigation مع ScreenUtil
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: cardColor,
         selectedItemColor: primaryColor,
@@ -194,15 +192,144 @@ class AppTheme {
           fontWeight: ThemeConstants.semiBold,
         ),
         unselectedLabelStyle: AppTextStyles.label2,
-        selectedIconTheme: IconThemeData(size: ThemeConstants.iconMd),
-        unselectedIconTheme: IconThemeData(size: ThemeConstants.iconMd),
+        selectedIconTheme: IconThemeData(size: 24.sp),
+        unselectedIconTheme: IconThemeData(size: 24.sp),
       ),
       
-      // باقي الكود...
+      // Switch Theme
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return primaryColor;
+          }
+          return dividerColor;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return primaryColor.withValues(alpha: ThemeConstants.opacity50);
+          }
+          return dividerColor.withValues(alpha: ThemeConstants.opacity30);
+        }),
+      ),
+      
+      // Checkbox Theme
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return primaryColor;
+          }
+          return Colors.transparent;
+        }),
+        checkColor: WidgetStateProperty.all(onPrimaryColor),
+        side: BorderSide(
+          color: dividerColor,
+          width: 2.w,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4.r),
+        ),
+      ),
+      
+      // Radio Theme
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return primaryColor;
+          }
+          return dividerColor;
+        }),
+      ),
+      
+      // Chip Theme مع ScreenUtil
+      chipTheme: ChipThemeData(
+        backgroundColor: surfaceColor,
+        deleteIconColor: textSecondaryColor,
+        labelStyle: AppTextStyles.label2.copyWith(color: textPrimaryColor),
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        side: BorderSide(
+          color: dividerColor,
+          width: 1.w,
+        ),
+      ),
+      
+      // List Tile Theme
+      listTileTheme: ListTileThemeData(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+        minVerticalPadding: 8.h,
+        horizontalTitleGap: 12.w,
+        iconColor: textSecondaryColor,
+        textColor: textPrimaryColor,
+        titleTextStyle: AppTextStyles.body1.copyWith(color: textPrimaryColor),
+        subtitleTextStyle: AppTextStyles.body2.copyWith(color: textSecondaryColor),
+      ),
+      
+      // Tab Bar Theme
+      tabBarTheme: TabBarTheme(
+        labelColor: primaryColor,
+        unselectedLabelColor: textSecondaryColor,
+        labelStyle: AppTextStyles.label1,
+        unselectedLabelStyle: AppTextStyles.label2,
+        indicator: UnderlineTabIndicator(
+          borderSide: BorderSide(
+            color: primaryColor,
+            width: 2.h,
+          ),
+        ),
+        indicatorSize: TabBarIndicatorSize.tab,
+      ),
+      
+      // Floating Action Button Theme
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: primaryColor,
+        foregroundColor: onPrimaryColor,
+        elevation: ThemeConstants.elevation6,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+      ),
+      
+      // Dialog Theme مع ScreenUtil
+      dialogTheme: DialogTheme(
+        backgroundColor: cardColor,
+        elevation: ThemeConstants.elevation8,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        titleTextStyle: AppTextStyles.h4.copyWith(color: textPrimaryColor),
+        contentTextStyle: AppTextStyles.body1.copyWith(color: textPrimaryColor),
+      ),
+      
+      // Bottom Sheet Theme
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: cardColor,
+        elevation: ThemeConstants.elevation8,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(24.r),
+            topRight: Radius.circular(24.r),
+          ),
+        ),
+      ),
+      
+      // Snackbar Theme
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: isDark ? cardColor : primaryColor,
+        contentTextStyle: AppTextStyles.body2.copyWith(
+          color: isDark ? textPrimaryColor : Colors.white,
+        ),
+        actionTextColor: AppColors.accentLight,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.r),
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 
-  // Button Styles مع استخدام ThemeConstants
+  // Button Styles مع ScreenUtil
   static ButtonStyle _elevatedButtonStyle(Color primaryColor, Color onPrimaryColor) {
     return ElevatedButton.styleFrom(
       backgroundColor: primaryColor,
@@ -211,14 +338,14 @@ class AppTheme {
       disabledForegroundColor: AppColors.lightTextHint.withValues(alpha: ThemeConstants.opacity70),
       elevation: ThemeConstants.elevationNone,
       padding: EdgeInsets.symmetric(
-        horizontal: ThemeConstants.space6,
-        vertical: ThemeConstants.space4,
+        horizontal: 24.w,
+        vertical: 16.h,
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+        borderRadius: BorderRadius.circular(12.r),
       ),
       textStyle: AppTextStyles.button,
-      minimumSize: Size(ThemeConstants.heightLg, ThemeConstants.buttonHeight),
+      minimumSize: Size(48.w, 52.h),
     );
   }
 
@@ -227,18 +354,18 @@ class AppTheme {
       foregroundColor: primaryColor,
       side: BorderSide(
         color: primaryColor,
-        width: ThemeConstants.borderMedium,
+        width: 1.5.w,
       ),
       disabledForegroundColor: AppColors.lightTextHint.withValues(alpha: ThemeConstants.opacity70),
       padding: EdgeInsets.symmetric(
-        horizontal: ThemeConstants.space6,
-        vertical: ThemeConstants.space4,
+        horizontal: 24.w,
+        vertical: 16.h,
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+        borderRadius: BorderRadius.circular(12.r),
       ),
       textStyle: AppTextStyles.button,
-      minimumSize: Size(ThemeConstants.heightLg, ThemeConstants.buttonHeight),
+      minimumSize: Size(48.w, 52.h),
     );
   }
 
@@ -247,17 +374,17 @@ class AppTheme {
       foregroundColor: primaryColor,
       disabledForegroundColor: AppColors.lightTextHint.withValues(alpha: ThemeConstants.opacity70),
       padding: EdgeInsets.symmetric(
-        horizontal: ThemeConstants.space4,
-        vertical: ThemeConstants.space2,
+        horizontal: 16.w,
+        vertical: 8.h,
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+        borderRadius: BorderRadius.circular(12.r),
       ),
       textStyle: AppTextStyles.button,
     );
   }
 
-  // Input Decoration Theme
+  // Input Decoration Theme مع ScreenUtil
   static InputDecorationTheme _inputDecorationTheme({
     required bool isDark,
     required Color primaryColor,
@@ -271,42 +398,42 @@ class AppTheme {
       ),
       filled: true,
       contentPadding: EdgeInsets.symmetric(
-        horizontal: ThemeConstants.space4,
-        vertical: ThemeConstants.space4,
+        horizontal: 16.w,
+        vertical: 16.h,
       ),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+        borderRadius: BorderRadius.circular(12.r),
         borderSide: BorderSide(
           color: dividerColor,
-          width: ThemeConstants.borderLight,
+          width: 1.w,
         ),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+        borderRadius: BorderRadius.circular(12.r),
         borderSide: BorderSide(
           color: dividerColor,
-          width: ThemeConstants.borderLight,
+          width: 1.w,
         ),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+        borderRadius: BorderRadius.circular(12.r),
         borderSide: BorderSide(
           color: primaryColor,
-          width: ThemeConstants.borderThick,
+          width: 2.w,
         ),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+        borderRadius: BorderRadius.circular(12.r),
         borderSide: BorderSide(
           color: AppColors.error,
-          width: ThemeConstants.borderLight,
+          width: 1.w,
         ),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+        borderRadius: BorderRadius.circular(12.r),
         borderSide: BorderSide(
           color: AppColors.error,
-          width: ThemeConstants.borderThick,
+          width: 2.w,
         ),
       ),
       hintStyle: AppTextStyles.body2.copyWith(

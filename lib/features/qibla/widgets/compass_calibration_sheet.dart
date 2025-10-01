@@ -56,7 +56,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
     final accuracyColor = _getAccuracyColor(accuracyPercentage);
     
     return Container(
-      padding: const EdgeInsets.symmetric(
+      padding: EdgeInsets.symmetric(
         horizontal: ThemeConstants.space4,
         vertical: ThemeConstants.space4,
       ),
@@ -73,7 +73,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
           Container(
             width: 40,
             height: 4,
-            margin: const EdgeInsets.only(bottom: ThemeConstants.space4),
+            margin: EdgeInsets.only(bottom: ThemeConstants.space4),
             decoration: BoxDecoration(
               color: context.dividerColor,
               borderRadius: BorderRadius.circular(2),
@@ -271,7 +271,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                 child: OutlinedButton(
                   onPressed: () => Navigator.of(context).pop(),
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
+                    padding: EdgeInsets.symmetric(
                       vertical: ThemeConstants.space3,
                     ),
                     side: BorderSide(
@@ -298,7 +298,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: ThemeConstants.primary,
-                    padding: const EdgeInsets.symmetric(
+                    padding: EdgeInsets.symmetric(
                       vertical: ThemeConstants.space3,
                     ),
                     shape: RoundedRectangleBorder(
@@ -334,7 +334,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
     final bool isStep2 = number == '2';
     
     return Container(
-      margin: const EdgeInsets.only(bottom: ThemeConstants.space3),
+      margin: EdgeInsets.only(bottom: ThemeConstants.space3),
       child: Row(
         children: [
           Container(

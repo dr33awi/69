@@ -1,13 +1,14 @@
-// lib/app/themes/theme_constants.dart - محدث مع الثوابت المفقودة
+// lib/app/themes/theme_constants.dart - محدث مع flutter_screenutil
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'core/color_helper.dart';
 import 'constants/app_constants.dart';
 
-/// ثوابت الثيم - استخدام AppColors و AppConstants
+/// ثوابت الثيم - استخدام AppColors و AppConstants مع ScreenUtil
 class ThemeConstants {
   ThemeConstants._();
 
-  // ===== استخدام الألوان من AppColors =====
+  // ===== الألوان من AppColors (تبقى كما هي) =====
   static const Color primary = Color(0xFF5D7052);
   static const Color primaryLight = AppColors.primaryLight;
   static const Color primaryDark = AppColors.primaryDark;
@@ -44,79 +45,88 @@ class ThemeConstants {
   static const Color darkTextSecondary = AppColors.darkTextSecondary;
   static const Color darkTextHint = AppColors.darkTextHint;
 
-  // ===== استخدام الثوابت من AppConstants =====
+  // ===== الخطوط (ثابتة) =====
   static const String fontFamily = AppConstants.fontFamily;
   static const String fontFamilyArabic = AppConstants.fontFamilyArabic;
   static const String fontFamilyQuran = AppConstants.fontFamilyQuran;
 
+  // ===== أوزان الخطوط (ثابتة) =====
   static const FontWeight light = AppConstants.light;
   static const FontWeight regular = AppConstants.regular;
   static const FontWeight medium = AppConstants.medium;
   static const FontWeight semiBold = AppConstants.semiBold;
   static const FontWeight bold = AppConstants.bold;
 
-  static const double textSizeXs = AppConstants.textSizeXs;
-  static const double textSizeSm = AppConstants.textSizeSm;
-  static const double textSizeMd = AppConstants.textSizeMd;
-  static const double textSizeLg = AppConstants.textSizeLg;
-  static const double textSizeXl = AppConstants.textSizeXl;
-  static const double textSize2xl = AppConstants.textSize2xl;
-  static const double textSize3xl = AppConstants.textSize3xl;
-  static const double textSize4xl = AppConstants.textSize4xl;
-  static const double textSize5xl = AppConstants.textSize5xl;
+  // ===== أحجام النصوص مع ScreenUtil (ديناميكية) =====
+  static double get textSizeXs => 11.sp;
+  static double get textSizeSm => 12.sp;
+  static double get textSizeMd => 14.sp;
+  static double get textSizeLg => 16.sp;
+  static double get textSizeXl => 18.sp;
+  static double get textSize2xl => 20.sp;
+  static double get textSize3xl => 24.sp;
+  static double get textSize4xl => 28.sp;
+  static double get textSize5xl => 32.sp;
 
-  static const double space0 = AppConstants.space0;
-  static const double space1 = AppConstants.space1;
-  static const double space2 = AppConstants.space2;
-  static const double space3 = AppConstants.space3;
-  static const double space4 = AppConstants.space4;
-  static const double space5 = AppConstants.space5;
-  static const double space6 = AppConstants.space6;
-  static const double space8 = AppConstants.space8;
-  static const double space10 = AppConstants.space10;
-  static const double space12 = AppConstants.space12;
-  static const double space16 = AppConstants.space16;
+  // ===== المسافات مع ScreenUtil (ديناميكية) =====
+  static double get space0 => 0.w;
+  static double get space1 => 4.w;
+  static double get space2 => 8.w;
+  static double get space3 => 12.w;
+  static double get space4 => 16.w;
+  static double get space5 => 20.w;
+  static double get space6 => 24.w;
+  static double get space8 => 32.w;
+  static double get space10 => 40.w;
+  static double get space12 => 48.w;
+  static double get space16 => 64.w;
 
-  static const double radiusNone = AppConstants.radiusNone;
-  static const double radiusXs = AppConstants.radiusXs;
-  static const double radiusSm = AppConstants.radiusSm;
-  static const double radiusMd = AppConstants.radiusMd;
-  static const double radiusLg = AppConstants.radiusLg;
-  static const double radiusXl = AppConstants.radiusXl;
-  static const double radius2xl = AppConstants.radius2xl;
-  static const double radius3xl = AppConstants.radius3xl;
-  static const double radiusFull = AppConstants.radiusFull;
+  // ===== نصف القطر مع ScreenUtil (ديناميكية) =====
+  static double get radiusNone => 0.r;
+  static double get radiusXs => 4.r;
+  static double get radiusSm => 8.r;
+  static double get radiusMd => 12.r;
+  static double get radiusLg => 16.r;
+  static double get radiusXl => 20.r;
+  static double get radius2xl => 24.r;
+  static double get radius3xl => 28.r;
+  static double get radiusFull => 999.r;
 
-  static const double borderNone = AppConstants.borderNone;
-  static const double borderThin = AppConstants.borderThin;
-  static const double borderLight = AppConstants.borderLight;
-  static const double borderMedium = AppConstants.borderMedium;
-  static const double borderThick = AppConstants.borderThick;
-  static const double borderHeavy = AppConstants.borderHeavy;
+  // ===== الحدود مع ScreenUtil (ديناميكية) =====
+  static double get borderNone => 0.w;
+  static double get borderThin => 0.5.w;
+  static double get borderLight => 1.w;
+  static double get borderMedium => 1.5.w;
+  static double get borderThick => 2.w;
+  static double get borderHeavy => 3.w;
 
-  static const double iconXs = AppConstants.iconXs;
-  static const double iconSm = AppConstants.iconSm;
-  static const double iconMd = AppConstants.iconMd;
-  static const double iconLg = AppConstants.iconLg;
-  static const double iconXl = AppConstants.iconXl;
-  static const double icon2xl = AppConstants.icon2xl;
-  static const double icon3xl = AppConstants.icon3xl;
+  // ===== أحجام الأيقونات مع ScreenUtil (ديناميكية) =====
+  static double get iconXs => 16.sp;
+  static double get iconSm => 20.sp;
+  static double get iconMd => 24.sp;
+  static double get iconLg => 32.sp;
+  static double get iconXl => 40.sp;
+  static double get icon2xl => 48.sp;
+  static double get icon3xl => 56.sp;
 
-  static const double heightXs = AppConstants.heightXs;
-  static const double heightSm = AppConstants.heightSm;
-  static const double heightMd = AppConstants.heightMd;
-  static const double heightLg = AppConstants.heightLg;
-  static const double heightXl = AppConstants.heightXl;
-  static const double height2xl = AppConstants.height2xl;
-  static const double height3xl = AppConstants.height3xl;
+  // ===== الارتفاعات مع ScreenUtil (ديناميكية) =====
+  static double get heightXs => 32.h;
+  static double get heightSm => 36.h;
+  static double get heightMd => 40.h;
+  static double get heightLg => 48.h;
+  static double get heightXl => 56.h;
+  static double get height2xl => 64.h;
+  static double get height3xl => 72.h;
 
-  static const double appBarHeight = AppConstants.appBarHeight;
-  static const double bottomNavHeight = AppConstants.bottomNavHeight;
-  static const double buttonHeight = AppConstants.buttonHeight;
-  static const double inputHeight = AppConstants.inputHeight;
-  static const double fabSize = AppConstants.fabSize;
-  static const double fabSizeMini = AppConstants.fabSizeMini;
+  // ===== مكونات خاصة مع ScreenUtil (ديناميكية) =====
+  static double get appBarHeight => 64.h;
+  static double get bottomNavHeight => 64.h;
+  static double get buttonHeight => 52.h;
+  static double get inputHeight => 56.h;
+  static double get fabSize => 56.w;
+  static double get fabSizeMini => 40.w;
 
+  // ===== الظلال (ثابتة) =====
   static const double elevationNone = AppConstants.elevationNone;
   static const double elevation1 = AppConstants.elevation1;
   static const double elevation2 = AppConstants.elevation2;
@@ -126,8 +136,9 @@ class ThemeConstants {
   static const double elevation12 = AppConstants.elevation12;
   static const double elevation16 = AppConstants.elevation16;
 
+  // ===== الشفافية (ثابتة) =====
   static const double opacity5 = AppConstants.opacity5;
-  static const double opacity05 = AppConstants.opacity05; // المفقود
+  static const double opacity05 = AppConstants.opacity05;
   static const double opacity10 = AppConstants.opacity10;
   static const double opacity20 = AppConstants.opacity20;
   static const double opacity30 = AppConstants.opacity30;
@@ -138,6 +149,7 @@ class ThemeConstants {
   static const double opacity80 = AppConstants.opacity80;
   static const double opacity90 = AppConstants.opacity90;
 
+  // ===== مدد الحركات (ثابتة) =====
   static const Duration durationInstant = AppConstants.durationInstant;
   static const Duration durationFast = AppConstants.durationFast;
   static const Duration durationNormal = AppConstants.durationNormal;
@@ -145,6 +157,7 @@ class ThemeConstants {
   static const Duration durationVerySlow = AppConstants.durationVerySlow;
   static const Duration durationExtraSlow = AppConstants.durationExtraSlow;
 
+  // ===== منحنيات الحركة (ثابتة) =====
   static const Curve curveDefault = AppConstants.curveDefault;
   static const Curve curveSharp = AppConstants.curveSharp;
   static const Curve curveSmooth = AppConstants.curveSmooth;
@@ -152,11 +165,13 @@ class ThemeConstants {
   static const Curve curveOvershoot = AppConstants.curveOvershoot;
   static const Curve curveAnticipate = AppConstants.curveAnticipate;
 
-  static const double breakpointMobile = AppConstants.breakpointMobile;
-  static const double breakpointTablet = AppConstants.breakpointTablet;
-  static const double breakpointDesktop = AppConstants.breakpointDesktop;
-  static const double breakpointWide = AppConstants.breakpointWide;
+  // ===== نقاط التوقف للتصميم المتجاوب مع ScreenUtil =====
+  static double get breakpointMobile => 600.w;
+  static double get breakpointTablet => 1024.w;
+  static double get breakpointDesktop => 1440.w;
+  static double get breakpointWide => 1920.w;
 
+  // ===== الأيقونات المشتركة (ثابتة) =====
   static const IconData iconPrayer = AppConstants.iconPrayer;
   static const IconData iconPrayerTime = AppConstants.iconPrayerTime;
   static const IconData iconQibla = AppConstants.iconQibla;
@@ -172,47 +187,48 @@ class ThemeConstants {
   static const IconData iconSettings = AppConstants.iconSettings;
   static const IconData iconNotifications = AppConstants.iconNotifications;
 
+  // ===== ثوابت التطبيق (ثابتة) =====
   static const Duration defaultCacheDuration = AppConstants.defaultCacheDuration;
   static const Duration splashDuration = AppConstants.splashDuration;
   static const Duration debounceDelay = AppConstants.debounceDelay;
   static const int defaultMinBatteryLevel = AppConstants.defaultMinBatteryLevel;
   static const int criticalBatteryLevel = AppConstants.criticalBatteryLevel;
 
-  // ===== التدرجات اللونية =====
+  // ===== التدرجات اللونية (ثابتة) =====
   static const LinearGradient primaryGradient = AppColors.primaryGradient;
   static const LinearGradient accentGradient = AppColors.accentGradient;
   static const LinearGradient tertiaryGradient = AppColors.tertiaryGradient;
 
-  // ===== الظلال الجاهزة =====
-  static List<BoxShadow> shadowSm = [
+  // ===== الظلال الجاهزة مع ScreenUtil =====
+  static List<BoxShadow> get shadowSm => [
     BoxShadow(
       color: primary.withValues(alpha: opacity5),
-      blurRadius: 4,
-      offset: const Offset(0, 2),
+      blurRadius: 4.r,
+      offset: Offset(0, 2.h),
     ),
   ];
 
-  static List<BoxShadow> shadowMd = [
+  static List<BoxShadow> get shadowMd => [
     BoxShadow(
       color: primary.withValues(alpha: opacity10),
-      blurRadius: 8,
-      offset: const Offset(0, 4),
+      blurRadius: 8.r,
+      offset: Offset(0, 4.h),
     ),
   ];
 
-  static List<BoxShadow> shadowLg = [
+  static List<BoxShadow> get shadowLg => [
     BoxShadow(
       color: primary.withValues(alpha: opacity10),
-      blurRadius: 16,
-      offset: const Offset(0, 8),
+      blurRadius: 16.r,
+      offset: Offset(0, 8.h),
     ),
   ];
 
-  static List<BoxShadow> shadowXl = [
+  static List<BoxShadow> get shadowXl => [
     BoxShadow(
       color: primary.withValues(alpha: opacity20),
-      blurRadius: 24,
-      offset: const Offset(0, 12),
+      blurRadius: 24.r,
+      offset: Offset(0, 12.h),
     ),
   ];
 
@@ -256,12 +272,17 @@ class ThemeConstants {
     AlignmentGeometry begin = Alignment.topLeft,
     AlignmentGeometry end = Alignment.bottomRight,
     List<double>? stops,
-  }) => AppColors.getCategoryGradient('custom');
+  }) => AppColors.createCustomGradient(
+    colors: colors,
+    begin: begin,
+    end: end,
+    stops: stops,
+  );
 
   static LinearGradient prayerGradient(String prayerName) => 
-    AppColors.getCategoryGradient('prayer_times');
+    AppColors.getPrayerGradient(prayerName);
 
-  static Color getPrayerColor(String name) => AppColors.getCategoryColor('prayer_times');
+  static Color getPrayerColor(String name) => AppColors.getPrayerColor(name);
   
   static IconData getPrayerIcon(String name) {
     switch (name.toLowerCase()) {
@@ -288,5 +309,5 @@ class ThemeConstants {
     }
   }
 
-  static LinearGradient getTimeBasedGradient() => AppColors.primaryGradient;
+  static LinearGradient getTimeBasedGradient() => AppColors.getTimeBasedGradient();
 }

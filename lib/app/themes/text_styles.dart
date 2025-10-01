@@ -1,121 +1,120 @@
-// lib/app/themes/text_styles.dart - مصحح
-import 'package:athkar_app/app/themes/constants/app_constants.dart';
+// lib/app/themes/text_styles.dart - محدث مع flutter_screenutil
 import 'package:flutter/material.dart';
-
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'theme_constants.dart';
 
-/// أنماط النصوص الموحدة للتطبيق
+/// أنماط النصوص الموحدة للتطبيق مع ScreenUtil
 class AppTextStyles {
   AppTextStyles._();
 
-  // ===== أنماط العناوين =====
-  static TextStyle h1 = const TextStyle(
-    fontSize: AppConstants.textSize4xl,
-    fontWeight: AppConstants.bold,
+  // ===== أنماط العناوين مع ScreenUtil =====
+  static TextStyle get h1 => TextStyle(
+    fontSize: 28.sp,
+    fontWeight: FontWeight.bold,
     height: 1.3,
-    fontFamily: AppConstants.fontFamily,
+    fontFamily: 'Cairo',
   );
 
-  static const TextStyle h2 = TextStyle(
-    fontSize: AppConstants.textSize3xl,
-    fontWeight: AppConstants.semiBold,
+  static TextStyle get h2 => TextStyle(
+    fontSize: 24.sp,
+    fontWeight: FontWeight.w600,
     height: 1.3,
-    fontFamily: AppConstants.fontFamily,
+    fontFamily: 'Cairo',
   );
 
-  static const TextStyle h3 = TextStyle(
-    fontSize: AppConstants.textSize2xl,
-    fontWeight: AppConstants.semiBold,
+  static TextStyle get h3 => TextStyle(
+    fontSize: 20.sp,
+    fontWeight: FontWeight.w600,
     height: 1.4,
-    fontFamily: AppConstants.fontFamily,
+    fontFamily: 'Cairo',
   );
 
-  static const TextStyle h4 = TextStyle(
-    fontSize: AppConstants.textSizeXl,
-    fontWeight: AppConstants.semiBold,
+  static TextStyle get h4 => TextStyle(
+    fontSize: 18.sp,
+    fontWeight: FontWeight.w600,
     height: 1.4,
-    fontFamily: AppConstants.fontFamily,
+    fontFamily: 'Cairo',
   );
 
-  static const TextStyle h5 = TextStyle(
-    fontSize: AppConstants.textSizeLg,
-    fontWeight: AppConstants.semiBold,
+  static TextStyle get h5 => TextStyle(
+    fontSize: 16.sp,
+    fontWeight: FontWeight.w600,
     height: 1.5,
-    fontFamily: AppConstants.fontFamily,
+    fontFamily: 'Cairo',
   );
 
-  // ===== أنماط النص الأساسي =====
-  static const TextStyle body1 = TextStyle(
-    fontSize: AppConstants.textSizeLg,
-    fontWeight: AppConstants.regular,
+  // ===== أنماط النص الأساسي مع ScreenUtil =====
+  static TextStyle get body1 => TextStyle(
+    fontSize: 16.sp,
+    fontWeight: FontWeight.normal,
     height: 1.6,
-    fontFamily: AppConstants.fontFamily,
+    fontFamily: 'Cairo',
   );
 
-  static const TextStyle body2 = TextStyle(
-    fontSize: AppConstants.textSizeMd,
-    fontWeight: AppConstants.regular,
+  static TextStyle get body2 => TextStyle(
+    fontSize: 14.sp,
+    fontWeight: FontWeight.normal,
     height: 1.6,
-    fontFamily: AppConstants.fontFamily,
+    fontFamily: 'Cairo',
   );
 
-  // ===== أنماط التسميات =====
-  static const TextStyle label1 = TextStyle(
-    fontSize: AppConstants.textSizeMd,
-    fontWeight: AppConstants.medium,
+  // ===== أنماط التسميات مع ScreenUtil =====
+  static TextStyle get label1 => TextStyle(
+    fontSize: 14.sp,
+    fontWeight: FontWeight.w500,
     height: 1.4,
-    fontFamily: AppConstants.fontFamily,
+    fontFamily: 'Cairo',
   );
 
-  static const TextStyle label2 = TextStyle(
-    fontSize: AppConstants.textSizeSm,
-    fontWeight: AppConstants.medium,
+  static TextStyle get label2 => TextStyle(
+    fontSize: 12.sp,
+    fontWeight: FontWeight.w500,
     height: 1.4,
-    fontFamily: AppConstants.fontFamily,
+    fontFamily: 'Cairo',
   );
 
-  static const TextStyle caption = TextStyle(
-    fontSize: AppConstants.textSizeXs,
-    fontWeight: AppConstants.regular,
+  static TextStyle get caption => TextStyle(
+    fontSize: 11.sp,
+    fontWeight: FontWeight.normal,
     height: 1.4,
-    fontFamily: AppConstants.fontFamily,
+    fontFamily: 'Cairo',
   );
 
-  // ===== أنماط الأزرار =====
-  static const TextStyle button = TextStyle(
-    fontSize: AppConstants.textSizeLg,
-    fontWeight: AppConstants.semiBold,
+  // ===== أنماط الأزرار مع ScreenUtil =====
+  static TextStyle get button => TextStyle(
+    fontSize: 16.sp,
+    fontWeight: FontWeight.w600,
     height: 1.2,
-    fontFamily: AppConstants.fontFamily,
+    fontFamily: 'Cairo',
   );
 
-  static const TextStyle buttonSmall = TextStyle(
-    fontSize: AppConstants.textSizeMd,
-    fontWeight: AppConstants.semiBold,
+  static TextStyle get buttonSmall => TextStyle(
+    fontSize: 14.sp,
+    fontWeight: FontWeight.w600,
     height: 1.2,
-    fontFamily: AppConstants.fontFamily,
+    fontFamily: 'Cairo',
   );
 
-  // ===== أنماط خاصة بالمحتوى الإسلامي =====
-  static const TextStyle quran = TextStyle(
-    fontSize: 22,
-    fontWeight: AppConstants.regular,
+  // ===== أنماط خاصة بالمحتوى الإسلامي مع ScreenUtil =====
+  static TextStyle get quran => TextStyle(
+    fontSize: 22.sp,
+    fontWeight: FontWeight.normal,
     height: 2.0,
-    fontFamily: AppConstants.fontFamilyQuran,
+    fontFamily: 'Amiri',
   );
 
-  static const TextStyle athkar = TextStyle(
-    fontSize: AppConstants.textSizeXl,
-    fontWeight: AppConstants.regular,
+  static TextStyle get athkar => TextStyle(
+    fontSize: 18.sp,
+    fontWeight: FontWeight.normal,
     height: 1.8,
-    fontFamily: AppConstants.fontFamily,
+    fontFamily: 'Cairo',
   );
 
-  static const TextStyle dua = TextStyle(
-    fontSize: AppConstants.textSizeLg,
-    fontWeight: AppConstants.regular,
+  static TextStyle get dua => TextStyle(
+    fontSize: 16.sp,
+    fontWeight: FontWeight.normal,
     height: 1.7,
-    fontFamily: AppConstants.fontFamily,
+    fontFamily: 'Cairo',
   );
 
   // ===== إنشاء TextTheme للتطبيق =====
@@ -139,7 +138,7 @@ class AppTextStyles {
       // Title styles
       titleLarge: h4.copyWith(color: color),
       titleMedium: h5.copyWith(color: color),
-      titleSmall: h5.copyWith(color: color, fontSize: AppConstants.textSizeMd),
+      titleSmall: h5.copyWith(color: color, fontSize: 14.sp),
       
       // Body styles
       bodyLarge: body1.copyWith(color: color),
@@ -201,7 +200,7 @@ class AppTextStyles {
   static TextStyle successText(BuildContext context) {
     return body2.copyWith(
       color: ThemeConstants.success,
-      fontWeight: AppConstants.medium,
+      fontWeight: FontWeight.w500,
     );
   }
 
@@ -209,7 +208,7 @@ class AppTextStyles {
   static TextStyle warningText(BuildContext context) {
     return body2.copyWith(
       color: ThemeConstants.warning,
-      fontWeight: AppConstants.medium,
+      fontWeight: FontWeight.w500,
     );
   }
 
@@ -227,4 +226,64 @@ class AppTextStyles {
       decoration: TextDecoration.underline,
     );
   }
+
+  /// أنماط مخصصة للقرآن والأذكار بأحجام مختلفة
+  
+  // أحجام الخط للقرآن
+  static TextStyle get quranSmall => TextStyle(
+    fontSize: 18.sp,
+    fontWeight: FontWeight.normal,
+    height: 1.8,
+    fontFamily: 'Amiri',
+  );
+
+  static TextStyle get quranMedium => TextStyle(
+    fontSize: 22.sp,
+    fontWeight: FontWeight.normal,
+    height: 2.0,
+    fontFamily: 'Amiri',
+  );
+
+  static TextStyle get quranLarge => TextStyle(
+    fontSize: 26.sp,
+    fontWeight: FontWeight.normal,
+    height: 2.2,
+    fontFamily: 'Amiri',
+  );
+
+  static TextStyle get quranExtraLarge => TextStyle(
+    fontSize: 30.sp,
+    fontWeight: FontWeight.normal,
+    height: 2.4,
+    fontFamily: 'Amiri',
+  );
+
+  // أحجام الخط للأذكار
+  static TextStyle get athkarSmall => TextStyle(
+    fontSize: 16.sp,
+    fontWeight: FontWeight.normal,
+    height: 1.6,
+    fontFamily: 'Cairo',
+  );
+
+  static TextStyle get athkarMedium => TextStyle(
+    fontSize: 18.sp,
+    fontWeight: FontWeight.normal,
+    height: 1.8,
+    fontFamily: 'Cairo',
+  );
+
+  static TextStyle get athkarLarge => TextStyle(
+    fontSize: 20.sp,
+    fontWeight: FontWeight.normal,
+    height: 2.0,
+    fontFamily: 'Cairo',
+  );
+
+  static TextStyle get athkarExtraLarge => TextStyle(
+    fontSize: 24.sp,
+    fontWeight: FontWeight.normal,
+    height: 2.2,
+    fontFamily: 'Cairo',
+  );
 }

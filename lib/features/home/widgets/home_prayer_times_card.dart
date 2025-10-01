@@ -1,10 +1,11 @@
-// lib/features/prayer_times/widgets/home_prayer_times_card_updated.dart
+// lib/features/home/widgets/home_prayer_times_card.dart - محدث مع flutter_screenutil
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:async';
 import '../../../app/themes/app_theme.dart';
-import '../../prayer_times/models/prayer_time_model.dart'; // استخدام النموذج الأصلي
+import '../../prayer_times/models/prayer_time_model.dart';
 import '../../prayer_times/services/prayer_times_service.dart';
 import '../../prayer_times/utils/prayer_utils.dart';
 import '../../prayer_times/widgets/shared/prayer_state_widgets.dart';
@@ -188,29 +189,29 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
   Widget _buildPrayerCard(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(ThemeConstants.radius2xl),
+        borderRadius: BorderRadius.circular(24.r),
         gradient: PrayerUtils.getPrayerGradient(_nextPrayer?.type ?? PrayerType.fajr),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(ThemeConstants.radius2xl),
+        borderRadius: BorderRadius.circular(24.r),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
             onTap: _navigateToPrayerTimes,
-            borderRadius: BorderRadius.circular(ThemeConstants.radius2xl),
+            borderRadius: BorderRadius.circular(24.r),
             child: Container(
-              padding: const EdgeInsets.all(ThemeConstants.space4),
+              padding: EdgeInsets.all(16.w),
               decoration: BoxDecoration(
                 border: Border.all(
                   color: Colors.white.withValues(alpha: 0.2),
-                  width: 1,
+                  width: 1.w,
                 ),
-                borderRadius: BorderRadius.circular(ThemeConstants.radius2xl),
+                borderRadius: BorderRadius.circular(24.r),
               ),
               child: Column(
                 children: [
                   _buildCompactHeader(context),
-                  ThemeConstants.space4.h,
+                  SizedBox(height: 16.h),
                   _buildSimplePrayerPoints(context),
                 ],
               ),
@@ -225,19 +226,19 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(ThemeConstants.space3),
+          padding: EdgeInsets.all(12.w),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+            borderRadius: BorderRadius.circular(12.r),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.mosque,
             color: Colors.white,
-            size: ThemeConstants.iconLg,
+            size: 32.sp,
           ),
         ),
         
-        ThemeConstants.space4.w,
+        SizedBox(width: 16.w),
         
         Expanded(
           child: Column(
@@ -260,17 +261,17 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
                   ),
                 ],
               ),
-              ThemeConstants.space1.h,
+              SizedBox(height: 4.h),
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: ThemeConstants.space2,
-                      vertical: ThemeConstants.space1,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 8.w,
+                      vertical: 4.h,
                     ),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.9),
-                      borderRadius: BorderRadius.circular(ThemeConstants.radiusSm),
+                      borderRadius: BorderRadius.circular(8.r),
                     ),
                     child: Text(
                       _nextPrayer != null 
@@ -282,13 +283,13 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
                       ),
                     ),
                   ),
-                  ThemeConstants.space2.w,
+                  SizedBox(width: 8.w),
                   Icon(
                     Icons.schedule_rounded,
                     color: Colors.white.withValues(alpha: 0.7),
-                    size: ThemeConstants.iconXs,
+                    size: 16.sp,
                   ),
-                  ThemeConstants.space1.w,
+                  SizedBox(width: 4.w),
                   Expanded(
                     child: Text(
                       _nextPrayer != null
@@ -296,6 +297,7 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
                         : 'غير محدد',
                       style: context.labelSmall?.copyWith(
                         color: Colors.white.withValues(alpha: 0.8),
+                        fontSize: 11.sp,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -307,15 +309,15 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
         ),
         
         Container(
-          padding: const EdgeInsets.all(ThemeConstants.space2),
+          padding: EdgeInsets.all(8.w),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(ThemeConstants.radiusLg),
+            borderRadius: BorderRadius.circular(16.r),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.arrow_forward_ios_rounded,
             color: Colors.white,
-            size: ThemeConstants.iconSm,
+            size: 20.sp,
           ),
         ),
       ],
@@ -326,13 +328,13 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
     final prayers = _dailyTimes?.prayers.where((p) => p.type != PrayerType.sunrise).toList() ?? [];
     
     return Container(
-      padding: const EdgeInsets.all(ThemeConstants.space3),
+      padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusLg),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
           color: Colors.white.withValues(alpha: 0.2),
-          width: 1,
+          width: 1.w,
         ),
       ),
       child: Row(
@@ -355,20 +357,20 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
           animation: _pulseAnimation,
           builder: (context, child) {
             return Container(
-              width: isActive ? 32 : 28,
-              height: isActive ? 32 : 28,
+              width: isActive ? 32.w : 28.w,
+              height: isActive ? 32.h : 28.h,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isPassed || isActive ? Colors.white : Colors.white.withValues(alpha: 0.4),
                 border: Border.all(
                   color: Colors.white.withValues(alpha: 0.6),
-                  width: 1,
+                  width: 1.w,
                 ),
                 boxShadow: isActive ? [
                   BoxShadow(
                     color: Colors.white.withValues(alpha: 0.3 + (_pulseAnimation.value * 0.2)),
-                    blurRadius: 4 + (_pulseAnimation.value * 6),
-                    spreadRadius: 1 + (_pulseAnimation.value * 1),
+                    blurRadius: (4 + (_pulseAnimation.value * 6)).r,
+                    spreadRadius: (1 + (_pulseAnimation.value * 1)).r,
                   ),
                 ] : null,
               ),
@@ -378,7 +380,7 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
                   child: Icon(
                     prayer.icon,
                     color: isPassed || isActive ? prayer.color : Colors.white,
-                    size: isActive ? 16 : 14,
+                    size: isActive ? 16.sp : 14.sp,
                   ),
                 ),
               ),
@@ -386,14 +388,14 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
           },
         ),
         
-        ThemeConstants.space2.h,
+        SizedBox(height: 8.h),
         
         Text(
           prayer.nameAr,
           style: context.labelSmall?.copyWith(
             color: Colors.white.withValues(alpha: isActive ? 1.0 : 0.7),
             fontWeight: isActive ? ThemeConstants.semiBold : ThemeConstants.regular,
-            fontSize: 11,
+            fontSize: 11.sp,
           ),
         ),
         
@@ -401,7 +403,7 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
           prayer.formattedTime,
           style: context.labelSmall?.copyWith(
             color: Colors.white.withValues(alpha: isActive ? 0.9 : 0.6),
-            fontSize: 9,
+            fontSize: 9.sp,
           ),
         ),
       ],
@@ -410,13 +412,13 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
 
   Widget _buildCompactLoadingCard(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(ThemeConstants.space4),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(ThemeConstants.radius2xl),
+        borderRadius: BorderRadius.circular(24.r),
         border: Border.all(
           color: context.dividerColor.withValues(alpha: 0.3),
-          width: 1,
+          width: 1.w,
         ),
       ),
       child: const PrayerLoadingWidget(
@@ -428,13 +430,13 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
 
   Widget _buildCompactErrorCard(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(ThemeConstants.space4),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(ThemeConstants.radius2xl),
+        borderRadius: BorderRadius.circular(24.r),
         border: Border.all(
           color: ThemeConstants.error.withValues(alpha: 0.3),
-          width: 1,
+          width: 1.w,
         ),
       ),
       child: PrayerErrorWidget(
@@ -447,13 +449,13 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
 
   Widget _buildCompactEmptyCard(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(ThemeConstants.space4),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(ThemeConstants.radius2xl),
+        borderRadius: BorderRadius.circular(24.r),
         border: Border.all(
           color: context.dividerColor.withValues(alpha: 0.3),
-          width: 1,
+          width: 1.w,
         ),
       ),
       child: Column(
@@ -461,16 +463,16 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
           Icon(
             Icons.location_off,
             color: context.textSecondaryColor,
-            size: ThemeConstants.iconLg,
+            size: 32.sp,
           ),
-          ThemeConstants.space2.h,
+          SizedBox(height: 8.h),
           Text(
             'لا توجد بيانات مواقيت الصلاة',
             style: context.labelMedium?.copyWith(
               color: context.textSecondaryColor,
             ),
           ),
-          ThemeConstants.space2.h,
+          SizedBox(height: 8.h),
           RetryButton(
             onRetry: _retryLoadPrayerTimes,
             text: 'تحديث',

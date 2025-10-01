@@ -1,7 +1,8 @@
-// lib/features/home/screens/home_screen.dart
+// lib/features/home/screens/home_screen.dart - محدث مع flutter_screenutil
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
 import '../../../app/themes/app_theme.dart';
@@ -118,24 +119,24 @@ class _HomeScreenState extends State<HomeScreen>
                       physics: const AlwaysScrollableScrollPhysics(),
                       slivers: [
                         SliverPadding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: ThemeConstants.space4,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16.w, // استخدام .w بدلاً من ThemeConstants.space4
                           ),
                           sliver: SliverList(
                             delegate: SliverChildListDelegate([
-                              ThemeConstants.space2.h,
+                              SizedBox(height: 8.h), // استخدام SizedBox مع .h
                               
                               const PrayerTimesCard(),
                               
-                              ThemeConstants.space4.h,
+                              SizedBox(height: 16.h),
                               
                               const DailyQuotesCard(),
                               
-                              ThemeConstants.space6.h,
+                              SizedBox(height: 24.h),
                               
                               _buildSectionsHeader(context),
                               
-                              ThemeConstants.space4.h,
+                              SizedBox(height: 16.h),
                             ]),
                           ),
                         ),
@@ -143,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen>
                         const CategoryGrid(),
                         
                         SliverToBoxAdapter(
-                          child: ThemeConstants.space12.h,
+                          child: SizedBox(height: 48.h),
                         ),
                       ],
                     ),
@@ -169,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen>
         final timeString = timeFormatter.format(currentTime);
     
         return Container(
-          padding: const EdgeInsets.all(ThemeConstants.space4),
+          padding: EdgeInsets.all(16.w), // استخدام .w للحشوات
           child: Row(
             children: [
               Expanded(
@@ -181,21 +182,22 @@ class _HomeScreenState extends State<HomeScreen>
                         Icon(
                           messageData['icon'] as IconData,
                           color: context.primaryColor,
-                          size: ThemeConstants.iconMd,
+                          size: 24.sp, // استخدام .sp للأيقونات
                         ),
-                        ThemeConstants.space2.w,
+                        SizedBox(width: 8.w),
                         Text(
                           messageData['greeting'] as String,
                           style: context.titleMedium?.copyWith(
                             fontWeight: ThemeConstants.bold,
                             color: context.textPrimaryColor,
+                            fontSize: 16.sp, // إضافة حجم خط متجاوب
                           ),
                         ),
                       ],
                     ),
-                    ThemeConstants.space1.h,
+                    SizedBox(height: 4.h),
                     Padding(
-                      padding: const EdgeInsets.only(right: ThemeConstants.space8),
+                      padding: EdgeInsets.only(right: 32.w),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -203,35 +205,38 @@ class _HomeScreenState extends State<HomeScreen>
                             messageData['message'] as String,
                             style: context.bodySmall?.copyWith(
                               color: context.textSecondaryColor,
+                              fontSize: 12.sp,
                             ),
                           ),
-                          ThemeConstants.space1.h,
+                          SizedBox(height: 4.h),
                           Row(
                             children: [
                               Icon(
                                 Icons.calendar_today_outlined,
-                                size: 12,
+                                size: 12.sp,
                                 color: context.textSecondaryColor.withValues(alpha: 0.7),
                               ),
-                              ThemeConstants.space1.w,
+                              SizedBox(width: 4.w),
                               Text(
                                 dateString,
                                 style: context.labelSmall?.copyWith(
                                   color: context.textSecondaryColor.withValues(alpha: 0.8),
+                                  fontSize: 11.sp,
                                 ),
                               ),
-                              ThemeConstants.space3.w,
+                              SizedBox(width: 12.w),
                               Icon(
                                 Icons.access_time,
-                                size: 12,
+                                size: 12.sp,
                                 color: context.textSecondaryColor.withValues(alpha: 0.7),
                               ),
-                              ThemeConstants.space1.w,
+                              SizedBox(width: 4.w),
                               Text(
                                 timeString,
                                 style: context.labelSmall?.copyWith(
                                   color: context.textSecondaryColor.withValues(alpha: 0.8),
                                   fontWeight: FontWeight.w500,
+                                  fontSize: 11.sp,
                                 ),
                               ),
                             ],
@@ -245,33 +250,34 @@ class _HomeScreenState extends State<HomeScreen>
               
               Material(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                borderRadius: BorderRadius.circular(12.r), // استخدام .r للزوايا
                 child: InkWell(
                   onTap: () {
                     HapticFeedback.lightImpact();
                     Navigator.pushNamed(context, '/settings');
                   },
-                  borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                  borderRadius: BorderRadius.circular(12.r),
                   child: Container(
-                    padding: const EdgeInsets.all(ThemeConstants.space2),
+                    padding: EdgeInsets.all(8.w),
                     decoration: BoxDecoration(
                       color: context.cardColor,
-                      borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                      borderRadius: BorderRadius.circular(12.r),
                       border: Border.all(
                         color: context.dividerColor.withValues(alpha: 0.3),
+                        width: 1.w, // عرض الحد متجاوب
                       ),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
+                          blurRadius: 4.r,
+                          offset: Offset(0, 2.h),
                         ),
                       ],
                     ),
                     child: Icon(
                       Icons.settings_outlined,
                       color: context.textPrimaryColor,
-                      size: ThemeConstants.iconMd,
+                      size: 24.sp,
                     ),
                   ),
                 ),
@@ -285,43 +291,43 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildSectionsHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: ThemeConstants.space4,
-        vertical: ThemeConstants.space3,
+      padding: EdgeInsets.symmetric(
+        horizontal: 16.w,
+        vertical: 12.h,
       ),
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusLg),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
           color: context.dividerColor.withValues(alpha: 0.2),
-          width: 1,
+          width: 1.w,
         ),
       ),
       child: Row(
         children: [
           Container(
-            width: 4,
-            height: 32,
+            width: 4.w,
+            height: 32.h,
             decoration: BoxDecoration(
               gradient: ThemeConstants.primaryGradient,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(2.r),
             ),
           ),
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
           Container(
-            width: 36,
-            height: 36,
+            width: 36.w,
+            height: 36.h,
             decoration: BoxDecoration(
               color: context.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(12.r),
             ),
             child: Icon(
               Icons.apps_rounded,
               color: context.primaryColor,
-              size: 20,
+              size: 20.sp,
             ),
           ),
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -331,12 +337,14 @@ class _HomeScreenState extends State<HomeScreen>
                   style: context.titleMedium?.copyWith(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
+                    fontSize: 16.sp,
                   ),
                 ),
                 Text(
                   'اختر القسم المناسب لك',
                   style: context.labelSmall?.copyWith(
                     color: context.textSecondaryColor,
+                    fontSize: 11.sp,
                   ),
                 ),
               ],
@@ -433,16 +441,16 @@ class _HomeScreenState extends State<HomeScreen>
                 ? Icons.check_circle_outline 
                 : Icons.info_outline,
               color: Colors.white,
-              size: 20,
+              size: 20.sp,
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12.w),
             Expanded(
               child: Text(
                 message,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
                   fontFamily: 'Cairo',
-                  fontSize: 14,
+                  fontSize: 14.sp,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -451,9 +459,9 @@ class _HomeScreenState extends State<HomeScreen>
         ),
         backgroundColor: color,
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
+        margin: EdgeInsets.all(16.w),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
         ),
         duration: const Duration(seconds: 2),
       ),

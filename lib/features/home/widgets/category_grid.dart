@@ -1,8 +1,9 @@
-// lib/features/home/widgets/category_grid.dart - نسخة محسنة ومتناسقة
+// lib/features/home/widgets/category_grid.dart - محدث مع flutter_screenutil
 
 import 'package:athkar_app/app/themes/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CategoryGrid extends StatefulWidget {
   const CategoryGrid({super.key});
@@ -101,16 +102,16 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusLg),
+          borderRadius: BorderRadius.circular(16.r),
         ),
         title: Row(
           children: [
-            const Icon(
+            Icon(
               Icons.construction,
               color: ThemeConstants.warning,
-              size: ThemeConstants.iconLg,
+              size: 32.sp,
             ),
-            ThemeConstants.space3.w,
+            SizedBox(width: 12.w),
             Text(
               category.title,
               style: context.titleLarge?.copyWith(
@@ -124,22 +125,23 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(ThemeConstants.space3),
+              padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: ThemeConstants.warning.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                color: ThemeConstants.warning.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12.r),
                 border: Border.all(
-                  color: ThemeConstants.warning.withOpacity(0.3),
+                  color: ThemeConstants.warning.withValues(alpha: 0.3),
+                  width: 1.w,
                 ),
               ),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.info_outline,
                     color: ThemeConstants.warning,
-                    size: ThemeConstants.iconMd,
+                    size: 24.sp,
                   ),
-                  ThemeConstants.space2.w,
+                  SizedBox(width: 8.w),
                   Expanded(
                     child: Text(
                       'هذه الميزة معطلة مؤقتاً للصيانة والتطوير',
@@ -152,26 +154,26 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
                 ],
               ),
             ),
-            ThemeConstants.space3.h,
+            SizedBox(height: 12.h),
             Text(
               'نعمل حالياً على تطوير وتحسين هذه الخدمة لتقديم أفضل تجربة ممكنة.',
               style: context.bodyMedium,
             ),
-            ThemeConstants.space3.h,
+            SizedBox(height: 12.h),
             Container(
-              padding: const EdgeInsets.all(ThemeConstants.space3),
+              padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: context.primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                color: context.primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12.r),
               ),
               child: Row(
                 children: [
                   Icon(
                     Icons.schedule,
                     color: context.primaryColor,
-                    size: ThemeConstants.iconMd,
+                    size: 24.sp,
                   ),
-                  ThemeConstants.space2.w,
+                  SizedBox(width: 8.w),
                   Expanded(
                     child: Text(
                       'ستكون متوفرة قريباً بإذن الله',
@@ -201,13 +203,13 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
     super.build(context);
     
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: ThemeConstants.space4),
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
       sliver: SliverList(
         delegate: SliverChildListDelegate([
           // الصف الأول: مواقيت الصلاة + الأذكار اليومية
           _buildRow([_categories[0], _categories[1]]),
           
-          ThemeConstants.space4.h,
+          SizedBox(height: 16.h),
           
           // الصف الثاني: أسماء الله الحسنى (عريض) + اتجاه القبلة
           Row(
@@ -216,7 +218,7 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
                 flex: 3,
                 child: _buildWideCard(context, _categories[2]), // أسماء الله
               ),
-              ThemeConstants.space4.w,
+              SizedBox(width: 16.w),
               Expanded(
                 flex: 2,
                 child: _buildStandardCard(context, _categories[3]), // القبلة
@@ -224,7 +226,7 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
             ],
           ),
           
-          ThemeConstants.space4.h,
+          SizedBox(height: 16.h),
           
           // الصف الثالث: المسبحة + الأدعية
           _buildRow([_categories[4], _categories[5]]),
@@ -240,7 +242,7 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
         Expanded(
           child: _buildStandardCard(context, categories[0]),
         ),
-        ThemeConstants.space4.w,
+        SizedBox(width: 16.w),
         Expanded(
           child: _buildStandardCard(context, categories[1]),
         ),
@@ -254,31 +256,31 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
     
     return RepaintBoundary(
       child: Container(
-        height: 140,
+        height: 140.h,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+          borderRadius: BorderRadius.circular(20.r),
           gradient: gradient,
           boxShadow: [
             BoxShadow(
               color: gradient.colors[0].withValues(alpha: 0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
+              blurRadius: 12.r,
+              offset: Offset(0, 6.h),
             ),
           ],
         ),
         child: Material(
           color: Colors.transparent,
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+          borderRadius: BorderRadius.circular(20.r),
           child: InkWell(
             onTap: () => _onCategoryTap(category),
-            borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+            borderRadius: BorderRadius.circular(20.r),
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16.w),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+                borderRadius: BorderRadius.circular(20.r),
                 border: Border.all(
                   color: Colors.white.withValues(alpha: 0.2),
-                  width: 1,
+                  width: 1.w,
                 ),
               ),
               child: Stack(
@@ -288,24 +290,24 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
                     children: [
                       // الأيقونة
                       Container(
-                        width: 56,
-                        height: 56,
+                        width: 56.w,
+                        height: 56.h,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.white.withValues(alpha: 0.2),
                           border: Border.all(
                             color: Colors.white.withValues(alpha: 0.3),
-                            width: 1.5,
+                            width: 1.5.w,
                           ),
                         ),
                         child: Icon(
                           category.isInDevelopment ? Icons.construction : category.icon,
                           color: Colors.white,
-                          size: 28,
+                          size: 28.sp,
                         ),
                       ),
                       
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12.h),
                       
                       // العنوان
                       Text(
@@ -313,13 +315,13 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
                         style: context.titleSmall?.copyWith(
                           color: Colors.white,
                           fontWeight: ThemeConstants.bold,
-                          fontSize: 14,
+                          fontSize: 14.sp,
                           height: 1.3,
                           shadows: [
                             Shadow(
                               color: Colors.black.withValues(alpha: 0.2),
-                              offset: const Offset(0, 1),
-                              blurRadius: 2,
+                              offset: Offset(0, 1.h),
+                              blurRadius: 2.r,
                             ),
                           ],
                         ),
@@ -336,18 +338,18 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
                       top: 0,
                       left: 0,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 4.h,
                         ),
                         decoration: BoxDecoration(
                           color: ThemeConstants.warning,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(12.r),
                           boxShadow: [
                             BoxShadow(
                               color: ThemeConstants.warning.withValues(alpha: 0.4),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
+                              blurRadius: 4.r,
+                              offset: Offset(0, 2.h),
                             ),
                           ],
                         ),
@@ -356,7 +358,7 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
                           style: context.labelSmall?.copyWith(
                             color: Colors.white,
                             fontWeight: ThemeConstants.bold,
-                            fontSize: 9,
+                            fontSize: 9.sp,
                           ),
                         ),
                       ),
@@ -376,31 +378,31 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
     
     return RepaintBoundary(
       child: Container(
-        height: 140,
+        height: 140.h,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+          borderRadius: BorderRadius.circular(20.r),
           gradient: gradient,
           boxShadow: [
             BoxShadow(
               color: gradient.colors[0].withValues(alpha: 0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
+              blurRadius: 12.r,
+              offset: Offset(0, 6.h),
             ),
           ],
         ),
         child: Material(
           color: Colors.transparent,
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+          borderRadius: BorderRadius.circular(20.r),
           child: InkWell(
             onTap: () => _onCategoryTap(category),
-            borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+            borderRadius: BorderRadius.circular(20.r),
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16.w),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+                borderRadius: BorderRadius.circular(20.r),
                 border: Border.all(
                   color: Colors.white.withValues(alpha: 0.2),
-                  width: 1,
+                  width: 1.w,
                 ),
               ),
               child: Stack(
@@ -409,24 +411,24 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
                     children: [
                       // الأيقونة
                       Container(
-                        width: 56,
-                        height: 56,
+                        width: 56.w,
+                        height: 56.h,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.white.withValues(alpha: 0.2),
                           border: Border.all(
                             color: Colors.white.withValues(alpha: 0.3),
-                            width: 1.5,
+                            width: 1.5.w,
                           ),
                         ),
                         child: Icon(
                           category.isInDevelopment ? Icons.construction : category.icon,
                           color: Colors.white,
-                          size: 28,
+                          size: 28.sp,
                         ),
                       ),
                       
-                      const SizedBox(width: 14),
+                      SizedBox(width: 14.w),
                       
                       // النص
                       Expanded(
@@ -439,13 +441,13 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
                               style: context.titleMedium?.copyWith(
                                 color: Colors.white,
                                 fontWeight: ThemeConstants.bold,
-                                fontSize: 16,
+                                fontSize: 16.sp,
                                 height: 1.3,
                                 shadows: [
                                   Shadow(
                                     color: Colors.black.withValues(alpha: 0.2),
-                                    offset: const Offset(0, 1),
-                                    blurRadius: 2,
+                                    offset: Offset(0, 1.h),
+                                    blurRadius: 2.r,
                                   ),
                                 ],
                               ),
@@ -464,18 +466,18 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
                       top: 0,
                       left: 0,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 4.h,
                         ),
                         decoration: BoxDecoration(
                           color: ThemeConstants.warning,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(12.r),
                           boxShadow: [
                             BoxShadow(
                               color: ThemeConstants.warning.withValues(alpha: 0.4),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
+                              blurRadius: 4.r,
+                              offset: Offset(0, 2.h),
                             ),
                           ],
                         ),
@@ -484,7 +486,7 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
                           style: context.labelSmall?.copyWith(
                             color: Colors.white,
                             fontWeight: ThemeConstants.bold,
-                            fontSize: 9,
+                            fontSize: 9.sp,
                           ),
                         ),
                       ),

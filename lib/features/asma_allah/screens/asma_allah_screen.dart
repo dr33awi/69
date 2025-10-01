@@ -1,9 +1,10 @@
-// lib/features/asma_allah/screens/asma_allah_screen.dart - مع البحث في الشرح المفصل
+// lib/features/asma_allah/screens/asma_allah_screen.dart - محدث مع flutter_screenutil
 import 'package:athkar_app/app/di/service_locator.dart';
 import 'package:athkar_app/app/themes/app_theme.dart';
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import '../models/asma_allah_model.dart';
@@ -80,7 +81,7 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
 
   Widget _buildEnhancedAppBar() {
     return Container(
-      padding: const EdgeInsets.all(ThemeConstants.space4),
+      padding: EdgeInsets.all(16.w),
       child: Column(
         children: [
           // الصف الأول - العنوان والأزرار
@@ -91,34 +92,34 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
                 onPressed: () => Navigator.of(context).pop(),
               ),
               
-              ThemeConstants.space3.w,
+              SizedBox(width: 12.w),
               
               // أيقونة مميزة
               Container(
-                padding: const EdgeInsets.all(ThemeConstants.space2),
+                padding: EdgeInsets.all(8.w),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [ThemeConstants.tertiary, ThemeConstants.tertiaryLight],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                  borderRadius: BorderRadius.circular(12.r),
                   boxShadow: [
                     BoxShadow(
                       color: ThemeConstants.tertiary.withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
+                      blurRadius: 8.r,
+                      offset: Offset(0, 4.h),
                     ),
                   ],
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.star_outline,
                   color: Colors.white,
-                  size: ThemeConstants.iconMd,
+                  size: 24.sp,
                 ),
               ),
               
-              ThemeConstants.space3.w,
+              SizedBox(width: 12.w),
               
               // معلومات العنوان
               Expanded(
@@ -147,7 +148,7 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
             ],
           ),
           
-          ThemeConstants.space4.h,
+          SizedBox(height: 16.h),
           
           // شريط البحث المحسن
           _buildSearchBar(),
@@ -160,33 +161,34 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
     return Container(
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: context.dividerColor.withValues(alpha: 0.3),
+          width: 1.w,
         ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            blurRadius: 4.r,
+            offset: Offset(0, 2.h),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+        borderRadius: BorderRadius.circular(12.r),
         child: InkWell(
           onTap: () {
             setState(() => _showDetailedView = !_showDetailedView);
             HapticFeedback.lightImpact();
           },
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+          borderRadius: BorderRadius.circular(12.r),
           child: Container(
-            padding: const EdgeInsets.all(ThemeConstants.space2),
+            padding: EdgeInsets.all(8.w),
             child: Icon(
               _showDetailedView ? Icons.view_agenda_rounded : Icons.view_list_rounded,
               color: ThemeConstants.tertiary,
-              size: ThemeConstants.iconMd,
+              size: 24.sp,
             ),
           ),
         ),
@@ -198,16 +200,16 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
     return Container(
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+        borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
           color: context.dividerColor.withValues(alpha: 0.2),
-          width: 1,
+          width: 1.w,
         ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            blurRadius: 10.r,
+            offset: Offset(0, 3.h),
           ),
         ],
       ),
@@ -218,13 +220,14 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
           hintText: 'ابحث في الأسماء أو المعاني أو الشرح والتفسير...',
           hintStyle: TextStyle(
             color: context.textSecondaryColor.withValues(alpha: 0.7),
+            fontSize: 14.sp,
           ),
           prefixIcon: Container(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(12.w),
             child: Icon(
               Icons.search_rounded,
               color: context.textSecondaryColor,
-              size: ThemeConstants.iconMd,
+              size: 24.sp,
             ),
           ),
           suffixIcon: _searchQuery.isNotEmpty
@@ -234,8 +237,8 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
                     HapticFeedback.lightImpact();
                   },
                   child: Container(
-                    margin: const EdgeInsetsDirectional.only(end: 8),
-                    padding: const EdgeInsets.all(4),
+                    margin: EdgeInsetsDirectional.only(end: 8.w),
+                    padding: EdgeInsets.all(4.w),
                     decoration: BoxDecoration(
                       color: context.textSecondaryColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
@@ -243,15 +246,15 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
                     child: Icon(
                       Icons.clear_rounded,
                       color: context.textSecondaryColor,
-                      size: 16,
+                      size: 16.sp,
                     ),
                   ),
                 )
               : null,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: ThemeConstants.space4,
-            vertical: ThemeConstants.space4,
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 16.w,
+            vertical: 16.h,
           ),
         ),
       ),
@@ -283,21 +286,25 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(ThemeConstants.space4),
+            padding: EdgeInsets.all(16.w),
             decoration: BoxDecoration(
               color: ThemeConstants.tertiary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.hourglass_empty_rounded, color: ThemeConstants.tertiary, size: 28),
+            child: Icon(
+              Icons.hourglass_empty_rounded, 
+              color: ThemeConstants.tertiary, 
+              size: 28.sp
+            ),
           ),
-          ThemeConstants.space4.h,
+          SizedBox(height: 16.h),
           Text(
             'جاري تحميل أسماء الله الحسنى...',
             style: context.titleMedium?.copyWith(
               color: context.textSecondaryColor,
             ),
           ),
-          ThemeConstants.space2.h,
+          SizedBox(height: 8.h),
           Text(
             'يرجى الانتظار قليلاً',
             style: context.bodySmall?.copyWith(
@@ -315,18 +322,18 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(ThemeConstants.space6),
+            padding: EdgeInsets.all(24.w),
             decoration: BoxDecoration(
               color: context.textSecondaryColor.withValues(alpha: 0.05),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.search_off_rounded,
-              size: 60,
+              size: 60.sp,
               color: context.textSecondaryColor.withValues(alpha: 0.5),
             ),
           ),
-          ThemeConstants.space4.h,
+          SizedBox(height: 16.h),
           Text(
             'لا توجد نتائج',
             style: context.titleLarge?.copyWith(
@@ -334,7 +341,7 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
               fontWeight: ThemeConstants.bold,
             ),
           ),
-          ThemeConstants.space2.h,
+          SizedBox(height: 8.h),
           Text(
             'جرب البحث بكلمات أخرى أو امسح شريط البحث',
             style: context.bodyMedium?.copyWith(
@@ -342,7 +349,7 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
             ),
             textAlign: TextAlign.center,
           ),
-          ThemeConstants.space6.h,
+          SizedBox(height: 24.h),
           ElevatedButton.icon(
             onPressed: () {
               _searchController.clear();
@@ -351,15 +358,15 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: ThemeConstants.tertiary,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(
-                horizontal: ThemeConstants.space6,
-                vertical: ThemeConstants.space3,
+              padding: EdgeInsets.symmetric(
+                horizontal: 24.w,
+                vertical: 12.h,
               ),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+                borderRadius: BorderRadius.circular(20.r),
               ),
             ).copyWith(
-              overlayColor: const MaterialStatePropertyAll(Colors.transparent),
+              overlayColor: const WidgetStatePropertyAll(Colors.transparent),
               splashFactory: NoSplash.splashFactory,
             ),
             icon: const Icon(Icons.refresh_rounded),
@@ -376,18 +383,18 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
         // عداد النتائج ونوع البحث
         if (_searchQuery.isNotEmpty)
           Container(
-            margin: const EdgeInsets.symmetric(
-              horizontal: ThemeConstants.space4,
-              vertical: ThemeConstants.space2,
+            margin: EdgeInsets.symmetric(
+              horizontal: 16.w,
+              vertical: 8.h,
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.filter_list_rounded,
-                  size: 16,
+                  size: 16.sp,
                   color: context.textSecondaryColor,
                 ),
-                ThemeConstants.space1.w,
+                SizedBox(width: 4.w),
                 Text(
                   'عدد النتائج: ${list.length}',
                   style: context.labelMedium?.copyWith(
@@ -396,19 +403,20 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: ThemeConstants.space2,
-                    vertical: ThemeConstants.space1,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 8.w,
+                    vertical: 4.h,
                   ),
                   decoration: BoxDecoration(
                     color: ThemeConstants.tertiary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(ThemeConstants.radiusSm),
+                    borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: Text(
                     'البحث في كامل المحتوى',
                     style: context.labelSmall?.copyWith(
                       color: ThemeConstants.tertiary,
                       fontWeight: ThemeConstants.medium,
+                      fontSize: 11.sp,
                     ),
                   ),
                 ),
@@ -420,13 +428,13 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
         Expanded(
           child: ListView.builder(
             controller: _scrollController,
-            padding: const EdgeInsets.all(ThemeConstants.space4),
+            padding: EdgeInsets.all(16.w),
             physics: const ClampingScrollPhysics(),
             itemCount: list.length,
             itemBuilder: (context, index) {
               final item = list[index];
               return Container(
-                margin: const EdgeInsets.only(bottom: ThemeConstants.space2),
+                margin: EdgeInsets.only(bottom: 8.h),
                 child: CompactAsmaAllahCard(
                   item: item,
                   onTap: () => _openDetails(item),
@@ -446,9 +454,9 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
         // عداد النتائج مع معلومات إضافية
         if (_searchQuery.isNotEmpty)
           Container(
-            margin: const EdgeInsets.symmetric(
-              horizontal: ThemeConstants.space4,
-              vertical: ThemeConstants.space2,
+            margin: EdgeInsets.symmetric(
+              horizontal: 16.w,
+              vertical: 8.h,
             ),
             child: Column(
               children: [
@@ -456,10 +464,10 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
                   children: [
                     Icon(
                       Icons.filter_list_rounded,
-                      size: 16,
+                      size: 16.sp,
                       color: context.textSecondaryColor,
                     ),
-                    ThemeConstants.space1.w,
+                    SizedBox(width: 4.w),
                     Text(
                       'عدد النتائج: ${list.length}',
                       style: context.labelMedium?.copyWith(
@@ -468,19 +476,20 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
                     ),
                     const Spacer(),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: ThemeConstants.space2,
-                        vertical: ThemeConstants.space1,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.w,
+                        vertical: 4.h,
                       ),
                       decoration: BoxDecoration(
                         color: ThemeConstants.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(ThemeConstants.radiusSm),
+                        borderRadius: BorderRadius.circular(8.r),
                       ),
                       child: Text(
                         'العرض التفصيلي',
                         style: context.labelSmall?.copyWith(
                           color: ThemeConstants.primary,
                           fontWeight: ThemeConstants.medium,
+                          fontSize: 11.sp,
                         ),
                       ),
                     ),
@@ -494,7 +503,7 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
         Expanded(
           child: ListView.builder(
             controller: _scrollController,
-            padding: const EdgeInsets.all(ThemeConstants.space4),
+            padding: EdgeInsets.all(16.w),
             physics: const BouncingScrollPhysics(),
             itemCount: list.length,
             itemBuilder: (context, index) {

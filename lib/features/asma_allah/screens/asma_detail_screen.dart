@@ -1,8 +1,9 @@
-// lib/features/asma_allah/screens/asma_detail_screen.dart - محسن ومتناسق مع الشرح المفصل
+// lib/features/asma_allah/screens/asma_detail_screen.dart - محدث مع flutter_screenutil
 import 'dart:ui';
 import 'package:athkar_app/app/themes/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../models/asma_allah_model.dart';
@@ -92,7 +93,7 @@ class _UnifiedAsmaAllahDetailsScreenState
     final color = _currentItem.getColor();
     
     return Container(
-      padding: const EdgeInsets.all(ThemeConstants.space4),
+      padding: EdgeInsets.all(16.w),
       child: Row(
         children: [
           // زر الرجوع (متناسق مع صفحة الصلوات)
@@ -100,23 +101,23 @@ class _UnifiedAsmaAllahDetailsScreenState
             onPressed: () => Navigator.of(context).pop(),
           ),
           
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
           
           // أيقونة مميزة (نفس ستايل صفحة الصلوات)
           Container(
-            padding: const EdgeInsets.all(ThemeConstants.space2),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [color, color.withOpacity(0.8)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(12.r),
               boxShadow: [
                 BoxShadow(
                   color: color.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
+                  blurRadius: 8.r,
+                  offset: Offset(0, 4.h),
                 ),
               ],
             ),
@@ -129,7 +130,7 @@ class _UnifiedAsmaAllahDetailsScreenState
             ),
           ),
           
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
           
           // معلومات الاسم الحالي
           Expanded(
@@ -176,33 +177,34 @@ class _UnifiedAsmaAllahDetailsScreenState
     bool isSecondary = false,
   }) {
     return Container(
-      margin: const EdgeInsets.only(left: ThemeConstants.space2),
+      margin: EdgeInsets.only(left: 8.w),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+        borderRadius: BorderRadius.circular(12.r),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+          borderRadius: BorderRadius.circular(12.r),
           child: Container(
-            padding: const EdgeInsets.all(ThemeConstants.space2),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               color: context.cardColor,
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(12.r),
               border: Border.all(
                 color: context.dividerColor.withValues(alpha: 0.3),
+                width: 1.w,
               ),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+                  blurRadius: 4.r,
+                  offset: Offset(0, 2.h),
                 ),
               ],
             ),
             child: Icon(
               icon,
               color: isSecondary ? context.textSecondaryColor : _currentItem.getColor(),
-              size: ThemeConstants.iconMd,
+              size: 24.sp,
             ),
           ),
         ),
@@ -212,20 +214,20 @@ class _UnifiedAsmaAllahDetailsScreenState
 
   Widget _buildContentPage(AsmaAllahModel item) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(ThemeConstants.space4),
+      padding: EdgeInsets.all(16.w),
       physics: const BouncingScrollPhysics(),
       child: Column(
         children: [
           // بطاقة الاسم الرئيسية
           _buildMainNameCard(item),
           
-          ThemeConstants.space4.h,
+          SizedBox(height: 16.h),
           
           // بطاقة الشرح المفصل مع الآيات المميزة
           _buildEnhancedExplanationCard(item),
           
           // مساحة إضافية في الأسفل
-          ThemeConstants.space8.h,
+          SizedBox(height: 32.h),
         ],
       ),
     );
@@ -236,19 +238,19 @@ class _UnifiedAsmaAllahDetailsScreenState
     
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(ThemeConstants.space4),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [color, color.withValues(alpha: 0.8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+        borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
             color: color.withValues(alpha: 0.3),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+            blurRadius: 16.r,
+            offset: Offset(0, 8.h),
           ),
         ],
       ),
@@ -263,8 +265,8 @@ class _UnifiedAsmaAllahDetailsScreenState
             shadows: [
               Shadow(
                 color: Colors.black.withValues(alpha: 0.2),
-                offset: const Offset(0, 2),
-                blurRadius: 4,
+                offset: Offset(0, 2.h),
+                blurRadius: 4.r,
               ),
             ],
           ),
@@ -274,24 +276,22 @@ class _UnifiedAsmaAllahDetailsScreenState
     );
   }
 
-
-
   Widget _buildEnhancedExplanationCard(AsmaAllahModel item) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(ThemeConstants.space5),
+      padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(ThemeConstants.radius2xl),
+        borderRadius: BorderRadius.circular(24.r),
         border: Border.all(
           color: item.getColor().withValues(alpha: 0.2),
-          width: 1,
+          width: 1.w,
         ),
         boxShadow: [
           BoxShadow(
             color: item.getColor().withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            blurRadius: 10.r,
+            offset: Offset(0, 4.h),
           ),
         ],
       ),
@@ -302,18 +302,18 @@ class _UnifiedAsmaAllahDetailsScreenState
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(ThemeConstants.space2),
+                padding: EdgeInsets.all(8.w),
                 decoration: BoxDecoration(
                   color: item.getColor().withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Icon(
                   Icons.auto_stories_rounded,
                   color: item.getColor(),
-                  size: ThemeConstants.iconMd,
+                  size: 24.sp,
                 ),
               ),
-              ThemeConstants.space3.w,
+              SizedBox(width: 12.w),
               Text(
                 'الشرح والتفسير',
                 style: context.titleLarge?.copyWith(
@@ -324,21 +324,21 @@ class _UnifiedAsmaAllahDetailsScreenState
             ],
           ),
           
-          ThemeConstants.space4.h,
+          SizedBox(height: 16.h),
           
           // خط فاصل
           Container(
-            height: 2,
-            width: 80,
+            height: 2.h,
+            width: 80.w,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [item.getColor(), Colors.transparent],
               ),
-              borderRadius: BorderRadius.circular(1),
+              borderRadius: BorderRadius.circular(1.r),
             ),
           ),
           
-          ThemeConstants.space4.h,
+          SizedBox(height: 16.h),
           
           // نص الشرح المفصل مع الآيات المميزة
           _buildFormattedExplanationText(item),
@@ -368,7 +368,7 @@ class _UnifiedAsmaAllahDetailsScreenState
           text: text.substring(lastIndex, match.start),
           style: context.bodyLarge?.copyWith(
             height: 2.2,
-            fontSize: 17,
+            fontSize: 17.sp,
             color: context.textPrimaryColor,
             letterSpacing: 0.3,
           ),
@@ -381,7 +381,7 @@ class _UnifiedAsmaAllahDetailsScreenState
         style: context.titleMedium?.copyWith(
           color: ThemeConstants.tertiary,
           fontFamily: ThemeConstants.fontFamilyQuran,
-          fontSize: 18,
+          fontSize: 18.sp,
           fontWeight: ThemeConstants.medium,
           height: 2.0,
           backgroundColor: ThemeConstants.tertiary.withValues(alpha: 0.08),
@@ -397,7 +397,7 @@ class _UnifiedAsmaAllahDetailsScreenState
         text: text.substring(lastIndex),
         style: context.bodyLarge?.copyWith(
           height: 2.2,
-          fontSize: 17,
+          fontSize: 17.sp,
           color: context.textPrimaryColor,
           letterSpacing: 0.3,
         ),
@@ -410,7 +410,7 @@ class _UnifiedAsmaAllahDetailsScreenState
         text: text,
         style: context.bodyLarge?.copyWith(
           height: 2.2,
-          fontSize: 17,
+          fontSize: 17.sp,
           color: context.textPrimaryColor,
           letterSpacing: 0.3,
         ),
@@ -420,28 +420,26 @@ class _UnifiedAsmaAllahDetailsScreenState
     return TextSpan(children: spans);
   }
 
-
-
   Widget _buildBottomNavigationBar() {
     final canPrev = _currentIndex > 0;
     final canNext = _currentIndex < widget.service.asmaAllahList.length - 1;
     final color = _currentItem.getColor();
     
     return Container(
-      padding: const EdgeInsets.all(ThemeConstants.space4),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: context.cardColor,
         border: Border(
           top: BorderSide(
             color: context.dividerColor.withValues(alpha: 0.2),
-            width: 1,
+            width: 1.h,
           ),
         ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
+            blurRadius: 10.r,
+            offset: Offset(0, -2.h),
           ),
         ],
       ),
@@ -459,30 +457,32 @@ class _UnifiedAsmaAllahDetailsScreenState
                     ? context.textPrimaryColor 
                     : context.textSecondaryColor.withOpacity(0.5),
                 elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: ThemeConstants.space3),
+                padding: EdgeInsets.symmetric(vertical: 12.h),
                 side: BorderSide(
                   color: context.dividerColor.withValues(alpha: 0.3),
+                  width: 1.w,
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
               ),
             ),
           ),
           
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
           
           // مؤشر الصفحة
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: ThemeConstants.space3,
-              vertical: ThemeConstants.space2,
+            padding: EdgeInsets.symmetric(
+              horizontal: 12.w,
+              vertical: 8.h,
             ),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusFull),
+              borderRadius: BorderRadius.circular(999.r),
               border: Border.all(
                 color: color.withValues(alpha: 0.2),
+                width: 1.w,
               ),
             ),
             child: Text(
@@ -494,7 +494,7 @@ class _UnifiedAsmaAllahDetailsScreenState
             ),
           ),
           
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
           
           // زر التالي
           Expanded(
@@ -508,14 +508,15 @@ class _UnifiedAsmaAllahDetailsScreenState
                     ? Colors.white 
                     : context.textSecondaryColor.withOpacity(0.5),
                 elevation: canNext ? 2 : 0,
-                padding: const EdgeInsets.symmetric(vertical: ThemeConstants.space3),
+                padding: EdgeInsets.symmetric(vertical: 12.h),
                 side: canNext 
                     ? null
                     : BorderSide(
                         color: context.dividerColor.withValues(alpha: 0.3),
+                        width: 1.w,
                       ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
                 shadowColor: canNext ? color.withValues(alpha: 0.3) : null,
               ),

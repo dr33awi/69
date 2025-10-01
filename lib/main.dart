@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart'; // إضافة ScreenUtil
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 // Firebase imports
 import 'package:firebase_core/firebase_core.dart';
@@ -261,15 +261,15 @@ class _AthkarAppState extends State<AthkarApp> {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: getIt<ThemeNotifier>(),
       builder: (context, themeMode, child) {
-        // ⚡ تهيئة ScreenUtil هنا
+        // تهيئة ScreenUtil
         return ScreenUtilInit(
-          // حجم الشاشة المرجعي للتصميم (يمكنك تغييره حسب تصميمك)
+          // حجم الشاشة المرجعي للتصميم
           designSize: const Size(375, 812), // iPhone X size كمرجع
           
           // السماح بتغيير حجم النص
           minTextAdapt: true,
           
-          // تقسيم الشاشة (مفيد للأجهزة اللوحية)
+          // تقسيم الشاشة
           splitScreenMode: true,
           
           builder: (context, child) {
@@ -343,7 +343,7 @@ class _AthkarAppState extends State<AthkarApp> {
       initialScreen = const HomeScreen();
     }
     
-    // ⚠️ CRITICAL: لف الشاشة بـ AppStatusMonitor إذا كان متوفراً
+    // لف الشاشة بـ AppStatusMonitor إذا كان متوفراً
     return _wrapWithAppMonitor(initialScreen);
   }
 
@@ -386,13 +386,13 @@ class _ErrorApp extends StatelessWidget {
               body: SafeArea(
                 child: Center(
                   child: Padding(
-                    padding: EdgeInsets.all(SizeExtension(24).w),
+                    padding: EdgeInsets.all(24.w),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         // أيقونة الخطأ
                         Container(
-                          padding: EdgeInsets.all(SizeExtension(32).w),
+                          padding: EdgeInsets.all(32.w),
                           decoration: BoxDecoration(
                             color: Colors.red.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
@@ -404,7 +404,7 @@ class _ErrorApp extends StatelessWidget {
                           ),
                         ),
                         
-                        SizedBox(height: SizeExtension(32).h),
+                        SizedBox(height: 32.h),
                         
                         Text(
                           'عذراً، حدث خطأ',
@@ -417,7 +417,7 @@ class _ErrorApp extends StatelessWidget {
                           textAlign: TextAlign.center,
                         ),
                         
-                        SizedBox(height: SizeExtension(16).h),
+                        SizedBox(height: 16.h),
                         
                         Text(
                           'حدث خطأ أثناء تهيئة التطبيق\nيرجى إعادة المحاولة',
@@ -430,11 +430,11 @@ class _ErrorApp extends StatelessWidget {
                           textAlign: TextAlign.center,
                         ),
                         
-                        SizedBox(height: SizeExtension(48).h),
+                        SizedBox(height: 48.h),
                         
                         SizedBox(
                           width: double.infinity,
-                          height: SizeExtension(56).h,
+                          height: 56.h,
                           child: ElevatedButton.icon(
                             onPressed: () => main(),
                             icon: Icon(Icons.refresh, size: 24.sp),
