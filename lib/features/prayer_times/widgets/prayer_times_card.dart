@@ -60,15 +60,18 @@ class PrayerTimeCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(20.r),
             ),
             child: Padding(
-              padding: EdgeInsets.all(16.w),
+              padding: EdgeInsets.symmetric(
+                horizontal: 16.w,
+                vertical: 14.h, // تقليل المسافة العمودية
+              ),
               child: Row(
                 children: [
                   _buildPrayerIcon(context, useGradient),
-                  SizedBox(width: 16.w),
+                  SizedBox(width: 14.w), // تقليل المسافة
                   Expanded(
                     child: _buildPrayerInfo(context, useGradient),
                   ),
-                  SizedBox(width: 12.w),
+                  SizedBox(width: 10.w), // تقليل المسافة
                   _buildTimeSection(context, useGradient),
                 ],
               ),

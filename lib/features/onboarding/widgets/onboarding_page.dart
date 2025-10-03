@@ -1,5 +1,6 @@
-// lib/features/onboarding/widgets/onboarding_page.dart - مع إصلاح الألوان
+// lib/features/onboarding/widgets/onboarding_page.dart - مع إصلاح الألوان وScreenUtil
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lottie/lottie.dart';
 import '../../../app/themes/widgets/core/islamic_pattern_painter.dart';
 import '../models/onboarding_item.dart';
@@ -97,15 +98,15 @@ class _OnboardingPageState extends State<OnboardingPage>
           // المحتوى الرئيسي
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(32),
+              padding: EdgeInsets.all(32.w),
               child: Column(
                 children: [
-                  const SizedBox(height: 40),
+                  SizedBox(height: 40.h),
                   
                   // Lottie Animation أو الأيقونة
                   _buildAnimationWidget(),
                   
-                  const SizedBox(height: 40),
+                  SizedBox(height: 40.h),
                   
                   // العنوان الرئيسي
                   AnimatedBuilder(
@@ -117,8 +118,8 @@ class _OnboardingPageState extends State<OnboardingPage>
                           offset: Offset(0, 20 * (1 - _fadeAnimation.value)),
                           child: Text(
                             widget.item.title,
-                            style: const TextStyle(
-                              fontSize: 32,
+                            style: TextStyle(
+                              fontSize: 32.sp,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                               height: 1.2,
@@ -130,11 +131,11 @@ class _OnboardingPageState extends State<OnboardingPage>
                     },
                   ),
                   
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32.h),
                   
                   // الميزات (للفئات فقط)
                   if (widget.item.features != null && widget.item.features!.isNotEmpty) ...[
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32.h),
                     _buildFeaturesList(),
                   ],
                   
@@ -143,7 +144,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                   // زر المتابعة
                   _buildActionButton(),
                   
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32.h),
                 ],
               ),
             ),

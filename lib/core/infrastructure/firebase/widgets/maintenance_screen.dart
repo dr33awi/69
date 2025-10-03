@@ -1,7 +1,8 @@
-// lib/core/infrastructure/firebase/widgets/maintenance_screen.dart - مصحح
+// lib/core/infrastructure/firebase/widgets/maintenance_screen.dart - مصحح مع ScreenUtil
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// شاشة الصيانة المصححة
 class MaintenanceScreen extends StatefulWidget {
@@ -85,7 +86,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
             child: SafeArea(
               child: Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: EdgeInsets.all(24.w),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

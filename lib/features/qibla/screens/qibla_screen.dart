@@ -405,8 +405,11 @@ class _QiblaScreenState extends State<QiblaScreen>
   }
 
   Widget _buildCompassView(QiblaService service) {
-    return SizedBox(
-      height: 350.h,
+    return Container(
+      constraints: BoxConstraints(
+        minHeight: 320.h,
+        maxHeight: 400.h,
+      ),
       child: Stack(
         children: [
           Padding(
@@ -427,8 +430,15 @@ class _QiblaScreenState extends State<QiblaScreen>
               child: Container(
                 padding: EdgeInsets.all(8.w),
                 decoration: BoxDecoration(
-                  color: context.cardColor.withOpacity(0.9),
+                  color: context.cardColor.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(12.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -439,7 +449,13 @@ class _QiblaScreenState extends State<QiblaScreen>
                       child: const CircularProgressIndicator(strokeWidth: 2),
                     ),
                     SizedBox(width: 8.w),
-                    const Text('تحديث...'),
+                    Text(
+                      'تحديث...',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -450,26 +466,49 @@ class _QiblaScreenState extends State<QiblaScreen>
   }
 
   Widget _buildLoadingState() {
-    return SizedBox(
-      height: 350.h,
+    return Container(
+      constraints: BoxConstraints(
+        minHeight: 300.h,
+        maxHeight: 400.h,
+      ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 200.w,
-            height: 200.h,
+            width: 150.w,
+            height: 150.h,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: context.cardColor,
+              color: context.cardColor.withValues(alpha: 0.8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: const Center(
-              child: CircularProgressIndicator(),
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+              ),
             ),
           ),
           SizedBox(height: 24.h),
           Text(
             'جاري تحديد موقعك...',
-            style: context.bodyLarge?.medium,
+            style: context.bodyLarge?.copyWith(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            'يرجى الانتظار لحظات قليلة',
+            style: context.bodyMedium?.copyWith(
+              fontSize: 14.sp,
+              color: Colors.grey.shade600,
+            ),
           ),
         ],
       ),
@@ -477,28 +516,71 @@ class _QiblaScreenState extends State<QiblaScreen>
   }
 
   Widget _buildErrorState(QiblaService service) {
-    return SizedBox(
-      height: 350.h,
+    return Container(
+      constraints: BoxConstraints(
+        minHeight: 300.h,
+        maxHeight: 400.h,
+      ),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64.sp,
-              color: ThemeConstants.error,
+            Container(
+              padding: EdgeInsets.all(24.w),
+              decoration: BoxDecoration(
+                color: ThemeConstants.error.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.error_outline,
+                size: 48.sp,
+                color: ThemeConstants.error,
+              ),
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: 20.h),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 32.w),
+              child: Text(
+                service.errorMessage ?? 'فشل تحميل البيانات',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                  color: ThemeConstants.error,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            SizedBox(height: 8.h),
             Text(
-              service.errorMessage ?? 'فشل تحميل البيانات',
-              style: context.bodyLarge,
+              'تأكد من تفعيل الموقع والاتصال بالإنترنت',
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: Colors.grey.shade600,
+              ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: 24.h),
             ElevatedButton.icon(
               onPressed: () => _updateQiblaData(forceUpdate: true),
-              icon: const Icon(Icons.refresh),
-              label: const Text('إعادة المحاولة'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ThemeConstants.error,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 24.w,
+                  vertical: 12.h,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+              ),
+              icon: Icon(Icons.refresh, size: 20.sp),
+              label: Text(
+                'إعادة المحاولة',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
         ),
@@ -508,43 +590,82 @@ class _QiblaScreenState extends State<QiblaScreen>
 
   Widget _buildNoCompassState(QiblaService service) {
     return Container(
-      height: 350.h,
+      constraints: BoxConstraints(
+        minHeight: 320.h,
+        maxHeight: 450.h,
+      ),
       padding: EdgeInsets.all(24.w),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.compass_calibration_outlined,
-            size: 64.sp,
-            color: Colors.amber[700],
+          Container(
+            padding: EdgeInsets.all(24.w),
+            decoration: BoxDecoration(
+              color: Colors.amber.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.compass_calibration_outlined,
+              size: 48.sp,
+              color: Colors.amber.shade700,
+            ),
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: 20.h),
           Text(
             'البوصلة غير متوفرة',
-            style: context.titleLarge?.bold,
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.amber.shade700,
+            ),
           ),
-          SizedBox(height: 8.h),
-          const Text(
-            'جهازك لا يدعم البوصلة. يمكنك استخدام اتجاه القبلة من موقعك.',
-            textAlign: TextAlign.center,
+          SizedBox(height: 12.h),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: Text(
+              'جهازك لا يدعم البوصلة. يمكنك استخدام اتجاه القبلة من موقعك.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: Colors.grey.shade600,
+              ),
+            ),
           ),
           if (service.qiblaData != null) ...[
-            SizedBox(height: 20.h),
+            SizedBox(height: 24.h),
             Container(
+              width: double.infinity,
               padding: EdgeInsets.all(16.w),
               decoration: BoxDecoration(
                 color: context.cardColor,
                 borderRadius: BorderRadius.circular(12.r),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Column(
                 children: [
                   Text(
                     'اتجاه القبلة: ${service.qiblaData!.qiblaDirection.toStringAsFixed(1)}°',
-                    style: context.headlineMedium?.bold.textColor(context.primaryColor),
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                      color: ThemeConstants.primary,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
+                  SizedBox(height: 8.h),
                   Text(
                     service.qiblaData!.directionDescription,
-                    style: context.bodyLarge,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.grey.shade700,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
@@ -556,32 +677,70 @@ class _QiblaScreenState extends State<QiblaScreen>
   }
 
   Widget _buildInitialState() {
-    return SizedBox(
-      height: 350.h,
+    return Container(
+      constraints: BoxConstraints(
+        minHeight: 300.h,
+        maxHeight: 400.h,
+      ),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.location_searching,
-              size: 64.sp,
-              color: ThemeConstants.primary,
+            Container(
+              padding: EdgeInsets.all(24.w),
+              decoration: BoxDecoration(
+                color: ThemeConstants.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.location_searching,
+                size: 48.sp,
+                color: ThemeConstants.primary,
+              ),
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: 20.h),
             Text(
               'حدد موقعك',
-              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18.sp, 
+                fontWeight: FontWeight.bold,
+                color: ThemeConstants.primary,
+              ),
             ),
             SizedBox(height: 8.h),
-            const Text(
-              'اضغط على زر التحديث لتحديد موقعك',
-              textAlign: TextAlign.center,
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 32.w),
+              child: Text(
+                'اضغط على زر التحديث لتحديد موقعك واتجاه القبلة',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: Colors.grey.shade600,
+                ),
+              ),
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: 24.h),
             ElevatedButton.icon(
               onPressed: () => _updateQiblaData(forceUpdate: true),
-              icon: const Icon(Icons.my_location),
-              label: const Text('تحديد الموقع'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ThemeConstants.primary,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 24.w,
+                  vertical: 12.h,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+              ),
+              icon: Icon(Icons.my_location, size: 20.sp),
+              label: Text(
+                'تحديد الموقع',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
         ),

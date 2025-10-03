@@ -14,6 +14,9 @@ import 'package:athkar_app/core/infrastructure/services/permissions/permission_s
 import 'package:athkar_app/core/infrastructure/services/permissions/permission_service_impl.dart';
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service_impl.dart';
+import 'package:athkar_app/core/infrastructure/services/logger/app_logger.dart';
+import 'package:athkar_app/core/infrastructure/services/performance/performance_monitor.dart';
+import 'package:athkar_app/core/infrastructure/services/memory/leak_tracker_service.dart';
 import 'package:athkar_app/features/athkar/services/athkar_service.dart';
 import 'package:athkar_app/features/dua/services/dua_service.dart';
 import 'package:athkar_app/features/prayer_times/services/prayer_times_service.dart';
@@ -84,7 +87,10 @@ class ServiceLocator {
       // 2. تحميل الحالة المحفوظة
       await _loadSavedState();
       
-      // 3. باقي الخدمات الأساسية
+      // 3. خدمات التطوير والمراقبة
+      _registerDevelopmentServices();
+      
+      // 4. باقي الخدمات الأساسية
       _registerThemeServices();
       _registerPermissionServices();
       await _registerNotificationServices();
@@ -291,6 +297,36 @@ class ServiceLocator {
 
     if (!getIt.isRegistered<AppErrorHandler>()) {
       getIt.registerLazySingleton<AppErrorHandler>(() => AppErrorHandler());
+    }
+  }
+
+  /// تسجيل خدمات التطوير والمراقبة
+  void _registerDevelopmentServices() {
+    debugPrint('ServiceLocator: Registering development services...');
+    
+    try {
+      // Logger - Singleton
+      if (!getIt.isRegistered<AppLogger>()) {
+        getIt.registerSingleton<AppLogger>(AppLogger.instance);
+        AppLogger.info('AppLogger service registered');
+      }
+
+      // Performance Monitor - Singleton
+      if (!getIt.isRegistered<PerformanceMonitor>()) {
+        getIt.registerSingleton<PerformanceMonitor>(PerformanceMonitor.instance);
+        AppLogger.info('PerformanceMonitor service registered');
+      }
+
+      // Leak Tracker Service - Singleton
+      if (!getIt.isRegistered<LeakTrackerService>()) {
+        getIt.registerSingleton<LeakTrackerService>(LeakTrackerService.instance);
+        LeakTrackerService.instance.initialize();
+        AppLogger.info('LeakTrackerService initialized and registered');
+      }
+
+      debugPrint('✅ Development services registered successfully');
+    } catch (e) {
+      debugPrint('❌ Error registering development services: $e');
     }
   }
 

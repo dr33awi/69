@@ -16,6 +16,10 @@ import 'core/infrastructure/services/permissions/permission_manager.dart';
 import 'core/infrastructure/services/permissions/widgets/permission_monitor.dart';
 import 'core/infrastructure/services/storage/storage_service.dart';
 
+// خدمات التطوير والمراقبة
+import 'core/infrastructure/config/development_config.dart';
+import 'core/infrastructure/services/preview/device_preview_config.dart';
+
 // Firebase services
 import 'core/infrastructure/firebase/remote_config_manager.dart';
 import 'core/infrastructure/firebase/remote_config_service.dart';
@@ -48,8 +52,10 @@ Future<void> main() async {
         // تهيئة سريعة + Firebase بشكل صحيح
         await _fastBootstrap();
         
-        // تشغيل التطبيق فوراً
-        runApp(const AthkarApp());
+        // تشغيل التطبيق مع Device Preview في وضع التطوير
+        final app = const AthkarApp();
+        final wrappedApp = DevicePreviewConfig.wrapApp(app);
+        runApp(wrappedApp ?? app);
         
         // تهيئة الباقي في الخلفية
         _backgroundInitialization();
@@ -73,6 +79,9 @@ Future<void> _fastBootstrap() async {
   final stopwatch = Stopwatch()..start();
   
   try {
+    // 0. تهيئة أدوات التطوير
+    DevelopmentConfig.initialize();
+    
     // 1. تهيئة Firebase FIRST
     debugPrint('🔥 تهيئة Firebase Core...');
     await Firebase.initializeApp(
@@ -256,21 +265,43 @@ class _AthkarAppState extends State<AthkarApp> {
     });
   }
 
+  /// تحديد حجم التصميم المرجعي حسب نوع الجهاز
+  Size _getDesignSize(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    
+    // للايباد والتابلت
+    if (screenWidth >= 600) {
+      // iPad Mini/Air Portrait: 744x1133, iPad Pro 11": 834x1194
+      if (screenWidth >= 800) {
+        return const Size(834, 1194); // iPad Pro 11"
+      } else {
+        return const Size(744, 1133); // iPad Mini/Air
+      }
+    }
+    
+    // للهواتف الذكية
+    return const Size(375, 812); // iPhone X كمرجع
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: getIt<ThemeNotifier>(),
       builder: (context, themeMode, child) {
-        // تهيئة ScreenUtil
+        // تهيئة ScreenUtil مع دعم محسن للايباد
         return ScreenUtilInit(
-          // حجم الشاشة المرجعي للتصميم
-          designSize: const Size(375, 812), // iPhone X size كمرجع
+          // حجم الشاشة المرجعي للتصميم - متجاوب للايباد
+          designSize: _getDesignSize(context),
           
           // السماح بتغيير حجم النص
           minTextAdapt: true,
           
-          // تقسيم الشاشة
+          // تقسيم الشاشة - مهم للايباد
           splitScreenMode: true,
+          
+          // دعم محسن للايباد
+          useInheritedMediaQuery: true,
           
           builder: (context, child) {
             return MaterialApp(

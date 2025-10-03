@@ -1,10 +1,11 @@
-// lib/features/onboarding/screens/onboarding_screen.dart - محدث
+// lib/features/onboarding/screens/onboarding_screen.dart - محدث مع flutter_screenutil
 import 'package:athkar_app/core/infrastructure/services/permissions/permission_service.dart';
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
 import 'package:athkar_app/features/onboarding/models/onboarding_item.dart';
 import 'package:athkar_app/features/onboarding/widgets/page_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:concentric_transition/concentric_transition.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
@@ -171,7 +172,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           
           // مؤشر الصفحات في الأعلى
           Positioned(
-            top: MediaQuery.of(context).padding.top + 20,
+            top: MediaQuery.of(context).padding.top + 20.h,
             left: 0,
             right: 0,
             child: Center(

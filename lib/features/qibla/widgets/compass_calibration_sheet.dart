@@ -57,6 +57,9 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
     final accuracyColor = _getAccuracyColor(accuracyPercentage);
     
     return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.8, // تحديد ارتفاع أقصى
+      ),
       padding: EdgeInsets.symmetric(
         horizontal: 16.w,
         vertical: 16.h,
@@ -74,7 +77,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
           Container(
             width: 40.w,
             height: 4.h,
-            margin: EdgeInsets.only(bottom: 16.h),
+            margin: EdgeInsets.only(bottom: 12.h), // تقليل المسافة
             decoration: BoxDecoration(
               color: context.dividerColor,
               borderRadius: BorderRadius.circular(2.r),
@@ -108,12 +111,12 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
             ],
           ),
           
-          SizedBox(height: 16.h),
+          SizedBox(height: 12.h), // تقليل المسافة
           
           // Warning message
           Container(
             width: double.infinity,
-            padding: EdgeInsets.all(12.w),
+            padding: EdgeInsets.all(10.w), // تقليل الحشو
             decoration: BoxDecoration(
               color: ThemeConstants.warning.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12.r),
@@ -126,7 +129,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                 Icon(
                   Icons.warning_amber_rounded,
                   color: ThemeConstants.warning,
-                  size: 24.sp,
+                  size: 20.sp, // تقليل حجم الأيقونة
                 ),
                 SizedBox(width: 8.w),
                 Expanded(
@@ -135,7 +138,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                     style: context.bodyLarge?.copyWith(
                       color: ThemeConstants.warning,
                       fontWeight: FontWeight.w600,
-                      fontSize: context.bodyLarge?.fontSize?.sp,
+                      fontSize: 14.sp, // تحديد حجم نص صغير
                     ),
                   ),
                 ),
@@ -143,7 +146,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
             ),
           ),
           
-          SizedBox(height: 16.h),
+          SizedBox(height: 12.h), // تقليل المسافة
           
           // Accuracy indicator
           Container(
@@ -189,7 +192,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
           
           // Phone animation with figure-8 motion
           Container(
-            height: 150.h,
+            height: 120.h, // تقليل الارتفاع
             width: double.infinity,
             decoration: BoxDecoration(
               color: context.cardColor.withValues(alpha: 0.5),

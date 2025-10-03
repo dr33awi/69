@@ -1,5 +1,6 @@
-// lib/features/onboarding/widgets/page_indicator.dart - محدث بدون إيموجي
+// lib/features/onboarding/widgets/page_indicator.dart - محدث بدون إيموجي مع ScreenUtil
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../models/onboarding_item.dart';
 
 class PageIndicator extends StatelessWidget {
@@ -39,11 +40,11 @@ class PageIndicator extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
-          margin: const EdgeInsets.symmetric(horizontal: 3),
-          width: currentIndex == index ? 24 : 8,
-          height: 8,
+          margin: EdgeInsets.symmetric(horizontal: 3.w),
+          width: currentIndex == index ? 24.w : 8.w,
+          height: 8.h,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(4.r),
             color: currentIndex == index
                 ? Colors.white
                 : Colors.white.withValues(alpha: 0.4),

@@ -55,10 +55,17 @@ dependencies:
   flutter_screenutil: ^5.9.3
   delightful_toast: ^1.1.0
 
+  # --- Development & Performance ---
+  logger: ^2.4.0
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+  # --- Development Tools ---
+  leak_tracker: ^10.0.5
+  device_preview: ^1.2.0
 
 
 flutter:

@@ -1,8 +1,9 @@
-// lib/core/infrastructure/firebase/widgets/force_update_screen.dart
+// lib/core/infrastructure/firebase/widgets/force_update_screen.dart - مع ScreenUtil
 // Android Only - iOS support removed
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../remote_config_service.dart';
 
