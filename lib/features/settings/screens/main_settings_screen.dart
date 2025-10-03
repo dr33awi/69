@@ -1,6 +1,7 @@
 // lib/features/settings/screens/main_settings_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:in_app_review/in_app_review.dart';
@@ -104,13 +105,13 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.all(ThemeConstants.space4),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: context.backgroundColor,
         border: Border(
           bottom: BorderSide(
             color: context.dividerColor.withValues(alpha: 0.1),
-            width: 1,
+            width: 1.w,
           ),
         ),
       ),
@@ -121,11 +122,11 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
           
           // الأيقونة
           Container(
-            padding: const EdgeInsets.all(ThemeConstants.space2),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -133,16 +134,16 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
                   Theme.of(context).primaryColor.withValues(alpha: 0.8),
                 ],
               ),
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(12.r),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.settings,
               color: Colors.white,
-              size: ThemeConstants.iconMd,
+              size: 24.sp,
             ),
           ),
           
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
           
           // العنوان والوصف
           Expanded(
@@ -153,12 +154,14 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
                   'الإعدادات',
                   style: context.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
+                    fontSize: context.headlineSmall?.fontSize?.sp,
                   ),
                 ),
                 Text(
                   'تخصيص تجربتك مع التطبيق',
                   style: context.bodySmall?.copyWith(
                     color: context.textSecondaryColor,
+                    fontSize: context.bodySmall?.fontSize?.sp,
                   ),
                 ),
               ],
@@ -170,15 +173,15 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
             color: Colors.transparent,
             child: InkWell(
               onTap: () => _resetSettings(),
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(12.r),
               child: Container(
-                padding: const EdgeInsets.all(ThemeConstants.space2),
+                padding: EdgeInsets.all(8.w),
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: ThemeConstants.error.withValues(alpha: 0.3),
-                    width: 1.5,
+                    width: 1.5.w,
                   ),
-                  borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -186,14 +189,14 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
                     Icon(
                       Icons.refresh_rounded,
                       color: ThemeConstants.error,
-                      size: ThemeConstants.iconSm,
+                      size: 20.sp,
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: 6.w),
                     Text(
                       'إعادة تعيين',
                       style: TextStyle(
                         color: ThemeConstants.error,
-                        fontSize: 12,
+                        fontSize: 12.sp,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -214,10 +217,10 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
     return RefreshIndicator(
       onRefresh: _loadInitialData,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.only(bottom: ThemeConstants.space8),
+        padding: EdgeInsets.only(bottom: 32.h),
         child: Column(
           children: [
-            ThemeConstants.space4.h,
+            SizedBox(height: 16.h),
             
             // ==================== 1. بطاقة حالة الأذونات في الأعلى ====================
             _buildPermissionStatusCard(),
@@ -233,14 +236,14 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
                   title: 'إشعارات الصلاة',
                   subtitle: 'تنبيهات أوقات الصلاة والأذان',
                   onTap: () => Navigator.pushNamed(context, AppRouter.prayerNotificationsSettings),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16.sp),
                 ),
                 SettingsTile(
                   icon: Icons.menu_book,
                   title: 'إشعارات الأذكار',
                   subtitle: 'تذكيرات الأذكار اليومية',
                   onTap: () => Navigator.pushNamed(context, AppRouter.athkarNotificationsSettings),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16.sp),
                 ),
                 SettingsTile(
                   icon: Icons.vibration,
@@ -264,28 +267,28 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
               icon: Icons.palette,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: ThemeConstants.space4,
-                    vertical: ThemeConstants.space3,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 12.h,
                   ),
                   child: Row(
                     children: [
                       Container(
-                        width: 48,
-                        height: 48,
+                        width: 48.w,
+                        height: 48.h,
                         decoration: BoxDecoration(
                           color: context.primaryColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                          borderRadius: BorderRadius.circular(12.r),
                         ),
                         child: Icon(
                           _settingsManager.currentTheme == ThemeMode.dark 
                               ? Icons.dark_mode 
                               : Icons.light_mode,
                           color: context.primaryColor,
-                          size: ThemeConstants.iconMd,
+                          size: 24.sp,
                         ),
                       ),
-                      ThemeConstants.space4.w,
+                      SizedBox(width: 16.w),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -294,6 +297,7 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
                               'وضع العرض',
                               style: context.titleMedium?.copyWith(
                                 fontWeight: FontWeight.w600,
+                                fontSize: context.titleMedium?.fontSize?.sp,
                               ),
                             ),
                             Text(
@@ -302,6 +306,7 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
                                   : 'الوضع النهاري مفعل',
                               style: context.bodySmall?.copyWith(
                                 color: context.textSecondaryColor,
+                                fontSize: context.bodySmall?.fontSize?.sp,
                               ),
                             ),
                           ],
@@ -375,11 +380,11 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
     return GestureDetector(
       onTap: () => _showPermissionsBottomSheet(),
       child: Container(
-        margin: const EdgeInsets.symmetric(
-          horizontal: ThemeConstants.space4,
-          vertical: ThemeConstants.space2,
+        margin: EdgeInsets.symmetric(
+          horizontal: 16.w,
+          vertical: 8.h,
         ),
-        padding: const EdgeInsets.all(ThemeConstants.space4),
+        padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -389,12 +394,12 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+          borderRadius: BorderRadius.circular(20.r),
           boxShadow: [
             BoxShadow(
               color: _getStatusColor(percentage).withValues(alpha: 0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              blurRadius: 12.r,
+              offset: Offset(0, 4.h),
             ),
           ],
         ),
@@ -404,19 +409,19 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
               children: [
                 // الأيقونة
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(12.w),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(12.r),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.security,
                     color: Colors.white,
-                    size: 32,
+                    size: 32.sp,
                   ),
                 ),
                 
-                ThemeConstants.space3.w,
+                SizedBox(width: 12.w),
                 
                 // المعلومات
                 Expanded(
@@ -428,12 +433,14 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
                         style: context.titleMedium?.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
+                          fontSize: context.titleMedium?.fontSize?.sp,
                         ),
                       ),
                       Text(
                         '$granted من $total أذونات مفعلة',
                         style: context.bodySmall?.copyWith(
                           color: Colors.white.withValues(alpha: 0.9),
+                          fontSize: context.bodySmall?.fontSize?.sp,
                         ),
                       ),
                     ],
@@ -442,35 +449,35 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
                 
                 // أيقونة السهم
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(8.w),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(20.r),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.arrow_forward_ios,
                     color: Colors.white,
-                    size: 16,
+                    size: 16.sp,
                   ),
                 ),
               ],
             ),
             
             // إحصائيات سريعة
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildQuickStat('مفعلة', granted, Colors.white),
                 Container(
-                  width: 1,
-                  height: 30,
+                  width: 1.w,
+                  height: 30.h,
                   color: Colors.white.withValues(alpha: 0.3),
                 ),
                 _buildQuickStat('معطلة', denied, Colors.white.withValues(alpha: 0.9)),
                 Container(
-                  width: 1,
-                  height: 30,
+                  width: 1.w,
+                  height: 30.h,
                   color: Colors.white.withValues(alpha: 0.3),
                 ),
                 _buildQuickStat('الكل', total, Colors.white),
@@ -478,12 +485,12 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
             ),
             
             // نص توضيحي
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(20.r),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -491,14 +498,14 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
                   Icon(
                     Icons.touch_app,
                     color: Colors.white,
-                    size: 14,
+                    size: 14.sp,
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4.w),
                   Text(
                     'اضغط لإدارة الأذونات',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 11,
+                      fontSize: 11.sp,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -517,7 +524,7 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
         Text(
           value.toString(),
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 20.sp,
             fontWeight: FontWeight.bold,
             color: color,
           ),
@@ -525,7 +532,7 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 12.sp,
             color: color.withValues(alpha: 0.8),
           ),
         ),
@@ -546,57 +553,57 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
         builder: (context, scrollController) => Container(
           decoration: BoxDecoration(
             color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24.r),
+              topRight: Radius.circular(24.r),
             ),
           ),
           child: Column(
             children: [
               // مقبض السحب
               Container(
-                margin: const EdgeInsets.only(top: 12),
-                width: 40,
-                height: 4,
+                margin: EdgeInsets.only(top: 12.h),
+                width: 40.w,
+                height: 4.h,
                 decoration: BoxDecoration(
                   color: Colors.grey[400],
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(2.r),
                 ),
               ),
               
               // العنوان
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(20.w),
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: EdgeInsets.all(10.w),
                       decoration: BoxDecoration(
                         color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(12.r),
                       ),
                       child: Icon(
                         Icons.admin_panel_settings,
                         color: Theme.of(context).primaryColor,
-                        size: 24,
+                        size: 24.sp,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12.w),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'إدارة الأذونات',
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 18.sp,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           Text(
                             'تحكم في أذونات التطبيق',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 12.sp,
                               color: Colors.grey[600],
                             ),
                           ),
@@ -606,81 +613,82 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
                     IconButton(
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(Icons.close),
+                      iconSize: 24.sp,
                     ),
                   ],
                 ),
               ),
               
-              const Divider(height: 1),
+              Divider(height: 1.h),
               
               // قائمة الأذونات
               Expanded(
                 child: ListView(
                   controller: scrollController,
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16.w),
                   children: [
                     // عرض الأذونات
                     ..._criticalPermissions
                         .where((p) => _permissionStatuses.containsKey(p))
                         .map((permission) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                          padding: EdgeInsets.only(bottom: 12.h),
                           child: _buildPermissionCard(permission),
                         )),
                     
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20.h),
                     
                     // زر إعدادات النظام
                     Container(
                       decoration: BoxDecoration(
                         border: Border.all(
                           color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
-                          width: 1,
+                          width: 1.w,
                         ),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(16.r),
                       ),
                       child: Material(
                         color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(16.r),
                         child: InkWell(
                           onTap: () {
                             Navigator.pop(context);
                             _permissionService.openAppSettings();
                           },
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(16.r),
                           child: Padding(
-                            padding: const EdgeInsets.all(16),
+                            padding: EdgeInsets.all(16.w),
                             child: Row(
                               children: [
                                 Container(
-                                  width: 44,
-                                  height: 44,
+                                  width: 44.w,
+                                  height: 44.h,
                                   decoration: BoxDecoration(
                                     color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(12.r),
                                   ),
                                   child: Icon(
                                     Icons.phonelink_setup,
                                     color: Theme.of(context).primaryColor,
-                                    size: 22,
+                                    size: 22.sp,
                                   ),
                                 ),
-                                const SizedBox(width: 12),
+                                SizedBox(width: 12.w),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const Text(
+                                      Text(
                                         'إعدادات النظام',
                                         style: TextStyle(
-                                          fontSize: 16,
+                                          fontSize: 16.sp,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
-                                      const SizedBox(height: 2),
+                                      SizedBox(height: 2.h),
                                       Text(
                                         'فتح إعدادات التطبيق في النظام',
                                         style: TextStyle(
-                                          fontSize: 13,
+                                          fontSize: 13.sp,
                                           color: Theme.of(context).textTheme.bodySmall?.color,
                                         ),
                                       ),
@@ -689,7 +697,7 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
                                 ),
                                 Icon(
                                   Icons.open_in_new,
-                                  size: 18,
+                                  size: 18.sp,
                                   color: Theme.of(context).textTheme.bodySmall?.color,
                                 ),
                               ],
@@ -719,16 +727,16 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
           color: isGranted 
               ? ThemeConstants.success.withValues(alpha: 0.3)
               : Theme.of(context).dividerColor.withValues(alpha: 0.2),
-          width: 1,
+          width: 1.w,
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -736,23 +744,23 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
               children: [
                 // أيقونة الإذن
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: 44.w,
+                  height: 44.h,
                   decoration: BoxDecoration(
                     color: isGranted
                         ? ThemeConstants.success.withValues(alpha: 0.1)
                         : Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: Icon(
                     _getPermissionIcon(permission),
                     color: isGranted
                         ? ThemeConstants.success
                         : Theme.of(context).primaryColor,
-                    size: 22,
+                    size: 22.sp,
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12.w),
                 
                 // معلومات الإذن
                 Expanded(
@@ -761,16 +769,16 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
                     children: [
                       Text(
                         _getPermissionTitle(permission),
-                        style: const TextStyle(
-                          fontSize: 16,
+                        style: TextStyle(
+                          fontSize: 16.sp,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: 2.h),
                       Text(
                         _getPermissionDescription(permission),
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 13.sp,
                           color: Theme.of(context).textTheme.bodySmall?.color,
                         ),
                       ),
@@ -780,28 +788,28 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
                 
                 // حالة الإذن
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
                   decoration: BoxDecoration(
                     color: isGranted
                         ? ThemeConstants.success.withValues(alpha: 0.1)
                         : ThemeConstants.warning.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(20.r),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         isGranted ? Icons.check_circle : Icons.warning,
-                        size: 14,
+                        size: 14.sp,
                         color: isGranted
                             ? ThemeConstants.success
                             : ThemeConstants.warning,
                       ),
-                      const SizedBox(width: 4),
+                      SizedBox(width: 4.w),
                       Text(
                         isGranted ? 'مفعل' : 'معطل',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 12.sp,
                           fontWeight: FontWeight.bold,
                           color: isGranted
                               ? ThemeConstants.success
@@ -816,7 +824,7 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
             
             // زر التفعيل إذا كان الإذن معطل
             if (!isGranted) ...[
-              const SizedBox(height: 12),
+              SizedBox(height: 12.h),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -827,15 +835,15 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).primaryColor,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    padding: EdgeInsets.symmetric(vertical: 10.h),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12.r),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'تفعيل الإذن',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 14.sp,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -914,44 +922,47 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+          borderRadius: BorderRadius.circular(20.r),
         ),
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: EdgeInsets.all(8.w),
               decoration: BoxDecoration(
                 color: ThemeConstants.error.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(8.r),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.warning,
                 color: ThemeConstants.error,
-                size: 24,
+                size: 24.sp,
               ),
             ),
-            const SizedBox(width: 12),
-            const Text('إعادة تعيين الإعدادات'),
+            SizedBox(width: 12.w),
+            Text(
+              'إعادة تعيين الإعدادات',
+              style: TextStyle(fontSize: 18.sp),
+            ),
           ],
         ),
-        content: const Text(
+        content: Text(
           'هل أنت متأكد من إعادة جميع الإعدادات إلى الوضع الافتراضي؟\n\nسيتم مسح جميع التخصيصات والإعدادات المحفوظة.',
-          style: TextStyle(height: 1.5),
+          style: TextStyle(height: 1.5, fontSize: 14.sp),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('إلغاء'),
+            child: Text('إلغاء', style: TextStyle(fontSize: 14.sp)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: ThemeConstants.error,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                borderRadius: BorderRadius.circular(12.r),
               ),
             ),
-            child: const Text('إعادة تعيين'),
+            child: Text('إعادة تعيين', style: TextStyle(fontSize: 14.sp)),
           ),
         ],
       ),
@@ -1007,13 +1018,13 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+          borderRadius: BorderRadius.circular(20.r),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(20.w),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -1023,64 +1034,65 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
                 ),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.mosque,
-                size: 60,
+                size: 60.sp,
                 color: ThemeConstants.primary,
               ),
             ),
-            const SizedBox(height: 20),
-            const Text(
+            SizedBox(height: 20.h),
+            Text(
               'حصن المسلم',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 24.sp,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
               decoration: BoxDecoration(
                 color: ThemeConstants.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(20.r),
               ),
-              child: const Text(
+              child: Text(
                 'الإصدار 1.0.0',
                 style: TextStyle(
                   color: ThemeConstants.primary,
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            const Text(
+            SizedBox(height: 20.h),
+            Text(
               'تطبيق شامل للأذكار والأدعية\nيساعدك على المحافظة على أذكارك اليومية',
               textAlign: TextAlign.center,
-              style: TextStyle(height: 1.5),
+              style: TextStyle(height: 1.5, fontSize: 14.sp),
             ),
-            const SizedBox(height: 20),
-            const Divider(),
-            const SizedBox(height: 12),
+            SizedBox(height: 20.h),
+            Divider(height: 1.h),
+            SizedBox(height: 12.h),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.code, size: 16, color: Colors.grey[600]),
-                const SizedBox(width: 4),
+                Icon(Icons.code, size: 16.sp, color: Colors.grey[600]),
+                SizedBox(width: 4.w),
                 Text(
                   'تطوير وتصميم',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 12.sp,
                     color: Colors.grey[600],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 4),
-            const Text(
+            SizedBox(height: 4.h),
+            Text(
               'فريق التطوير',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
+                fontSize: 14.sp,
               ),
             ),
           ],
@@ -1088,7 +1100,7 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إغلاق'),
+            child: Text('إغلاق', style: TextStyle(fontSize: 14.sp)),
           ),
         ],
       ),
@@ -1110,15 +1122,15 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
       SnackBar(
         content: Row(
           children: [
-            Icon(icon, color: Colors.white, size: 20),
-            const SizedBox(width: 8),
-            Expanded(child: Text(message)),
+            Icon(icon, color: Colors.white, size: 20.sp),
+            SizedBox(width: 8.w),
+            Expanded(child: Text(message, style: TextStyle(fontSize: 14.sp))),
           ],
         ),
         backgroundColor: color,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(8.r),
         ),
       ),
     );

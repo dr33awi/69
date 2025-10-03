@@ -2,6 +2,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
 
 class QiblaAccuracyIndicator extends StatefulWidget {
@@ -69,12 +70,12 @@ class _QiblaAccuracyIndicatorState extends State<QiblaAccuracyIndicator>
   Widget build(BuildContext context) {
     return AppCard(
       padding: EdgeInsets.zero,
-      borderRadius: ThemeConstants.radiusLg,
+      borderRadius: 16.r,
       child: Column(
         children: [
           // رأس البطاقة
           Container(
-            padding: const EdgeInsets.all(ThemeConstants.space4),
+            padding: EdgeInsets.all(16.w),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -84,14 +85,14 @@ class _QiblaAccuracyIndicatorState extends State<QiblaAccuracyIndicator>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(ThemeConstants.radiusLg),
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(16.r),
               ),
             ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(ThemeConstants.space3),
+                  padding: EdgeInsets.all(12.w),
                   decoration: BoxDecoration(
                     color: _getAccuracyColor(widget.accuracy).withOpacity(0.1),
                     shape: BoxShape.circle,
@@ -99,10 +100,10 @@ class _QiblaAccuracyIndicatorState extends State<QiblaAccuracyIndicator>
                   child: Icon(
                     _getAccuracyIcon(widget.accuracy),
                     color: _getAccuracyColor(widget.accuracy),
-                    size: ThemeConstants.iconMd,
+                    size: 24.sp,
                   ),
                 ),
-                ThemeConstants.space3.w,
+                SizedBox(width: 12.w),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,17 +138,17 @@ class _QiblaAccuracyIndicatorState extends State<QiblaAccuracyIndicator>
           
           // مؤشر الدقة
           Padding(
-            padding: const EdgeInsets.all(ThemeConstants.space4),
+            padding: EdgeInsets.all(16.w),
             child: Column(
               children: [
                 // شريط التقدم
                 SizedBox(
-                  height: 120,
+                  height: 120.h,
                   child: AnimatedBuilder(
                     animation: _progressAnimation,
                     builder: (context, child) {
                       return CustomPaint(
-                        size: const Size(double.infinity, 120),
+                        size: Size(double.infinity, 120.h),
                         painter: AccuracyGaugePainter(
                           progress: _progressAnimation.value / 100, // Pass as 0-1
                           color: _getAccuracyColor(_progressAnimation.value),
@@ -178,14 +179,14 @@ class _QiblaAccuracyIndicatorState extends State<QiblaAccuracyIndicator>
                   ),
                 ),
                 
-                ThemeConstants.space4.h,
+                SizedBox(height: 16.h),
                 
                 // معلومات إضافية
                 Container(
-                  padding: const EdgeInsets.all(ThemeConstants.space3),
+                  padding: EdgeInsets.all(12.w),
                   decoration: BoxDecoration(
                     color: context.surfaceColor,
-                    borderRadius: ThemeConstants.radiusMd.circular,
+                    borderRadius: BorderRadius.circular(12.r),
                     border: Border.all(
                       color: context.dividerColor.withOpacity(0.2),
                     ),
@@ -198,9 +199,9 @@ class _QiblaAccuracyIndicatorState extends State<QiblaAccuracyIndicator>
                         widget.isCalibrated ? 'مكتملة' : 'مطلوبة',
                         widget.isCalibrated ? ThemeConstants.success : ThemeConstants.warning,
                       ),
-                      ThemeConstants.space2.h,
+                      SizedBox(height: 8.h),
                       Divider(color: context.dividerColor.withOpacity(0.2)),
-                      ThemeConstants.space2.h,
+                      SizedBox(height: 8.h),
                       _buildStatusRow(
                         context,
                         'التداخل المغناطيسي',
@@ -211,15 +212,15 @@ class _QiblaAccuracyIndicatorState extends State<QiblaAccuracyIndicator>
                   ),
                 ),
                 
-                ThemeConstants.space3.h,
+                SizedBox(height: 12.h),
                 
                 // نصائح لتحسين الدقة
                 if (widget.accuracy < 70) // Show tips if accuracy is not good
                   Container(
-                    padding: const EdgeInsets.all(ThemeConstants.space3),
+                    padding: EdgeInsets.all(12.w),
                     decoration: BoxDecoration(
                       color: ThemeConstants.info.withOpacity(0.1),
-                      borderRadius: ThemeConstants.radiusMd.circular,
+                      borderRadius: BorderRadius.circular(12.r),
                       border: Border.all(
                         color: ThemeConstants.info.withOpacity(0.3),
                       ),
@@ -227,12 +228,12 @@ class _QiblaAccuracyIndicatorState extends State<QiblaAccuracyIndicator>
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.lightbulb_outline,
                           color: ThemeConstants.info,
-                          size: ThemeConstants.iconSm,
+                          size: 20.sp,
                         ),
-                        ThemeConstants.space2.w,
+                        SizedBox(width: 8.w),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,9 +245,9 @@ class _QiblaAccuracyIndicatorState extends State<QiblaAccuracyIndicator>
                                   color: ThemeConstants.info,
                                 ),
                               ),
-                              ThemeConstants.space1.h,
+                              SizedBox(height: 4.h),
                               ..._getTips(widget.accuracy).map((tip) => Padding(
-                                padding: const EdgeInsets.only(top: 4),
+                                padding: EdgeInsets.only(top: 4.h),
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -292,13 +293,13 @@ class _QiblaAccuracyIndicatorState extends State<QiblaAccuracyIndicator>
           ),
         ),
         Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: ThemeConstants.space2,
-            vertical: ThemeConstants.space1,
+          padding: EdgeInsets.symmetric(
+            horizontal: 8.w,
+            vertical: 4.h,
           ),
           decoration: BoxDecoration(
             color: color.withOpacity(0.1),
-            borderRadius: ThemeConstants.radiusSm.circular,
+            borderRadius: BorderRadius.circular(8.r),
           ),
           child: Text(
             value,
@@ -375,14 +376,14 @@ class AccuracyGaugePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height - 20); // Adjust center for gauge style
-    final radius = math.min(size.width / 2, size.height - 40); // Adjust radius
+    final center = Offset(size.width / 2, size.height - 20.h); // Adjust center for gauge style
+    final radius = math.min(size.width / 2, size.height - 40.h); // Adjust radius
 
     // Background arc
     final backgroundPaint = Paint()
       ..color = backgroundColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 20
+      ..strokeWidth = 20.w
       ..strokeCap = StrokeCap.round;
     
     canvas.drawArc(
@@ -397,7 +398,7 @@ class AccuracyGaugePainter extends CustomPainter {
     final progressPaint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 20
+      ..strokeWidth = 20.w
       ..strokeCap = StrokeCap.round;
     
     canvas.drawArc(
@@ -417,15 +418,15 @@ class AccuracyGaugePainter extends CustomPainter {
       ..color = color
       ..style = PaintingStyle.fill;
     
-    canvas.drawCircle(Offset(indicatorX, indicatorY), 10, indicatorPaint);
+    canvas.drawCircle(Offset(indicatorX, indicatorY), 10.w, indicatorPaint);
     
     // White border for indicator
     final borderPaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
+      ..strokeWidth = 3.w;
     
-    canvas.drawCircle(Offset(indicatorX, indicatorY), 10, borderPaint);
+    canvas.drawCircle(Offset(indicatorX, indicatorY), 10.w, borderPaint);
   }
 
   @override

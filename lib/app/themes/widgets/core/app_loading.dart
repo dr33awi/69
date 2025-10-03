@@ -1,5 +1,6 @@
 // lib/app/themes/widgets/core/app_loading.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../theme_constants.dart';
 import '../../text_styles.dart';
 
@@ -71,13 +72,14 @@ class AppLoading extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           loadingIndicator,
-          const SizedBox(height: ThemeConstants.space4),
+          SizedBox(height: 16.h),
           Text(
             message!,
             style: AppTextStyles.body2.copyWith(
               color: showBackground 
                   ? effectiveColor 
                   : theme.textTheme.bodyMedium?.color,
+              fontSize: 14.sp,
             ),
             textAlign: TextAlign.center,
           ),
@@ -88,10 +90,10 @@ class AppLoading extends StatelessWidget {
     // إضافة خلفية إذا طُلبت
     if (showBackground) {
       return Container(
-        padding: const EdgeInsets.all(ThemeConstants.space6),
+        padding: EdgeInsets.all(24.w),
         decoration: BoxDecoration(
           color: theme.cardTheme.color,
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusLg),
+          borderRadius: BorderRadius.circular(16.r),
           boxShadow: ThemeConstants.shadowLg,
         ),
         child: loadingIndicator,
@@ -149,44 +151,44 @@ class AppLoading extends StatelessWidget {
   double _getSize() {
     switch (size) {
       case LoadingSize.small:
-        return 24;
+        return 24.w;
       case LoadingSize.medium:
-        return 36;
+        return 36.w;
       case LoadingSize.large:
-        return 48;
+        return 48.w;
     }
   }
 
   double _getStrokeWidth() {
     switch (size) {
       case LoadingSize.small:
-        return 2;
+        return 2.w;
       case LoadingSize.medium:
-        return 3;
+        return 3.w;
       case LoadingSize.large:
-        return 4;
+        return 4.w;
     }
   }
 
   double _getLinearWidth() {
     switch (size) {
       case LoadingSize.small:
-        return 100;
+        return 100.w;
       case LoadingSize.medium:
-        return 150;
+        return 150.w;
       case LoadingSize.large:
-        return 200;
+        return 200.w;
     }
   }
 
   double _getLinearHeight() {
     switch (size) {
       case LoadingSize.small:
-        return 2;
+        return 2.h;
       case LoadingSize.medium:
-        return 4;
+        return 4.h;
       case LoadingSize.large:
-        return 6;
+        return 6.h;
     }
   }
 
@@ -280,9 +282,9 @@ class _DotsLoadingIndicatorState extends State<DotsLoadingIndicator>
 
   @override
   Widget build(BuildContext context) {
-    final dotSize = widget.size == LoadingSize.small ? 8.0
-        : widget.size == LoadingSize.medium ? 10.0
-        : 12.0;
+    final dotSize = widget.size == LoadingSize.small ? 8.w
+        : widget.size == LoadingSize.medium ? 10.w
+        : 12.w;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -291,7 +293,7 @@ class _DotsLoadingIndicatorState extends State<DotsLoadingIndicator>
           animation: _animations[index],
           builder: (context, child) {
             return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 2),
+              margin: EdgeInsets.symmetric(horizontal: 2.w),
               width: dotSize,
               height: dotSize,
               decoration: BoxDecoration(

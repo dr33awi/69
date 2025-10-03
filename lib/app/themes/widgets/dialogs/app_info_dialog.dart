@@ -1,6 +1,8 @@
+// ========== app_info_dialog.dart ==========
 // lib/app/themes/widgets/dialogs/app_info_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../theme_constants.dart';
 import '../../text_styles.dart';
 
@@ -65,33 +67,33 @@ class AppInfoDialog extends StatelessWidget {
   }
 
   /// عرض حوار تأكيد
-static Future<bool?> showConfirmation({
-  required BuildContext context,
-  required String title,
-  required String content,
-  String confirmText = 'تأكيد',
-  String cancelText = 'إلغاء',
-  IconData icon = Icons.help_outline,
-  Color? accentColor,
-  bool destructive = false,
-  Color? confirmButtonColor, // جعلها اختيارية عن طريق إضافة علامة ?
-}) {
-  return show<bool>(
-    context: context,
-    title: title,
-    content: content,
-    icon: icon,
-    accentColor: destructive ? ThemeConstants.error : accentColor,
-    closeButtonText: cancelText,
-    actions: [
-      DialogAction(
-        label: confirmText,
-        onPressed: () => Navigator.of(context).pop(true),
-        isPrimary: true,
-      ),
-    ],
-  );
-}
+  static Future<bool?> showConfirmation({
+    required BuildContext context,
+    required String title,
+    required String content,
+    String confirmText = 'تأكيد',
+    String cancelText = 'إلغاء',
+    IconData icon = Icons.help_outline,
+    Color? accentColor,
+    bool destructive = false,
+    Color? confirmButtonColor,
+  }) {
+    return show<bool>(
+      context: context,
+      title: title,
+      content: content,
+      icon: icon,
+      accentColor: destructive ? ThemeConstants.error : accentColor,
+      closeButtonText: cancelText,
+      actions: [
+        DialogAction(
+          label: confirmText,
+          onPressed: () => Navigator.of(context).pop(true),
+          isPrimary: true,
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,24 +103,24 @@ static Future<bool?> showConfirmation({
     return AlertDialog(
       title: Row(
         children: [
-          Icon(icon, color: color, size: ThemeConstants.iconMd),
-          const SizedBox(width: ThemeConstants.space3),
+          Icon(icon, color: color, size: 24.sp),
+          SizedBox(width: 12.w),
           Expanded(
             child: Text(
               title,
-              style: AppTextStyles.h5,
+              style: AppTextStyles.h5.copyWith(fontSize: 18.sp),
             ),
           ),
         ],
       ),
       content: customContent ?? _buildDefaultContent(context, color),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusLg),
+        borderRadius: BorderRadius.circular(16.r),
       ),
-      actionsPadding: const EdgeInsets.only(
-        left: ThemeConstants.space4,
-        right: ThemeConstants.space4,
-        bottom: ThemeConstants.space3,
+      actionsPadding: EdgeInsets.only(
+        left: 16.w,
+        right: 16.w,
+        bottom: 12.h,
       ),
       actions: _buildActions(context, color),
     );
@@ -136,21 +138,22 @@ static Future<bool?> showConfirmation({
             content!,
             style: AppTextStyles.body1.copyWith(
               height: 1.6,
+              fontSize: 14.sp,
             ),
           ),
         if (subtitle != null) ...[
-          const SizedBox(height: ThemeConstants.space3),
+          SizedBox(height: 12.h),
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: ThemeConstants.space3,
-              vertical: ThemeConstants.space2,
+            padding: EdgeInsets.symmetric(
+              horizontal: 12.w,
+              vertical: 8.h,
             ),
             decoration: BoxDecoration(
               color: color.withValues(alpha: ThemeConstants.opacity10),
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(12.r),
               border: Border.all(
                 color: color.withValues(alpha: ThemeConstants.opacity20),
-                width: ThemeConstants.borderThin,
+                width: 1.w,
               ),
             ),
             child: Text(
@@ -158,6 +161,7 @@ static Future<bool?> showConfirmation({
               style: AppTextStyles.body2.copyWith(
                 color: color,
                 fontWeight: ThemeConstants.medium,
+                fontSize: 13.sp,
               ),
             ),
           ),
@@ -172,7 +176,7 @@ static Future<bool?> showConfirmation({
         onPressed: () => Navigator.of(context).pop(),
         child: Text(
           closeButtonText,
-          style: TextStyle(color: color),
+          style: TextStyle(color: color, fontSize: 14.sp),
         ),
       ),
     ];
@@ -188,10 +192,10 @@ static Future<bool?> showConfirmation({
           style: ElevatedButton.styleFrom(
             backgroundColor: color,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(12.r),
             ),
           ),
-          child: Text(action.label),
+          child: Text(action.label, style: TextStyle(fontSize: 14.sp)),
         );
       }
       
@@ -201,6 +205,7 @@ static Future<bool?> showConfirmation({
           action.label,
           style: TextStyle(
             color: action.isDestructive ? ThemeConstants.error : color,
+            fontSize: 14.sp,
           ),
         ),
       );

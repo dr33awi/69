@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../services/prayer_times_service.dart';
@@ -113,8 +114,8 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
                         ),
                         
                         // مساحة في الأسفل
-                        const SliverToBoxAdapter(
-                          child: SizedBox(height: ThemeConstants.space8),
+                        SliverToBoxAdapter(
+                          child: SizedBox(height: 24.h),
                         ),
                       ],
                     ),
@@ -134,7 +135,7 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
     );
     
     return Container(
-      padding: const EdgeInsets.all(ThemeConstants.space4),
+      padding: EdgeInsets.all(16.w),
       child: Row(
         children: [
           // زر الرجوع
@@ -148,14 +149,14 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
             },
           ),
           
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
           
           // الأيقونة الجانبية مع نفس التدرج المستخدم في CategoryGrid
           Container(
-            padding: const EdgeInsets.all(ThemeConstants.space2),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               gradient: gradient,
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(12.r),
               boxShadow: [
                 BoxShadow(
                   color: ThemeConstants.primary.withValues(alpha: 0.3),
@@ -164,14 +165,14 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
                 ),
               ],
             ),
-            child: const Icon(
+            child: Icon(
               Icons.settings,
               color: Colors.white,
-              size: ThemeConstants.iconMd,
+              size: 24.sp,
             ),
           ),
           
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
           
           // العنوان والوصف
           Expanded(
@@ -183,12 +184,14 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
                   style: context.titleLarge?.copyWith(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
+                    fontSize: context.titleLarge?.fontSize?.sp,
                   ),
                 ),
                 Text(
                   'تخصيص طريقة حساب أوقات الصلاة',
                   style: context.bodySmall?.copyWith(
                     color: context.textSecondaryColor,
+                    fontSize: context.bodySmall?.fontSize?.sp,
                   ),
                 ),
               ],
@@ -198,21 +201,21 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
           // زر الحفظ
           if (_hasChanges && !_isSaving)
             Container(
-              margin: const EdgeInsets.only(left: ThemeConstants.space2),
+              margin: EdgeInsets.only(left: 8.w),
               child: Material(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                borderRadius: BorderRadius.circular(12.r),
                 child: InkWell(
                   onTap: () {
                     HapticFeedback.lightImpact();
                     _saveSettings();
                   },
-                  borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                  borderRadius: BorderRadius.circular(12.r),
                   child: Container(
-                    padding: const EdgeInsets.all(ThemeConstants.space2),
+                    padding: EdgeInsets.all(8.w),
                     decoration: BoxDecoration(
                       color: context.cardColor,
-                      borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                      borderRadius: BorderRadius.circular(12.r),
                       border: Border.all(
                         color: context.dividerColor.withValues(alpha: 0.3),
                       ),
@@ -224,10 +227,10 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
                         ),
                       ],
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.save,
                       color: ThemeConstants.primary,
-                      size: ThemeConstants.iconMd,
+                      size: 24.sp,
                     ),
                   ),
                 ),
@@ -383,7 +386,7 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
             },
           ),
           SizedBox(
-            width: 50,
+            width: 50.w,
             child: Text(
               adjustment > 0 ? '+$adjustment' : adjustment.toString(),
               textAlign: TextAlign.center,
@@ -418,7 +421,7 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
 
   Widget _buildSaveButton() {
     return Padding(
-      padding: const EdgeInsets.all(ThemeConstants.space4),
+      padding: EdgeInsets.all(16.w),
       child: AppButton.primary(
         text: 'حفظ الإعدادات',
         onPressed: _isSaving || !_hasChanges ? null : _saveSettings,
@@ -454,36 +457,39 @@ class SettingsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.all(ThemeConstants.space4),
+          padding: EdgeInsets.all(16.w),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(ThemeConstants.space2),
+                padding: EdgeInsets.all(8.w),
                 decoration: BoxDecoration(
                   color: ThemeConstants.success.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Icon(
                   icon,
                   color: ThemeConstants.success,
-                  size: ThemeConstants.iconMd,
+                  size: 24.sp,
                 ),
               ),
-              ThemeConstants.space3.w,
+              SizedBox(width: 12.w),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: context.titleMedium?.semiBold,
+                      style: context.titleMedium?.semiBold.copyWith(
+                        fontSize: context.titleMedium?.fontSize?.sp,
+                      ),
                     ),
                     if (subtitle != null) ...[
-                      ThemeConstants.space1.h,
+                      SizedBox(height: 4.h),
                       Text(
                         subtitle!,
                         style: context.bodySmall?.copyWith(
                           color: context.textSecondaryColor,
+                          fontSize: context.bodySmall?.fontSize?.sp,
                         ),
                       ),
                     ],
@@ -495,9 +501,9 @@ class SettingsSection extends StatelessWidget {
         ),
         
         Card(
-          margin: const EdgeInsets.symmetric(
-            horizontal: ThemeConstants.space4,
-            vertical: ThemeConstants.space2,
+          margin: EdgeInsets.symmetric(
+            horizontal: 16.w,
+            vertical: 8.h,
           ),
           color: context.cardColor,
           child: Column(children: children),
@@ -534,16 +540,18 @@ class CalculationMethodDialog extends StatelessWidget {
     
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusLg),
+        borderRadius: BorderRadius.circular(20.r),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: const EdgeInsets.all(ThemeConstants.space4),
+            padding: EdgeInsets.all(16.w),
             child: Text(
               'اختر طريقة الحساب',
-              style: context.titleLarge?.semiBold,
+              style: context.titleLarge?.semiBold.copyWith(
+                fontSize: context.titleLarge?.fontSize?.sp,
+              ),
             ),
           ),
           
@@ -559,6 +567,7 @@ class CalculationMethodDialog extends StatelessWidget {
                       method.$3,
                       style: context.bodySmall?.copyWith(
                         color: context.textSecondaryColor,
+                        fontSize: context.bodySmall?.fontSize?.sp,
                       ),
                     ),
                     value: method.$1,
@@ -578,7 +587,7 @@ class CalculationMethodDialog extends StatelessWidget {
           const Divider(),
           
           Padding(
-            padding: const EdgeInsets.all(ThemeConstants.space3),
+            padding: EdgeInsets.all(12.w),
             child: TextButton(
               onPressed: () => Navigator.pop(context),
               style: TextButton.styleFrom(

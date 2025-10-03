@@ -1,6 +1,7 @@
 // lib/features/prayer_times/screens/prayer_time_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:async';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
@@ -129,6 +130,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         setState(() {
           _isRetryingLocation = false;
         });
+        
         context.showSuccessSnackBar('تم تحديد الموقع وتحميل المواقيت بنجاح');
       }
     } catch (e) {
@@ -258,20 +260,20 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     );
     
     return Container(
-      padding: const EdgeInsets.all(ThemeConstants.space4),
+      padding: EdgeInsets.all(16.w),
       child: Row(
         children: [
           AppBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
           
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
           
           Container(
-            padding: const EdgeInsets.all(ThemeConstants.space2),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               gradient: gradient,
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(12.r),
               boxShadow: [
                 BoxShadow(
                   color: ThemeConstants.primary.withValues(alpha: 0.3),
@@ -280,14 +282,14 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                 ),
               ],
             ),
-            child: const Icon(
+            child: Icon(
               Icons.schedule_rounded,
               color: Colors.white,
-              size: ThemeConstants.iconMd,
+              size: 24.sp,
             ),
           ),
           
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
           
           Expanded(
             child: Column(
@@ -298,6 +300,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                   style: context.titleLarge?.copyWith(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
+                    fontSize: context.titleLarge?.fontSize?.sp,
                   ),
                 ),
                 Text(
@@ -306,6 +309,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                       : 'وَأَقِمِ الصَّلَاةَ لِذِكْرِي',
                   style: context.bodySmall?.copyWith(
                     color: context.textSecondaryColor,
+                    fontSize: context.bodySmall?.fontSize?.sp,
                   ),
                 ),
               ],
@@ -348,18 +352,18 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     bool isSecondary = false,
   }) {
     return Container(
-      margin: const EdgeInsets.only(left: ThemeConstants.space2),
+      margin: EdgeInsets.only(left: 8.w),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+        borderRadius: BorderRadius.circular(12.r),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+          borderRadius: BorderRadius.circular(12.r),
           child: Container(
-            padding: const EdgeInsets.all(ThemeConstants.space2),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               color: context.cardColor,
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(12.r),
               border: Border.all(
                 color: context.dividerColor.withValues(alpha: 0.3),
               ),
@@ -372,10 +376,10 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
               ],
             ),
             child: isLoading
-                ? const SizedBox(
-                    width: ThemeConstants.iconMd,
-                    height: ThemeConstants.iconMd,
-                    child: CircularProgressIndicator(
+                ? SizedBox(
+                    width: 24.sp,
+                    height: 24.sp,
+                    child: const CircularProgressIndicator(
                       strokeWidth: 2,
                       valueColor: AlwaysStoppedAnimation<Color>(ThemeConstants.primary),
                     ),
@@ -383,7 +387,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                 : Icon(
                     icon,
                     color: isSecondary ? context.textSecondaryColor : ThemeConstants.primary,
-                    size: ThemeConstants.iconMd,
+                    size: 24.sp,
                   ),
           ),
         ),
@@ -404,7 +408,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       if (_nextPrayer != null)
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.all(ThemeConstants.space4),
+            padding: EdgeInsets.all(16.w),
             child: NextPrayerCountdown(
               nextPrayer: _nextPrayer!,
               currentPrayer: _dailyTimes!.currentPrayer,
@@ -413,7 +417,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         ),
       
       SliverPadding(
-        padding: const EdgeInsets.all(ThemeConstants.space4),
+        padding: EdgeInsets.all(16.w),
         sliver: SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) {
@@ -424,7 +428,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
               }
               
               return Padding(
-                padding: const EdgeInsets.only(bottom: ThemeConstants.space3),
+                padding: EdgeInsets.only(bottom: 12.h),
                 child: PrayerTimeCard(
                   prayer: prayer,
                   forceColored: true,
@@ -436,8 +440,8 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         ),
       ),
       
-      const SliverToBoxAdapter(
-        child: SizedBox(height: ThemeConstants.space8),
+      SliverToBoxAdapter(
+        child: SizedBox(height: 24.h),
       ),
     ];
   }

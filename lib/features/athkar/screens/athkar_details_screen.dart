@@ -1,7 +1,8 @@
-// lib/features/athkar/screens/athkar_details_screen.dart (مُحدث بدون شريط التقدم)
+// lib/features/athkar/screens/athkar_details_screen.dart - محدث مع flutter_screenutil
 import 'package:athkar_app/features/athkar/utils/athkar_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
@@ -12,7 +13,6 @@ import '../models/athkar_model.dart';
 import '../widgets/athkar_item_card.dart';
 import '../utils/category_utils.dart';
 import 'notification_settings_screen.dart';
-
 
 class AthkarDetailsScreen extends StatefulWidget {
   final String categoryId;
@@ -37,7 +37,7 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
   bool _loading = true;
   bool _allCompleted = false;
   bool _wasCompletedOnLoad = false;
-  double _fontSize = 18.0; // حجم الخط
+  double _fontSize = 18.0;
 
   @override
   void initState() {
@@ -49,7 +49,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
 
   @override
   void dispose() {
-    // Auto-reset if category was completed and user is navigating back
     if (_allCompleted && !_wasCompletedOnLoad) {
       _resetAllSilently();
     }
@@ -61,13 +60,9 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
       final cat = await _service.getCategoryById(widget.categoryId);
       if (!mounted) return;
       
-      // تحميل التقدم المحفوظ
       final savedProgress = _loadSavedProgress();
-      
-      // تحميل حجم الخط المحفوظ
       _fontSize = await _service.getSavedFontSize();
       
-      // Check if category was already completed when loading
       bool wasAlreadyCompleted = false;
       if (cat != null) {
         int totalRequired = 0;
@@ -87,7 +82,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
         _wasCompletedOnLoad = wasAlreadyCompleted;
         
         if (cat != null) {
-          // تهيئة العدادات
           for (var i = 0; i < cat.athkar.length; i++) {
             final item = cat.athkar[i];
             _counts[item.id] = savedProgress[item.id] ?? 0;
@@ -105,8 +99,8 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
       if (!mounted) return;
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('حدث خطأ في تحميل الأذكار'),
+        SnackBar(
+          content: const Text('حدث خطأ في تحميل الأذكار'),
           backgroundColor: ThemeConstants.error,
         ),
       );
@@ -116,7 +110,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
   void _updateVisibleItems() {
     if (_category == null) return;
     
-    // عرض فقط الأذكار غير المكتملة
     _visibleItems = _category!.athkar
         .where((item) => !_completedItems.contains(item.id))
         .toList();
@@ -161,11 +154,10 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
       if (currentCount < item.count) {
         _counts[item.id] = currentCount + 1;
         
-        // إضافة للمكتملة إذا وصلت للعدد المطلوب
         if (_counts[item.id]! >= item.count) {
           _completedItems.add(item.id);
           HapticFeedback.mediumImpact();
-          _updateVisibleItems(); // إخفاء الذكر المكتمل
+          _updateVisibleItems();
         }
       }
       _checkCompletion();
@@ -177,7 +169,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
   void _onItemLongPress(AthkarItem item) {
     HapticFeedback.mediumImpact();
     
-    // إعادة تعيين العداد
     setState(() {
       _counts[item.id] = 0;
       _completedItems.remove(item.id);
@@ -190,7 +181,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
   }
 
   Future<void> _shareProgress() async {
-    // مشاركة التقدم
     final text = '''
 ✨ أكملت ${_category!.title} ✨
 ${_category!.athkar.map((item) => '✓ ${item.text.truncate(50)}').join('\n')}
@@ -212,7 +202,6 @@ ${_category!.athkar.map((item) => '✓ ${item.text.truncate(50)}').join('\n')}
     _saveProgress();
   }
 
-  // Silent reset method that doesn't update UI
   Future<void> _resetAllSilently() async {
     _counts.clear();
     _completedItems.clear();
@@ -233,22 +222,21 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
     await Share.share(text);
   }
 
-  // إظهار حوار حجم الخط
   void _showFontSizeDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusLg),
+          borderRadius: BorderRadius.circular(16.r),
         ),
         title: Row(
           children: [
-            const Icon(
+            Icon(
               Icons.text_fields_rounded,
               color: ThemeConstants.primary,
-              size: 24,
+              size: 24.sp,
             ),
-            ThemeConstants.space2.w,
+            SizedBox(width: 8.w),
             const Text('حجم الخط'),
           ],
         ),
@@ -265,37 +253,36 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
     );
   }
 
-  // بناء خيار حجم الخط
   Widget _buildFontSizeOption(String label, double size) {
     final isSelected = _fontSize == size;
     
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: EdgeInsets.only(bottom: 8.h),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         child: InkWell(
           onTap: () async {
             HapticFeedback.lightImpact();
             setState(() => _fontSize = size);
             
-            // حفظ حجم الخط المختار
             await _service.saveFontSize(size);
             
             Navigator.pop(context);
           },
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16.w),
             decoration: BoxDecoration(
               color: isSelected 
                   ? ThemeConstants.primary.withValues(alpha: 0.1)
                   : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(12.r),
               border: Border.all(
                 color: isSelected 
                     ? ThemeConstants.primary.withValues(alpha: 0.3)
                     : context.dividerColor.withValues(alpha: 0.2),
+                width: 1.w,
               ),
             ),
             child: Row(
@@ -303,13 +290,14 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
                 Icon(
                   isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
                   color: isSelected ? ThemeConstants.primary : context.textSecondaryColor,
+                  size: 20.sp,
                 ),
-                ThemeConstants.space3.w,
+                SizedBox(width: 12.w),
                 Expanded(
                   child: Text(
                     label,
                     style: context.bodyLarge?.copyWith(
-                      fontSize: size,
+                      fontSize: size.sp,
                       fontWeight: isSelected ? ThemeConstants.semiBold : ThemeConstants.regular,
                       color: isSelected ? ThemeConstants.primary : context.textPrimaryColor,
                     ),
@@ -319,6 +307,7 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
                   '${size.toInt()}px',
                   style: context.labelSmall?.copyWith(
                     color: context.textSecondaryColor,
+                    fontSize: 11.sp,
                   ),
                 ),
               ],
@@ -337,10 +326,7 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
         body: SafeArea(
           child: Column(
             children: [
-              // Custom AppBar
               _buildCustomAppBar(context, 'جاري تحميل الأذكار...'),
-              
-              // Loading content
               Expanded(
                 child: Center(
                   child: AppLoading.page(
@@ -360,10 +346,7 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
         body: SafeArea(
           child: Column(
             children: [
-              // Custom AppBar
               _buildCustomAppBar(context, 'الأذكار'),
-              
-              // Error content
               Expanded(
                 child: AppEmptyState.error(
                   message: 'تعذر تحميل الأذكار المطلوبة',
@@ -383,10 +366,7 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
       body: SafeArea(
         child: Column(
           children: [
-            // Custom AppBar
             _buildCustomAppBar(context, category.title, category: category),
-            
-            // قائمة الأذكار
             Expanded(
               child: _buildContent(category),
             ),
@@ -404,40 +384,37 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
     );
     
     return Container(
-      padding: const EdgeInsets.all(ThemeConstants.space4),
+      padding: EdgeInsets.all(16.w),
       child: Row(
         children: [
-          // زر الرجوع
           AppBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
           
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
           
-          // الأيقونة الجانبية
           Container(
-            padding: const EdgeInsets.all(ThemeConstants.space2),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               gradient: gradient,
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(12.r),
               boxShadow: [
                 BoxShadow(
                   color: ThemeConstants.primary.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
+                  blurRadius: 8.r,
+                  offset: Offset(0, 4.h),
                 ),
               ],
             ),
             child: Icon(
               category?.icon ?? Icons.menu_book,
               color: Colors.white,
-              size: ThemeConstants.iconMd,
+              size: 24.sp,
             ),
           ),
           
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
           
-          // العنوان والوصف
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -447,6 +424,7 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
                   style: context.titleLarge?.copyWith(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
+                    fontSize: 18.sp,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -456,6 +434,7 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
                     '${category.athkar.length} ذكر - ${_completedItems.length} مكتمل',
                     style: context.bodySmall?.copyWith(
                       color: context.textSecondaryColor,
+                      fontSize: 12.sp,
                     ),
                   )
                 else
@@ -463,58 +442,57 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
                     'الأذكار والأدعية الإسلامية',
                     style: context.bodySmall?.copyWith(
                       color: context.textSecondaryColor,
+                      fontSize: 12.sp,
                     ),
                   ),
               ],
             ),
           ),
           
-          // الأزرار
           if (category != null) ...[
-            // زر حجم الخط
             Container(
-              margin: const EdgeInsets.only(left: ThemeConstants.space2),
+              margin: EdgeInsets.only(left: 8.w),
               child: Material(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                borderRadius: BorderRadius.circular(12.r),
                 child: InkWell(
                   onTap: () {
                     HapticFeedback.lightImpact();
                     _showFontSizeDialog();
                   },
-                  borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                  borderRadius: BorderRadius.circular(12.r),
                   child: Container(
-                    padding: const EdgeInsets.all(ThemeConstants.space2),
+                    padding: EdgeInsets.all(8.w),
                     decoration: BoxDecoration(
                       color: context.cardColor,
-                      borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                      borderRadius: BorderRadius.circular(12.r),
                       border: Border.all(
                         color: context.dividerColor.withValues(alpha: 0.3),
+                        width: 1.w,
                       ),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
+                          blurRadius: 4.r,
+                          offset: Offset(0, 2.h),
                         ),
                       ],
                     ),
                     child: Icon(
                       Icons.text_fields_rounded,
                       color: context.textPrimaryColor,
-                      size: ThemeConstants.iconMd,
+                      size: 24.sp,
                     ),
                   ),
                 ),
               ),
             ),
             
-            // زر إعدادات الإشعارات
             Container(
-              margin: const EdgeInsets.only(left: ThemeConstants.space2),
+              margin: EdgeInsets.only(left: 8.w),
               child: Material(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                borderRadius: BorderRadius.circular(12.r),
                 child: InkWell(
                   onTap: () {
                     HapticFeedback.lightImpact();
@@ -525,27 +503,28 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
                       ),
                     );
                   },
-                  borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                  borderRadius: BorderRadius.circular(12.r),
                   child: Container(
-                    padding: const EdgeInsets.all(ThemeConstants.space2),
+                    padding: EdgeInsets.all(8.w),
                     decoration: BoxDecoration(
                       color: context.cardColor,
-                      borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                      borderRadius: BorderRadius.circular(12.r),
                       border: Border.all(
                         color: context.dividerColor.withValues(alpha: 0.3),
+                        width: 1.w,
                       ),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
+                          blurRadius: 4.r,
+                          offset: Offset(0, 2.h),
                         ),
                       ],
                     ),
                     child: Icon(
                       Icons.notifications_outlined,
                       color: context.textPrimaryColor,
-                      size: ThemeConstants.iconMd,
+                      size: 24.sp,
                     ),
                   ),
                 ),
@@ -559,53 +538,54 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
 
   Widget _buildContent(AthkarCategory category) {
     if (_visibleItems.isEmpty && _completedItems.isNotEmpty) {
-      // عرض رسالة الإكمال
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(ThemeConstants.space6),
+          padding: EdgeInsets.all(24.w),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 120,
-                height: 120,
+                width: 120.w,
+                height: 120.h,
                 decoration: BoxDecoration(
                   color: ThemeConstants.success.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: ThemeConstants.success.withValues(alpha: 0.3),
-                    width: 2,
+                    width: 2.w,
                   ),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.check_circle_rounded,
-                  size: 60,
+                  size: 60.sp,
                   color: ThemeConstants.success,
                 ),
               ),
               
-              ThemeConstants.space6.h,
+              SizedBox(height: 24.h),
               
               Text(
                 'أحسنت! أكملت جميع الأذكار',
                 style: context.headlineSmall?.copyWith(
                   color: ThemeConstants.success,
                   fontWeight: ThemeConstants.bold,
+                  fontSize: 20.sp,
                 ),
                 textAlign: TextAlign.center,
               ),
               
-              ThemeConstants.space3.h,
+              SizedBox(height: 12.h),
               
               Text(
                 'جعله الله في ميزان حسناتك',
                 style: context.bodyLarge?.copyWith(
                   color: context.textSecondaryColor,
+                  fontSize: 16.sp,
                 ),
                 textAlign: TextAlign.center,
               ),
               
-              ThemeConstants.space8.h,
+              SizedBox(height: 32.h),
               
               Row(
                 children: [
@@ -618,7 +598,7 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
                     ),
                   ),
                   
-                  ThemeConstants.space4.w,
+                  SizedBox(width: 16.w),
                   
                   Expanded(
                     child: AppButton.primary(
@@ -636,26 +616,22 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
       );
     }
     
-    // عرض الأذكار
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView.builder(
-        padding: const EdgeInsets.all(ThemeConstants.space4),
+        padding: EdgeInsets.all(16.w),
         itemCount: _visibleItems.length,
         itemBuilder: (context, index) {
           final item = _visibleItems[index];
           final currentCount = _counts[item.id] ?? 0;
           final isCompleted = _completedItems.contains(item.id);
           
-          // إيجاد الفهرس الأصلي
           final originalIndex = category.athkar.indexOf(item);
           final number = originalIndex + 1;
           
           return Padding(
             padding: EdgeInsets.only(
-              bottom: index < _visibleItems.length - 1
-                  ? ThemeConstants.space3
-                  : 0,
+              bottom: index < _visibleItems.length - 1 ? 12.h : 0,
             ),
             child: AthkarItemCard(
               item: item,

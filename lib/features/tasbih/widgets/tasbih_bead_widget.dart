@@ -1,5 +1,6 @@
 // lib/features/tasbih/widgets/tasbih_bead_widget.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:ui';
 import '../../../app/themes/app_theme.dart';
 
@@ -35,15 +36,15 @@ class TasbihBeadWidget extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: gradient[0].withValues(alpha: 0.3),
-            blurRadius: isPressed ? 25 : 20,
-            offset: Offset(0, isPressed ? 8 : 12),
-            spreadRadius: isPressed ? 2 : 4,
+            blurRadius: isPressed ? 25.r : 20.r,
+            offset: Offset(0, isPressed ? 8.h : 12.h),
+            spreadRadius: isPressed ? 2.w : 4.w,
           ),
           BoxShadow(
             color: gradient[1].withValues(alpha: 0.1),
-            blurRadius: isPressed ? 35 : 30,
-            offset: Offset(0, isPressed ? 12 : 18),
-            spreadRadius: isPressed ? 4 : 6,
+            blurRadius: isPressed ? 35.r : 30.r,
+            offset: Offset(0, isPressed ? 12.h : 18.h),
+            spreadRadius: isPressed ? 4.w : 6.w,
           ),
         ],
       ),
@@ -56,7 +57,7 @@ class TasbihBeadWidget extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(
                 color: Colors.white.withValues(alpha: 0.3),
-                width: 2,
+                width: 2.w,
               ),
               gradient: LinearGradient(
                 begin: Alignment.topCenter,

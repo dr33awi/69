@@ -4,7 +4,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/infrastructure/services/permissions/permission_service.dart';
 import '../../../core/infrastructure/services/permissions/permission_constants.dart';
-import '../../../app/themes/app_theme.dart';
 
 class OnboardingPermissionCard extends StatelessWidget {
   final AppPermissionType permission;

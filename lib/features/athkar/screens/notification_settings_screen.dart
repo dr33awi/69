@@ -1,6 +1,7 @@
-// lib/features/athkar/screens/notification_settings_screen.dart (ألوان الأيقونات فقط)
+// lib/features/athkar/screens/notification_settings_screen.dart - محدث مع flutter_screenutil
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/di/service_locator.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../core/infrastructure/services/permissions/permission_service.dart';
@@ -52,23 +53,15 @@ class _AthkarNotificationSettingsScreenState
         _errorMessage = null;
       });
       
-      // التحقق من إصدار الإعدادات
       await _checkSettingsVersion();
-      
-      // التحقق من الإذن
       _hasPermission = await _permissionService.checkNotificationPermission();
       
-      // تحميل الفئات
       final allCategories = await _service.loadCategories();
-      
-      // تحميل الإعدادات المحفوظة
       final enabledIds = _service.getEnabledReminderCategories();
       final savedCustomTimes = _service.getCustomTimes();
       
-      // التحقق من أول تشغيل
       final isFirstLaunch = enabledIds.isEmpty && savedCustomTimes.isEmpty;
       
-      // تهيئة البيانات
       _enabled.clear();
       _customTimes.clear();
       _originalTimes.clear();
@@ -76,10 +69,8 @@ class _AthkarNotificationSettingsScreenState
       final autoEnabledIds = <String>[];
       
       for (final category in allCategories) {
-        // تحديد حالة التفعيل
         bool shouldEnable = enabledIds.contains(category.id);
         
-        // في أول تشغيل، تفعيل الفئات الأساسية
         if (isFirstLaunch && AthkarConstants.shouldAutoEnable(category.id)) {
           shouldEnable = true;
           autoEnabledIds.add(category.id);
@@ -87,7 +78,6 @@ class _AthkarNotificationSettingsScreenState
         
         _enabled[category.id] = shouldEnable;
         
-        // تعيين الوقت
         final customTime = savedCustomTimes[category.id];
         final time = customTime ?? 
                     category.notifyTime ?? 
@@ -102,12 +92,10 @@ class _AthkarNotificationSettingsScreenState
         _isLoading = false;
       });
       
-      // حفظ الإعدادات الأولية في أول تشغيل
       if (isFirstLaunch && autoEnabledIds.isNotEmpty) {
         await _saveInitialSettings(autoEnabledIds);
       }
       
-      // التحقق من صحة الإشعارات المجدولة
       if (_hasPermission) {
         await _validateScheduledNotifications();
       }
@@ -125,7 +113,6 @@ class _AthkarNotificationSettingsScreenState
     final currentVersion = _storage.getInt(AthkarConstants.settingsVersionKey) ?? 1;
     
     if (currentVersion < AthkarConstants.currentSettingsVersion) {
-      // ترقية الإعدادات إذا لزم الأمر
       await _migrateSettings(currentVersion);
       await _storage.setInt(
         AthkarConstants.settingsVersionKey,
@@ -190,7 +177,6 @@ class _AthkarNotificationSettingsScreenState
       if (granted) {
         context.showSuccessSnackBar('تم منح إذن الإشعارات');
         
-        // جدولة الإشعارات للفئات المفعلة
         final enabledIds = _enabled.entries
             .where((e) => e.value)
             .map((e) => e.key)
@@ -217,7 +203,6 @@ class _AthkarNotificationSettingsScreenState
     try {
       await _saveChanges();
     } catch (e) {
-      // إعادة القيمة السابقة في حالة الخطأ
       setState(() {
         _enabled[categoryId] = oldValue ?? false;
       });
@@ -233,10 +218,8 @@ class _AthkarNotificationSettingsScreenState
     });
     
     try {
-      // حفظ الوقت الجديد
       await _service.saveCustomTimes(_customTimes);
       
-      // إعادة جدولة فقط إذا كانت الفئة مفعلة
       if (_enabled[categoryId] == true && _hasPermission) {
         final category = _categories!.firstWhere((c) => c.id == categoryId);
         
@@ -248,7 +231,6 @@ class _AthkarNotificationSettingsScreenState
         );
       }
       
-      // تفعيل الفئة تلقائياً عند تغيير الوقت
       if (!(_enabled[categoryId] ?? false)) {
         await _toggleCategory(categoryId, true);
       }
@@ -257,7 +239,6 @@ class _AthkarNotificationSettingsScreenState
         context.showSuccessSnackBar('تم تحديث الوقت بنجاح');
       }
     } catch (e) {
-      // إعادة الوقت السابق في حالة الخطأ
       setState(() {
         _customTimes[categoryId] = oldTime ?? 
             AthkarConstants.getDefaultTimeForCategory(categoryId);
@@ -275,7 +256,6 @@ class _AthkarNotificationSettingsScreenState
     setState(() => _saving = true);
     
     try {
-      // التحقق من الأذونات
       if (!_hasPermission) {
         final enabledCount = _enabled.values.where((e) => e).length;
         if (enabledCount > 0) {
@@ -286,13 +266,11 @@ class _AthkarNotificationSettingsScreenState
         }
       }
 
-      // تحديث الإعدادات
       await _service.updateReminderSettings(
         enabledMap: _enabled,
         customTimes: _customTimes,
       );
       
-      // تحديث الأوقات الأصلية
       _originalTimes.clear();
       _originalTimes.addAll(_customTimes);
       
@@ -328,6 +306,7 @@ class _AthkarNotificationSettingsScreenState
               dialBackgroundColor: context.cardColor,
               helpTextStyle: context.titleMedium?.copyWith(
                 color: context.textPrimaryColor,
+                fontSize: 16.sp,
               ),
             ),
           ),
@@ -409,36 +388,36 @@ class _AthkarNotificationSettingsScreenState
     );
     
     return Container(
-      padding: const EdgeInsets.all(ThemeConstants.space4),
+      padding: EdgeInsets.all(16.w),
       child: Row(
         children: [
           AppBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
           
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
           
           Container(
-            padding: const EdgeInsets.all(ThemeConstants.space2),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               gradient: gradient,
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(12.r),
               boxShadow: [
                 BoxShadow(
                   color: ThemeConstants.primary.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
+                  blurRadius: 8.r,
+                  offset: Offset(0, 4.h),
                 ),
               ],
             ),
-            child: const Icon(
+            child: Icon(
               Icons.notifications_active,
               color: Colors.white,
-              size: ThemeConstants.iconMd,
+              size: 24.sp,
             ),
           ),
           
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
           
           Expanded(
             child: Column(
@@ -449,12 +428,14 @@ class _AthkarNotificationSettingsScreenState
                   style: context.titleLarge?.copyWith(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
+                    fontSize: 18.sp,
                   ),
                 ),
                 Text(
                   'تخصيص تذكيرات الأذكار اليومية',
                   style: context.bodySmall?.copyWith(
                     color: context.textSecondaryColor,
+                    fontSize: 12.sp,
                   ),
                 ),
               ],
@@ -466,13 +447,13 @@ class _AthkarNotificationSettingsScreenState
           
           if (_saving)
             Container(
-              margin: const EdgeInsets.only(left: ThemeConstants.space2),
-              child: const SizedBox(
-                width: ThemeConstants.iconMd,
-                height: ThemeConstants.iconMd,
+              margin: EdgeInsets.only(left: 8.w),
+              child: SizedBox(
+                width: 24.w,
+                height: 24.h,
                 child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(ThemeConstants.primary),
+                  strokeWidth: 2.w,
+                  valueColor: const AlwaysStoppedAnimation<Color>(ThemeConstants.primary),
                 ),
               ),
             ),
@@ -483,31 +464,32 @@ class _AthkarNotificationSettingsScreenState
 
   Widget _buildActionsMenu() {
     return Container(
-      margin: const EdgeInsets.only(left: ThemeConstants.space2),
+      margin: EdgeInsets.only(left: 8.w),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+        borderRadius: BorderRadius.circular(12.r),
         child: PopupMenuButton<String>(
           icon: Container(
-            padding: const EdgeInsets.all(ThemeConstants.space2),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               color: context.cardColor,
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(12.r),
               border: Border.all(
                 color: context.dividerColor.withValues(alpha: 0.3),
+                width: 1.w,
               ),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+                  blurRadius: 4.r,
+                  offset: Offset(0, 2.h),
                 ),
               ],
             ),
             child: Icon(
               Icons.more_vert,
               color: context.textPrimaryColor,
-              size: ThemeConstants.iconMd,
+              size: 24.sp,
             ),
           ),
           onSelected: (value) {
@@ -521,23 +503,23 @@ class _AthkarNotificationSettingsScreenState
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'enable_all',
               child: Row(
                 children: [
-                  Icon(Icons.notifications_active),
-                  SizedBox(width: 8),
-                  Text('تفعيل الكل'),
+                  const Icon(Icons.notifications_active),
+                  SizedBox(width: 8.w),
+                  const Text('تفعيل الكل'),
                 ],
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'disable_all',
               child: Row(
                 children: [
-                  Icon(Icons.notifications_off),
-                  SizedBox(width: 8),
-                  Text('إيقاف الكل'),
+                  const Icon(Icons.notifications_off),
+                  SizedBox(width: 8.w),
+                  const Text('إيقاف الكل'),
                 ],
               ),
             ),
@@ -571,13 +553,13 @@ class _AthkarNotificationSettingsScreenState
       onRefresh: _loadData,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(ThemeConstants.space4),
+        padding: EdgeInsets.all(16.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildPermissionSection(),
             
-            const SizedBox(height: ThemeConstants.space6),
+            SizedBox(height: 24.h),
             
             if (_hasPermission) ...[
               if (categories.isEmpty)
@@ -585,26 +567,28 @@ class _AthkarNotificationSettingsScreenState
               else ...[
                 _buildQuickStats(categories),
                 
-                const SizedBox(height: ThemeConstants.space4),
+                SizedBox(height: 16.h),
                 
                 Text(
                   'جميع فئات الأذكار (${categories.length})',
                   style: context.titleMedium?.copyWith(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
+                    fontSize: 16.sp,
                   ),
                 ),
                 
-                const SizedBox(height: ThemeConstants.space2),
+                SizedBox(height: 8.h),
                 
                 Text(
                   'يمكنك تفعيل التذكيرات لأي فئة وتخصيص أوقاتها',
                   style: context.bodySmall?.copyWith(
                     color: context.textSecondaryColor,
+                    fontSize: 12.sp,
                   ),
                 ),
                 
-                const SizedBox(height: ThemeConstants.space4),
+                SizedBox(height: 16.h),
                 
                 ...categories.map((category) => 
                   _buildCategoryTile(category)
@@ -623,7 +607,7 @@ class _AthkarNotificationSettingsScreenState
     final disabledCount = categories.length - enabledCount;
     
     return AppCard(
-      padding: const EdgeInsets.all(ThemeConstants.space4),
+      padding: EdgeInsets.all(16.w),
       child: Row(
         children: [
           Expanded(
@@ -636,8 +620,8 @@ class _AthkarNotificationSettingsScreenState
           ),
           
           Container(
-            width: 1,
-            height: 40,
+            width: 1.w,
+            height: 40.h,
             color: context.dividerColor,
           ),
           
@@ -651,8 +635,8 @@ class _AthkarNotificationSettingsScreenState
           ),
           
           Container(
-            width: 1,
-            height: 40,
+            width: 1.w,
+            height: 40.h,
             color: context.dividerColor,
           ),
           
@@ -671,7 +655,7 @@ class _AthkarNotificationSettingsScreenState
 
   Widget _buildPermissionSection() {
     return AppCard(
-      padding: const EdgeInsets.all(ThemeConstants.space4),
+      padding: EdgeInsets.all(16.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -680,9 +664,9 @@ class _AthkarNotificationSettingsScreenState
               Icon(
                 _hasPermission ? Icons.notifications_active : Icons.notifications_off,
                 color: _hasPermission ? ThemeConstants.success : ThemeConstants.warning,
-                size: 24,
+                size: 24.sp,
               ),
-              const SizedBox(width: ThemeConstants.space3),
+              SizedBox(width: 12.w),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -692,6 +676,7 @@ class _AthkarNotificationSettingsScreenState
                       style: context.titleSmall?.copyWith(
                         fontWeight: ThemeConstants.semiBold,
                         color: _hasPermission ? ThemeConstants.success : ThemeConstants.warning,
+                        fontSize: 14.sp,
                       ),
                     ),
                     Text(
@@ -700,6 +685,7 @@ class _AthkarNotificationSettingsScreenState
                           : 'قم بتفعيل الإشعارات لتلقي التذكيرات',
                       style: context.bodySmall?.copyWith(
                         color: context.textSecondaryColor,
+                        fontSize: 12.sp,
                       ),
                     ),
                   ],
@@ -708,7 +694,7 @@ class _AthkarNotificationSettingsScreenState
             ],
           ),
           if (!_hasPermission) ...[
-            const SizedBox(height: ThemeConstants.space3),
+            SizedBox(height: 12.h),
             SizedBox(
               width: double.infinity,
               child: AppButton.primary(
@@ -725,26 +711,28 @@ class _AthkarNotificationSettingsScreenState
 
   Widget _buildNoCategoriesMessage() {
     return AppCard(
-      padding: const EdgeInsets.all(ThemeConstants.space5),
+      padding: EdgeInsets.all(20.w),
       child: Column(
         children: [
           Icon(
             Icons.menu_book_outlined,
-            size: 48,
+            size: 48.sp,
             color: context.textSecondaryColor.withValues(alpha: 0.5),
           ),
-          const SizedBox(height: ThemeConstants.space3),
+          SizedBox(height: 12.h),
           Text(
             'لا توجد فئات أذكار',
             style: context.titleMedium?.copyWith(
               color: context.textSecondaryColor,
+              fontSize: 16.sp,
             ),
           ),
-          const SizedBox(height: ThemeConstants.space2),
+          SizedBox(height: 8.h),
           Text(
             'لم يتم العثور على أي فئات للأذكار',
             style: context.bodyMedium?.copyWith(
               color: context.textSecondaryColor.withValues(alpha: 0.7),
+              fontSize: 14.sp,
             ),
             textAlign: TextAlign.center,
           ),
@@ -755,31 +743,33 @@ class _AthkarNotificationSettingsScreenState
 
   Widget _buildPermissionRequiredMessage() {
     return AppCard(
-      padding: const EdgeInsets.all(ThemeConstants.space5),
+      padding: EdgeInsets.all(20.w),
       child: Column(
         children: [
-          const Icon(
+          Icon(
             Icons.notifications_off_outlined,
-            size: 48,
+            size: 48.sp,
             color: ThemeConstants.warning,
           ),
-          const SizedBox(height: ThemeConstants.space3),
+          SizedBox(height: 12.h),
           Text(
             'الإشعارات مطلوبة',
             style: context.titleMedium?.copyWith(
               color: ThemeConstants.warning,
               fontWeight: ThemeConstants.bold,
+              fontSize: 16.sp,
             ),
           ),
-          const SizedBox(height: ThemeConstants.space2),
+          SizedBox(height: 8.h),
           Text(
             'يجب تفعيل الإشعارات أولاً لتتمكن من إعداد تذكيرات الأذكار',
             style: context.bodyMedium?.copyWith(
               color: context.textSecondaryColor,
+              fontSize: 14.sp,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: ThemeConstants.space4),
+          SizedBox(height: 16.h),
           AppButton.primary(
             text: 'تفعيل الإشعارات الآن',
             onPressed: _requestPermission,
@@ -797,35 +787,33 @@ class _AthkarNotificationSettingsScreenState
     final isAutoEnabled = AthkarConstants.shouldAutoEnable(category.id);
     final isEssential = AthkarConstants.isEssentialCategory(category.id);
     
-    // الحصول على اللون والأيقونة المطابقة من CategoryUtils (فقط للأيقونات)
     final categoryColor = CategoryUtils.getCategoryThemeColor(category.id);
     final categoryIcon = CategoryUtils.getCategoryIcon(category.id);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: ThemeConstants.space3),
+      padding: EdgeInsets.only(bottom: 12.h),
       child: AppCard(
-        padding: const EdgeInsets.all(ThemeConstants.space4),
+        padding: EdgeInsets.all(16.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                // أيقونة الفئة بلون مطابق فقط
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 40.w,
+                  height: 40.h,
                   decoration: BoxDecoration(
                     color: categoryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                    borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: Icon(
                     categoryIcon,
                     color: categoryColor,
-                    size: ThemeConstants.iconMd,
+                    size: 24.sp,
                   ),
                 ),
                 
-                const SizedBox(width: ThemeConstants.space3),
+                SizedBox(width: 12.w),
                 
                 Expanded(
                   child: Column(
@@ -838,6 +826,7 @@ class _AthkarNotificationSettingsScreenState
                               category.title,
                               style: context.titleSmall?.copyWith(
                                 fontWeight: ThemeConstants.semiBold,
+                                fontSize: 14.sp,
                               ),
                             ),
                           ),
@@ -858,16 +847,17 @@ class _AthkarNotificationSettingsScreenState
                           category.description!,
                           style: context.bodySmall?.copyWith(
                             color: context.textSecondaryColor,
+                            fontSize: 12.sp,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                       
-                      // عدد الأذكار
                       Text(
                         '${category.athkar.length} ذكر',
                         style: context.labelSmall?.copyWith(
                           color: context.textSecondaryColor.withValues(alpha: 0.7),
+                          fontSize: 11.sp,
                         ),
                       ),
                     ],
@@ -887,7 +877,7 @@ class _AthkarNotificationSettingsScreenState
             ),
             
             if (isEnabled) ...[
-              const SizedBox(height: ThemeConstants.space3),
+              SizedBox(height: 12.h),
               _buildTimeSelector(
                 category: category,
                 currentTime: currentTime,
@@ -902,20 +892,20 @@ class _AthkarNotificationSettingsScreenState
 
   Widget _buildBadge(String label, Color color) {
     return Container(
-      margin: const EdgeInsets.only(left: ThemeConstants.space2),
-      padding: const EdgeInsets.symmetric(
-        horizontal: ThemeConstants.space2,
-        vertical: ThemeConstants.space1,
+      margin: EdgeInsets.only(left: 8.w),
+      padding: EdgeInsets.symmetric(
+        horizontal: 8.w,
+        vertical: 4.h,
       ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusXs),
+        borderRadius: BorderRadius.circular(4.r),
       ),
       child: Text(
         label,
         style: context.labelSmall?.copyWith(
           color: color,
-          fontSize: 10,
+          fontSize: 10.sp,
           fontWeight: ThemeConstants.bold,
         ),
       ),
@@ -928,24 +918,25 @@ class _AthkarNotificationSettingsScreenState
     required bool isEssential,
   }) {
     return Container(
-      padding: const EdgeInsets.all(ThemeConstants.space3),
+      padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         color: (isEssential ? ThemeConstants.success : ThemeConstants.primary)
             .withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: (isEssential ? ThemeConstants.success : ThemeConstants.primary)
               .withValues(alpha: 0.2),
+          width: 1.w,
         ),
       ),
       child: Row(
         children: [
           Icon(
             Icons.access_time,
-            size: ThemeConstants.iconSm,
+            size: 20.sp,
             color: isEssential ? ThemeConstants.success : ThemeConstants.primary,
           ),
-          const SizedBox(width: ThemeConstants.space2),
+          SizedBox(width: 8.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -955,6 +946,7 @@ class _AthkarNotificationSettingsScreenState
                   style: context.bodyMedium?.copyWith(
                     color: isEssential ? ThemeConstants.success : ThemeConstants.primary,
                     fontWeight: ThemeConstants.medium,
+                    fontSize: 14.sp,
                   ),
                 ),
                 if (category.notifyTime == null)
@@ -963,6 +955,7 @@ class _AthkarNotificationSettingsScreenState
                     style: context.labelSmall?.copyWith(
                       color: (isEssential ? ThemeConstants.success : ThemeConstants.primary)
                           .withValues(alpha: 0.7),
+                      fontSize: 11.sp,
                     ),
                   ),
               ],
@@ -971,9 +964,9 @@ class _AthkarNotificationSettingsScreenState
           TextButton(
             onPressed: () => _selectTime(category.id, currentTime),
             style: TextButton.styleFrom(
-              minimumSize: const Size(0, 32),
-              padding: const EdgeInsets.symmetric(
-                horizontal: ThemeConstants.space3,
+              minimumSize: Size(0, 32.h),
+              padding: EdgeInsets.symmetric(
+                horizontal: 12.w,
               ),
             ),
             child: const Text('تغيير'),
@@ -984,7 +977,6 @@ class _AthkarNotificationSettingsScreenState
   }
 }
 
-/// ويدجت إحصائية صغيرة
 class _StatItem extends StatelessWidget {
   final IconData icon;
   final int count;
@@ -1005,20 +997,22 @@ class _StatItem extends StatelessWidget {
         Icon(
           icon,
           color: color,
-          size: ThemeConstants.iconSm,
+          size: 20.sp,
         ),
-        const SizedBox(height: ThemeConstants.space1),
+        SizedBox(height: 4.h),
         Text(
           '$count',
           style: context.titleMedium?.copyWith(
             color: color,
             fontWeight: ThemeConstants.bold,
+            fontSize: 16.sp,
           ),
         ),
         Text(
           label,
           style: context.labelSmall?.copyWith(
             color: context.textSecondaryColor,
+            fontSize: 11.sp,
           ),
         ),
       ],

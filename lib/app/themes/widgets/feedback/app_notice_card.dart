@@ -1,5 +1,6 @@
 // lib/app/themes/widgets/feedback/app_notice_card.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../theme_constants.dart';
 import '../../core/theme_extensions.dart';
 
@@ -42,14 +43,14 @@ class AppNoticeCard extends StatelessWidget {
       margin: margin ?? EdgeInsets.zero,
       decoration: BoxDecoration(
         color: colors.backgroundColor,
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusLg),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
           color: colors.borderColor,
-          width: ThemeConstants.borderLight,
+          width: 1.w,
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(ThemeConstants.space4),
+        padding: EdgeInsets.all(16.w),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -57,9 +58,9 @@ class AppNoticeCard extends StatelessWidget {
               Icon(
                 customIcon ?? _getIcon(),
                 color: colors.iconColor,
-                size: ThemeConstants.iconMd,
+                size: 24.sp,
               ),
-              ThemeConstants.space3.w,
+              SizedBox(width: 12.w),
             ],
             
             Expanded(
@@ -74,6 +75,7 @@ class AppNoticeCard extends StatelessWidget {
                           style: context.titleMedium?.copyWith(
                             color: colors.textColor,
                             fontWeight: ThemeConstants.semiBold,
+                            fontSize: context.titleMedium?.fontSize?.sp,
                           ),
                         ),
                       ),
@@ -81,31 +83,32 @@ class AppNoticeCard extends StatelessWidget {
                         IconButton(
                           icon: Icon(
                             Icons.close,
-                            size: ThemeConstants.iconSm,
+                            size: 20.sp,
                             color: colors.textColor.withValues(alpha: 0.7),
                           ),
                           onPressed: onClose,
                           padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(
-                            minWidth: 24,
-                            minHeight: 24,
+                          constraints: BoxConstraints(
+                            minWidth: 24.w,
+                            minHeight: 24.h,
                           ),
                         ),
                     ],
                   ),
                   
                   if (message != null) ...[
-                    ThemeConstants.space1.h,
+                    SizedBox(height: 4.h),
                     Text(
                       message!,
                       style: context.bodyMedium?.copyWith(
                         color: colors.textColor.withValues(alpha: 0.8),
+                        fontSize: context.bodyMedium?.fontSize?.sp,
                       ),
                     ),
                   ],
                   
                   if (action != null) ...[
-                    ThemeConstants.space3.h,
+                    SizedBox(height: 12.h),
                     action!,
                   ],
                 ],

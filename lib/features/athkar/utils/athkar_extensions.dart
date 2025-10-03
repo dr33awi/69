@@ -1,5 +1,6 @@
 // lib/features/athkar/utils/athkar_extensions.dart (نظيف من التكرار)
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
 
 /// امتدادات خاصة بميزة الأذكار فقط
@@ -13,25 +14,28 @@ extension AthkarSpecificHelpers on BuildContext {
       SnackBar(
         content: Row(
           children: [
-            const Icon(
+            Icon(
               Icons.info_outline,
               color: Colors.white,
-              size: ThemeConstants.iconSm,
+              size: 20.sp,
             ),
-            ThemeConstants.space2.w,
+            SizedBox(width: 8.w),
             Expanded(
               child: Text(
                 message,
-                style: bodyMedium?.copyWith(color: Colors.white),
+                style: bodyMedium?.copyWith(
+                  color: Colors.white,
+                  fontSize: bodyMedium?.fontSize?.sp,
+                ),
               ),
             ),
           ],
         ),
         backgroundColor: ThemeConstants.info,
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(ThemeConstants.space4),
+        margin: EdgeInsets.all(16.w),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+          borderRadius: BorderRadius.circular(12.r),
         ),
         duration: duration ?? const Duration(seconds: 3),
       ),
@@ -53,16 +57,16 @@ extension AthkarSpecificHelpers on BuildContext {
           children: [
             // دائرة تقدم صغيرة
             SizedBox(
-              width: 24,
-              height: 24,
+              width: 24.w,
+              height: 24.h,
               child: CircularProgressIndicator(
                 value: progress / 100,
-                strokeWidth: 3,
+                strokeWidth: 3.w,
                 backgroundColor: Colors.white.withValues(alpha: 0.3),
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
               ),
             ),
-            ThemeConstants.space3.w,
+            SizedBox(width: 12.w),
             Expanded(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -73,12 +77,14 @@ extension AthkarSpecificHelpers on BuildContext {
                     style: bodyMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: ThemeConstants.medium,
+                      fontSize: bodyMedium?.fontSize?.sp,
                     ),
                   ),
                   Text(
                     'التقدم: $progress%',
                     style: labelSmall?.copyWith(
                       color: Colors.white.withValues(alpha: 0.9),
+                      fontSize: labelSmall?.fontSize?.sp,
                     ),
                   ),
                 ],
@@ -88,9 +94,9 @@ extension AthkarSpecificHelpers on BuildContext {
         ),
         backgroundColor: color,
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(ThemeConstants.space4),
+        margin: EdgeInsets.all(16.w),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+          borderRadius: BorderRadius.circular(12.r),
         ),
         duration: const Duration(seconds: 2),
       ),
@@ -114,21 +120,21 @@ extension AthkarSpecificHelpers on BuildContext {
                 return Transform.scale(
                   scale: value,
                   child: Container(
-                    padding: const EdgeInsets.all(ThemeConstants.space1),
+                    padding: EdgeInsets.all(4.w),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.check_circle,
                       color: Colors.white,
-                      size: ThemeConstants.iconMd,
+                      size: 24.sp,
                     ),
                   ),
                 );
               },
             ),
-            ThemeConstants.space3.w,
+            SizedBox(width: 12.w),
             Expanded(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -139,12 +145,14 @@ extension AthkarSpecificHelpers on BuildContext {
                     style: bodyMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: ThemeConstants.semiBold,
+                      fontSize: bodyMedium?.fontSize?.sp,
                     ),
                   ),
                   Text(
                     'جعله الله في ميزان حسناتك',
                     style: labelSmall?.copyWith(
                       color: Colors.white.withValues(alpha: 0.9),
+                      fontSize: labelSmall?.fontSize?.sp,
                     ),
                   ),
                 ],
@@ -158,6 +166,7 @@ extension AthkarSpecificHelpers on BuildContext {
                   style: labelMedium?.copyWith(
                     color: Colors.white,
                     fontWeight: ThemeConstants.bold,
+                    fontSize: labelMedium?.fontSize?.sp,
                   ),
                 ),
               ),
@@ -165,9 +174,9 @@ extension AthkarSpecificHelpers on BuildContext {
         ),
         backgroundColor: ThemeConstants.success,
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(ThemeConstants.space4),
+        margin: EdgeInsets.all(16.w),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+          borderRadius: BorderRadius.circular(12.r),
         ),
         duration: const Duration(seconds: 4),
       ),

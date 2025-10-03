@@ -1,6 +1,7 @@
-// lib/features/athkar/widgets/athkar_category_card.dart
+// lib/features/athkar/widgets/athkar_category_card.dart - محدث
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
 import '../models/athkar_model.dart';
 import '../utils/category_utils.dart';
@@ -28,23 +29,22 @@ class AthkarCategoryCard extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+          borderRadius: BorderRadius.circular(20.r),
           gradient: CategoryUtils.getCategoryGradient(category.id),
           boxShadow: [
             BoxShadow(
               color: categoryColor.withValues(alpha: 0.25),
-              blurRadius: 15,
-              offset: const Offset(0, 8),
-              spreadRadius: 1,
+              blurRadius: 15.r,
+              offset: Offset(0, 8.h),
+              spreadRadius: 1.r,
             ),
           ],
         ),
         child: Stack(
           children: [
-            // نمط خلفية بسيط
             Positioned.fill(
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+                borderRadius: BorderRadius.circular(20.r),
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -60,34 +60,31 @@ class AthkarCategoryCard extends StatelessWidget {
               ),
             ),
             
-            // المحتوى الرئيسي
             Padding(
-              padding: const EdgeInsets.all(ThemeConstants.space4),
+              padding: EdgeInsets.all(16.w),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // الأيقونة
                   Container(
-                    width: 52,
-                    height: 52,
+                    width: 52.w,
+                    height: 52.h,
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.25),
-                      borderRadius: BorderRadius.circular(ThemeConstants.radiusLg),
+                      borderRadius: BorderRadius.circular(16.r),
                       border: Border.all(
                         color: Colors.white.withValues(alpha: 0.3),
-                        width: 1,
+                        width: 1.w,
                       ),
                     ),
                     child: Icon(
                       categoryIcon,
                       color: Colors.white,
-                      size: ThemeConstants.iconLg,
+                      size: 32.sp,
                     ),
                   ),
                   
                   const Spacer(),
                   
-                  // معلومات الفئة
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -96,19 +93,19 @@ class AthkarCategoryCard extends StatelessWidget {
                         style: context.titleMedium?.copyWith(
                           color: Colors.white,
                           fontWeight: ThemeConstants.bold,
-                          fontSize: 16,
+                          fontSize: 16.sp,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       
-                      ThemeConstants.space1.h,
+                      SizedBox(height: 4.h),
                       
                       Text(
                         description,
                         style: context.bodySmall?.copyWith(
                           color: Colors.white.withValues(alpha: 0.85),
-                          fontSize: 12,
+                          fontSize: 12.sp,
                           height: 1.3,
                         ),
                         maxLines: 2,
@@ -117,21 +114,19 @@ class AthkarCategoryCard extends StatelessWidget {
                     ],
                   ),
                   
-                  ThemeConstants.space3.h,
+                  SizedBox(height: 12.h),
                   
-                  // معلومات إضافية
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // عدد الأذكار
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: ThemeConstants.space2,
-                          vertical: ThemeConstants.space1,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 4.h,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(ThemeConstants.radiusFull),
+                          borderRadius: BorderRadius.circular(999.r),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -139,14 +134,14 @@ class AthkarCategoryCard extends StatelessWidget {
                             Icon(
                               Icons.format_list_numbered_rounded,
                               color: Colors.white.withValues(alpha: 0.9),
-                              size: ThemeConstants.iconXs,
+                              size: 16.sp,
                             ),
-                            ThemeConstants.space1.w,
+                            SizedBox(width: 4.w),
                             Text(
                               '${category.athkar.length} ذكر',
                               style: context.labelSmall?.copyWith(
                                 color: Colors.white.withValues(alpha: 0.9),
-                                fontSize: 11,
+                                fontSize: 11.sp,
                                 fontWeight: ThemeConstants.medium,
                               ),
                             ),
@@ -154,16 +149,15 @@ class AthkarCategoryCard extends StatelessWidget {
                         ),
                       ),
                       
-                      // وقت التنبيه (إذا كان متوفر ومطلوب عرضه)
                       if (category.notifyTime != null && CategoryUtils.shouldShowTime(category.id))
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: ThemeConstants.space2,
-                            vertical: ThemeConstants.space1,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8.w,
+                            vertical: 4.h,
                           ),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(ThemeConstants.radiusFull),
+                            borderRadius: BorderRadius.circular(999.r),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -171,14 +165,14 @@ class AthkarCategoryCard extends StatelessWidget {
                               Icon(
                                 Icons.access_time_rounded,
                                 color: Colors.white.withValues(alpha: 0.9),
-                                size: ThemeConstants.iconXs,
+                                size: 16.sp,
                               ),
-                              ThemeConstants.space1.w,
+                              SizedBox(width: 4.w),
                               Text(
                                 category.notifyTime!.format(context),
                                 style: context.labelSmall?.copyWith(
                                   color: Colors.white.withValues(alpha: 0.9),
-                                  fontSize: 11,
+                                  fontSize: 11.sp,
                                   fontWeight: ThemeConstants.medium,
                                 ),
                               ),

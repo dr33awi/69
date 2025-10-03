@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../services/prayer_times_service.dart';
@@ -110,7 +111,7 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
     );
     
     return Container(
-      padding: const EdgeInsets.all(ThemeConstants.space4),
+      padding: EdgeInsets.all(16.w),
       child: Row(
         children: [
           // زر الرجوع
@@ -124,14 +125,14 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
             },
           ),
           
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
           
           // الأيقونة الجانبية مع نفس التدرج المستخدم في CategoryGrid
           Container(
-            padding: const EdgeInsets.all(ThemeConstants.space2),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               gradient: gradient,
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(12.r),
               boxShadow: [
                 BoxShadow(
                   color: ThemeConstants.primary.withValues(alpha: 0.3),
@@ -140,14 +141,14 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
                 ),
               ],
             ),
-            child: const Icon(
+            child: Icon(
               Icons.notifications_active,
               color: Colors.white,
-              size: ThemeConstants.iconMd,
+              size: 24.sp,
             ),
           ),
           
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
           
           // العنوان والوصف
           Expanded(
@@ -159,12 +160,14 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
                   style: context.titleLarge?.copyWith(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
+                    fontSize: context.titleLarge?.fontSize?.sp,
                   ),
                 ),
                 Text(
                   'تخصيص تنبيهات أوقات الصلاة',
                   style: context.bodySmall?.copyWith(
                     color: context.textSecondaryColor,
+                    fontSize: context.bodySmall?.fontSize?.sp,
                   ),
                 ),
               ],
@@ -174,21 +177,21 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
           // زر الحفظ
           if (_hasChanges && !_isSaving)
             Container(
-              margin: const EdgeInsets.only(left: ThemeConstants.space2),
+              margin: EdgeInsets.only(left: 8.w),
               child: Material(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                borderRadius: BorderRadius.circular(12.r),
                 child: InkWell(
                   onTap: () {
                     HapticFeedback.lightImpact();
                     _saveSettings();
                   },
-                  borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                  borderRadius: BorderRadius.circular(12.r),
                   child: Container(
-                    padding: const EdgeInsets.all(ThemeConstants.space2),
+                    padding: EdgeInsets.all(8.w),
                     decoration: BoxDecoration(
                       color: context.cardColor,
-                      borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                      borderRadius: BorderRadius.circular(12.r),
                       border: Border.all(
                         color: context.dividerColor.withValues(alpha: 0.3),
                       ),
@@ -200,10 +203,10 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
                         ),
                       ],
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.save,
                       color: ThemeConstants.primary,
-                      size: ThemeConstants.iconMd,
+                      size: 24.sp,
                     ),
                   ),
                 ),
@@ -233,8 +236,8 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
         ),
         
         // مساحة في الأسفل
-        const SliverToBoxAdapter(
-          child: SizedBox(height: 80),
+        SliverToBoxAdapter(
+          child: SizedBox(height: 80.h),
         ),
       ],
     );
@@ -242,9 +245,9 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
 
   Widget _buildMainSettingsSection() {
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         color: context.cardColor,
         boxShadow: [
           BoxShadow(
@@ -259,34 +262,37 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
         children: [
           // عنوان القسم
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16.w),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: EdgeInsets.all(10.w),
                   decoration: BoxDecoration(
                     color: _primaryGreenColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: Icon(
                     Icons.notifications_active,
                     color: _primaryGreenColor,
-                    size: 24,
+                    size: 24.sp,
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12.w),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'إعدادات الإشعارات العامة',
-                        style: context.titleMedium?.semiBold,
+                        style: context.titleMedium?.semiBold.copyWith(
+                          fontSize: context.titleMedium?.fontSize?.sp,
+                        ),
                       ),
                       Text(
                         'تفعيل أو تعطيل الإشعارات لجميع الصلوات',
                         style: context.bodySmall?.copyWith(
                           color: context.textSecondaryColor,
+                          fontSize: context.bodySmall?.fontSize?.sp,
                         ),
                       ),
                     ],
@@ -332,7 +338,7 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
             activeColor: _primaryGreenColor,
           ),
           
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
         ],
       ),
     );
@@ -348,9 +354,9 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
     ];
     
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         color: context.cardColor,
         boxShadow: [
           BoxShadow(
@@ -365,34 +371,37 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
         children: [
           // عنوان القسم
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16.w),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: EdgeInsets.all(10.w),
                   decoration: BoxDecoration(
                     color: _primaryGreenColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: Icon(
                     Icons.mosque,
                     color: _primaryGreenColor,
-                    size: 24,
+                    size: 24.sp,
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12.w),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'إعدادات إشعارات الصلوات',
-                        style: context.titleMedium?.semiBold,
+                        style: context.titleMedium?.semiBold.copyWith(
+                          fontSize: context.titleMedium?.fontSize?.sp,
+                        ),
                       ),
                       Text(
                         'تخصيص الإشعارات لكل صلاة على حدة',
                         style: context.bodySmall?.copyWith(
                           color: context.textSecondaryColor,
+                          fontSize: context.bodySmall?.fontSize?.sp,
                         ),
                       ),
                     ],
@@ -425,16 +434,16 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
     
     return ExpansionTile(
       leading: Container(
-        width: 40,
-        height: 40,
+        width: 40.w,
+        height: 40.h,
         decoration: BoxDecoration(
           color: _primaryGreenColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(10.r),
         ),
         child: Icon(
           icon,
           color: _primaryGreenColor,
-          size: 20,
+          size: 20.sp,
         ),
       ),
       title: Text(name),
@@ -465,23 +474,23 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
       children: [
         if (isEnabled && _notificationSettings.enabled)
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 8,
+            padding: EdgeInsets.symmetric(
+              horizontal: 16.w,
+              vertical: 8.h,
             ),
             child: Row(
               children: [
                 const Text('التنبيه قبل'),
-                const SizedBox(width: 12),
+                SizedBox(width: 12.w),
                 SizedBox(
-                  width: 80,
+                  width: 80.w,
                   child: DropdownButtonFormField<int>(
                     value: minutesBefore,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       isDense: true,
                       contentPadding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                        horizontal: 12.w,
+                        vertical: 8.h,
                       ),
                     ),
                     items: [0, 5, 10, 15, 20, 25, 30, 45, 60]
@@ -507,7 +516,7 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
                     },
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8.w),
                 const Text('دقيقة'),
               ],
             ),
@@ -518,33 +527,33 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
 
   Widget _buildSaveButton() {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.w),
       child: SizedBox(
         width: double.infinity,
-        height: 50,
+        height: 50.h,
         child: ElevatedButton(
           onPressed: _isSaving || !_hasChanges ? null : _saveSettings,
           style: ElevatedButton.styleFrom(
             backgroundColor: _primaryGreenColor,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(12.r),
             ),
             elevation: 2,
           ),
           child: _isSaving
-              ? const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
+              ? SizedBox(
+                  width: 24.w,
+                  height: 24.h,
+                  child: const CircularProgressIndicator(
                     strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
                 )
-              : const Text(
+              : Text(
                   'حفظ الإعدادات',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

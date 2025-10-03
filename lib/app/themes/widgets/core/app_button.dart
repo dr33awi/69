@@ -1,5 +1,7 @@
+// ========== app_button.dart ==========
 // lib/app/themes/widgets/core/app_button.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../theme_constants.dart';
 import '../../text_styles.dart';
 import '../../core/theme_extensions.dart';
@@ -78,10 +80,10 @@ class AppButton extends StatelessWidget {
     // البنية الداخلية للزر
     Widget buttonChild = isLoading
         ? SizedBox(
-            width: 20,
-            height: 20,
+            width: 20.w,
+            height: 20.h,
             child: CircularProgressIndicator(
-              strokeWidth: 2,
+              strokeWidth: 2.w,
               valueColor: AlwaysStoppedAnimation<Color>(foregroundColor),
             ),
           )
@@ -90,13 +92,13 @@ class AppButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (icon != null) ...[
-                Icon(icon, size: size == ButtonSize.small ? 16 : 20),
-                const SizedBox(width: ThemeConstants.space2),
+                Icon(icon, size: size == ButtonSize.small ? 16.sp : 20.sp),
+                SizedBox(width: 8.w),
               ],
               Text(text, style: textStyle),
               if (suffixIcon != null) ...[
-                const SizedBox(width: ThemeConstants.space2),
-                Icon(suffixIcon, size: size == ButtonSize.small ? 16 : 20),
+                SizedBox(width: 8.w),
+                Icon(suffixIcon, size: size == ButtonSize.small ? 16.sp : 20.sp),
               ],
             ],
           );
@@ -104,7 +106,7 @@ class AppButton extends StatelessWidget {
     // شكل الزر
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(
-        isRounded ? ThemeConstants.radiusFull : (borderRadius ?? ThemeConstants.radiusMd)
+        isRounded ? 999.r : (borderRadius ?? 12.r)
       ),
     );
 
@@ -122,7 +124,7 @@ class AppButton extends StatelessWidget {
             shape: shape,
             side: borderSide ?? BorderSide(
               color: customColor ?? theme.primaryColor,
-              width: ThemeConstants.borderMedium,
+              width: 2.w,
             ),
           ),
           child: buttonChild,
@@ -217,30 +219,30 @@ class AppButton extends StatelessWidget {
     
     switch (size) {
       case ButtonSize.small:
-        return ThemeConstants.heightSm;
+        return 32.h;
       case ButtonSize.medium:
-        return ThemeConstants.heightMd;
+        return 48.h;
       case ButtonSize.large:
-        return ThemeConstants.heightLg;
+        return 56.h;
     }
   }
 
   EdgeInsetsGeometry _getPadding() {
     switch (size) {
       case ButtonSize.small:
-        return const EdgeInsets.symmetric(
-          horizontal: ThemeConstants.space3,
-          vertical: ThemeConstants.space2,
+        return EdgeInsets.symmetric(
+          horizontal: 12.w,
+          vertical: 8.h,
         );
       case ButtonSize.medium:
-        return const EdgeInsets.symmetric(
-          horizontal: ThemeConstants.space4,
-          vertical: ThemeConstants.space3,
+        return EdgeInsets.symmetric(
+          horizontal: 16.w,
+          vertical: 12.h,
         );
       case ButtonSize.large:
-        return const EdgeInsets.symmetric(
-          horizontal: ThemeConstants.space5,
-          vertical: ThemeConstants.space4,
+        return EdgeInsets.symmetric(
+          horizontal: 20.w,
+          vertical: 16.h,
         );
     }
   }
@@ -248,56 +250,58 @@ class AppButton extends StatelessWidget {
   TextStyle _getTextStyle() {
     switch (size) {
       case ButtonSize.small:
-        return AppTextStyles.buttonSmall;
+        return AppTextStyles.buttonSmall.copyWith(fontSize: 12.sp);
       case ButtonSize.medium:
-        return AppTextStyles.button;
+        return AppTextStyles.button.copyWith(fontSize: 14.sp);
       case ButtonSize.large:
-        return AppTextStyles.button.copyWith(fontSize: 18);
+        return AppTextStyles.button.copyWith(fontSize: 18.sp);
     }
   }
 
-factory AppButton.primary({
-  required String text,
-  required VoidCallback? onPressed,
-  IconData? icon,
-  bool isLoading = false,
-  bool isFullWidth = false,
-  ButtonSize size = ButtonSize.medium,
-  Color? backgroundColor, // إضافة معلمة اختيارية للون الخلفية
-}) {
-  return AppButton(
-    text: text,
-    onPressed: onPressed,
-    type: ButtonType.primary,
-    icon: icon,
-    isLoading: isLoading,
-    isFullWidth: isFullWidth,
-    size: size,
-    customColor: backgroundColor, // استخدام اللون المخصص إذا تم تمريره
-  );
-}
-factory AppButton.custom({
-  required String text,
-  required VoidCallback? onPressed,
-  IconData? icon,
-  bool isLoading = false,
-  bool isFullWidth = false,
-  ButtonSize size = ButtonSize.medium,
-  Color? backgroundColor,
-  Color? textColor,
-}) {
-  return AppButton(
-    text: text,
-    onPressed: onPressed,
-    type: ButtonType.primary,
-    icon: icon,
-    isLoading: isLoading,
-    isFullWidth: isFullWidth,
-    size: size,
-    customColor: backgroundColor,
-    textColor: textColor,
-  );
-}
+  factory AppButton.primary({
+    required String text,
+    required VoidCallback? onPressed,
+    IconData? icon,
+    bool isLoading = false,
+    bool isFullWidth = false,
+    ButtonSize size = ButtonSize.medium,
+    Color? backgroundColor,
+  }) {
+    return AppButton(
+      text: text,
+      onPressed: onPressed,
+      type: ButtonType.primary,
+      icon: icon,
+      isLoading: isLoading,
+      isFullWidth: isFullWidth,
+      size: size,
+      customColor: backgroundColor,
+    );
+  }
+
+  factory AppButton.custom({
+    required String text,
+    required VoidCallback? onPressed,
+    IconData? icon,
+    bool isLoading = false,
+    bool isFullWidth = false,
+    ButtonSize size = ButtonSize.medium,
+    Color? backgroundColor,
+    Color? textColor,
+  }) {
+    return AppButton(
+      text: text,
+      onPressed: onPressed,
+      type: ButtonType.primary,
+      icon: icon,
+      isLoading: isLoading,
+      isFullWidth: isFullWidth,
+      size: size,
+      customColor: backgroundColor,
+      textColor: textColor,
+    );
+  }
+
   factory AppButton.secondary({
     required String text,
     required VoidCallback? onPressed,

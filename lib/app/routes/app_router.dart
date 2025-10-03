@@ -1,6 +1,7 @@
 // lib/app/routes/app_router.dart - محدث بدون Onboarding
 import 'package:athkar_app/features/asma_allah/screens/asma_allah_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../app/themes/app_theme.dart';
 import '../../features/home/screens/home_screen.dart';
 
@@ -190,44 +191,44 @@ class AppRouter {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 120,
-              height: 120,
+              width: 120.w,
+              height: 120.h,
               decoration: BoxDecoration(
                 color: ThemeConstants.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 _getIconForFeature(title),
-                size: 60,
+                size: 60.sp,
                 color: ThemeConstants.primary,
               ),
             ),
-            const SizedBox(height: ThemeConstants.space5),
-            const Text(
+            SizedBox(height: 20.h),
+            Text(
               'قريباً',
               style: TextStyle(
-                fontSize: 28,
+                fontSize: 28.sp,
                 color: ThemeConstants.primary,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: ThemeConstants.space2),
+            SizedBox(height: 8.h),
             Text(
               title,
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 20.sp,
                 color: Colors.grey[600],
               ),
             ),
-            const SizedBox(height: ThemeConstants.space1),
+            SizedBox(height: 4.h),
             Text(
               'هذه الميزة قيد التطوير',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 16.sp,
                 color: Colors.grey[500],
               ),
             ),
-            const SizedBox(height: ThemeConstants.space6),
+            SizedBox(height: 24.h),
             ElevatedButton.icon(
               onPressed: () {
                 if (_navigatorKey.currentState?.canPop() ?? false) {
@@ -239,12 +240,12 @@ class AppRouter {
               style: ElevatedButton.styleFrom(
                 backgroundColor: ThemeConstants.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: ThemeConstants.space4,
-                  vertical: ThemeConstants.space3,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 16.w,
+                  vertical: 12.h,
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
               ),
             ),
@@ -261,62 +262,62 @@ class AppRouter {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 120,
-              height: 120,
+              width: 120.w,
+              height: 120.h,
               decoration: BoxDecoration(
                 color: ThemeConstants.error.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.error_outline,
-                size: 60,
+                size: 60.sp,
                 color: ThemeConstants.error,
               ),
             ),
-            const SizedBox(height: ThemeConstants.space5),
-            const Text(
+            SizedBox(height: 20.h),
+            Text(
               '404',
               style: TextStyle(
-                fontSize: 48,
+                fontSize: 48.sp,
                 color: ThemeConstants.error,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: ThemeConstants.space2),
-            const Text(
+            SizedBox(height: 8.h),
+            Text(
               'الصفحة غير موجودة',
-              style: TextStyle(fontSize: 20),
+              style: TextStyle(fontSize: 20.sp),
             ),
-            const SizedBox(height: ThemeConstants.space1),
+            SizedBox(height: 4.h),
             Text(
               'لم نتمكن من العثور على الصفحة المطلوبة',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 16.sp,
                 color: Colors.grey[600],
               ),
             ),
             if (routeName != null) ...[
-              const SizedBox(height: ThemeConstants.space2),
+              SizedBox(height: 8.h),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: ThemeConstants.space3,
-                  vertical: ThemeConstants.space1,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 12.w,
+                  vertical: 4.h,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.grey.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(ThemeConstants.radiusFull),
+                  borderRadius: BorderRadius.circular(999.r),
                 ),
                 child: Text(
                   routeName,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 12.sp,
                     color: Colors.grey[500],
                     fontFamily: 'monospace',
                   ),
                 ),
               ),
             ],
-            const SizedBox(height: ThemeConstants.space6),
+            SizedBox(height: 24.h),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -331,16 +332,16 @@ class AppRouter {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: ThemeConstants.primary,
                     side: const BorderSide(color: ThemeConstants.primary),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: ThemeConstants.space4,
-                      vertical: ThemeConstants.space3,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 12.h,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                      borderRadius: BorderRadius.circular(12.r),
                     ),
                   ),
                 ),
-                const SizedBox(width: ThemeConstants.space3),
+                SizedBox(width: 12.w),
                 ElevatedButton.icon(
                   onPressed: () => _navigatorKey.currentState!
                       .pushNamedAndRemoveUntil(home, (route) => false),
@@ -349,12 +350,12 @@ class AppRouter {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: ThemeConstants.primary,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: ThemeConstants.space4,
-                      vertical: ThemeConstants.space3,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 12.h,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                      borderRadius: BorderRadius.circular(12.r),
                     ),
                   ),
                 ),
@@ -378,28 +379,28 @@ class AppRouter {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 100,
-              height: 100,
+              width: 100.w,
+              height: 100.h,
               decoration: BoxDecoration(
                 color: ThemeConstants.error.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.error_outline,
-                size: 50,
+                size: 50.sp,
                 color: ThemeConstants.error,
               ),
             ),
-            const SizedBox(height: ThemeConstants.space4),
+            SizedBox(height: 16.h),
             Text(
               message,
-              style: const TextStyle(
-                fontSize: 18,
+              style: TextStyle(
+                fontSize: 18.sp,
                 color: ThemeConstants.error,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: ThemeConstants.space6),
+            SizedBox(height: 24.h),
             ElevatedButton.icon(
               onPressed: () {
                 if (_navigatorKey.currentState?.canPop() ?? false) {
@@ -411,12 +412,12 @@ class AppRouter {
               style: ElevatedButton.styleFrom(
                 backgroundColor: ThemeConstants.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: ThemeConstants.space4,
-                  vertical: ThemeConstants.space3,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 16.w,
+                  vertical: 12.h,
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
               ),
             ),

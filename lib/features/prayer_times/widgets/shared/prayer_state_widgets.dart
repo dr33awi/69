@@ -1,6 +1,7 @@
 // lib/features/prayer_times/widgets/shared/prayer_state_widgets.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../app/themes/app_theme.dart';
 import '../../utils/prayer_utils.dart';
 
@@ -19,25 +20,26 @@ class PrayerLoadingWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (isCompact) {
       return Container(
-        padding: const EdgeInsets.all(ThemeConstants.space3),
+        padding: EdgeInsets.all(12.w),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(
-              width: 20,
-              height: 20,
+              width: 20.w,
+              height: 20.h,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
                 valueColor: AlwaysStoppedAnimation<Color>(context.primaryColor),
               ),
             ),
             if (message != null) ...[
-              ThemeConstants.space2.w,
+              SizedBox(width: 8.w),
               Text(
                 message!,
                 style: context.labelMedium?.copyWith(
                   color: context.textSecondaryColor,
+                  fontSize: context.labelMedium?.fontSize?.sp,
                 ),
               ),
             ],
@@ -53,12 +55,13 @@ class PrayerLoadingWidget extends StatelessWidget {
         children: [
           AppLoading.circular(size: LoadingSize.large),
           if (message != null) ...[
-            ThemeConstants.space4.h,
+            SizedBox(height: 16.h),
             Text(
               message!,
               style: context.bodyLarge?.copyWith(
                 fontWeight: ThemeConstants.medium,
                 color: context.textSecondaryColor,
+                fontSize: context.bodyLarge?.fontSize?.sp,
               ),
               textAlign: TextAlign.center,
             ),
@@ -93,10 +96,10 @@ class PrayerErrorWidget extends StatelessWidget {
     
     if (isCompact) {
       return Container(
-        padding: const EdgeInsets.all(ThemeConstants.space3),
+        padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
           color: context.cardColor,
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+          borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
             color: ThemeConstants.error.withValues(alpha: 0.3),
           ),
@@ -109,21 +112,22 @@ class PrayerErrorWidget extends StatelessWidget {
                 Icon(
                   _getErrorIcon(errorType),
                   color: ThemeConstants.error,
-                  size: ThemeConstants.iconMd,
+                  size: 24.sp,
                 ),
-                ThemeConstants.space2.w,
+                SizedBox(width: 8.w),
                 Expanded(
                   child: Text(
                     errorMessage,
                     style: context.bodyMedium?.copyWith(
                       color: ThemeConstants.error,
+                      fontSize: context.bodyMedium?.fontSize?.sp,
                     ),
                   ),
                 ),
               ],
             ),
             if (onRetry != null) ...[
-              ThemeConstants.space2.h,
+              SizedBox(height: 8.h),
               SizedBox(
                 width: double.infinity,
                 child: AppButton.primary(
@@ -142,27 +146,27 @@ class PrayerErrorWidget extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(ThemeConstants.space4),
+        padding: EdgeInsets.all(16.w),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
             // الأيقونة
             Container(
-              width: 80,
-              height: 80,
+              width: 80.w,
+              height: 80.h,
               decoration: BoxDecoration(
                 color: ThemeConstants.error.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 _getErrorIcon(errorType),
-                size: 40,
+                size: 40.sp,
                 color: ThemeConstants.error,
               ),
             ),
             
-            ThemeConstants.space4.h,
+            SizedBox(height: 16.h),
             
             // العنوان
             Text(
@@ -170,22 +174,24 @@ class PrayerErrorWidget extends StatelessWidget {
               style: context.titleLarge?.copyWith(
                 color: ThemeConstants.error,
                 fontWeight: ThemeConstants.bold,
+                fontSize: context.titleLarge?.fontSize?.sp,
               ),
               textAlign: TextAlign.center,
             ),
             
-            ThemeConstants.space2.h,
+            SizedBox(height: 8.h),
             
             // الرسالة
             Text(
               errorMessage,
               style: context.bodyMedium?.copyWith(
                 color: context.textSecondaryColor,
+                fontSize: context.bodyMedium?.fontSize?.sp,
               ),
               textAlign: TextAlign.center,
             ),
             
-            ThemeConstants.space4.h,
+            SizedBox(height: 16.h),
             
             // الأزرار
             _buildActionButtons(context, errorType),
@@ -213,7 +219,7 @@ class PrayerErrorWidget extends StatelessWidget {
           ),
         
         if (showSettings && (errorType == ErrorType.permission || errorType == ErrorType.locationService)) ...[
-          if (onRetry != null) ThemeConstants.space3.w,
+          if (onRetry != null) SizedBox(width: 12.w),
           Expanded(
             child: AppButton.outline(
               text: 'الإعدادات',
@@ -293,40 +299,42 @@ class PrayerEmptyWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(ThemeConstants.space4),
+        padding: EdgeInsets.all(16.w),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon ?? Icons.inbox_outlined,
-              size: 64,
+              size: 64.sp,
               color: context.textSecondaryColor.withValues(alpha: 0.5),
             ),
             
-            ThemeConstants.space4.h,
+            SizedBox(height: 16.h),
             
             Text(
               title ?? 'لا توجد بيانات',
               style: context.titleLarge?.copyWith(
                 fontWeight: ThemeConstants.semiBold,
+                fontSize: context.titleLarge?.fontSize?.sp,
               ),
               textAlign: TextAlign.center,
             ),
             
             if (message != null) ...[
-              ThemeConstants.space2.h,
+              SizedBox(height: 8.h),
               Text(
                 message!,
                 style: context.bodyMedium?.copyWith(
                   color: context.textSecondaryColor,
+                  fontSize: context.bodyMedium?.fontSize?.sp,
                 ),
                 textAlign: TextAlign.center,
               ),
             ],
             
             if (onAction != null && actionText != null) ...[
-              ThemeConstants.space4.h,
+              SizedBox(height: 16.h),
               AppButton.primary(
                 text: actionText!,
                 onPressed: onAction!,
@@ -384,25 +392,25 @@ class _RetryButtonState extends State<RetryButton> {
     return ElevatedButton.icon(
       onPressed: isLoading ? null : _handleRetry,
       icon: isLoading
-          ? const SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(
+          ? SizedBox(
+              width: 18.w,
+              height: 18.h,
+              child: const CircularProgressIndicator(
                 strokeWidth: 2,
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
               ),
             )
-          : const Icon(Icons.refresh, size: 20),
+          : Icon(Icons.refresh, size: 20.sp),
       label: Text(isLoading ? 'جاري المحاولة...' : widget.text),
       style: ElevatedButton.styleFrom(
         backgroundColor: ThemeConstants.primary,
         foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(
-          horizontal: ThemeConstants.space4,
-          vertical: ThemeConstants.space3,
+        padding: EdgeInsets.symmetric(
+          horizontal: 16.w,
+          vertical: 12.h,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+          borderRadius: BorderRadius.circular(12.r),
         ),
       ),
     );

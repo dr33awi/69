@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import '../../../app/themes/app_theme.dart';
@@ -57,13 +58,13 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
     
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: ThemeConstants.space4,
-        vertical: ThemeConstants.space4,
+        horizontal: 16.w,
+        vertical: 16.h,
       ),
       decoration: BoxDecoration(
         color: context.backgroundColor,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(ThemeConstants.radiusXl),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(20.r),
         ),
       ),
       child: Column(
@@ -71,12 +72,12 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
         children: [
           // Handle bar
           Container(
-            width: 40,
-            height: 4,
-            margin: EdgeInsets.only(bottom: ThemeConstants.space4),
+            width: 40.w,
+            height: 4.h,
+            margin: EdgeInsets.only(bottom: 16.h),
             decoration: BoxDecoration(
               color: context.dividerColor,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(2.r),
             ),
           ),
           
@@ -85,7 +86,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(ThemeConstants.space2),
+                padding: EdgeInsets.all(8.w),
                 decoration: BoxDecoration(
                   color: ThemeConstants.warning.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
@@ -93,28 +94,29 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                 child: Icon(
                   Icons.explore_rounded,
                   color: ThemeConstants.warning,
-                  size: ThemeConstants.iconMd,
+                  size: 24.sp,
                 ),
               ),
-              ThemeConstants.space3.w,
+              SizedBox(width: 12.w),
               Text(
                 'معايرة البوصلة',
                 style: context.titleLarge?.copyWith(
                   fontWeight: ThemeConstants.bold,
+                  fontSize: context.titleLarge?.fontSize?.sp,
                 ),
               ),
             ],
           ),
           
-          ThemeConstants.space4.h,
+          SizedBox(height: 16.h),
           
           // Warning message
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(ThemeConstants.space3),
+            padding: EdgeInsets.all(12.w),
             decoration: BoxDecoration(
               color: ThemeConstants.warning.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(12.r),
               border: Border.all(
                 color: ThemeConstants.warning.withValues(alpha: 0.3),
               ),
@@ -124,15 +126,16 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                 Icon(
                   Icons.warning_amber_rounded,
                   color: ThemeConstants.warning,
-                  size: ThemeConstants.iconMd,
+                  size: 24.sp,
                 ),
-                ThemeConstants.space2.w,
+                SizedBox(width: 8.w),
                 Expanded(
                   child: Text(
                     'البوصلة تحتاج إلى معايرة',
                     style: context.bodyLarge?.copyWith(
                       color: ThemeConstants.warning,
                       fontWeight: FontWeight.w600,
+                      fontSize: context.bodyLarge?.fontSize?.sp,
                     ),
                   ),
                 ),
@@ -140,14 +143,14 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
             ),
           ),
           
-          ThemeConstants.space4.h,
+          SizedBox(height: 16.h),
           
           // Accuracy indicator
           Container(
-            padding: const EdgeInsets.all(ThemeConstants.space3),
+            padding: EdgeInsets.all(12.w),
             decoration: BoxDecoration(
               color: context.cardColor,
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(12.r),
             ),
             child: Column(
               children: [
@@ -156,45 +159,48 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                   children: [
                     Text(
                       'دقة البوصلة:',
-                      style: context.bodyLarge,
+                      style: context.bodyLarge?.copyWith(
+                        fontSize: context.bodyLarge?.fontSize?.sp,
+                      ),
                     ),
                     Text(
                       '$accuracyPercentage%',
                       style: context.titleMedium?.copyWith(
                         color: accuracyColor,
                         fontWeight: FontWeight.bold,
+                        fontSize: context.titleMedium?.fontSize?.sp,
                       ),
                     ),
                   ],
                 ),
-                ThemeConstants.space3.h,
+                SizedBox(height: 12.h),
                 LinearProgressIndicator(
                   value: accuracyPercentage / 100,
                   backgroundColor: context.dividerColor.withValues(alpha: 0.3),
                   valueColor: AlwaysStoppedAnimation<Color>(accuracyColor),
-                  minHeight: 8,
-                  borderRadius: BorderRadius.circular(4),
+                  minHeight: 8.h,
+                  borderRadius: BorderRadius.circular(4.r),
                 ),
               ],
             ),
           ),
           
-          ThemeConstants.space5.h,
+          SizedBox(height: 20.h),
           
           // Phone animation with figure-8 motion
           Container(
-            height: 150,
+            height: 150.h,
             width: double.infinity,
             decoration: BoxDecoration(
               color: context.cardColor.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(12.r),
             ),
             child: Stack(
               alignment: Alignment.center,
               children: [
                 // Figure-8 background
                 CustomPaint(
-                  size: const Size(240, 100),
+                  size: Size(240.w, 100.h),
                   painter: Figure8BackgroundPainter(
                     color: ThemeConstants.primary.withValues(alpha: 0.4),
                   ),
@@ -204,8 +210,8 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                   animation: _figure8Animation,
                   builder: (context, child) {
                     final t = _figure8Animation.value;
-                    final x = math.sin(t) * 75;
-                    final y = math.sin(2 * t) * 30;
+                    final x = math.sin(t) * 75.w;
+                    final y = math.sin(2 * t) * 30.h;
                     final tilt = math.sin(t) * 0.2;
                     
                     return Transform.translate(
@@ -224,17 +230,18 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
             ),
           ),
           
-          ThemeConstants.space5.h,
+          SizedBox(height: 20.h),
           
           // Instructions title
           Text(
             'كيفية معايرة البوصلة:',
             style: context.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
+              fontSize: context.titleMedium?.fontSize?.sp,
             ),
           ),
           
-          ThemeConstants.space3.h,
+          SizedBox(height: 12.h),
           
           // Calibration steps
           _buildCalibrationStep(
@@ -262,7 +269,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
             icon: Icons.check_circle_outline,
           ),
           
-          ThemeConstants.space6.h,
+          SizedBox(height: 24.h),
           
           // Action buttons
           Row(
@@ -272,22 +279,24 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                   onPressed: () => Navigator.of(context).pop(),
                   style: OutlinedButton.styleFrom(
                     padding: EdgeInsets.symmetric(
-                      vertical: ThemeConstants.space3,
+                      vertical: 12.h,
                     ),
                     side: BorderSide(
                       color: context.dividerColor,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                      borderRadius: BorderRadius.circular(12.r),
                     ),
                   ),
                   child: Text(
                     'إغلاق',
-                    style: context.bodyLarge,
+                    style: context.bodyLarge?.copyWith(
+                      fontSize: context.bodyLarge?.fontSize?.sp,
+                    ),
                   ),
                 ),
               ),
-              ThemeConstants.space3.w,
+              SizedBox(width: 12.w),
               Expanded(
                 flex: 2,
                 child: ElevatedButton(
@@ -299,17 +308,17 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                   style: ElevatedButton.styleFrom(
                     backgroundColor: ThemeConstants.primary,
                     padding: EdgeInsets.symmetric(
-                      vertical: ThemeConstants.space3,
+                      vertical: 12.h,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                      borderRadius: BorderRadius.circular(12.r),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'بدء المعايرة',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 16,
+                      fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -334,12 +343,12 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
     final bool isStep2 = number == '2';
     
     return Container(
-      margin: EdgeInsets.only(bottom: ThemeConstants.space3),
+      margin: EdgeInsets.only(bottom: 12.h),
       child: Row(
         children: [
           Container(
-            width: 32,
-            height: 32,
+            width: 32.w,
+            height: 32.h,
             decoration: BoxDecoration(
               color: context.cardColor,
               shape: BoxShape.circle,
@@ -353,31 +362,34 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                 style: context.bodyMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: ThemeConstants.primary,
+                  fontSize: context.bodyMedium?.fontSize?.sp,
                 ),
               ),
             ),
           ),
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
           if (isStep2) ...[
             CustomPaint(
-              size: const Size(30, 15),
+              size: Size(30.w, 15.h),
               painter: SmallFigure8Painter(
                 color: ThemeConstants.primary,
               ),
             ),
-            ThemeConstants.space2.w,
+            SizedBox(width: 8.w),
           ] else ...[
             Icon(
               icon,
-              size: ThemeConstants.iconSm,
+              size: 20.sp,
               color: context.textSecondaryColor,
             ),
-            ThemeConstants.space2.w,
+            SizedBox(width: 8.w),
           ],
           Expanded(
             child: Text(
               text,
-              style: context.bodyMedium,
+              style: context.bodyMedium?.copyWith(
+                fontSize: context.bodyMedium?.fontSize?.sp,
+              ),
             ),
           ),
         ],
@@ -399,8 +411,8 @@ class PhoneAnimationWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 90,
-      height: 55,
+      width: 90.w,
+      height: 55.h,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -410,7 +422,7 @@ class PhoneAnimationWidget extends StatelessWidget {
             ThemeConstants.primaryDark,
           ],
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(
             color: ThemeConstants.primary.withValues(alpha: 0.5),
@@ -427,14 +439,14 @@ class PhoneAnimationWidget extends StatelessWidget {
       child: Stack(
         children: [
           Positioned(
-            top: 7,
-            left: 12,
-            right: 12,
-            bottom: 7,
+            top: 7.h,
+            left: 12.w,
+            right: 12.w,
+            bottom: 7.h,
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(8.r),
                 border: Border.all(
                   color: Colors.black.withValues(alpha: 0.1),
                   width: 0.5,
@@ -446,18 +458,18 @@ class PhoneAnimationWidget extends StatelessWidget {
                   Icon(
                     Icons.explore,
                     color: ThemeConstants.primary,
-                    size: 20,
+                    size: 20.sp,
                   ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: 10.w),
                   ...List.generate(3, (index) => Container(
-                    width: 3,
-                    height: 14 - (index * 2),
-                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    width: 3.w,
+                    height: (14 - (index * 2)).h,
+                    margin: EdgeInsets.symmetric(horizontal: 2.w),
                     decoration: BoxDecoration(
                       color: ThemeConstants.primary.withValues(
                         alpha: 0.7 - (index * 0.2),
                       ),
-                      borderRadius: BorderRadius.circular(2),
+                      borderRadius: BorderRadius.circular(2.r),
                     ),
                   )),
                 ],
@@ -465,13 +477,13 @@ class PhoneAnimationWidget extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: 2,
+            top: 2.h,
             left: 0,
             right: 0,
             child: Center(
               child: Container(
-                width: 5,
-                height: 5,
+                width: 5.w,
+                height: 5.h,
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.9),
                   shape: BoxShape.circle,
@@ -480,41 +492,41 @@ class PhoneAnimationWidget extends StatelessWidget {
             ),
           ),
           Positioned(
-            right: 4,
+            right: 4.w,
             top: 0,
             bottom: 0,
             child: Center(
               child: Container(
-                width: 4,
-                height: 22,
+                width: 4.w,
+                height: 22.h,
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(2.r),
                 ),
               ),
             ),
           ),
           Positioned(
-            left: 4,
-            top: 14,
+            left: 4.w,
+            top: 14.h,
             child: Container(
-              width: 3,
-              height: 10,
+              width: 3.w,
+              height: 10.h,
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(2.r),
               ),
             ),
           ),
           Positioned(
-            left: 4,
-            bottom: 14,
+            left: 4.w,
+            bottom: 14.h,
             child: Container(
-              width: 3,
-              height: 10,
+              width: 3.w,
+              height: 10.h,
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(2.r),
               ),
             ),
           ),
@@ -748,7 +760,7 @@ class _CalibrationProgressDialogState extends State<CalibrationProgressDialog>
           onWillPop: () async => !qiblaService.isCalibrating,
           child: AlertDialog(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+              borderRadius: BorderRadius.circular(20.r),
             ),
             title: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -761,7 +773,7 @@ class _CalibrationProgressDialogState extends State<CalibrationProgressDialog>
                       ? ThemeConstants.success
                       : ThemeConstants.primary,
                 ),
-                ThemeConstants.space2.w,
+                SizedBox(width: 8.w),
                 Text(
                   qiblaService.calibrationProgress >= 100
                       ? 'اكتملت المعايرة!'
@@ -774,17 +786,17 @@ class _CalibrationProgressDialogState extends State<CalibrationProgressDialog>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  height: 150,
-                  width: 280,
+                  height: 150.h,
+                  width: 280.w,
                   decoration: BoxDecoration(
                     color: context.cardColor.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                    borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
                       CustomPaint(
-                        size: const Size(240, 100),
+                        size: Size(240.w, 100.h),
                         painter: Figure8BackgroundPainter(
                           color: qiblaService.calibrationProgress >= 100
                               ? ThemeConstants.success.withValues(alpha: 0.4)
@@ -796,8 +808,8 @@ class _CalibrationProgressDialogState extends State<CalibrationProgressDialog>
                           animation: _figure8Animation,
                           builder: (context, child) {
                             final t = _figure8Animation.value;
-                            final x = math.sin(t) * 75;
-                            final y = math.sin(2 * t) * 30;
+                            final x = math.sin(t) * 75.w;
+                            final y = math.sin(2 * t) * 30.h;
                             final tilt = math.sin(t) * 0.2;
                             
                             return Transform.translate(
@@ -818,7 +830,7 @@ class _CalibrationProgressDialogState extends State<CalibrationProgressDialog>
                   ),
                 ),
                 
-                ThemeConstants.space4.h,
+                SizedBox(height: 16.h),
                 
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
@@ -833,17 +845,18 @@ class _CalibrationProgressDialogState extends State<CalibrationProgressDialog>
                       color: qiblaService.calibrationProgress >= 100
                           ? ThemeConstants.success
                           : context.textPrimaryColor,
+                      fontSize: context.bodyLarge?.fontSize?.sp,
                     ),
                   ),
                 ),
                 
-                ThemeConstants.space3.h,
+                SizedBox(height: 12.h),
                 
                 if (qiblaService.calibrationProgress >= 100)
                   Icon(
                     Icons.check_circle,
                     color: ThemeConstants.success,
-                    size: ThemeConstants.iconLg,
+                    size: 32.sp,
                   ),
               ],
             ),

@@ -1,5 +1,6 @@
 // lib/features/tasbih/widgets/tasbih_counter_ring.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:math' as math;
 
 /// ويدجت الحلقة الدائرية لعرض التقدم
@@ -144,7 +145,7 @@ class _CounterRingPainter extends CustomPainter {
         
         canvas.drawCircle(
           Offset(endX, endY),
-          strokeWidth / 2 + 2,
+          strokeWidth / 2 + 2.w,
           dotPaint,
         );
         
@@ -155,7 +156,7 @@ class _CounterRingPainter extends CustomPainter {
         
         canvas.drawCircle(
           Offset(endX, endY),
-          strokeWidth / 2 + 6,
+          strokeWidth / 2 + 6.w,
           haloPaint,
         );
       }

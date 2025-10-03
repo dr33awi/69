@@ -1,6 +1,7 @@
 // lib/features/settings/widgets/settings_tile.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
 
 /// عنصر في قسم الإعدادات
@@ -58,9 +59,9 @@ class _SettingsTileState extends State<SettingsTile> {
   @override
   Widget build(BuildContext context) {
     final effectiveIconColor = widget.iconColor ?? context.primaryColor;
-    final effectivePadding = widget.padding ?? const EdgeInsets.symmetric(
-      horizontal: ThemeConstants.space4,
-      vertical: ThemeConstants.space4,
+    final effectivePadding = widget.padding ?? EdgeInsets.symmetric(
+      horizontal: 16.w,
+      vertical: 16.h,
     );
 
     return Opacity(
@@ -72,7 +73,7 @@ class _SettingsTileState extends State<SettingsTile> {
           onTapDown: _handleTapDown,
           onTapUp: _handleTapUp,
           onTapCancel: _handleTapCancel,
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+          borderRadius: BorderRadius.circular(20.r),
           splashColor: effectiveIconColor.withValues(alpha: 0.1),
           highlightColor: effectiveIconColor.withValues(alpha: 0.05),
           child: Padding(
@@ -81,10 +82,10 @@ class _SettingsTileState extends State<SettingsTile> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 _buildIcon(context, effectiveIconColor),
-                ThemeConstants.space4.w,
+                SizedBox(width: 16.w),
                 Expanded(child: _buildContent(context)),
                 if (widget.trailing != null) ...[
-                  ThemeConstants.space3.w,
+                  SizedBox(width: 12.w),
                   widget.trailing!,
                 ],
               ],
@@ -97,20 +98,20 @@ class _SettingsTileState extends State<SettingsTile> {
 
   Widget _buildIcon(BuildContext context, Color iconColor) {
     return Container(
-      width: 48,
-      height: 48,
+      width: 48.w,
+      height: 48.h,
       decoration: BoxDecoration(
         color: widget.enabled 
             ? iconColor.withValues(alpha: _isPressed ? 0.2 : 0.1)
             : context.textSecondaryColor.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+        borderRadius: BorderRadius.circular(12.r),
       ),
       child: Icon(
         widget.icon,
         color: widget.enabled 
             ? iconColor
             : context.textSecondaryColor.withValues(alpha: 0.5),
-        size: ThemeConstants.iconMd,
+        size: 24.sp,
       ),
     );
   }
@@ -128,12 +129,13 @@ class _SettingsTileState extends State<SettingsTile> {
                 : context.textSecondaryColor.withValues(alpha: 0.7),
             fontWeight: ThemeConstants.medium,
             height: 1.2,
+            fontSize: context.titleMedium?.fontSize?.sp,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         if (widget.subtitle != null) ...[
-          ThemeConstants.space1.h,
+          SizedBox(height: 4.h),
           Text(
             widget.subtitle!,
             style: context.bodySmall?.copyWith(
@@ -141,6 +143,7 @@ class _SettingsTileState extends State<SettingsTile> {
                   ? context.textSecondaryColor
                   : context.textSecondaryColor.withValues(alpha: 0.5),
               height: 1.3,
+              fontSize: context.bodySmall?.fontSize?.sp,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,

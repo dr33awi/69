@@ -1,5 +1,6 @@
 // lib/features/settings/widgets/settings_section.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
 
 /// قسم في شاشة الإعدادات
@@ -31,12 +32,12 @@ class SettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveMargin = margin ?? const EdgeInsets.symmetric(
-      horizontal: ThemeConstants.space4,
-      vertical: ThemeConstants.space3,
+    final effectiveMargin = margin ?? EdgeInsets.symmetric(
+      horizontal: 16.w,
+      vertical: 12.h,
     );
 
-    final effectiveBorderRadius = BorderRadius.circular(ThemeConstants.radiusXl);
+    final effectiveBorderRadius = BorderRadius.circular(20.r);
 
     return Container(
       margin: effectiveMargin,
@@ -46,8 +47,8 @@ class SettingsSection extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
             spreadRadius: -2,
           ),
         ],
@@ -65,7 +66,7 @@ class SettingsSection extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     final effectiveTitleColor = titleColor ?? context.primaryColor;
     final effectiveIconColor = iconColor ?? context.primaryColor;
-    final effectivePadding = padding ?? const EdgeInsets.all(ThemeConstants.space4);
+    final effectivePadding = padding ?? EdgeInsets.all(16.w);
 
     return Container(
       padding: effectivePadding,
@@ -74,18 +75,18 @@ class SettingsSection extends StatelessWidget {
           // أيقونة القسم
           if (icon != null) ...[
             Container(
-              padding: const EdgeInsets.all(ThemeConstants.space2),
+              padding: EdgeInsets.all(8.w),
               decoration: BoxDecoration(
                 color: effectiveIconColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                borderRadius: BorderRadius.circular(12.r),
               ),
               child: Icon(
                 icon,
-                size: ThemeConstants.iconSm,
+                size: 20.sp,
                 color: effectiveIconColor,
               ),
             ),
-            ThemeConstants.space3.w,
+            SizedBox(width: 12.w),
           ],
           
           // العنوان والعنوان الفرعي
@@ -99,15 +100,17 @@ class SettingsSection extends StatelessWidget {
                     color: effectiveTitleColor,
                     fontWeight: ThemeConstants.bold,
                     height: 1.2,
+                    fontSize: context.titleMedium?.fontSize?.sp,
                   ),
                 ),
                 if (subtitle != null) ...[
-                  ThemeConstants.space1.h,
+                  SizedBox(height: 4.h),
                   Text(
                     subtitle!,
                     style: context.bodySmall?.copyWith(
                       color: context.textSecondaryColor,
                       height: 1.3,
+                      fontSize: context.bodySmall?.fontSize?.sp,
                     ),
                   ),
                 ],
@@ -129,8 +132,8 @@ class SettingsSection extends StatelessWidget {
         // خط فاصل بين الهيدر والمحتوى
         if (showDividers)
           Divider(
-            height: 1,
-            thickness: 1,
+            height: 1.h,
+            thickness: 1.h,
             color: context.dividerColor.withValues(alpha: 0.3),
             indent: 0,
             endIndent: 0,
@@ -149,10 +152,10 @@ class SettingsSection extends StatelessWidget {
                 // خط فاصل بين العناصر
                 if (!isLast && showDividers)
                   Divider(
-                    height: 1,
-                    thickness: 1,
-                    indent: ThemeConstants.space6,
-                    endIndent: ThemeConstants.space6,
+                    height: 1.h,
+                    thickness: 1.h,
+                    indent: 24.w,
+                    endIndent: 24.w,
                     color: context.dividerColor.withValues(alpha: 0.3),
                   ),
               ],

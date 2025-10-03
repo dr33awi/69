@@ -1,6 +1,8 @@
+// ========== app_bar.dart ==========
 // lib/app/themes/widgets/layout/app_bar.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../theme_constants.dart';
 import '../../text_styles.dart';
 
@@ -52,7 +54,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => Size.fromHeight(
-    (toolbarHeight ?? ThemeConstants.appBarHeight) + 
+    (toolbarHeight ?? 56.h) + 
     (bottom?.preferredSize.height ?? 0)
   );
 
@@ -72,12 +74,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     // نمط النص الافتراضي للعنوان
     final defaultTitleStyle = titleTextStyle ?? AppTextStyles.h4.copyWith(
       color: defaultForegroundColor,
+      fontSize: 20.sp,
     );
 
     // أيقونات افتراضية
     final defaultIconTheme = iconTheme ?? IconThemeData(
       color: defaultForegroundColor,
-      size: ThemeConstants.iconMd,
+      size: 24.sp,
     );
 
     return AppBar(
@@ -217,7 +220,7 @@ class AppBackButton extends StatelessWidget {
       icon: Icon(
         Icons.arrow_back_ios_rounded,
         color: color,
-        size: size ?? ThemeConstants.iconMd,
+        size: size ?? 24.sp,
       ),
       onPressed: () {
         HapticFeedback.lightImpact();
@@ -253,7 +256,7 @@ class AppMenuButton extends StatelessWidget {
       icon: Icon(
         Icons.menu_rounded,
         color: color,
-        size: size ?? ThemeConstants.iconMd,
+        size: size ?? 24.sp,
       ),
       onPressed: () {
         HapticFeedback.lightImpact();
@@ -293,7 +296,7 @@ class AppBarAction extends StatelessWidget {
       alignment: Alignment.center,
       children: [
         IconButton(
-          icon: Icon(icon, color: color),
+          icon: Icon(icon, color: color, size: 24.sp),
           onPressed: () {
             HapticFeedback.lightImpact();
             onPressed();
@@ -302,23 +305,23 @@ class AppBarAction extends StatelessWidget {
         ),
         if (badge != null)
           Positioned(
-            top: 8,
-            right: 8,
+            top: 8.h,
+            right: 8.w,
             child: Container(
-              padding: const EdgeInsets.all(2),
+              padding: EdgeInsets.all(2.w),
               decoration: BoxDecoration(
                 color: badgeColor ?? ThemeConstants.error,
                 shape: BoxShape.circle,
               ),
-              constraints: const BoxConstraints(
-                minWidth: 16,
-                minHeight: 16,
+              constraints: BoxConstraints(
+                minWidth: 16.w,
+                minHeight: 16.h,
               ),
               child: Text(
                 badge!,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 10,
+                  fontSize: 10.sp,
                   fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.center,

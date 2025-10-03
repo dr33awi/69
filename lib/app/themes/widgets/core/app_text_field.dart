@@ -1,6 +1,8 @@
+// ========== app_text_field.dart ==========
 // lib/app/themes/widgets/core/app_text_field.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../theme_constants.dart';
 import '../../text_styles.dart';
 
@@ -243,6 +245,7 @@ class _AppTextFieldState extends State<AppTextField> {
       inputFormatters: widget.inputFormatters ?? _getInputFormatters(),
       style: AppTextStyles.body1.copyWith(
         color: widget.enabled ? theme.textTheme.bodyLarge?.color : theme.disabledColor,
+        fontSize: 14.sp,
       ),
       decoration: InputDecoration(
         labelText: widget.label,
@@ -255,10 +258,10 @@ class _AppTextFieldState extends State<AppTextField> {
             ? theme.inputDecorationTheme.fillColor 
             : theme.disabledColor.withValues(alpha: 0.05)),
         contentPadding: widget.contentPadding ?? EdgeInsets.symmetric(
-          horizontal: ThemeConstants.space4,
+          horizontal: 16.w,
           vertical: widget.type == TextFieldType.multiline 
-              ? ThemeConstants.space4 
-              : ThemeConstants.space3,
+              ? 16.h
+              : 12.h,
         ),
         prefixIcon: _buildPrefixIcon(),
         suffixIcon: _buildSuffixIcon(),
@@ -292,7 +295,7 @@ class _AppTextFieldState extends State<AppTextField> {
         return null;
     }
     
-    return Icon(icon, size: ThemeConstants.iconMd);
+    return Icon(icon, size: 24.sp);
   }
 
   Widget? _buildSuffixIcon() {
@@ -302,7 +305,7 @@ class _AppTextFieldState extends State<AppTextField> {
       return IconButton(
         icon: Icon(
           _obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-          size: ThemeConstants.iconMd,
+          size: 24.sp,
         ),
         onPressed: _togglePasswordVisibility,
         tooltip: _obscureText ? 'إظهار كلمة المرور' : 'إخفاء كلمة المرور',
@@ -311,7 +314,7 @@ class _AppTextFieldState extends State<AppTextField> {
     
     if (widget.type == TextFieldType.search && widget.controller?.text.isNotEmpty == true) {
       return IconButton(
-        icon: const Icon(Icons.clear, size: ThemeConstants.iconSm),
+        icon: Icon(Icons.clear, size: 20.sp),
         onPressed: () {
           widget.controller?.clear();
           widget.onChanged?.call('');
@@ -363,40 +366,40 @@ class _AppTextFieldState extends State<AppTextField> {
 
   InputBorder _buildBorder(ThemeData theme) {
     return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(widget.borderRadius ?? ThemeConstants.radiusMd),
+      borderRadius: BorderRadius.circular(widget.borderRadius ?? 12.r),
       borderSide: BorderSide(
         color: widget.borderColor ?? theme.dividerColor,
-        width: ThemeConstants.borderLight,
+        width: 1.w,
       ),
     );
   }
 
   InputBorder _buildFocusedBorder(ThemeData theme) {
     return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(widget.borderRadius ?? ThemeConstants.radiusMd),
+      borderRadius: BorderRadius.circular(widget.borderRadius ?? 12.r),
       borderSide: BorderSide(
         color: widget.focusedBorderColor ?? theme.primaryColor,
-        width: ThemeConstants.borderMedium,
+        width: 2.w,
       ),
     );
   }
 
   InputBorder _buildErrorBorder(ThemeData theme) {
     return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(widget.borderRadius ?? ThemeConstants.radiusMd),
+      borderRadius: BorderRadius.circular(widget.borderRadius ?? 12.r),
       borderSide: BorderSide(
         color: widget.errorBorderColor ?? theme.colorScheme.error,
-        width: ThemeConstants.borderMedium,
+        width: 2.w,
       ),
     );
   }
 
   InputBorder _buildDisabledBorder(ThemeData theme) {
     return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(widget.borderRadius ?? ThemeConstants.radiusMd),
+      borderRadius: BorderRadius.circular(widget.borderRadius ?? 12.r),
       borderSide: BorderSide(
         color: theme.disabledColor.withValues(alpha: 0.2),
-        width: ThemeConstants.borderLight,
+        width: 1.w,
       ),
     );
   }

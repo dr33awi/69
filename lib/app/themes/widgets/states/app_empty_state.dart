@@ -1,5 +1,6 @@
 // lib/app/themes/widgets/states/app_empty_state.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../theme_constants.dart';
 import '../core/app_button.dart';
 
@@ -57,7 +58,7 @@ class AppEmptyState extends StatelessWidget {
     
     return Center(
       child: Padding(
-        padding: padding ?? const EdgeInsets.all(ThemeConstants.space6),
+        padding: padding ?? EdgeInsets.all(24.w),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
@@ -68,41 +69,44 @@ class AppEmptyState extends StatelessWidget {
             else if (imagePath != null)
               Image.asset(
                 imagePath!,
-                width: iconSize ?? 120,
-                height: iconSize ?? 120,
+                width: (iconSize ?? 120).w,
+                height: (iconSize ?? 120).h,
               )
             else
               Container(
-                width: iconSize ?? 100,
-                height: iconSize ?? 100,
+                width: (iconSize ?? 100).w,
+                height: (iconSize ?? 100).h,
                 decoration: BoxDecoration(
                   color: effectiveIconColor?.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   effectiveIcon,
-                  size: (iconSize ?? 100) * 0.5,
+                  size: ((iconSize ?? 100) * 0.5).sp,
                   color: effectiveIconColor,
                 ),
               ),
             
-            const SizedBox(height: ThemeConstants.space5),
+            SizedBox(height: 20.h),
             
             // العنوان
             Text(
               effectiveTitle,
-              style: theme.textTheme.headlineSmall,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontSize: theme.textTheme.headlineSmall?.fontSize?.sp,
+              ),
               textAlign: TextAlign.center,
             ),
             
             // الرسالة
             if (effectiveMessage != null) ...[
-              const SizedBox(height: ThemeConstants.space3),
+              SizedBox(height: 12.h),
               Text(
                 effectiveMessage,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.textTheme.bodySmall?.color,
                   height: 1.5,
+                  fontSize: theme.textTheme.bodyMedium?.fontSize?.sp,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -110,7 +114,7 @@ class AppEmptyState extends StatelessWidget {
             
             // زر الإجراء
             if (showAction && onAction != null && effectiveActionText != null) ...[
-              const SizedBox(height: ThemeConstants.space6),
+              SizedBox(height: 24.h),
               AppButton.primary(
                 text: effectiveActionText,
                 onPressed: onAction!,

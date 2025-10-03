@@ -1,6 +1,8 @@
-// lib/features/dua/screens/dua_categories_screen.dart - محسن ومتناسق مع إصلاح ألوان النوم
+// lib/features/dua/screens/dua_categories_screen.dart - محدث
+// ============================================================================
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../services/dua_service.dart';
@@ -31,7 +33,6 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
     try {
       setState(() => _isLoading = true);
       
-      // تحميل البيانات
       _categories = await _duaService.getCategories();
       
       setState(() => _isLoading = false);
@@ -50,10 +51,7 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // شريط التطبيق المحسن (متناسق مع أسماء الله الحسنى)
             _buildEnhancedAppBar(),
-            
-            // المحتوى الرئيسي
             Expanded(
               child: _isLoading ? _buildLoading() : _buildContent(),
             ),
@@ -65,44 +63,41 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
 
   Widget _buildEnhancedAppBar() {
     return Container(
-      padding: const EdgeInsets.all(ThemeConstants.space4),
+      padding: EdgeInsets.all(16.w),
       child: Row(
         children: [
-          // زر الرجوع (متناسق مع أسماء الله الحسنى)
           AppBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
           
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
           
-          // أيقونة مميزة (نفس ستايل أسماء الله الحسنى)
           Container(
-            padding: const EdgeInsets.all(ThemeConstants.space2),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 colors: [ThemeConstants.primary, ThemeConstants.primaryLight],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(12.r),
               boxShadow: [
                 BoxShadow(
                   color: ThemeConstants.primary.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
+                  blurRadius: 8.r,
+                  offset: Offset(0, 4.h),
                 ),
               ],
             ),
             child: Icon(
               Icons.pan_tool_rounded,
               color: Colors.white,
-              size: ThemeConstants.iconMd,
+              size: 24.sp,
             ),
           ),
           
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
           
-          // معلومات العنوان
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,12 +107,14 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
                   style: context.titleLarge?.copyWith(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
+                    fontSize: 18.sp,
                   ),
                 ),
                 Text(
                   'أدعية من الكتاب والسنة',
                   style: context.bodySmall?.copyWith(
                     color: context.textSecondaryColor,
+                    fontSize: 12.sp,
                   ),
                 ),
               ],
@@ -134,28 +131,30 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(ThemeConstants.space4),
+            padding: EdgeInsets.all(16.w),
             decoration: BoxDecoration(
               color: ThemeConstants.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const CircularProgressIndicator(
+            child: CircularProgressIndicator(
               color: ThemeConstants.primary,
-              strokeWidth: 3,
+              strokeWidth: 3.w,
             ),
           ),
-          ThemeConstants.space4.h,
+          SizedBox(height: 16.h),
           Text(
             'جاري تحميل الأدعية...',
             style: context.titleMedium?.copyWith(
               color: context.textSecondaryColor,
+              fontSize: 16.sp,
             ),
           ),
-          ThemeConstants.space2.h,
+          SizedBox(height: 8.h),
           Text(
             'يرجى الانتظار قليلاً',
             style: context.bodySmall?.copyWith(
               color: context.textSecondaryColor.withOpacity(0.7),
+              fontSize: 12.sp,
             ),
           ),
         ],
@@ -170,41 +169,40 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
 
     return Column(
       children: [
-        // عداد الفئات
         Container(
-          margin: const EdgeInsets.symmetric(
-            horizontal: ThemeConstants.space4,
-            vertical: ThemeConstants.space2,
+          margin: EdgeInsets.symmetric(
+            horizontal: 16.w,
+            vertical: 8.h,
           ),
           child: Row(
             children: [
               Icon(
                 Icons.category_rounded,
-                size: 16,
+                size: 16.sp,
                 color: context.textSecondaryColor,
               ),
-              ThemeConstants.space1.w,
+              SizedBox(width: 4.w),
               Text(
                 'عدد الفئات: ${_categories.length}',
                 style: context.labelMedium?.copyWith(
                   color: context.textSecondaryColor,
+                  fontSize: 14.sp,
                 ),
               ),
             ],
           ),
         ),
         
-        // قائمة الفئات المضغوطة
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.all(ThemeConstants.space4),
+            padding: EdgeInsets.all(16.w),
             physics: const BouncingScrollPhysics(),
             itemCount: _categories.length,
             itemBuilder: (context, index) {
               final category = _categories[index];
               
               return Container(
-                margin: const EdgeInsets.only(bottom: ThemeConstants.space2),
+                margin: EdgeInsets.only(bottom: 8.h),
                 child: _buildCompactCategoryCard(category, index),
               );
             },
@@ -220,45 +218,47 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(ThemeConstants.space6),
+            padding: EdgeInsets.all(24.w),
             decoration: BoxDecoration(
               color: context.textSecondaryColor.withValues(alpha: 0.05),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.menu_book_outlined,
-              size: 60,
+              size: 60.sp,
               color: context.textSecondaryColor.withValues(alpha: 0.5),
             ),
           ),
-          ThemeConstants.space4.h,
+          SizedBox(height: 16.h),
           Text(
             'لا توجد فئات',
             style: context.titleLarge?.copyWith(
               color: context.textSecondaryColor,
               fontWeight: ThemeConstants.bold,
+              fontSize: 20.sp,
             ),
           ),
-          ThemeConstants.space2.h,
+          SizedBox(height: 8.h),
           Text(
             'لم يتم العثور على فئات الأدعية',
             style: context.bodyMedium?.copyWith(
               color: context.textSecondaryColor.withValues(alpha: 0.7),
+              fontSize: 14.sp,
             ),
             textAlign: TextAlign.center,
           ),
-          ThemeConstants.space6.h,
+          SizedBox(height: 24.h),
           ElevatedButton.icon(
             onPressed: _loadData,
             style: ElevatedButton.styleFrom(
               backgroundColor: ThemeConstants.primary,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(
-                horizontal: ThemeConstants.space6,
-                vertical: ThemeConstants.space3,
+              padding: EdgeInsets.symmetric(
+                horizontal: 24.w,
+                vertical: 12.h,
               ),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+                borderRadius: BorderRadius.circular(20.r),
               ),
             ),
             icon: const Icon(Icons.refresh_rounded),
@@ -274,99 +274,97 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
     
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(ThemeConstants.radiusLg),
+      borderRadius: BorderRadius.circular(16.r),
       child: InkWell(
         onTap: () => _onCategoryPressed(category),
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusLg),
+        borderRadius: BorderRadius.circular(16.r),
         child: Container(
-          padding: const EdgeInsets.all(ThemeConstants.space3),
+          padding: EdgeInsets.all(12.w),
           decoration: BoxDecoration(
             color: context.cardColor,
-            borderRadius: BorderRadius.circular(ThemeConstants.radiusLg),
+            borderRadius: BorderRadius.circular(16.r),
             border: Border.all(
               color: color.withOpacity(0.2),
-              width: 1,
+              width: 1.w,
             ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+                blurRadius: 8.r,
+                offset: Offset(0, 2.h),
               ),
             ],
           ),
           child: Row(
             children: [
-              // الرقم مع الخلفية الملونة
               Container(
-                width: 44,
-                height: 44,
+                width: 44.w,
+                height: 44.h,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [color, color.withOpacity(0.8)],
                   ),
-                  borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                  borderRadius: BorderRadius.circular(12.r),
                   boxShadow: [
                     BoxShadow(
                       color: color.withValues(alpha: 0.3),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
+                      blurRadius: 6.r,
+                      offset: Offset(0, 2.h),
                     ),
                   ],
                 ),
                 child: Icon(
                   _getCategoryIcon(category.type),
                   color: _shouldUseWhiteIcon(category.type) ? Colors.white : Colors.black87,
-                  size: 20,
+                  size: 20.sp,
                 ),
               ),
               
-              ThemeConstants.space3.w,
+              SizedBox(width: 12.w),
               
-              // محتوى الفئة
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // اسم الفئة
                     Text(
                       category.name,
                       style: context.titleMedium?.copyWith(
                         color: color,
                         fontWeight: ThemeConstants.bold,
                         fontFamily: ThemeConstants.fontFamilyArabic,
+                        fontSize: 16.sp,
                       ),
                     ),
                     
-                    ThemeConstants.space1.h,
+                    SizedBox(height: 4.h),
                     
-                    // وصف الفئة
                     Text(
                       category.description,
                       style: context.bodySmall?.copyWith(
                         color: context.textSecondaryColor,
                         height: 1.3,
+                        fontSize: 12.sp,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     
-                    ThemeConstants.space1.h,
+                    SizedBox(height: 4.h),
                     
-                    // عدد الأدعية
                     Row(
                       children: [
                         Icon(
                           Icons.format_list_numbered_rounded,
-                          size: 12,
+                          size: 12.sp,
                           color: ThemeConstants.accent,
                         ),
-                        ThemeConstants.space1.w,
+                        SizedBox(width: 4.w),
                         Text(
                           '${category.duaCount} دعاء',
                           style: context.labelSmall?.copyWith(
                             color: ThemeConstants.accent,
                             fontWeight: ThemeConstants.medium,
+                            fontSize: 11.sp,
                           ),
                         ),
                       ],
@@ -375,17 +373,16 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
                 ),
               ),
               
-              // أيقونة التفاعل
               Container(
-                padding: const EdgeInsets.all(6),
+                padding: EdgeInsets.all(6.w),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(ThemeConstants.radiusSm),
+                  borderRadius: BorderRadius.circular(8.r),
                 ),
                 child: Icon(
                   Icons.chevron_left_rounded,
                   color: color,
-                  size: 18,
+                  size: 18.sp,
                 ),
               ),
             ],
@@ -396,50 +393,46 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
   }
 
   bool _shouldUseWhiteIcon(DuaType type) {
-    // الألوان الداكنة تحتاج أيقونة بيضاء
-    // الألوان الفاتحة تحتاج أيقونة داكنة
     switch (type) {
       case DuaType.morning:
-        return false; // ذهبي فاتح - أيقونة داكنة
+        return false;
       case DuaType.evening:
-        return true; // بني داكن - أيقونة بيضاء  
+        return true;
       case DuaType.prayer:
-        return true; // أزرق - أيقونة بيضاء
+        return true;
       case DuaType.sleep:
-        // تحديد لون الأيقونة حسب الوضع واللون المستخدم
-        return context.isDarkMode ? true : true; // بيضاء في كلا الحالتين
+        return context.isDarkMode ? true : true;
       case DuaType.protection:
-        return true; // أخضر - أيقونة بيضاء
+        return true;
       case DuaType.food:
-        return true; // بني - أيقونة بيضاء
+        return true;
       case DuaType.travel:
-        return true; // أخضر زيتي - أيقونة بيضاء
+        return true;
       default:
-        return true; // افتراضي - أيقونة بيضاء
+        return true;
     }
   }
 
   Color _getCategoryColor(DuaType type) {
     switch (type) {
       case DuaType.morning:
-        return const Color(0xFFDAA520); // ذهبي فاتح كالشروق
+        return const Color(0xFFDAA520);
       case DuaType.evening:
-        return const Color(0xFF8B6F47); // بني دافئ كالغروب
+        return const Color(0xFF8B6F47);
       case DuaType.prayer:
-        return ThemeConstants.primary; // الأساسي
+        return ThemeConstants.primary;
       case DuaType.sleep:
-        // 🌙 إصلاح مشكلة أدعية النوم - لون يظهر في كلا الوضعين
         return context.isDarkMode 
-            ? const Color(0xFF708090) // بنفسجي متوسط - يظهر بوضوح على الخلفية الداكنة
-            : const Color(0xFF2D352D); // الرمادي الأصلي للوضع النهاري
+            ? const Color(0xFF708090)
+            : const Color(0xFF2D352D);
       case DuaType.protection:
-        return ThemeConstants.accent; // الثانوي
+        return ThemeConstants.accent;
       case DuaType.food:
-        return ThemeConstants.tertiary; // الثالث
+        return ThemeConstants.tertiary;
       case DuaType.travel:
-        return const Color(0xFF7A8B6F); // أخضر زيتي فاتح
+        return const Color(0xFF7A8B6F);
       default:
-        return ThemeConstants.primary; // افتراضي
+        return ThemeConstants.primary;
     }
   }
 

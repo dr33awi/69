@@ -1,6 +1,7 @@
-// lib/features/asma_allah/widgets/asma_allah_widgets.dart - مع الشرح المفصل والآيات المميزة
+// lib/features/asma_allah/widgets/asma_allah_widgets.dart - محدث مع flutter_screenutil
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:athkar_app/app/themes/app_theme.dart';
 import '../models/asma_allah_model.dart';
@@ -67,7 +68,7 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
           scale: _scaleAnimation.value,
           child: Material(
             color: Colors.transparent,
-            borderRadius: BorderRadius.circular(ThemeConstants.radiusLg),
+            borderRadius: BorderRadius.circular(16.r),
             child: InkWell(
               onTap: widget.onTap,
               onTapDown: (_) {
@@ -83,25 +84,25 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
                 setState(() => _isPressed = false);
                 _controller.reverse();
               },
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusLg),
+              borderRadius: BorderRadius.circular(16.r),
               child: Container(
-                padding: const EdgeInsets.all(ThemeConstants.space3),
+                padding: EdgeInsets.all(12.w),
                 decoration: BoxDecoration(
                   color: context.cardColor,
-                  borderRadius: BorderRadius.circular(ThemeConstants.radiusLg),
+                  borderRadius: BorderRadius.circular(16.r),
                   border: Border.all(
                     color: _isPressed 
                         ? color.withOpacity(0.4)
                         : color.withOpacity(0.2),
-                    width: 1,
+                    width: 1.w,
                   ),
                   boxShadow: [
                     BoxShadow(
                       color: _isPressed 
                           ? color.withValues(alpha: 0.1)
                           : Colors.black.withValues(alpha: 0.04),
-                      blurRadius: _isPressed ? 12 : 8,
-                      offset: Offset(0, _isPressed ? 4 : 2),
+                      blurRadius: _isPressed ? 12.r : 8.r,
+                      offset: Offset(0, _isPressed ? 4.h : 2.h),
                     ),
                   ],
                 ),
@@ -122,20 +123,20 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
           children: [
             // الرقم مع الخلفية الملونة
             Container(
-              width: 44,
-              height: 44,
+              width: 44.w,
+              height: 44.h,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [color, color.withOpacity(0.8)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                borderRadius: BorderRadius.circular(12.r),
                 boxShadow: [
                   BoxShadow(
                     color: color.withValues(alpha: 0.3),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
+                    blurRadius: 6.r,
+                    offset: Offset(0, 2.h),
                   ),
                 ],
               ),
@@ -145,12 +146,13 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
                   style: context.titleSmall?.copyWith(
                     color: Colors.white,
                     fontWeight: ThemeConstants.bold,
+                    fontSize: 14.sp,
                   ),
                 ),
               ),
             ),
             
-            ThemeConstants.space3.w,
+            SizedBox(width: 12.w),
             
             // محتوى الاسم والمعلومات
             Expanded(
@@ -164,10 +166,11 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
                       color: color,
                       fontWeight: ThemeConstants.bold,
                       fontFamily: ThemeConstants.fontFamilyArabic,
+                      fontSize: 16.sp,
                     ),
                   ),
                   
-                  ThemeConstants.space1.h,
+                  SizedBox(height: 4.h),
                   
                   // معاينة المعنى
                   Text(
@@ -175,6 +178,7 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
                     style: context.bodySmall?.copyWith(
                       color: context.textSecondaryColor,
                       height: 1.3,
+                      fontSize: 12.sp,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -185,15 +189,15 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
             
             // أيقونة التفاعل
             Container(
-              padding: const EdgeInsets.all(6),
+              padding: EdgeInsets.all(6.w),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(ThemeConstants.radiusSm),
+                borderRadius: BorderRadius.circular(8.r),
               ),
               child: Icon(
                 Icons.chevron_left_rounded,
                 color: color,
-                size: 18,
+                size: 18.sp,
               ),
             ),
           ],
@@ -201,16 +205,16 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
         
         // معاينة الشرح المفصل (اختيارية)
         if (widget.showExplanationPreview) ...[
-          ThemeConstants.space2.h,
+          SizedBox(height: 8.h),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(ThemeConstants.space2),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusSm),
+              borderRadius: BorderRadius.circular(8.r),
               border: Border.all(
                 color: color.withValues(alpha: 0.15),
-                width: 1,
+                width: 1.w,
               ),
             ),
             child: Column(
@@ -220,20 +224,21 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
                   children: [
                     Icon(
                       Icons.auto_stories_rounded,
-                      size: 14,
+                      size: 14.sp,
                       color: color,
                     ),
-                    ThemeConstants.space1.w,
+                    SizedBox(width: 4.w),
                     Text(
                       'الشرح والتفسير',
                       style: context.labelSmall?.copyWith(
                         color: color,
                         fontWeight: ThemeConstants.medium,
+                        fontSize: 11.sp,
                       ),
                     ),
                   ],
                 ),
-                ThemeConstants.space1.h,
+                SizedBox(height: 4.h),
                 RichText(
                   text: _buildPreviewTextSpan(widget.item.explanation, context, 80),
                   maxLines: 2,
@@ -246,7 +251,7 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
         
         // أزرار الإجراءات السريعة
         if (widget.showQuickActions) ...[
-          ThemeConstants.space3.h,
+          SizedBox(height: 12.h),
           _buildQuickActions(color),
         ],
       ],
@@ -264,7 +269,7 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
             onTap: _copyName,
           ),
         ),
-        ThemeConstants.space2.w,
+        SizedBox(width: 8.w),
         Expanded(
           child: _buildActionButton(
             icon: Icons.share_rounded,
@@ -285,21 +290,21 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
   }) {
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(ThemeConstants.radiusSm),
+      borderRadius: BorderRadius.circular(8.r),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusSm),
+        borderRadius: BorderRadius.circular(8.r),
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: ThemeConstants.space2,
-            vertical: ThemeConstants.space1,
+          padding: EdgeInsets.symmetric(
+            horizontal: 8.w,
+            vertical: 4.h,
           ),
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(ThemeConstants.radiusSm),
+            borderRadius: BorderRadius.circular(8.r),
             border: Border.all(
               color: color.withValues(alpha: 0.2),
-              width: 1,
+              width: 1.w,
             ),
           ),
           child: Row(
@@ -307,15 +312,16 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
             children: [
               Icon(
                 icon,
-                size: 14,
+                size: 14.sp,
                 color: color,
               ),
-              ThemeConstants.space1.w,
+              SizedBox(width: 4.w),
               Text(
                 label,
                 style: context.labelSmall?.copyWith(
                   color: color,
                   fontWeight: ThemeConstants.medium,
+                  fontSize: 11.sp,
                 ),
               ),
             ],
@@ -343,6 +349,7 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
           style: context.labelSmall?.copyWith(
             color: context.textSecondaryColor,
             height: 1.4,
+            fontSize: 11.sp,
           ),
         ));
       }
@@ -355,6 +362,7 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
           fontFamily: ThemeConstants.fontFamilyQuran,
           fontWeight: ThemeConstants.medium,
           height: 1.4,
+          fontSize: 11.sp,
         ),
       ));
       
@@ -368,6 +376,7 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
         style: context.labelSmall?.copyWith(
           color: context.textSecondaryColor,
           height: 1.4,
+          fontSize: 11.sp,
         ),
       ));
     }
@@ -379,6 +388,7 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
         style: context.labelSmall?.copyWith(
           color: context.textSecondaryColor,
           height: 1.4,
+          fontSize: 11.sp,
         ),
       ));
     }
@@ -452,27 +462,27 @@ class DetailedAsmaAllahCard extends StatelessWidget {
     final color = item.getColor();
     
     return Container(
-      margin: const EdgeInsets.only(bottom: ThemeConstants.space4),
+      margin: EdgeInsets.only(bottom: 16.h),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+        borderRadius: BorderRadius.circular(20.r),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+          borderRadius: BorderRadius.circular(20.r),
           child: Container(
-            padding: const EdgeInsets.all(ThemeConstants.space4),
+            padding: EdgeInsets.all(16.w),
             decoration: BoxDecoration(
               color: context.cardColor,
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+              borderRadius: BorderRadius.circular(20.r),
               border: Border.all(
                 color: color.withOpacity(0.2),
-                width: 1,
+                width: 1.w,
               ),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.06),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+                  blurRadius: 12.r,
+                  offset: Offset(0, 4.h),
                 ),
               ],
             ),
@@ -482,17 +492,17 @@ class DetailedAsmaAllahCard extends StatelessWidget {
                 // رأس البطاقة مع الاسم والرقم
                 _buildCardHeader(context, color),
                 
-                ThemeConstants.space3.h,
+                SizedBox(height: 12.h),
                 
                 // المعنى
                 _buildMeaningSection(context),
                 
-                ThemeConstants.space3.h,
+                SizedBox(height: 12.h),
                 
                 // معاينة الشرح المفصل
                 _buildExplanationPreview(context, color),
                 
-                ThemeConstants.space3.h,
+                SizedBox(height: 12.h),
                 
                 // زر المشاهدة التفصيلية
                 _buildViewDetailsButton(context, color),
@@ -509,18 +519,18 @@ class DetailedAsmaAllahCard extends StatelessWidget {
       children: [
         // رقم الاسم
         Container(
-          width: 50,
-          height: 50,
+          width: 50.w,
+          height: 50.h,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [color, color.withOpacity(0.8)],
             ),
-            borderRadius: BorderRadius.circular(ThemeConstants.radiusLg),
+            borderRadius: BorderRadius.circular(16.r),
             boxShadow: [
               BoxShadow(
                 color: color.withValues(alpha: 0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
+                blurRadius: 8.r,
+                offset: Offset(0, 3.h),
               ),
             ],
           ),
@@ -530,12 +540,13 @@ class DetailedAsmaAllahCard extends StatelessWidget {
               style: context.titleMedium?.copyWith(
                 color: Colors.white,
                 fontWeight: ThemeConstants.bold,
+                fontSize: 16.sp,
               ),
             ),
           ),
         ),
         
-        ThemeConstants.space3.w,
+        SizedBox(width: 12.w),
         
         // اسم الله
         Expanded(
@@ -545,6 +556,7 @@ class DetailedAsmaAllahCard extends StatelessWidget {
               color: color,
               fontWeight: ThemeConstants.bold,
               fontFamily: ThemeConstants.fontFamilyArabic,
+              fontSize: 24.sp,
             ),
           ),
         ),
@@ -553,7 +565,7 @@ class DetailedAsmaAllahCard extends StatelessWidget {
         Icon(
           Icons.arrow_forward_ios_rounded,
           color: color,
-          size: 20,
+          size: 20.sp,
         ),
       ],
     );
@@ -568,14 +580,16 @@ class DetailedAsmaAllahCard extends StatelessWidget {
           style: context.titleSmall?.copyWith(
             color: context.textSecondaryColor,
             fontWeight: ThemeConstants.medium,
+            fontSize: 14.sp,
           ),
         ),
-        ThemeConstants.space1.h,
+        SizedBox(height: 4.h),
         Text(
           item.meaning,
           style: context.bodyMedium?.copyWith(
             color: context.textPrimaryColor,
             height: 1.6,
+            fontSize: 14.sp,
           ),
         ),
       ],
@@ -584,13 +598,13 @@ class DetailedAsmaAllahCard extends StatelessWidget {
 
   Widget _buildExplanationPreview(BuildContext context, Color color) {
     return Container(
-      padding: const EdgeInsets.all(ThemeConstants.space3),
+      padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: color.withValues(alpha: 0.2),
-          width: 1,
+          width: 1.w,
         ),
       ),
       child: Column(
@@ -600,20 +614,21 @@ class DetailedAsmaAllahCard extends StatelessWidget {
             children: [
               Icon(
                 Icons.auto_stories_rounded,
-                size: 16,
+                size: 16.sp,
                 color: color,
               ),
-              ThemeConstants.space1.w,
+              SizedBox(width: 4.w),
               Text(
                 'الشرح والتفسير',
                 style: context.titleSmall?.copyWith(
                   color: color,
                   fontWeight: ThemeConstants.medium,
+                  fontSize: 14.sp,
                 ),
               ),
             ],
           ),
-          ThemeConstants.space2.h,
+          SizedBox(height: 8.h),
           RichText(
             text: _buildDetailedPreviewTextSpan(item.explanation, context, 120),
             maxLines: 3,
@@ -624,8 +639,6 @@ class DetailedAsmaAllahCard extends StatelessWidget {
     );
   }
 
-
-
   Widget _buildViewDetailsButton(BuildContext context, Color color) {
     return SizedBox(
       width: double.infinity,
@@ -633,19 +646,20 @@ class DetailedAsmaAllahCard extends StatelessWidget {
         onPressed: onTap,
         icon: Icon(
           Icons.visibility_rounded,
-          size: 18,
+          size: 18.sp,
         ),
         label: const Text('عرض التفاصيل الكاملة'),
         style: ElevatedButton.styleFrom(
           backgroundColor: color.withValues(alpha: 0.1),
           foregroundColor: color,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(vertical: ThemeConstants.space2),
+          padding: EdgeInsets.symmetric(vertical: 8.h),
           side: BorderSide(
             color: color.withValues(alpha: 0.3),
+            width: 1.w,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+            borderRadius: BorderRadius.circular(12.r),
           ),
         ),
       ),
@@ -670,6 +684,7 @@ class DetailedAsmaAllahCard extends StatelessWidget {
           style: context.bodySmall?.copyWith(
             color: context.textSecondaryColor,
             height: 1.5,
+            fontSize: 12.sp,
           ),
         ));
       }
@@ -682,6 +697,7 @@ class DetailedAsmaAllahCard extends StatelessWidget {
           fontFamily: ThemeConstants.fontFamilyQuran,
           fontWeight: ThemeConstants.medium,
           height: 1.5,
+          fontSize: 12.sp,
         ),
       ));
       
@@ -695,6 +711,7 @@ class DetailedAsmaAllahCard extends StatelessWidget {
         style: context.bodySmall?.copyWith(
           color: context.textSecondaryColor,
           height: 1.5,
+          fontSize: 12.sp,
         ),
       ));
     }
@@ -706,6 +723,7 @@ class DetailedAsmaAllahCard extends StatelessWidget {
         style: context.bodySmall?.copyWith(
           color: context.textSecondaryColor,
           height: 1.5,
+          fontSize: 12.sp,
         ),
       ));
     }
@@ -734,7 +752,7 @@ class DetailedAsmaAllahCard extends StatelessWidget {
 }
 
 // ============================================================================
-// LoadingCard - بطاقة التحميل (بدون تغيير)
+// LoadingCard - بطاقة التحميل
 // ============================================================================
 class AsmaAllahLoadingCard extends StatefulWidget {
   const AsmaAllahLoadingCard({super.key});
@@ -774,30 +792,31 @@ class _AsmaAllahLoadingCardState extends State<AsmaAllahLoadingCard>
       animation: _shimmerAnimation,
       builder: (context, child) {
         return Container(
-          margin: const EdgeInsets.only(bottom: ThemeConstants.space2),
-          padding: const EdgeInsets.all(ThemeConstants.space3),
+          margin: EdgeInsets.only(bottom: 8.h),
+          padding: EdgeInsets.all(12.w),
           decoration: BoxDecoration(
             color: context.cardColor,
-            borderRadius: BorderRadius.circular(ThemeConstants.radiusLg),
+            borderRadius: BorderRadius.circular(16.r),
             border: Border.all(
               color: context.dividerColor.withValues(alpha: 0.2),
+              width: 1.w,
             ),
           ),
           child: Row(
             children: [
               // شكل الرقم
               Container(
-                width: 44,
-                height: 44,
+                width: 44.w,
+                height: 44.h,
                 decoration: BoxDecoration(
                   color: context.textSecondaryColor.withValues(
                     alpha: 0.1 + (_shimmerAnimation.value * 0.1),
                   ),
-                  borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
               ),
               
-              ThemeConstants.space3.w,
+              SizedBox(width: 12.w),
               
               // شكل النص
               Expanded(
@@ -805,35 +824,35 @@ class _AsmaAllahLoadingCardState extends State<AsmaAllahLoadingCard>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      height: 20,
+                      height: 20.h,
                       width: double.infinity * 0.4,
                       decoration: BoxDecoration(
                         color: context.textSecondaryColor.withValues(
                           alpha: 0.1 + (_shimmerAnimation.value * 0.1),
                         ),
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(4.r),
                       ),
                     ),
-                    ThemeConstants.space1.h,
+                    SizedBox(height: 4.h),
                     Container(
-                      height: 14,
+                      height: 14.h,
                       width: double.infinity * 0.8,
                       decoration: BoxDecoration(
                         color: context.textSecondaryColor.withValues(
                           alpha: 0.05 + (_shimmerAnimation.value * 0.05),
                         ),
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(4.r),
                       ),
                     ),
-                    ThemeConstants.space1.h,
+                    SizedBox(height: 4.h),
                     Container(
-                      height: 14,
+                      height: 14.h,
                       width: double.infinity * 0.6,
                       decoration: BoxDecoration(
                         color: context.textSecondaryColor.withValues(
                           alpha: 0.05 + (_shimmerAnimation.value * 0.05),
                         ),
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(4.r),
                       ),
                     ),
                   ],
@@ -917,7 +936,7 @@ class AsmaAllahCard extends StatelessWidget {
 }
 
 // ============================================================================
-// Search Bar المحسن (بدون تغيير)
+// Search Bar المحسن
 // ============================================================================
 class EnhancedAsmaAllahSearchBar extends StatelessWidget {
   final TextEditingController controller;
@@ -936,40 +955,41 @@ class EnhancedAsmaAllahSearchBar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusXl),
+        borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
           color: context.dividerColor.withValues(alpha: 0.2),
-          width: 1,
+          width: 1.w,
         ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            blurRadius: 10.r,
+            offset: Offset(0, 3.h),
           ),
         ],
       ),
       child: TextField(
         controller: controller,
         onChanged: onChanged,
-        style: context.bodyMedium,
+        style: context.bodyMedium?.copyWith(fontSize: 14.sp),
         decoration: InputDecoration(
           hintText: 'ابحث في أسماء الله الحسنى أو معانيها أو تفسيرها...',
           hintStyle: TextStyle(
             color: context.textSecondaryColor.withValues(alpha: 0.7),
+            fontSize: 14.sp,
           ),
           prefixIcon: Container(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(12.w),
             child: Icon(
               Icons.search_rounded,
               color: context.textSecondaryColor,
-              size: ThemeConstants.iconMd,
+              size: 24.sp,
             ),
           ),
           suffixIcon: controller.text.isNotEmpty
               ? IconButton(
                   icon: Container(
-                    padding: const EdgeInsets.all(4),
+                    padding: EdgeInsets.all(4.w),
                     decoration: BoxDecoration(
                       color: context.textSecondaryColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
@@ -977,16 +997,16 @@ class EnhancedAsmaAllahSearchBar extends StatelessWidget {
                     child: Icon(
                       Icons.clear_rounded,
                       color: context.textSecondaryColor,
-                      size: 16,
+                      size: 16.sp,
                     ),
                   ),
                   onPressed: onClear,
                 )
               : null,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: ThemeConstants.space4,
-            vertical: ThemeConstants.space4,
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 16.w,
+            vertical: 16.h,
           ),
         ),
       ),

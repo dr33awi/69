@@ -1,6 +1,7 @@
 // lib/app/themes/widgets/cards/app_card.dart (منظف)
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../theme_constants.dart';
 import '../../core/theme_extensions.dart';
 
@@ -127,12 +128,12 @@ class AppCard extends StatelessWidget {
 
   Widget _buildCard(BuildContext context) {
     final effectiveColor = primaryColor ?? context.primaryColor;
-    final effectiveBorderRadius = borderRadius ?? ThemeConstants.radiusLg;
+    final effectiveBorderRadius = borderRadius ?? 16.r;
     
     return Container(
-      margin: margin ?? const EdgeInsets.symmetric(
-        horizontal: ThemeConstants.space4,
-        vertical: ThemeConstants.space2,
+      margin: margin ?? EdgeInsets.symmetric(
+        horizontal: 16.w,
+        vertical: 8.h,
       ),
       child: Material(
         elevation: showShadow ? (elevation ?? ThemeConstants.elevation4) : 0,
@@ -149,7 +150,7 @@ class AppCard extends StatelessWidget {
             child: Stack(
               children: [
                 Padding(
-                  padding: padding ?? const EdgeInsets.all(ThemeConstants.space4),
+                  padding: padding ?? EdgeInsets.all(16.w),
                   child: _buildContent(context),
                 ),
                 if (isSelected) _buildSelectionIndicator(context),
@@ -179,7 +180,7 @@ class AppCard extends StatelessWidget {
           color: bgColor.withValues(alpha: ThemeConstants.opacity70),
           border: Border.all(
             color: context.isDarkMode ? Colors.white.withValues(alpha: ThemeConstants.opacity20) : color.withValues(alpha: ThemeConstants.opacity20),
-            width: ThemeConstants.borderThin,
+            width: 1.w,
           ),
         );
         
@@ -189,7 +190,7 @@ class AppCard extends StatelessWidget {
           color: bgColor,
           border: Border.all(
             color: color.withValues(alpha: ThemeConstants.opacity30),
-            width: ThemeConstants.borderMedium,
+            width: 2.w,
           ),
         );
         
@@ -237,21 +238,25 @@ class AppCard extends StatelessWidget {
         if (title != null || leading != null || trailing != null)
           _buildHeader(context),
         if (subtitle != null) ...[
-          if (title != null) ThemeConstants.space1.h,
+          if (title != null) SizedBox(height: 4.h),
           Text(
             subtitle!,
-            style: context.bodyMedium?.textColor(_getTextColor(context, isSecondary: true)),
+            style: context.bodyMedium?.textColor(_getTextColor(context, isSecondary: true)).copyWith(
+              fontSize: context.bodyMedium?.fontSize?.sp,
+            ),
           ),
         ],
         if (content != null) ...[
-          ThemeConstants.space3.h,
+          SizedBox(height: 12.h),
           Text(
             content!,
-            style: context.bodyLarge?.textColor(_getTextColor(context)),
+            style: context.bodyLarge?.textColor(_getTextColor(context)).copyWith(
+              fontSize: context.bodyLarge?.fontSize?.sp,
+            ),
           ),
         ],
         if (actions != null && actions!.isNotEmpty) ...[
-          ThemeConstants.space4.h,
+          SizedBox(height: 16.h),
           _buildActions(context),
         ],
       ],
@@ -267,20 +272,20 @@ class AppCard extends StatelessWidget {
           _buildAthkarHeader(context),
         
         if (currentCount != null || onFavoriteToggle != null)
-          ThemeConstants.space3.h,
+          SizedBox(height: 12.h),
         
         // محتوى الذكر
         _buildAthkarBody(context),
         
         // المصدر
         if (source != null) ...[
-          ThemeConstants.space3.h,
+          SizedBox(height: 12.h),
           _buildSource(context),
         ],
         
         // الإجراءات
         if (actions != null && actions!.isNotEmpty) ...[
-          ThemeConstants.space4.h,
+          SizedBox(height: 16.h),
           _buildActions(context),
         ],
       ],
@@ -296,52 +301,54 @@ class AppCard extends StatelessWidget {
       children: [
         if (subtitle != null)
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: ThemeConstants.space3,
-              vertical: ThemeConstants.space1,
+            padding: EdgeInsets.symmetric(
+              horizontal: 12.w,
+              vertical: 4.h,
             ),
             decoration: BoxDecoration(
               color: effectiveColor.withValues(alpha: ThemeConstants.opacity20),
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusFull),
+              borderRadius: BorderRadius.circular(999.r),
             ),
             child: Text(
               subtitle!,
-              style: context.labelMedium?.textColor(_getTextColor(context)).semiBold,
+              style: context.labelMedium?.textColor(_getTextColor(context)).semiBold.copyWith(
+                fontSize: context.labelMedium?.fontSize?.sp,
+              ),
             ),
           ),
         
-        if (subtitle != null) ThemeConstants.space3.h,
+        if (subtitle != null) SizedBox(height: 12.h),
         
         Container(
-          padding: const EdgeInsets.all(ThemeConstants.space4),
+          padding: EdgeInsets.all(16.w),
           decoration: BoxDecoration(
             color: _getTextColor(context).withValues(alpha: ThemeConstants.opacity10),
-            borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+            borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
               color: _getTextColor(context).withValues(alpha: ThemeConstants.opacity20),
-              width: ThemeConstants.borderThin,
+              width: 1.w,
             ),
           ),
           child: Stack(
             children: [
               // علامة اقتباس في البداية
-              const Positioned(
+              Positioned(
                 top: 0,
                 right: 0,
                 child: Icon(
                   Icons.format_quote,
-                  size: ThemeConstants.iconSm,
+                  size: 20.sp,
                   color: Colors.black26,
                 ),
               ),
               
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: ThemeConstants.space2),
+                padding: EdgeInsets.symmetric(vertical: 8.h),
                 child: Text(
                   content ?? title ?? '',
                   textAlign: TextAlign.center,
                   style: context.bodyLarge?.textColor(_getTextColor(context)).copyWith(
-                    fontSize: 18,
+                    fontSize: 18.sp,
                     height: 1.8,
                   ),
                 ),
@@ -355,7 +362,7 @@ class AppCard extends StatelessWidget {
                   angle: 3.14159,
                   child: Icon(
                     Icons.format_quote,
-                    size: ThemeConstants.iconSm,
+                    size: 20.sp,
                     color: _getTextColor(context).withValues(alpha: ThemeConstants.opacity50),
                   ),
                 ),
@@ -365,7 +372,7 @@ class AppCard extends StatelessWidget {
         ),
         
         if (source != null) ...[
-          ThemeConstants.space3.h,
+          SizedBox(height: 12.h),
           _buildSource(context),
         ],
       ],
@@ -380,53 +387,59 @@ class AppCard extends StatelessWidget {
       children: [
         // الأيقونة
         Container(
-          width: 80,
-          height: 80,
+          width: 80.w,
+          height: 80.h,
           decoration: BoxDecoration(
             color: effectiveColor.withValues(alpha: ThemeConstants.opacity10),
             shape: BoxShape.circle,
             border: Border.all(
               color: effectiveColor.withValues(alpha: ThemeConstants.opacity30),
-              width: ThemeConstants.borderMedium,
+              width: 2.w,
             ),
           ),
           child: Icon(
             icon ?? Icons.check_circle_outline,
             color: effectiveColor,
-            size: ThemeConstants.icon2xl,
+            size: 40.sp,
           ),
         ),
         
-        ThemeConstants.space5.h,
+        SizedBox(height: 20.h),
         
         // العنوان
         if (title != null)
           Text(
             title!,
-            style: context.headlineMedium?.textColor(_getTextColor(context)),
+            style: context.headlineMedium?.textColor(_getTextColor(context)).copyWith(
+              fontSize: context.headlineMedium?.fontSize?.sp,
+            ),
             textAlign: TextAlign.center,
           ),
         
         if (content != null) ...[
-          ThemeConstants.space3.h,
+          SizedBox(height: 12.h),
           Text(
             content!,
             textAlign: TextAlign.center,
-            style: context.bodyLarge?.textColor(_getTextColor(context)),
+            style: context.bodyLarge?.textColor(_getTextColor(context)).copyWith(
+              fontSize: context.bodyLarge?.fontSize?.sp,
+            ),
           ),
         ],
         
         if (subtitle != null) ...[
-          ThemeConstants.space2.h,
+          SizedBox(height: 8.h),
           Text(
             subtitle!,
             textAlign: TextAlign.center,
-            style: context.bodyMedium?.textColor(_getTextColor(context, isSecondary: true)),
+            style: context.bodyMedium?.textColor(_getTextColor(context, isSecondary: true)).copyWith(
+              fontSize: context.bodyMedium?.fontSize?.sp,
+            ),
           ),
         ],
         
         if (actions != null && actions!.isNotEmpty) ...[
-          ThemeConstants.space6.h,
+          SizedBox(height: 24.h),
           _buildActions(context),
         ],
       ],
@@ -440,20 +453,20 @@ class AppCard extends StatelessWidget {
       children: [
         if (icon != null)
           Container(
-            width: ThemeConstants.icon2xl,
-            height: ThemeConstants.icon2xl,
+            width: 40.w,
+            height: 40.h,
             decoration: BoxDecoration(
               color: effectiveColor.withValues(alpha: ThemeConstants.opacity10),
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(12.r),
             ),
             child: Icon(
               icon,
               color: effectiveColor,
-              size: ThemeConstants.iconLg,
+              size: 32.sp,
             ),
           ),
         
-        if (icon != null) ThemeConstants.space4.w,
+        if (icon != null) SizedBox(width: 16.w),
         
         Expanded(
           child: Column(
@@ -462,13 +475,17 @@ class AppCard extends StatelessWidget {
               if (title != null)
                 Text(
                   title!,
-                  style: context.titleMedium?.semiBold.textColor(_getTextColor(context)),
+                  style: context.titleMedium?.semiBold.textColor(_getTextColor(context)).copyWith(
+                    fontSize: context.titleMedium?.fontSize?.sp,
+                  ),
                 ),
               if (subtitle != null) ...[
-                ThemeConstants.space1.h,
+                SizedBox(height: 4.h),
                 Text(
                   subtitle!,
-                  style: context.bodyMedium?.textColor(_getTextColor(context, isSecondary: true)),
+                  style: context.bodyMedium?.textColor(_getTextColor(context, isSecondary: true)).copyWith(
+                    fontSize: context.bodyMedium?.fontSize?.sp,
+                  ),
                 ),
               ],
             ],
@@ -494,40 +511,44 @@ class AppCard extends StatelessWidget {
               Icon(
                 icon,
                 color: effectiveColor,
-                size: ThemeConstants.iconLg,
+                size: 32.sp,
               ),
             if (onTap != null)
               Icon(
                 Icons.arrow_forward_ios_rounded,
-                size: ThemeConstants.iconSm,
+                size: 20.sp,
                 color: _getTextColor(context, isSecondary: true),
               ),
           ],
         ),
         
-        ThemeConstants.space2.h,
+        SizedBox(height: 8.h),
         
         if (value != null)
           Text(
             value!,
-            style: context.headlineMedium?.textColor(effectiveColor).bold,
+            style: context.headlineMedium?.textColor(effectiveColor).bold.copyWith(
+              fontSize: context.headlineMedium?.fontSize?.sp,
+            ),
           ),
         
         if (title != null) ...[
-          ThemeConstants.space1.h,
+          SizedBox(height: 4.h),
           Text(
             title!,
-            style: context.bodyMedium?.textColor(_getTextColor(context, isSecondary: true)),
+            style: context.bodyMedium?.textColor(_getTextColor(context, isSecondary: true)).copyWith(
+              fontSize: context.bodyMedium?.fontSize?.sp,
+            ),
           ),
         ],
         
         if (progress != null) ...[
-          ThemeConstants.space3.h,
+          SizedBox(height: 12.h),
           ClipRRect(
-            borderRadius: BorderRadius.circular(ThemeConstants.radiusFull),
+            borderRadius: BorderRadius.circular(999.r),
             child: LinearProgressIndicator(
               value: progress!,
-              minHeight: 4,
+              minHeight: 4.h,
               backgroundColor: context.dividerColor.withValues(alpha: ThemeConstants.opacity50),
               valueColor: AlwaysStoppedAnimation<Color>(effectiveColor),
             ),
@@ -546,26 +567,28 @@ class AppCard extends StatelessWidget {
           leading!
         else if (icon != null)
           Container(
-            padding: const EdgeInsets.all(ThemeConstants.space2),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               color: effectiveColor.withValues(alpha: ThemeConstants.opacity10),
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(12.r),
             ),
             child: Icon(
               icon,
               color: effectiveColor,
-              size: ThemeConstants.iconMd,
+              size: 24.sp,
             ),
           ),
         
         if ((leading != null || icon != null) && title != null)
-          ThemeConstants.space3.w,
+          SizedBox(width: 12.w),
         
         if (title != null)
           Expanded(
             child: Text(
               title!,
-              style: context.titleMedium?.textColor(_getTextColor(context)).semiBold,
+              style: context.titleMedium?.textColor(_getTextColor(context)).semiBold.copyWith(
+                fontSize: context.titleMedium?.fontSize?.sp,
+              ),
             ),
           ),
         
@@ -582,11 +605,11 @@ class AppCard extends StatelessWidget {
           Container(
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: ThemeConstants.opacity20),
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusFull),
+              borderRadius: BorderRadius.circular(999.r),
             ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: ThemeConstants.space3,
-              vertical: ThemeConstants.space1,
+            padding: EdgeInsets.symmetric(
+              horizontal: 12.w,
+              vertical: 4.h,
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -595,13 +618,15 @@ class AppCard extends StatelessWidget {
                   Icon(
                     icon,
                     color: Colors.white,
-                    size: ThemeConstants.iconSm,
+                    size: 20.sp,
                   ),
-                  ThemeConstants.space1.w,
+                  SizedBox(width: 4.w),
                 ],
                 Text(
                   'عدد التكرار $currentCount/$totalCount',
-                  style: context.labelMedium?.textColor(Colors.white).semiBold,
+                  style: context.labelMedium?.textColor(Colors.white).semiBold.copyWith(
+                    fontSize: context.labelMedium?.fontSize?.sp,
+                  ),
                 ),
               ],
             ),
@@ -612,7 +637,7 @@ class AppCard extends StatelessWidget {
             icon: Icon(
               isFavorite == true ? Icons.favorite : Icons.favorite_border,
               color: style == CardStyle.gradient ? Colors.white : primaryColor ?? context.primaryColor,
-              size: ThemeConstants.iconMd,
+              size: 24.sp,
             ),
             onPressed: () {
               HapticFeedback.lightImpact();
@@ -627,24 +652,24 @@ class AppCard extends StatelessWidget {
   Widget _buildAthkarBody(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(ThemeConstants.space5),
+      padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
         color: style == CardStyle.gradient 
             ? Colors.white.withValues(alpha: ThemeConstants.opacity10)
             : (primaryColor ?? context.primaryColor).withValues(alpha: ThemeConstants.opacity10),
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusLg),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
           color: style == CardStyle.gradient
               ? Colors.white.withValues(alpha: ThemeConstants.opacity20)
               : (primaryColor ?? context.primaryColor).withValues(alpha: ThemeConstants.opacity20),
-          width: ThemeConstants.borderThin,
+          width: 1.w,
         ),
       ),
       child: Text(
         content ?? title ?? '',
         textAlign: TextAlign.center,
         style: context.bodyLarge?.textColor(_getTextColor(context)).copyWith(
-          fontSize: 20,
+          fontSize: 20.sp,
           fontFamily: ThemeConstants.fontFamilyArabic,
           fontWeight: ThemeConstants.semiBold,
           height: 2.0,
@@ -656,19 +681,21 @@ class AppCard extends StatelessWidget {
   Widget _buildSource(BuildContext context) {
     return Center(
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: ThemeConstants.space4,
-          vertical: ThemeConstants.space2,
+        padding: EdgeInsets.symmetric(
+          horizontal: 16.w,
+          vertical: 8.h,
         ),
         decoration: BoxDecoration(
           color: style == CardStyle.gradient
               ? Colors.black.withValues(alpha: ThemeConstants.opacity20)
               : (primaryColor ?? context.primaryColor).withValues(alpha: ThemeConstants.opacity10),
-          borderRadius: BorderRadius.circular(ThemeConstants.radiusFull),
+          borderRadius: BorderRadius.circular(999.r),
         ),
         child: Text(
           source!,
-          style: context.labelLarge?.textColor(_getTextColor(context)).semiBold,
+          style: context.labelLarge?.textColor(_getTextColor(context)).semiBold.copyWith(
+            fontSize: context.labelLarge?.fontSize?.sp,
+          ),
         ),
       ),
     );
@@ -679,7 +706,7 @@ class AppCard extends StatelessWidget {
     if (type == CardType.completion) {
       return Column(
         children: actions!.map((action) => Padding(
-          padding: const EdgeInsets.only(bottom: ThemeConstants.space3),
+          padding: EdgeInsets.only(bottom: 12.h),
           child: _buildActionButton(context, action, fullWidth: true),
         )).toList(),
       );
@@ -687,8 +714,8 @@ class AppCard extends StatelessWidget {
     
     // للبطاقات الأخرى، عرض الإجراءات بشكل أفقي
     return Wrap(
-      spacing: ThemeConstants.space2,
-      runSpacing: ThemeConstants.space2,
+      spacing: 8.w,
+      runSpacing: 8.h,
       children: actions!.map((action) => _buildActionButton(context, action)).toList(),
     );
   }
@@ -704,13 +731,13 @@ class AppCard extends StatelessWidget {
             HapticFeedback.lightImpact();
             action.onPressed();
           },
-          icon: Icon(action.icon, size: ThemeConstants.iconSm),
-          label: Text(action.label),
+          icon: Icon(action.icon, size: 20.sp),
+          label: Text(action.label, style: TextStyle(fontSize: 14.sp)),
           style: ElevatedButton.styleFrom(
             backgroundColor: effectiveColor,
             foregroundColor: effectiveColor.contrastingTextColor,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(12.r),
             ),
           ),
         ),
@@ -720,28 +747,28 @@ class AppCard extends StatelessWidget {
     // زر ثانوي
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+      borderRadius: BorderRadius.circular(12.r),
       child: InkWell(
         onTap: () {
           HapticFeedback.lightImpact();
           action.onPressed();
         },
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+        borderRadius: BorderRadius.circular(12.r),
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: ThemeConstants.space3,
-            vertical: ThemeConstants.space2,
+          padding: EdgeInsets.symmetric(
+            horizontal: 12.w,
+            vertical: 8.h,
           ),
           decoration: BoxDecoration(
             color: style == CardStyle.gradient
                 ? Colors.white.withValues(alpha: ThemeConstants.opacity20)
                 : effectiveColor.withValues(alpha: ThemeConstants.opacity10),
-            borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+            borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
               color: style == CardStyle.gradient
                   ? Colors.white.withValues(alpha: ThemeConstants.opacity30)
                   : effectiveColor.withValues(alpha: ThemeConstants.opacity30),
-              width: ThemeConstants.borderThin,
+              width: 1.w,
             ),
           ),
           child: Row(
@@ -750,14 +777,16 @@ class AppCard extends StatelessWidget {
               Icon(
                 action.icon,
                 color: style == CardStyle.gradient ? Colors.white : effectiveColor,
-                size: ThemeConstants.iconSm,
+                size: 20.sp,
               ),
-              ThemeConstants.space2.w,
+              SizedBox(width: 8.w),
               Text(
                 action.label,
                 style: context.labelMedium?.textColor(
                   style == CardStyle.gradient ? Colors.white : effectiveColor
-                ).semiBold,
+                ).semiBold.copyWith(
+                  fontSize: context.labelMedium?.fontSize?.sp,
+                ),
               ),
             ],
           ),
@@ -770,22 +799,22 @@ class AppCard extends StatelessWidget {
     final effectiveColor = primaryColor ?? context.primaryColor;
     
     return Positioned(
-      top: ThemeConstants.space2,
-      right: ThemeConstants.space2,
+      top: 8.h,
+      right: 8.w,
       child: Container(
-        padding: const EdgeInsets.all(ThemeConstants.space1 / 2),
+        padding: EdgeInsets.all(2.w),
         decoration: BoxDecoration(
           color: effectiveColor,
           shape: BoxShape.circle,
           border: Border.all(
             color: backgroundColor ?? context.cardColor,
-            width: 1.5,
+            width: 1.5.w,
           ),
         ),
         child: Icon(
           Icons.check,
           color: effectiveColor.contrastingTextColor,
-          size: ThemeConstants.iconSm,
+          size: 20.sp,
         ),
       ),
     );

@@ -1,5 +1,6 @@
 // lib/features/tasbih/widgets/dhikr_card.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
 import '../models/dhikr_model.dart';
 
@@ -25,23 +26,23 @@ class DhikrCardSimple extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
             color: isSelected 
                 ? dhikr.primaryColor.withValues(alpha: 0.3)
                 : Colors.black.withValues(alpha: 0.05),
-            blurRadius: isSelected ? 12 : 8,
-            offset: Offset(0, isSelected ? 6 : 4),
+            blurRadius: isSelected ? 12.r : 8.r,
+            offset: Offset(0, isSelected ? 6.h : 4.h),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           child: Container(
             decoration: BoxDecoration(
               gradient: isSelected 
@@ -52,19 +53,19 @@ class DhikrCardSimple extends StatelessWidget {
                     )
                   : null,
               color: !isSelected ? context.cardColor : null,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(16.r),
               border: isSelected 
                   ? Border.all(
                       color: Colors.white.withValues(alpha: 0.3),
-                      width: 1,
+                      width: 1.w,
                     )
                   : Border.all(
                       color: context.dividerColor.withValues(alpha: 0.2),
-                      width: 1,
+                      width: 1.w,
                     ),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16.w),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -73,27 +74,27 @@ class DhikrCardSimple extends StatelessWidget {
                     children: [
                       // تصنيف الذكر
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 4.h,
                         ),
                         decoration: BoxDecoration(
                           color: isSelected 
                               ? Colors.white.withValues(alpha: 0.2)
                               : dhikr.primaryColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               dhikr.category.icon,
-                              size: 14,
+                              size: 14.sp,
                               color: isSelected 
                                   ? Colors.white
                                   : dhikr.primaryColor,
                             ),
-                            const SizedBox(width: 4),
+                            SizedBox(width: 4.w),
                             Text(
                               dhikr.category.title,
                               style: context.labelSmall?.copyWith(
@@ -111,15 +112,15 @@ class DhikrCardSimple extends StatelessWidget {
                       
                       // العدد المقترح
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 4.h,
                         ),
                         decoration: BoxDecoration(
                           color: isSelected 
                               ? Colors.white.withValues(alpha: 0.2)
                               : context.textSecondaryColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Text(
                           '${dhikr.recommendedCount}×',
@@ -134,17 +135,17 @@ class DhikrCardSimple extends StatelessWidget {
                     ],
                   ),
                   
-                  ThemeConstants.space3.h,
+                  SizedBox(height: 12.h),
                   
                   // نص الذكر
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(16.w),
                     decoration: BoxDecoration(
                       color: isSelected 
                           ? Colors.white.withValues(alpha: 0.15)
                           : dhikr.primaryColor.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12.r),
                       border: Border.all(
                         color: isSelected 
                             ? Colors.white.withValues(alpha: 0.3)
@@ -167,14 +168,14 @@ class DhikrCardSimple extends StatelessWidget {
                   
                   // الفضل (إذا وُجد)
                   if (dhikr.virtue != null) ...[
-                    ThemeConstants.space3.h,
+                    SizedBox(height: 12.h),
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: EdgeInsets.all(12.w),
                       decoration: BoxDecoration(
                         color: isSelected 
                             ? Colors.white.withValues(alpha: 0.1)
                             : ThemeConstants.accent.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(8.r),
                         border: Border.all(
                           color: isSelected 
                               ? Colors.white.withValues(alpha: 0.2)
@@ -186,12 +187,12 @@ class DhikrCardSimple extends StatelessWidget {
                         children: [
                           Icon(
                             Icons.star_rounded,
-                            size: 16,
+                            size: 16.sp,
                             color: isSelected 
                                 ? Colors.white
                                 : ThemeConstants.accent,
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8.w),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,7 +206,7 @@ class DhikrCardSimple extends StatelessWidget {
                                     fontWeight: ThemeConstants.semiBold,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                SizedBox(height: 4.h),
                                 Text(
                                   dhikr.virtue!,
                                   style: context.bodySmall?.copyWith(
@@ -225,23 +226,23 @@ class DhikrCardSimple extends StatelessWidget {
                   
                   // مؤشر الاختيار
                   if (isSelected) ...[
-                    ThemeConstants.space3.h,
+                    SizedBox(height: 12.h),
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      padding: EdgeInsets.symmetric(vertical: 8.h),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(8.r),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.check_circle_rounded,
                             color: Colors.white,
-                            size: 20,
+                            size: 20.sp,
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8.w),
                           Text(
                             'مُحدد حالياً',
                             style: context.labelMedium?.copyWith(
