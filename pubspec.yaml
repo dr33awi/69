@@ -53,11 +53,13 @@ dependencies:
   url_launcher: ^6.3.2
   package_info_plus: ^8.3.1
   flutter_screenutil: ^5.9.3
+  delightful_toast: ^1.1.0
 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
 
 flutter:
   uses-material-design: true

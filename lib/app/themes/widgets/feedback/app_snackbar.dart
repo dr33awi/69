@@ -36,7 +36,7 @@ class AppSnackBar {
                 color: textColor ?? Colors.white,
                 size: ThemeConstants.iconMd,
               ),
-              const SizedBox(width: ThemeConstants.space3),
+               SizedBox(width: ThemeConstants.space3),
             ],
             Expanded(
               child: Text(
@@ -53,7 +53,7 @@ class AppSnackBar {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
         ),
-        margin: margin ?? const EdgeInsets.all(ThemeConstants.space4),
+        margin: margin ??  EdgeInsets.all(ThemeConstants.space4),
         duration: duration,
         action: action,
       ),
@@ -170,15 +170,15 @@ class AppSnackBar {
       SnackBar(
         content: Row(
           children: [
-            const SizedBox(
+            SizedBox(
               width: ThemeConstants.iconMd,
               height: ThemeConstants.iconMd,
-              child: CircularProgressIndicator(
+              child: const CircularProgressIndicator(
                 strokeWidth: 2,
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
               ),
             ),
-            const SizedBox(width: ThemeConstants.space3),
+            SizedBox(width: ThemeConstants.space3),
             Expanded(
               child: Text(
                 message,
@@ -194,7 +194,7 @@ class AppSnackBar {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
         ),
-        margin: const EdgeInsets.all(ThemeConstants.space4),
+        margin:  EdgeInsets.all(ThemeConstants.space4),
         duration: const Duration(days: 1), // لا تختفي تلقائياً
       ),
     );
