@@ -1,5 +1,4 @@
 // lib/core/infrastructure/services/permissions/widgets/permission_monitor.dart
-
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -33,12 +32,10 @@ class _PermissionMonitorState extends State<PermissionMonitor>
   late final UnifiedPermissionManager _manager;
   late final PermissionService _permissionService;
   
-  // Animation Controllers
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
   
-  // State
   Map<AppPermissionType, AppPermissionStatus> _cachedStatuses = {};
   List<AppPermissionType> _missingPermissions = [];
   AppPermissionType? _currentPermission;
@@ -47,22 +44,19 @@ class _PermissionMonitorState extends State<PermissionMonitor>
   bool _hasCheckedPermissions = false;
   bool _userWentToSettings = false;
   
-  // للتحكم في الإشعارات
   final Map<AppPermissionType, DateTime> _dismissedPermissions = {};
   DateTime? _lastCheckTime;
   
-  static const Duration _dismissalDuration = Duration(hours: 1); // زيادة المدة
+  static const Duration _dismissalDuration = Duration(hours: 1);
   
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     
-    // تهيئة الخدمات
     _manager = getIt<UnifiedPermissionManager>();
     _permissionService = getIt<PermissionService>();
     
-    // تهيئة الأنيميشن
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
@@ -85,12 +79,9 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     ));
     
     debugPrint('[PermissionMonitor] Initializing...');
-    
-    // فحص فوري بدون أي تأخير
     _performInstantCheck();
   }
   
-  /// فحص فوري بدون تأخير
   void _performInstantCheck() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted || _hasCheckedPermissions) return;
@@ -106,7 +97,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     });
   }
   
-  /// فحص فائق السرعة للأذونات
   Future<void> _ultraFastPermissionCheck() async {
     try {
       final stopwatch = Stopwatch()..start();
@@ -158,7 +148,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     }
   }
   
-  /// معالجة نتيجة الفحص
   void _processCheckResult(PermissionCheckResult result) {
     setState(() {
       _missingPermissions = result.missingPermissions
@@ -187,7 +176,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     }
   }
   
-  /// عند عودة التطبيق
   void _onAppResumed() {
     if (!_userWentToSettings) return;
     
@@ -197,7 +185,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     _instantPermissionCheck();
   }
   
-  /// فحص فوري للتغييرات
   Future<void> _instantPermissionCheck() async {
     if (_lastCheckTime != null) {
       final timeSince = DateTime.now().difference(_lastCheckTime!);
@@ -248,7 +235,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     }
   }
   
-  /// عرض إشعار لإذن معين
   void _showNotificationForPermission(AppPermissionType permission) {
     final dismissedAt = _dismissedPermissions[permission];
     if (dismissedAt != null && 
@@ -267,7 +253,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     HapticFeedback.mediumImpact();
   }
   
-  /// إخفاء الإشعار
   void _hideNotification({bool success = false, bool dismissed = false}) {
     if (!mounted) return;
     
@@ -283,7 +268,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
           _isProcessing = false;
         });
         
-        // عرض الإذن التالي إن وجد
         if (success && _missingPermissions.isNotEmpty) {
           Future.delayed(const Duration(seconds: 1), () {
             if (mounted && !_isShowingNotification) {
@@ -306,7 +290,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     }
   }
   
-  /// عرض رسالة نجاح
   void _showSuccessMessage(AppPermissionType permission) {
     if (!mounted || !widget.showNotifications) return;
     
@@ -316,11 +299,12 @@ class _PermissionMonitorState extends State<PermissionMonitor>
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle, color: Colors.white),
-            const SizedBox(width: 12),
+            Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
+            SizedBox(width: 12.w),
             Expanded(
               child: Text(
                 'تم تفعيل إذن ${PermissionConstants.getName(permission)} بنجاح',
+                style: TextStyle(fontSize: 14.sp),
               ),
             ),
           ],
@@ -329,13 +313,13 @@ class _PermissionMonitorState extends State<PermissionMonitor>
         duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(8.r),
         ),
+        margin: EdgeInsets.all(16.w),
       ),
     );
   }
   
-  /// معالجة طلب الإذن
   Future<void> _handlePermissionRequest() async {
     if (_currentPermission == null || _isProcessing) return;
     
@@ -346,17 +330,14 @@ class _PermissionMonitorState extends State<PermissionMonitor>
       final currentStatus = await _permissionService.checkPermissionStatus(_currentPermission!);
       
       if (currentStatus == AppPermissionStatus.permanentlyDenied) {
-        // فتح الإعدادات
         await _permissionService.openAppSettings();
         _userWentToSettings = true;
         setState(() => _isProcessing = false);
         
       } else {
-        // طلب الإذن
         final newStatus = await _permissionService.requestPermission(_currentPermission!);
         
         if (newStatus == AppPermissionStatus.granted) {
-          // تم منح الإذن
           _cachedStatuses[_currentPermission!] = newStatus;
           _missingPermissions.remove(_currentPermission!);
           _hideNotification(success: true);
@@ -364,11 +345,13 @@ class _PermissionMonitorState extends State<PermissionMonitor>
         } else {
           setState(() => _isProcessing = false);
           
-          // إذا تم الرفض نهائياً
           if (newStatus == AppPermissionStatus.permanentlyDenied && mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: const Text('يرجى تفعيل الإذن من إعدادات النظام'),
+                content: Text(
+                  'يرجى تفعيل الإذن من إعدادات النظام',
+                  style: TextStyle(fontSize: 14.sp),
+                ),
                 backgroundColor: Colors.orange,
                 action: SnackBarAction(
                   label: 'فتح الإعدادات',
@@ -378,6 +361,11 @@ class _PermissionMonitorState extends State<PermissionMonitor>
                     _userWentToSettings = true;
                   },
                 ),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                margin: EdgeInsets.all(16.w),
               ),
             );
           }
@@ -394,20 +382,16 @@ class _PermissionMonitorState extends State<PermissionMonitor>
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // المحتوى الأساسي
         widget.child,
         
-        // طبقة الإشعار
         if (_isShowingNotification && _currentPermission != null)
           ..._buildNotificationOverlay(),
       ],
     );
   }
   
-  /// بناء طبقة الإشعار
   List<Widget> _buildNotificationOverlay() {
     return [
-      // الخلفية المعتمة مع Blur
       GestureDetector(
         onTap: () {
           if (!_isProcessing) {
@@ -418,7 +402,7 @@ class _PermissionMonitorState extends State<PermissionMonitor>
           animation: _fadeAnimation,
           builder: (context, child) {
             return Container(
-              color: Colors.black.withValues(alpha: _fadeAnimation.value * 0.6),
+              color: Colors.black.withOpacity(_fadeAnimation.value * 0.6),
               child: BackdropFilter(
                 filter: ImageFilter.blur(
                   sigmaX: 8 * _fadeAnimation.value,
@@ -431,7 +415,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
         ),
       ),
       
-      // البطاقة في المنتصف
       Center(
         child: AnimatedBuilder(
           animation: _animationController,
@@ -484,27 +467,25 @@ class _SimplePermissionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final info = PermissionConstants.getInfo(permission);
-    final size = MediaQuery.of(context).size;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Container(
-      width: size.width * 0.85,
-      constraints: const BoxConstraints(
-        maxWidth: 380,
-        minHeight: 280,
+      width: 0.85.sw,
+      constraints: BoxConstraints(
+        maxWidth: 380.w,
+        minHeight: 260.h,
       ),
       child: Card(
         elevation: 0,
         color: isDark ? Colors.grey[900] : Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(24.r),
         ),
         child: Container(
-          padding: EdgeInsets.all(28.w),
+          padding: EdgeInsets.all(24.w),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // زر الإغلاق
               Align(
                 alignment: Alignment.topLeft,
                 child: GestureDetector(
@@ -512,29 +493,28 @@ class _SimplePermissionCard extends StatelessWidget {
                   child: Container(
                     padding: EdgeInsets.all(8.w),
                     decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: 0.1),
+                      color: Colors.grey.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.close,
-                      size: 20.sp,
+                      size: 18.sp,
                       color: Colors.grey[600],
                     ),
                   ),
                 ),
               ),
               
-              const SizedBox(height: 8),
+              SizedBox(height: 8.h),
               
-              // الأيقونة
               Container(
-                width: 72,
-                height: 72,
+                width: 64.w,
+                height: 64.w,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      info.color.withValues(alpha: 0.15),
-                      info.color.withValues(alpha: 0.05),
+                      info.color.withOpacity(0.15),
+                      info.color.withOpacity(0.05),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -544,66 +524,63 @@ class _SimplePermissionCard extends StatelessWidget {
                 child: Icon(
                   info.icon,
                   color: info.color,
-                  size: 36,
+                  size: 32.sp,
                 ),
               ),
               
-              const SizedBox(height: 24),
+              SizedBox(height: 20.h),
               
-              // العنوان
               Text(
                 'إذن ${info.name}',
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 22.sp,
                   fontWeight: FontWeight.bold,
                   color: isDark ? Colors.white : Colors.grey[900],
                 ),
                 textAlign: TextAlign.center,
               ),
               
-              const SizedBox(height: 12),
+              SizedBox(height: 10.h),
               
-              // الوصف
               Text(
                 info.description,
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: 14.sp,
                   height: 1.4,
                   color: isDark ? Colors.grey[400] : Colors.grey[600],
                 ),
                 textAlign: TextAlign.center,
               ),
               
-              const SizedBox(height: 32),
+              SizedBox(height: 28.h),
               
-              // زر التفعيل
               SizedBox(
                 width: double.infinity,
-                height: 52,
+                height: 48.h,
                 child: ElevatedButton(
                   onPressed: isProcessing ? null : onActivate,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: info.color,
                     foregroundColor: Colors.white,
-                    disabledBackgroundColor: info.color.withValues(alpha: 0.5),
+                    disabledBackgroundColor: info.color.withOpacity(0.5),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(14.r),
                     ),
                   ),
                   child: isProcessing
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
+                      ? SizedBox(
+                          width: 22.w,
+                          height: 22.w,
                           child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            strokeWidth: 2.5.w,
+                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
-                      : const Text(
+                      : Text(
                           'تفعيل الآن',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 15.sp,
                             fontWeight: FontWeight.w600,
                           ),
                         ),

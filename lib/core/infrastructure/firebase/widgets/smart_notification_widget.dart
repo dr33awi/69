@@ -1,4 +1,5 @@
-// lib/features/notifications/widgets/smart_notification_widget.dart
+// lib/core/infrastructure/firebase/widgets/smart_notification_widget.dart
+// محسّن للشاشات الصغيرة
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -31,7 +32,6 @@ class _SmartNotificationWidgetState extends State<SmartNotificationWidget> {
   }
   
   void _initializeServices() {
-    // محاولة الحصول على الخدمات من Service Locator
     try {
       // يمكن استخدام GetIt هنا إذا كان متوفراً
       // _messagingService = getIt<FirebaseMessagingService>();
@@ -46,7 +46,6 @@ class _SmartNotificationWidgetState extends State<SmartNotificationWidget> {
   }
   
   void _setupConfigListener() {
-    // مراقبة تغييرات إعدادات الإشعارات
     _configManager?.notificationsEnabled.addListener(_onNotificationSettingsChanged);
   }
   
@@ -66,7 +65,6 @@ class _SmartNotificationWidgetState extends State<SmartNotificationWidget> {
     if (_messagingService == null) return;
     
     try {
-      // إعادة تفعيل الاشتراكات العامة
       await _messagingService!.subscribeToGeneralNotifications();
       
       _showNotificationSnackBar(
@@ -83,7 +81,6 @@ class _SmartNotificationWidgetState extends State<SmartNotificationWidget> {
     if (_messagingService == null) return;
     
     try {
-      // إلغاء الاشتراكات العامة
       await _messagingService!.unsubscribeFromGeneralNotifications();
       
       _showNotificationSnackBar(
@@ -103,15 +100,15 @@ class _SmartNotificationWidgetState extends State<SmartNotificationWidget> {
       SnackBar(
         content: Row(
           children: [
-            Icon(icon, color: Colors.white, size: 20),
-            const SizedBox(width: 12),
+            Icon(icon, color: Colors.white, size: 20.sp),
+            SizedBox(width: 12.w),
             Expanded(
               child: Text(
                 message,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
                   fontFamily: 'Cairo',
-                  fontSize: 14,
+                  fontSize: 13.sp,
                 ),
               ),
             ),
@@ -192,13 +189,13 @@ class _NotificationStatusWidgetState extends State<NotificationStatusWidget> {
                 Icon(
                   Icons.notifications,
                   color: Theme.of(context).primaryColor,
-                  size: 24,
+                  size: 22.sp,
                 ),
-                const SizedBox(width: 12),
-                const Text(
+                SizedBox(width: 12.w),
+                Text(
                   'حالة الإشعارات',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Cairo',
                   ),
@@ -206,7 +203,7 @@ class _NotificationStatusWidgetState extends State<NotificationStatusWidget> {
               ],
             ),
             
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
             
             // حالة الخدمة
             _buildStatusRow(
@@ -215,7 +212,7 @@ class _NotificationStatusWidgetState extends State<NotificationStatusWidget> {
               isServiceAvailable ? 'متصلة' : 'غير متاحة',
             ),
             
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             
             // حالة الميزة
             _buildStatusRow(
@@ -224,7 +221,7 @@ class _NotificationStatusWidgetState extends State<NotificationStatusWidget> {
               isFeatureEnabled ? 'مفعلة' : 'معطلة من الخادم',
             ),
             
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             
             // حالة الإذن
             _buildStatusRow(
@@ -233,31 +230,34 @@ class _NotificationStatusWidgetState extends State<NotificationStatusWidget> {
               hasPermission ? 'ممنوحة' : 'مطلوبة',
             ),
             
-            const SizedBox(height: 16),
-            
             // معلومات إضافية
             if (_messagingService?.fcmToken != null) ...[
-              const Divider(),
-              const SizedBox(height: 8),
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 12.h),
+                child: const Divider(),
+              ),
+              
               Text(
                 'معرف الجهاز:',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 11.sp,
                   color: Colors.grey.shade600,
                   fontFamily: 'Cairo',
                 ),
               ),
-              const SizedBox(height: 4),
+              
+              SizedBox(height: 4.h),
+              
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: EdgeInsets.all(8.w),
                 decoration: BoxDecoration(
                   color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(8.r),
                 ),
                 child: Text(
                   _messagingService!.fcmToken!.substring(0, 32) + '...',
-                  style: const TextStyle(
-                    fontSize: 10,
+                  style: TextStyle(
+                    fontSize: 9.sp,
                     fontFamily: 'monospace',
                   ),
                 ),
@@ -273,19 +273,19 @@ class _NotificationStatusWidgetState extends State<NotificationStatusWidget> {
     return Row(
       children: [
         Container(
-          width: 12,
-          height: 12,
+          width: 10.w,
+          height: 10.h,
           decoration: BoxDecoration(
             color: isActive ? Colors.green : Colors.red,
             shape: BoxShape.circle,
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: 12.w),
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(
-              fontSize: 14,
+            style: TextStyle(
+              fontSize: 13.sp,
               fontFamily: 'Cairo',
             ),
           ),
@@ -293,7 +293,7 @@ class _NotificationStatusWidgetState extends State<NotificationStatusWidget> {
         Text(
           status,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 11.sp,
             color: isActive ? Colors.green : Colors.red,
             fontWeight: FontWeight.bold,
             fontFamily: 'Cairo',

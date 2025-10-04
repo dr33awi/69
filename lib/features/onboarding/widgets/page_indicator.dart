@@ -1,4 +1,4 @@
-// lib/features/onboarding/widgets/page_indicator.dart - محدث بدون إيموجي مع ScreenUtil
+// lib/features/onboarding/widgets/page_indicator.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../models/onboarding_item.dart';
@@ -18,19 +18,14 @@ class PageIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // النقاط فقط
-          ..._buildDots(),
-        ],
+        children: _buildDots(),
       ),
     );
   }
-
-  // تم إزالة دالة _buildCurrentPageInfo() لأنها لم تعد مطلوبة
 
   List<Widget> _buildDots() {
     return List.generate(
@@ -47,22 +42,22 @@ class PageIndicator extends StatelessWidget {
             borderRadius: BorderRadius.circular(4.r),
             color: currentIndex == index
                 ? Colors.white
-                : Colors.white.withValues(alpha: 0.4),
+                : Colors.white.withOpacity(0.4),
             boxShadow: currentIndex == index ? [
               BoxShadow(
-                color: Colors.white.withValues(alpha: 0.4),
-                blurRadius: 6,
-                spreadRadius: 1,
+                color: Colors.white.withOpacity(0.4),
+                blurRadius: 6.r,
+                spreadRadius: 1.r,
               ),
             ] : null,
           ),
           child: currentIndex == index 
               ? Center(
                   child: Container(
-                    width: 4,
-                    height: 4,
+                    width: 4.w,
+                    height: 4.h,
                     decoration: BoxDecoration(
-                      color: items[index].primaryColor.withValues(alpha: 0.8),
+                      color: items[index].primaryColor.withOpacity(0.8),
                       shape: BoxShape.circle,
                     ),
                   ),

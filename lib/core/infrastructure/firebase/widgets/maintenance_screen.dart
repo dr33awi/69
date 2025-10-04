@@ -1,10 +1,11 @@
-// lib/core/infrastructure/firebase/widgets/maintenance_screen.dart - مصحح مع ScreenUtil
+// lib/core/infrastructure/firebase/widgets/maintenance_screen.dart
+// محسّن للشاشات الصغيرة
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-/// شاشة الصيانة المصححة
+/// شاشة الصيانة المحسّنة
 class MaintenanceScreen extends StatefulWidget {
   const MaintenanceScreen({super.key});
 
@@ -49,7 +50,6 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
       curve: Curves.elasticOut,
     ));
     
-    // بدء الأنيميشن
     _fadeController.forward();
     Future.delayed(const Duration(milliseconds: 300), () {
       _scaleController.forward();
@@ -66,7 +66,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false, // منع الرجوع
+      canPop: false,
       child: Scaffold(
         backgroundColor: const Color(0xFF1E1E1E),
         body: FadeTransition(
@@ -84,162 +84,169 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
               ),
             ),
             child: SafeArea(
-              child: Center(
-                child: Padding(
-                  padding: EdgeInsets.all(24.w),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // أيقونة الصيانة
-                      ScaleTransition(
-                        scale: _scaleAnimation,
-                        child: Container(
-                          padding: EdgeInsets.all(32.w),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.orange.withValues(alpha: 0.3),
-                              width: 2,
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.build_circle_outlined,
-                            size: 80.sp,
-                            color: Colors.orange.shade300,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 24.w,
+                  vertical: 20.h,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(height: 40.h),
+                    
+                    // أيقونة الصيانة
+                    ScaleTransition(
+                      scale: _scaleAnimation,
+                      child: Container(
+                        padding: EdgeInsets.all(28.w),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.orange.withValues(alpha: 0.3),
+                            width: 2,
                           ),
                         ),
-                      ),
-                      
-                      SizedBox(height: 40.h),
-                      
-                      // العنوان
-                      FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: Text(
-                          'التطبيق قيد الصيانة',
-                          style: TextStyle(
-                            fontSize: 24.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            fontFamily: 'Cairo',
-                          ),
-                          textAlign: TextAlign.center,
+                        child: Icon(
+                          Icons.build_circle_outlined,
+                          size: 64.sp,
+                          color: Colors.orange.shade300,
                         ),
                       ),
-                      
-                      SizedBox(height: 12.h),
-                      
-                      // الوصف
-                      FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: Text(
-                          'نعمل حالياً على تحسين التطبيق\nلتقديم تجربة أفضل لك',
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            color: Colors.grey.shade300,
-                            height: 1.5,
-                            fontFamily: 'Cairo',
-                          ),
-                          textAlign: TextAlign.center,
+                    ),
+                    
+                    SizedBox(height: 32.h),
+                    
+                    // العنوان
+                    FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: Text(
+                        'التطبيق قيد الصيانة',
+                        style: TextStyle(
+                          fontSize: 22.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontFamily: 'Cairo',
                         ),
+                        textAlign: TextAlign.center,
                       ),
-                      
-                      SizedBox(height: 40.h),
-                      
-                      // مؤشر التحميل
-                      ScaleTransition(
-                        scale: _scaleAnimation,
-                        child: Container(
-                          padding: EdgeInsets.all(20.w),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade900,
-                            borderRadius: BorderRadius.circular(16.r),
-                            border: Border.all(
-                              color: Colors.grey.shade700,
-                              width: 1.w,
-                            ),
+                    ),
+                    
+                    SizedBox(height: 12.h),
+                    
+                    // الوصف
+                    FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: Text(
+                        'نعمل حالياً على تحسين التطبيق\nلتقديم تجربة أفضل لك',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: Colors.grey.shade300,
+                          height: 1.5,
+                          fontFamily: 'Cairo',
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    
+                    SizedBox(height: 32.h),
+                    
+                    // مؤشر التحميل
+                    ScaleTransition(
+                      scale: _scaleAnimation,
+                      child: Container(
+                        padding: EdgeInsets.all(20.w),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade900,
+                          borderRadius: BorderRadius.circular(16.r),
+                          border: Border.all(
+                            color: Colors.grey.shade700,
+                            width: 1,
                           ),
-                          child: Column(
-                            children: [
-                              // مؤشر دوار
-                              SizedBox(
-                                height: 40.h,
-                                width: 40.w,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 3.w,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.orange.shade300,
-                                  ),
+                        ),
+                        child: Column(
+                          children: [
+                            // مؤشر دوار
+                            SizedBox(
+                              height: 36.h,
+                              width: 36.w,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 3,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.orange.shade300,
                                 ),
                               ),
-                              
-                              SizedBox(height: 16.h),
-                              
-                              Text(
-                                'جارٍ العمل على التحسينات...',
+                            ),
+                            
+                            SizedBox(height: 16.h),
+                            
+                            Text(
+                              'جارٍ العمل على التحسينات...',
+                              style: TextStyle(
+                                fontSize: 13.sp,
+                                color: Colors.grey.shade400,
+                                fontFamily: 'Cairo',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    
+                    SizedBox(height: 32.h),
+                    
+                    // معلومات إضافية
+                    FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: Container(
+                        padding: EdgeInsets.all(16.w),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade900.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(12.r),
+                          border: Border.all(
+                            color: Colors.blue.shade700.withValues(alpha: 0.5),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              color: Colors.blue.shade300,
+                              size: 20.sp,
+                            ),
+                            SizedBox(width: 12.w),
+                            Expanded(
+                              child: Text(
+                                'ستتم استعادة الخدمة في أقرب وقت ممكن\nشكراً لصبركم',
                                 style: TextStyle(
-                                  fontSize: 14.sp,
-                                  color: Colors.grey.shade400,
+                                  fontSize: 12.sp,
+                                  color: Colors.blue.shade200,
+                                  height: 1.4,
                                   fontFamily: 'Cairo',
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      
-                      SizedBox(height: 40.h),
-                      
-                      // معلومات إضافية
-                      FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: Container(
-                          padding: EdgeInsets.all(16.w),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade900.withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(12.r),
-                            border: Border.all(
-                              color: Colors.blue.shade700.withValues(alpha: 0.5),
-                              width: 1.w,
                             ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.info_outline,
-                                color: Colors.blue.shade300,
-                                size: 20.sp,
-                              ),
-                              SizedBox(width: 12.w),
-                              Expanded(
-                                child: Text(
-                                  'ستتم استعادة الخدمة في أقرب وقت ممكن\nشكراً لصبركم',
-                                  style: TextStyle(
-                                    fontSize: 12.sp,
-                                    color: Colors.blue.shade200,
-                                    height: 1.4,
-                                    fontFamily: 'Cairo',
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                          ],
                         ),
                       ),
-                      
-                      SizedBox(height: 24.h),
-                      
-                      // زر إعادة المحاولة
-                      ScaleTransition(
-                        scale: _scaleAnimation,
+                    ),
+                    
+                    SizedBox(height: 24.h),
+                    
+                    // زر إعادة المحاولة
+                    ScaleTransition(
+                      scale: _scaleAnimation,
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 48.h,
                         child: ElevatedButton.icon(
                           onPressed: _retryConnection,
-                          icon: Icon(Icons.refresh),
+                          icon: Icon(Icons.refresh, size: 20.sp),
                           label: Text(
                             'إعادة المحاولة',
                             style: TextStyle(
-                              fontSize: 16.sp,
+                              fontSize: 15.sp,
                               fontWeight: FontWeight.bold,
                               fontFamily: 'Cairo',
                             ),
@@ -247,10 +254,6 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.orange.shade600,
                             foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 32.w,
-                              vertical: 16.h,
-                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(25.r),
                             ),
@@ -258,8 +261,10 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                           ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    
+                    SizedBox(height: 40.h),
+                  ],
                 ),
               ),
             ),
@@ -277,12 +282,14 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
     _scaleController.reset();
     _scaleController.forward();
     
-    // يمكن إضافة منطق إعادة فحص الاتصال هنا
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           'جارٍ فحص الاتصال...',
-          style: TextStyle(fontFamily: 'Cairo'),
+          style: TextStyle(
+            fontFamily: 'Cairo',
+            fontSize: 13.sp,
+          ),
         ),
         backgroundColor: Colors.orange.shade600,
         duration: const Duration(seconds: 2),

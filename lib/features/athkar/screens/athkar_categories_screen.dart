@@ -8,7 +8,7 @@ import '../../../app/routes/app_router.dart';
 import '../../../core/infrastructure/services/permissions/permission_service.dart';
 import '../services/athkar_service.dart';
 import '../models/athkar_model.dart';
-import '../widgets/athkar_category_card.dart';
+import '../utils/category_utils.dart';
 import 'notification_settings_screen.dart';
 
 class AthkarCategoriesScreen extends StatefulWidget {
@@ -62,107 +62,25 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
               child: RefreshIndicator(
                 onRefresh: _refreshData,
                 color: ThemeConstants.primary,
-                child: CustomScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  slivers: [
-                    SliverPadding(
-                      padding: EdgeInsets.only(top: 8.h),
-                    ),
+                child: FutureBuilder<List<AthkarCategory>>(
+                  future: _futureCategories,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return _buildLoading();
+                    }
                     
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 16.w,
-                          vertical: 8.h,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'اختر فئة الأذكار',
-                              style: TextStyle(
-                                fontWeight: ThemeConstants.bold,
-                                color: context.textPrimaryColor,
-                                fontSize: 22.sp,
-                              ),
-                            ),
-                            SizedBox(height: 4.h),
-                            Text(
-                              'اقرأ الأذكار اليومية وحافظ على ذكر الله في كل وقت',
-                              style: TextStyle(
-                                color: context.textSecondaryColor,
-                                fontSize: 13.sp,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    if (snapshot.hasError) {
+                      return _buildErrorState();
+                    }
                     
-                    FutureBuilder<List<AthkarCategory>>(
-                      future: _futureCategories,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return SliverFillRemaining(
-                            child: Center(
-                              child: AppLoading.page(
-                                message: 'جاري تحميل الأذكار...',
-                              ),
-                            ),
-                          );
-                        }
-                        
-                        if (snapshot.hasError) {
-                          return SliverFillRemaining(
-                            child: AppEmptyState.error(
-                              message: 'حدث خطأ في تحميل البيانات',
-                              onRetry: _refreshData,
-                            ),
-                          );
-                        }
-                        
-                        final categories = snapshot.data ?? [];
-                        
-                        if (categories.isEmpty) {
-                          return SliverFillRemaining(
-                            child: AppEmptyState.noData(
-                              message: 'لا توجد أذكار متاحة حالياً',
-                            ),
-                          );
-                        }
-                        
-                        return SliverPadding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 16.w,
-                            vertical: 8.h,
-                          ),
-                          sliver: SliverGrid(
-                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              mainAxisSpacing: 12.h,
-                              crossAxisSpacing: 12.w,
-                              childAspectRatio: 0.9,
-                            ),
-                            delegate: SliverChildBuilderDelegate(
-                              (context, index) {
-                                final category = categories[index];
-                                
-                                return AthkarCategoryCard(
-                                  category: category,
-                                  onTap: () => _openCategoryDetails(category),
-                                );
-                              },
-                              childCount: categories.length,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                    final categories = snapshot.data ?? [];
                     
-                    SliverPadding(
-                      padding: EdgeInsets.only(bottom: 24.h),
-                    ),
-                  ],
+                    if (categories.isEmpty) {
+                      return _buildEmptyState();
+                    }
+                    
+                    return _buildContent(categories);
+                  },
                 ),
               ),
             ),
@@ -285,6 +203,328 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLoading() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: EdgeInsets.all(16.w),
+            decoration: BoxDecoration(
+              color: ThemeConstants.accent.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: CircularProgressIndicator(
+              color: ThemeConstants.accent,
+              strokeWidth: 3.w,
+            ),
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            'جاري تحميل الأذكار...',
+            style: TextStyle(
+              color: context.textSecondaryColor,
+              fontSize: 16.sp,
+              fontWeight: ThemeConstants.medium,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            'يرجى الانتظار قليلاً',
+            style: TextStyle(
+              color: context.textSecondaryColor.withOpacity(0.7),
+              fontSize: 12.sp,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: EdgeInsets.all(24.w),
+            decoration: BoxDecoration(
+              color: Colors.red.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.error_outline_rounded,
+              size: 60.sp,
+              color: Colors.red.withOpacity(0.7),
+            ),
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            'حدث خطأ',
+            style: TextStyle(
+              color: context.textPrimaryColor,
+              fontWeight: ThemeConstants.bold,
+              fontSize: 20.sp,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            'حدث خطأ في تحميل البيانات',
+            style: TextStyle(
+              color: context.textSecondaryColor.withOpacity(0.7),
+              fontSize: 14.sp,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 24.h),
+          ElevatedButton.icon(
+            onPressed: _refreshData,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ThemeConstants.accent,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(
+                horizontal: 24.w,
+                vertical: 12.h,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.r),
+              ),
+            ),
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('إعادة المحاولة'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: EdgeInsets.all(24.w),
+            decoration: BoxDecoration(
+              color: context.textSecondaryColor.withOpacity(0.05),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.menu_book_outlined,
+              size: 60.sp,
+              color: context.textSecondaryColor.withOpacity(0.5),
+            ),
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            'لا توجد أذكار',
+            style: TextStyle(
+              color: context.textSecondaryColor,
+              fontWeight: ThemeConstants.bold,
+              fontSize: 20.sp,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            'لا توجد أذكار متاحة حالياً',
+            style: TextStyle(
+              color: context.textSecondaryColor.withOpacity(0.7),
+              fontSize: 14.sp,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent(List<AthkarCategory> categories) {
+    return Column(
+      children: [
+        Container(
+          margin: EdgeInsets.symmetric(
+            horizontal: 16.w,
+            vertical: 12.h,
+          ),
+          padding: EdgeInsets.symmetric(
+            horizontal: 16.w,
+            vertical: 12.h,
+          ),
+          decoration: BoxDecoration(
+            color: context.cardColor,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(
+              color: context.dividerColor.withOpacity(0.3),
+              width: 1.w,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.category_rounded,
+                size: 16.sp,
+                color: ThemeConstants.accent,
+              ),
+              SizedBox(width: 8.w),
+              Text(
+                'عدد الفئات: ${categories.length}',
+                style: TextStyle(
+                  color: context.textSecondaryColor,
+                  fontSize: 14.sp,
+                  fontWeight: ThemeConstants.medium,
+                ),
+              ),
+            ],
+          ),
+        ),
+        
+        Expanded(
+          child: ListView.builder(
+            padding: EdgeInsets.symmetric(
+              horizontal: 16.w,
+              vertical: 8.h,
+            ),
+            physics: const BouncingScrollPhysics(),
+            itemCount: categories.length,
+            itemBuilder: (context, index) {
+              final category = categories[index];
+              return Container(
+                margin: EdgeInsets.only(bottom: 12.h),
+                child: _buildCompactCategoryCard(category),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompactCategoryCard(AthkarCategory category) {
+    final categoryColor = CategoryUtils.getCategoryThemeColor(category.id);
+    final categoryIcon = CategoryUtils.getCategoryIcon(category.id);
+    final description = CategoryUtils.getCategoryDescription(category.id);
+    
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16.r),
+      child: InkWell(
+        onTap: () => _openCategoryDetails(category),
+        borderRadius: BorderRadius.circular(16.r),
+        child: Container(
+          padding: EdgeInsets.all(12.w),
+          decoration: BoxDecoration(
+            color: context.cardColor,
+            borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(
+              color: categoryColor.withOpacity(0.2),
+              width: 1.w,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8.r,
+                offset: Offset(0, 2.h),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44.w,
+                height: 44.h,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [categoryColor, categoryColor.withOpacity(0.8)],
+                  ),
+                  borderRadius: BorderRadius.circular(12.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: categoryColor.withOpacity(0.3),
+                      blurRadius: 6.r,
+                      offset: Offset(0, 2.h),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  categoryIcon,
+                  color: Colors.white,
+                  size: 20.sp,
+                ),
+              ),
+              
+              SizedBox(width: 12.w),
+              
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      category.title,
+                      style: TextStyle(
+                        color: categoryColor,
+                        fontWeight: ThemeConstants.bold,
+                        fontFamily: ThemeConstants.fontFamilyArabic,
+                        fontSize: 16.sp,
+                      ),
+                    ),
+                    
+                    SizedBox(height: 4.h),
+                    
+                    Text(
+                      description,
+                      style: TextStyle(
+                        color: context.textSecondaryColor,
+                        height: 1.3,
+                        fontSize: 12.sp,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    
+                    if (category.notifyTime != null && CategoryUtils.shouldShowTime(category.id)) ...[
+                      SizedBox(height: 6.h),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.access_time_rounded,
+                            size: 12.sp,
+                            color: ThemeConstants.accent,
+                          ),
+                          SizedBox(width: 4.w),
+                          Text(
+                            category.notifyTime!.format(context),
+                            style: TextStyle(
+                              color: ThemeConstants.accent,
+                              fontWeight: ThemeConstants.medium,
+                              fontSize: 11.sp,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              
+              Container(
+                padding: EdgeInsets.all(6.w),
+                decoration: BoxDecoration(
+                  color: categoryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Icon(
+                  Icons.chevron_left_rounded,
+                  color: categoryColor,
+                  size: 18.sp,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

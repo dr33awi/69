@@ -1,4 +1,4 @@
-// lib/features/onboarding/widgets/onboarding_page.dart - مع إصلاح الألوان وScreenUtil
+// lib/features/onboarding/widgets/onboarding_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lottie/lottie.dart';
@@ -62,7 +62,6 @@ class _OnboardingPageState extends State<OnboardingPage>
       curve: Curves.easeOut,
     ));
     
-    // بدء الأنيميشن
     _fadeController.forward();
     _scaleController.forward();
   }
@@ -76,14 +75,11 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    
-    return Container(
-      width: size.width,
-      height: size.height,
+    return SizedBox(
+      width: 1.sw,
+      height: 1.sh,
       child: Stack(
         children: [
-          // النمط الإسلامي في الخلفية
           Positioned.fill(
             child: CustomPaint(
               painter: IslamicPatternPainter(
@@ -95,57 +91,67 @@ class _OnboardingPageState extends State<OnboardingPage>
             ),
           ),
           
-          // المحتوى الرئيسي
           SafeArea(
-            child: Padding(
-              padding: EdgeInsets.all(32.w),
-              child: Column(
-                children: [
-                  SizedBox(height: 40.h),
-                  
-                  // Lottie Animation أو الأيقونة
-                  _buildAnimationWidget(),
-                  
-                  SizedBox(height: 40.h),
-                  
-                  // العنوان الرئيسي
-                  AnimatedBuilder(
-                    animation: _fadeAnimation,
-                    builder: (context, child) {
-                      return Opacity(
-                        opacity: _fadeAnimation.value,
-                        child: Transform.translate(
-                          offset: Offset(0, 20 * (1 - _fadeAnimation.value)),
-                          child: Text(
-                            widget.item.title,
-                            style: TextStyle(
-                              fontSize: 32.sp,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              height: 1.2,
-                            ),
-                            textAlign: TextAlign.center,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height - 
+                             MediaQuery.of(context).padding.top - 
+                             MediaQuery.of(context).padding.bottom,
+                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        children: [
+                          SizedBox(height: 40.h),
+                          
+                          _buildAnimationWidget(),
+                          
+                          SizedBox(height: 24.h),
+                          
+                          AnimatedBuilder(
+                            animation: _fadeAnimation,
+                            builder: (context, child) {
+                              return Opacity(
+                                opacity: _fadeAnimation.value,
+                                child: Transform.translate(
+                                  offset: Offset(0, 20.h * (1 - _fadeAnimation.value)),
+                                  child: Text(
+                                    widget.item.title,
+                                    style: TextStyle(
+                                      fontSize: 26.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                      height: 1.2,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              );
+                            },
                           ),
-                        ),
-                      );
-                    },
+                          
+                          if (widget.item.features != null && widget.item.features!.isNotEmpty) ...[
+                            SizedBox(height: 20.h),
+                            _buildFeaturesList(),
+                          ],
+                        ],
+                      ),
+                      
+                      Column(
+                        children: [
+                          SizedBox(height: 24.h),
+                          _buildActionButton(),
+                          SizedBox(height: 16.h),
+                        ],
+                      ),
+                    ],
                   ),
-                  
-                  SizedBox(height: 32.h),
-                  
-                  // الميزات (للفئات فقط)
-                  if (widget.item.features != null && widget.item.features!.isNotEmpty) ...[
-                    SizedBox(height: 32.h),
-                    _buildFeaturesList(),
-                  ],
-                  
-                  const Spacer(),
-                  
-                  // زر المتابعة
-                  _buildActionButton(),
-                  
-                  SizedBox(height: 32.h),
-                ],
+                ),
               ),
             ),
           ),
@@ -161,27 +167,27 @@ class _OnboardingPageState extends State<OnboardingPage>
         return Transform.scale(
           scale: _scaleAnimation.value,
           child: Container(
-            width: 200,
-            height: 200,
+            width: 160.w,
+            height: 160.w,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.white.withOpacity(0.1),
               border: Border.all(
                 color: Colors.white.withOpacity(0.2),
-                width: 2,
+                width: 2.w,
               ),
               boxShadow: [
                 BoxShadow(
                   color: Colors.white.withOpacity(0.15),
-                  blurRadius: 30,
-                  spreadRadius: 5,
+                  blurRadius: 30.r,
+                  spreadRadius: 5.r,
                 ),
               ],
             ),
             child: Center(
               child: SizedBox(
-                width: 140,
-                height: 140,
+                width: 110.w,
+                height: 110.w,
                 child: widget.item.hasValidLottie
                     ? _buildLottieAnimation()
                     : _buildFallbackIcon(),
@@ -199,20 +205,16 @@ class _OnboardingPageState extends State<OnboardingPage>
     
     return Lottie.asset(
       widget.item.lottiePath!,
-      width: 140,
-      height: 140,
+      width: 110.w,
+      height: 110.w,
       fit: BoxFit.contain,
       repeat: config.repeat,
       animate: config.autoStart,
-      // إزالة delegates لعرض الألوان الأصلية
-      // delegates: null, // هذا سيعرض الألوان الأصلية
       options: LottieOptions(
         enableMergePaths: true,
       ),
       onLoaded: (composition) {
         debugPrint('✅ Lottie animation loaded: ${widget.item.lottiePath}');
-        debugPrint('   Duration: ${composition.duration}');
-        debugPrint('   Layers: ${composition.layers.length}');
       },
       errorBuilder: (context, error, stackTrace) {
         debugPrint('❌ Lottie error: $error');
@@ -223,19 +225,19 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Widget _buildFallbackIcon() {
     return Container(
-      width: 100,
-      height: 100,
+      width: 80.w,
+      height: 80.w,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: Colors.white.withOpacity(0.15),
         border: Border.all(
           color: Colors.white.withOpacity(0.3),
-          width: 1,
+          width: 1.w,
         ),
       ),
       child: Icon(
         widget.item.iconData,
-        size: 50,
+        size: 40.sp,
         color: Colors.white,
       ),
     );
@@ -248,21 +250,21 @@ class _OnboardingPageState extends State<OnboardingPage>
         return Opacity(
           opacity: _fadeAnimation.value * 0.9,
           child: Transform.translate(
-            offset: Offset(0, 30 * (1 - _fadeAnimation.value)),
+            offset: Offset(0, 30.h * (1 - _fadeAnimation.value)),
             child: Container(
-              padding: EdgeInsets.all(20.w),
+              padding: EdgeInsets.all(14.w),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(20.r),
+                borderRadius: BorderRadius.circular(14.r),
                 border: Border.all(
                   color: Colors.white.withOpacity(0.15),
-                  width: 1,
+                  width: 1.w,
                 ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
+                    blurRadius: 10.r,
+                    offset: Offset(0, 5.h),
                   ),
                 ],
               ),
@@ -280,33 +282,33 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Widget _buildFeatureItem(String feature) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.symmetric(vertical: 5.h),
       child: Row(
         children: [
           Container(
-            width: 8,
-            height: 8,
+            width: 5.w,
+            height: 5.w,
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.8),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
                   color: Colors.white.withOpacity(0.3),
-                  blurRadius: 4,
-                  spreadRadius: 1,
+                  blurRadius: 4.r,
+                  spreadRadius: 1.r,
                 ),
               ],
             ),
           ),
-          SizedBox(width: 16.w),
+          SizedBox(width: 10.w),
           Expanded(
             child: Text(
               feature,
               style: TextStyle(
-                fontSize: 15.sp,
+                fontSize: 13.sp,
                 color: Colors.white.withOpacity(0.9),
                 fontWeight: FontWeight.w400,
-                height: 1.4,
+                height: 1.3,
               ),
             ),
           ),
@@ -322,12 +324,12 @@ class _OnboardingPageState extends State<OnboardingPage>
         return Opacity(
           opacity: _fadeAnimation.value,
           child: Transform.translate(
-            offset: Offset(0, 40 * (1 - _fadeAnimation.value)),
+            offset: Offset(0, 40.h * (1 - _fadeAnimation.value)),
             child: Container(
               width: double.infinity,
-              height: 56,
+              height: 52.h,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(28),
+                borderRadius: BorderRadius.circular(26.r),
                 gradient: LinearGradient(
                   colors: [
                     Colors.white.withOpacity(0.25),
@@ -338,14 +340,14 @@ class _OnboardingPageState extends State<OnboardingPage>
                 ),
                 border: Border.all(
                   color: Colors.white.withOpacity(0.3),
-                  width: 1.5,
+                  width: 1.5.w,
                 ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.white.withOpacity(0.1),
-                    blurRadius: 15,
-                    spreadRadius: 2,
-                    offset: const Offset(0, 5),
+                    blurRadius: 15.r,
+                    spreadRadius: 2.r,
+                    offset: Offset(0, 5.h),
                   ),
                 ],
               ),
@@ -353,16 +355,16 @@ class _OnboardingPageState extends State<OnboardingPage>
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: widget.isProcessing ? null : widget.onNext,
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(26.r),
                   child: Container(
                     alignment: Alignment.center,
                     child: widget.isProcessing
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
+                        ? SizedBox(
+                            width: 22.w,
+                            height: 22.w,
                             child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              strokeWidth: 2.5.w,
+                              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
                         : Row(
@@ -371,7 +373,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                               Text(
                                 widget.isLastPage ? 'ابدأ الآن' : 'التالي',
                                 style: TextStyle(
-                                  fontSize: 18.sp,
+                                  fontSize: 16.sp,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.white,
                                 ),
@@ -382,7 +384,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                                     ? Icons.check_rounded 
                                     : Icons.arrow_forward_rounded,
                                 color: Colors.white,
-                                size: 20.sp,
+                                size: 18.sp,
                               ),
                             ],
                           ),

@@ -1,5 +1,5 @@
-// lib/core/infrastructure/firebase/widgets/force_update_screen.dart - مع ScreenUtil
-// Android Only - iOS support removed
+// lib/core/infrastructure/firebase/widgets/force_update_screen.dart
+// Android Only - محسّن للشاشات الصغيرة
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -103,17 +103,20 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
               ),
             ),
             child: SafeArea(
-              child: Padding(
-                padding: EdgeInsets.all(24.w),
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 24.w,
+                  vertical: 16.h,
+                ),
                 child: Column(
                   children: [
-                    const Spacer(),
+                    SizedBox(height: 20.h),
                     
                     // أيقونة التحديث
                     ScaleTransition(
                       scale: _bounceAnimation,
                       child: Container(
-                        padding: EdgeInsets.all(32.w),
+                        padding: EdgeInsets.all(24.w),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
@@ -130,22 +133,23 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                             ),
                           ],
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.system_update,
-                          size: 80,
+                          size: 60.sp,
                           color: Colors.white,
                         ),
                       ),
                     ),
                     
-                    const SizedBox(height: 40),
+                    SizedBox(height: 24.h),
                     
+                    // العنوان
                     FadeTransition(
                       opacity: _fadeAnimation,
-                      child: const Text(
+                      child: Text(
                         'تحديث مطلوب',
                         style: TextStyle(
-                          fontSize: 32,
+                          fontSize: 28.sp,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                           fontFamily: 'Cairo',
@@ -154,110 +158,67 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                       ),
                     ),
                     
-                    SizedBox(height: 16.h),
+                    SizedBox(height: 12.h),
                     
+                    // الوصف
                     FadeTransition(
                       opacity: _fadeAnimation,
                       child: Text(
                         'يجب تحديث التطبيق للإصدار الأحدث\nللاستمرار في الاستخدام',
                         style: TextStyle(
-                          fontSize: 16.sp,
+                          fontSize: 14.sp,
                           color: Colors.grey.shade300,
-                          height: 1.6,
+                          height: 1.5,
                           fontFamily: 'Cairo',
                         ),
                         textAlign: TextAlign.center,
                       ),
                     ),
                     
-                    SizedBox(height: 40.h),
+                    SizedBox(height: 32.h),
                     
                     // معلومات الإصدار
                     ScaleTransition(
                       scale: _bounceAnimation,
                       child: Container(
                         width: double.infinity,
-                        padding: EdgeInsets.all(20.w),
+                        padding: EdgeInsets.all(16.w),
                         decoration: BoxDecoration(
                           color: Colors.grey.shade900.withValues(alpha: 0.5),
                           borderRadius: BorderRadius.circular(16.r),
                           border: Border.all(
                             color: Colors.blue.shade700.withValues(alpha: 0.3),
-                            width: 1.w,
+                            width: 1,
                           ),
                         ),
                         child: Column(
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'الإصدار الحالي:',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade400,
-                                    fontFamily: 'Cairo',
-                                  ),
-                                ),
-                                Text(
-                                  _currentVersion,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontFamily: 'Cairo',
-                                  ),
-                                ),
-                              ],
+                            _buildVersionRow(
+                              'الإصدار الحالي:',
+                              _currentVersion,
+                              isHighlighted: false,
                             ),
                             
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12.h),
                             
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'الإصدار المطلوب:',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade400,
-                                    fontFamily: 'Cairo',
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.shade600,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    _targetVersion,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'Cairo',
-                                    ),
-                                  ),
-                                ),
-                              ],
+                            _buildVersionRow(
+                              'الإصدار المطلوب:',
+                              _targetVersion,
+                              isHighlighted: true,
                             ),
                           ],
                         ),
                       ),
                     ),
                     
-                    const SizedBox(height: 32),
+                    SizedBox(height: 24.h),
                     
                     // مميزات التحديث
                     FadeTransition(
                       opacity: _fadeAnimation,
                       child: Container(
                         width: double.infinity,
-                        padding: EdgeInsets.all(20.w),
+                        padding: EdgeInsets.all(16.w),
                         decoration: BoxDecoration(
                           color: Colors.green.shade900.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(16.r),
@@ -274,13 +235,13 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                                 Icon(
                                   Icons.new_releases,
                                   color: Colors.green.shade300,
-                                  size: 20.sp,
+                                  size: 18.sp,
                                 ),
                                 SizedBox(width: 8.w),
                                 Text(
                                   'ميزات جديدة في هذا التحديث:',
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 13.sp,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.green.shade300,
                                     fontFamily: 'Cairo',
@@ -291,123 +252,18 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                             
                             SizedBox(height: 12.h),
                             
-                            ...['تحسينات الأداء', 'إصلاح الأخطاء', 'ميزات جديدة']
-                                .map((feature) => Padding(
-                              padding: EdgeInsets.only(bottom: 8.h),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.check_circle,
-                                    color: Colors.green.shade400,
-                                    size: 16.sp,
-                                  ),
-                                  SizedBox(width: 8.w),
-                                  Text(
-                                    feature,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey.shade300,
-                                      fontFamily: 'Cairo',
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )),
+                            ..._buildFeaturesList(),
                           ],
                         ),
                       ),
                     ),
                     
-                    const Spacer(),
+                    SizedBox(height: 32.h),
                     
                     // الأزرار
-                    Column(
-                      children: [
-                        // زر التحديث
-                        ScaleTransition(
-                          scale: _bounceAnimation,
-                          child: SizedBox(
-                            width: double.infinity,
-                            height: 56.h,
-                            child: ElevatedButton.icon(
-                              onPressed: _isLoading ? null : _updateApp,
-                              icon: _isLoading 
-                                  ? SizedBox(
-                                      width: 20.w,
-                                      height: 20.h,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2.w,
-                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                      ),
-                                    )
-                                  : Icon(Icons.download),
-                              label: Text(
-                                _isLoading ? 'جارٍ فتح المتجر...' : 'تحديث التطبيق الآن',
-                                style: TextStyle(
-                                  fontSize: 18.sp,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Cairo',
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue.shade600,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16.r),
-                                ),
-                                elevation: 0,
-                              ),
-                            ),
-                          ),
-                        ),
-                        
-                        SizedBox(height: 16.h),
-                        
-                        // زر إغلاق
-                        FadeTransition(
-                          opacity: _fadeAnimation,
-                          child: TextButton.icon(
-                            onPressed: _exitApp,
-                            icon: Icon(
-                              Icons.exit_to_app,
-                              color: Colors.grey.shade400,
-                            ),
-                            label: Text(
-                              'إغلاق التطبيق',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey.shade400,
-                                fontFamily: 'Cairo',
-                              ),
-                            ),
-                          ),
-                        ),
-                        
-                        const SizedBox(height: 16),
-                        
-                        // زر فحص التحديث
-                        if (widget.remoteConfig != null)
-                          FadeTransition(
-                            opacity: _fadeAnimation,
-                            child: TextButton.icon(
-                              onPressed: _checkForUpdates,
-                              icon: Icon(
-                                Icons.refresh,
-                                color: Colors.orange.shade400,
-                                size: 18,
-                              ),
-                              label: Text(
-                                'فحص التحديثات',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.orange.shade400,
-                                  fontFamily: 'Cairo',
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
+                    _buildActionButtons(),
+                    
+                    SizedBox(height: 16.h),
                   ],
                 ),
               ),
@@ -415,6 +271,167 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
           ),
         ),
       ),
+    );
+  }
+  
+  Widget _buildVersionRow(String label, String version, {required bool isHighlighted}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13.sp,
+            color: Colors.grey.shade400,
+            fontFamily: 'Cairo',
+          ),
+        ),
+        if (isHighlighted)
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: 12.w,
+              vertical: 4.h,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade600,
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: Text(
+              version,
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Cairo',
+              ),
+            ),
+          )
+        else
+          Text(
+            version,
+            style: TextStyle(
+              fontSize: 13.sp,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Cairo',
+            ),
+          ),
+      ],
+    );
+  }
+  
+  List<Widget> _buildFeaturesList() {
+    final features = ['تحسينات الأداء', 'إصلاح الأخطاء', 'ميزات جديدة'];
+    
+    return features.map((feature) => Padding(
+      padding: EdgeInsets.only(bottom: 8.h),
+      child: Row(
+        children: [
+          Icon(
+            Icons.check_circle,
+            color: Colors.green.shade400,
+            size: 16.sp,
+          ),
+          SizedBox(width: 8.w),
+          Text(
+            feature,
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: Colors.grey.shade300,
+              fontFamily: 'Cairo',
+            ),
+          ),
+        ],
+      ),
+    )).toList();
+  }
+  
+  Widget _buildActionButtons() {
+    return Column(
+      children: [
+        // زر التحديث
+        ScaleTransition(
+          scale: _bounceAnimation,
+          child: SizedBox(
+            width: double.infinity,
+            height: 50.h,
+            child: ElevatedButton.icon(
+              onPressed: _isLoading ? null : _updateApp,
+              icon: _isLoading 
+                  ? SizedBox(
+                      width: 20.w,
+                      height: 20.h,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Icon(Icons.download, size: 20.sp),
+              label: Text(
+                _isLoading ? 'جارٍ فتح المتجر...' : 'تحديث التطبيق الآن',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Cairo',
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue.shade600,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16.r),
+                ),
+                elevation: 0,
+              ),
+            ),
+          ),
+        ),
+        
+        SizedBox(height: 12.h),
+        
+        // زر إغلاق
+        FadeTransition(
+          opacity: _fadeAnimation,
+          child: TextButton.icon(
+            onPressed: _exitApp,
+            icon: Icon(
+              Icons.exit_to_app,
+              color: Colors.grey.shade400,
+              size: 18.sp,
+            ),
+            label: Text(
+              'إغلاق التطبيق',
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: Colors.grey.shade400,
+                fontFamily: 'Cairo',
+              ),
+            ),
+          ),
+        ),
+        
+        // زر فحص التحديث
+        if (widget.remoteConfig != null)
+          FadeTransition(
+            opacity: _fadeAnimation,
+            child: TextButton.icon(
+              onPressed: _checkForUpdates,
+              icon: Icon(
+                Icons.refresh,
+                color: Colors.orange.shade400,
+                size: 16.sp,
+              ),
+              label: Text(
+                'فحص التحديثات',
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: Colors.orange.shade400,
+                  fontFamily: 'Cairo',
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
   
@@ -426,7 +443,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
     HapticFeedback.mediumImpact();
     
     try {
-      // رابط Google Play Store
       String storeUrl = widget.remoteConfig?.updateUrlAndroid ?? 
           'https://play.google.com/store/apps/details?id=com.example.test_athkar_app';
       
@@ -476,17 +492,22 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
-        title: const Text(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        title: Text(
           'إغلاق التطبيق',
           style: TextStyle(
             color: Colors.white,
+            fontSize: 16.sp,
             fontFamily: 'Cairo',
           ),
         ),
-        content: const Text(
+        content: Text(
           'هل أنت متأكد من رغبتك في إغلاق التطبيق؟',
           style: TextStyle(
             color: Colors.grey,
+            fontSize: 14.sp,
             fontFamily: 'Cairo',
           ),
         ),
@@ -497,6 +518,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
               'إلغاء',
               style: TextStyle(
                 color: Colors.grey.shade400,
+                fontSize: 14.sp,
                 fontFamily: 'Cairo',
               ),
             ),
@@ -505,11 +527,15 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
             onPressed: () => SystemNavigator.pop(),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.shade600,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.r),
+              ),
             ),
-            child: const Text(
+            child: Text(
               'إغلاق',
               style: TextStyle(
                 color: Colors.white,
+                fontSize: 14.sp,
                 fontFamily: 'Cairo',
               ),
             ),
@@ -526,7 +552,10 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
       SnackBar(
         content: Text(
           message,
-          style: const TextStyle(fontFamily: 'Cairo'),
+          style: TextStyle(
+            fontFamily: 'Cairo',
+            fontSize: 13.sp,
+          ),
         ),
         backgroundColor: Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
@@ -545,7 +574,10 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
       SnackBar(
         content: Text(
           message,
-          style: const TextStyle(fontFamily: 'Cairo'),
+          style: TextStyle(
+            fontFamily: 'Cairo',
+            fontSize: 13.sp,
+          ),
         ),
         backgroundColor: Colors.blue.shade600,
         behavior: SnackBarBehavior.floating,

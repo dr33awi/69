@@ -1,6 +1,4 @@
 // lib/features/onboarding/widgets/onboarding_permission_card.dart
-// بطاقة خاصة لشرح الأذونات في الـ onboarding
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/infrastructure/services/permissions/permission_service.dart';
@@ -21,35 +19,33 @@ class OnboardingPermissionCard extends StatelessWidget {
     final info = PermissionConstants.getInfo(permission);
     
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 8.h),
+      margin: EdgeInsets.symmetric(vertical: 6.h),
       child: Material(
-        color: Colors.white.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16.r),
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(14.r),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(14.r),
           child: Container(
-            padding: EdgeInsets.all(20.w),
+            padding: EdgeInsets.all(16.w),
             child: Row(
               children: [
-                // الأيقونة
                 Container(
-                  width: 56.w,
-                  height: 56.h,
+                  width: 48.w,
+                  height: 48.w,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(16.r),
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: Icon(
                     info.icon,
                     color: Colors.white,
-                    size: 28.sp,
+                    size: 24.sp,
                   ),
                 ),
                 
-                SizedBox(width: 16.w),
+                SizedBox(width: 12.w),
                 
-                // النص
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,17 +53,17 @@ class OnboardingPermissionCard extends StatelessWidget {
                       Text(
                         info.name,
                         style: TextStyle(
-                          fontSize: 18.sp,
+                          fontSize: 16.sp,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                       ),
-                      SizedBox(height: 4.h),
+                      SizedBox(height: 2.h),
                       Text(
                         info.description,
                         style: TextStyle(
-                          fontSize: 14.sp,
-                          color: Colors.white.withValues(alpha: 0.8),
+                          fontSize: 13.sp,
+                          color: Colors.white.withOpacity(0.8),
                           height: 1.3,
                         ),
                       ),
@@ -75,11 +71,10 @@ class OnboardingPermissionCard extends StatelessWidget {
                   ),
                 ),
                 
-                // سهم
                 Icon(
                   Icons.arrow_forward_ios,
-                  color: Colors.white.withValues(alpha: 0.6),
-                  size: 16.sp,
+                  color: Colors.white.withOpacity(0.6),
+                  size: 14.sp,
                 ),
               ],
             ),

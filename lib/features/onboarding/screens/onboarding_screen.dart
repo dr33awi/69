@@ -1,4 +1,4 @@
-// lib/features/onboarding/screens/onboarding_screen.dart - محدث مع flutter_screenutil
+// lib/features/onboarding/screens/onboarding_screen.dart
 import 'package:athkar_app/core/infrastructure/services/permissions/permission_service.dart';
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
 import 'package:athkar_app/features/onboarding/models/onboarding_item.dart';
@@ -36,7 +36,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _pageController = PageController();
     _permissionManager = getIt<UnifiedPermissionManager>();
     
-    // تسجيل خدمات الميزات بمجرد الدخول
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ServiceLocator.registerFeatureServices();
     });
@@ -74,7 +73,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     try {
       HapticFeedback.mediumImpact();
       
-      // طلب الأذونات الحرجة
       await _permissionManager.requestMultiplePermissions(
         context,
         [
@@ -82,13 +80,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           AppPermissionType.location,
           AppPermissionType.batteryOptimization,
         ],
-        showExplanation: false, // لأننا شرحناها في الـ onboarding
+        showExplanation: false,
       );
       
-      // حفظ اكتمال الـ onboarding
       await _markOnboardingCompleted();
       
-      // الانتقال للصفحة الرئيسية
       if (mounted) {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
@@ -109,7 +105,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       
     } catch (e) {
       debugPrint('Error in onboarding finish: $e');
-      // في حالة الخطأ، ننتقل للصفحة الرئيسية أيضاً
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -146,10 +141,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Concentric Transition PageView
           ConcentricPageView(
             colors: _items.map((item) => item.primaryColor).toList(),
-            radius: MediaQuery.of(context).size.width * 0.85,
+            radius: 1.sw * 0.85,
             curve: Curves.easeInOutCubic,
             duration: ThemeConstants.durationSlow,
             opacityFactor: 2.5,
@@ -170,7 +164,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             onFinish: _handleFinish,
           ),
           
-          // مؤشر الصفحات في الأعلى
           Positioned(
             top: MediaQuery.of(context).padding.top + 20.h,
             left: 0,
@@ -183,8 +176,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
           ),
-          
-
         ],
       ),
     );

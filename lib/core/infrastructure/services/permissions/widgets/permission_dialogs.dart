@@ -1,5 +1,4 @@
-// lib/core/infrastructure/services/permissions/widgets/permission_dialogs.dart (منظف)
-
+// lib/core/infrastructure/services/permissions/widgets/permission_dialogs.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../permission_service.dart';
@@ -20,97 +19,126 @@ class PermissionDialogs {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.r),
         ),
-        title: Row(
-          children: [
-            Container(
-              padding: EdgeInsets.all(8.w),
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              child: Icon(
-                Icons.security,
-                color: Theme.of(context).primaryColor,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Text('أذونات مطلوبة'),
-          ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+        contentPadding: EdgeInsets.zero,
+        title: Padding(
+          padding: EdgeInsets.all(20.w),
+          child: Row(
             children: [
-              const Text(
-                'نحتاج الأذونات التالية لتشغيل هذه الميزة:',
-                style: TextStyle(fontSize: 14),
+              Container(
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Icon(
+                  Icons.security,
+                  color: Theme.of(context).primaryColor,
+                  size: 24.sp,
+                ),
               ),
-              const SizedBox(height: 16),
-              ...permissions.map((permission) {
-                final info = PermissionConstants.getInfo(permission);
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: info.color.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          info.icon,
-                          size: 20,
-                          color: info.color,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              info.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              info.description,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                                height: 1.3,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Text(
+                  'أذونات مطلوبة',
+                  style: TextStyle(fontSize: 18.sp),
+                ),
+              ),
             ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+        content: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'نحتاج الأذونات التالية لتشغيل هذه الميزة:',
+                  style: TextStyle(fontSize: 14.sp, height: 1.4),
+                ),
+                SizedBox(height: 16.h),
+                ...permissions.map((permission) {
+                  final info = PermissionConstants.getInfo(permission);
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: 12.h),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(8.w),
+                          decoration: BoxDecoration(
+                            color: info.color.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8.r),
+                          ),
+                          child: Icon(
+                            info.icon,
+                            size: 20.sp,
+                            color: info.color,
+                          ),
+                        ),
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                info.name,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14.sp,
+                                ),
+                              ),
+                              SizedBox(height: 4.h),
+                              Text(
+                                info.description,
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  color: Colors.grey[600],
+                                  height: 1.3,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
             ),
-            child: const Text('متابعة'),
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                    ),
+                    child: Text('إلغاء', style: TextStyle(fontSize: 15.sp)),
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                    ),
+                    child: Text('متابعة', style: TextStyle(fontSize: 15.sp)),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -129,39 +157,68 @@ class PermissionDialogs {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
         ),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: info.color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+        contentPadding: EdgeInsets.zero,
+        title: Padding(
+          padding: EdgeInsets.all(20.w),
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: info.color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Icon(info.icon, color: info.color, size: 24.sp),
               ),
-              child: Icon(info.icon, color: info.color, size: 24),
-            ),
-            const SizedBox(width: 12),
-            Text('إذن ${info.name}'),
-          ],
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Text(
+                  'إذن ${info.name}',
+                  style: TextStyle(fontSize: 18.sp),
+                ),
+              ),
+            ],
+          ),
         ),
-        content: Text(
-          customMessage ?? info.description,
-          style: const TextStyle(height: 1.4),
+        content: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+          child: Text(
+            customMessage ?? info.description,
+            style: TextStyle(fontSize: 14.sp, height: 1.4),
+          ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                    ),
+                    child: Text('إلغاء', style: TextStyle(fontSize: 15.sp)),
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                    ),
+                    child: Text('السماح', style: TextStyle(fontSize: 15.sp)),
+                  ),
+                ),
+              ],
             ),
-            child: const Text('السماح'),
           ),
         ],
       ),
@@ -178,100 +235,130 @@ class PermissionDialogs {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
         ),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+        contentPadding: EdgeInsets.zero,
+        title: Padding(
+          padding: EdgeInsets.all(20.w),
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Icon(
+                  Icons.settings,
+                  color: Colors.orange,
+                  size: 24.sp,
+                ),
               ),
-              child: const Icon(
-                Icons.settings,
-                color: Colors.orange,
-                size: 24,
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Text(
+                  'فتح الإعدادات',
+                  style: TextStyle(fontSize: 18.sp),
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            const Text('فتح الإعدادات'),
-          ],
+            ],
+          ),
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'الأذونات التالية تحتاج تفعيلها من الإعدادات:',
-              style: TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 12),
-            ...permissions.map((permission) {
-              final info = PermissionConstants.getInfo(permission);
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
+        content: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'الأذونات التالية تحتاج تفعيلها من الإعدادات:',
+                style: TextStyle(fontSize: 14.sp, height: 1.4),
+              ),
+              SizedBox(height: 12.h),
+              ...permissions.map((permission) {
+                final info = PermissionConstants.getInfo(permission);
+                return Padding(
+                  padding: EdgeInsets.symmetric(vertical: 6.h),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.block,
+                        size: 16.sp,
+                        color: Colors.red[400],
+                      ),
+                      SizedBox(width: 8.w),
+                      Text(
+                        info.name,
+                        style: TextStyle(fontSize: 14.sp),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+              SizedBox(height: 12.h),
+              Container(
+                padding: EdgeInsets.all(12.w),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
                 child: Row(
                   children: [
                     Icon(
-                      Icons.block,
-                      size: 16,
-                      color: Colors.red[400],
+                      Icons.info_outline,
+                      size: 18.sp,
+                      color: Colors.blue,
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      info.name,
-                      style: const TextStyle(fontSize: 14),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: Text(
+                        'ستنتقل إلى إعدادات التطبيق في النظام',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: Colors.blue,
+                          height: 1.3,
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              );
-            }),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
               ),
-              child: const Row(
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    size: 18,
-                    color: Colors.blue,
-                  ),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'ستنتقل إلى إعدادات التطبيق في النظام',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.blue,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('لاحقاً'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onOpenSettings();
-            },
-            style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                    ),
+                    child: Text('لاحقاً', style: TextStyle(fontSize: 15.sp)),
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      onOpenSettings();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                    ),
+                    child: Text('فتح الإعدادات', style: TextStyle(fontSize: 15.sp)),
+                  ),
+                ),
+              ],
             ),
-            child: const Text('فتح الإعدادات'),
           ),
         ],
       ),
@@ -290,115 +377,159 @@ class PermissionDialogs {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
         ),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: (allGranted ? Colors.green : Colors.orange).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                allGranted ? Icons.check_circle : Icons.warning,
-                color: allGranted ? Colors.green : Colors.orange,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(allGranted ? 'تم بنجاح!' : 'بعض الأذونات غير مفعلة'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (granted.isNotEmpty) ...[
-              const Text(
-                'الأذونات المفعلة:',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-              const SizedBox(height: 8),
-              ...granted.map((permission) {
-                final info = PermissionConstants.getInfo(permission);
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.check_circle,
-                        size: 18,
-                        color: Colors.green[600],
-                      ),
-                      const SizedBox(width: 8),
-                      Text(info.name, style: const TextStyle(fontSize: 13)),
-                    ],
-                  ),
-                );
-              }),
-            ],
-            if (denied.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              const Text(
-                'الأذونات غير المفعلة:',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-              const SizedBox(height: 8),
-              ...denied.map((permission) {
-                final info = PermissionConstants.getInfo(permission);
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.cancel,
-                        size: 18,
-                        color: Colors.red[600],
-                      ),
-                      const SizedBox(width: 8),
-                      Text(info.name, style: const TextStyle(fontSize: 13)),
-                    ],
-                  ),
-                );
-              }),
-              const SizedBox(height: 12),
+        contentPadding: EdgeInsets.zero,
+        title: Padding(
+          padding: EdgeInsets.all(20.w),
+          child: Row(
+            children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: EdgeInsets.all(10.w),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(8),
+                  color: (allGranted ? Colors.green : Colors.orange).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10.r),
                 ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline, size: 16, color: Colors.grey[600]),
-                    const SizedBox(width: 8),
-                    const Expanded(
-                      child: Text(
-                        'يمكنك تفعيلها لاحقاً من الإعدادات',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                    ),
-                  ],
+                child: Icon(
+                  allGranted ? Icons.check_circle : Icons.warning,
+                  color: allGranted ? Colors.green : Colors.orange,
+                  size: 24.sp,
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Text(
+                  allGranted ? 'تم بنجاح!' : 'بعض الأذونات غير مفعلة',
+                  style: TextStyle(fontSize: 18.sp),
                 ),
               ),
             ],
-          ],
+          ),
+        ),
+        content: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (granted.isNotEmpty) ...[
+                  Text(
+                    'الأذونات المفعلة:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14.sp,
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  ...granted.map((permission) {
+                    final info = PermissionConstants.getInfo(permission);
+                    return Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4.h),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.check_circle,
+                            size: 18.sp,
+                            color: Colors.green[600],
+                          ),
+                          SizedBox(width: 8.w),
+                          Text(info.name, style: TextStyle(fontSize: 13.sp)),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
+                if (denied.isNotEmpty) ...[
+                  SizedBox(height: 12.h),
+                  Text(
+                    'الأذونات غير المفعلة:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14.sp,
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  ...denied.map((permission) {
+                    final info = PermissionConstants.getInfo(permission);
+                    return Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4.h),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.cancel,
+                            size: 18.sp,
+                            color: Colors.red[600],
+                          ),
+                          SizedBox(width: 8.w),
+                          Text(info.name, style: TextStyle(fontSize: 13.sp)),
+                        ],
+                      ),
+                    );
+                  }),
+                  SizedBox(height: 12.h),
+                  Container(
+                    padding: EdgeInsets.all(10.w),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline, size: 16.sp, color: Colors.grey[600]),
+                        SizedBox(width: 8.w),
+                        Expanded(
+                          child: Text(
+                            'يمكنك تفعيلها لاحقاً من الإعدادات',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: Colors.grey,
+                              height: 1.3,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
         actions: [
-          if (!allGranted)
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('لاحقاً'),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+            child: Row(
+              children: [
+                if (!allGranted)
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 12.h),
+                      ),
+                      child: Text('لاحقاً', style: TextStyle(fontSize: 15.sp)),
+                    ),
+                  ),
+                if (!allGranted) SizedBox(width: 8.w),
+                Expanded(
+                  flex: allGranted ? 1 : 2,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                    ),
+                    child: Text(
+                      allGranted ? 'ممتاز!' : 'موافق',
+                      style: TextStyle(fontSize: 15.sp),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Text(allGranted ? 'ممتاز!' : 'موافق'),
           ),
         ],
       ),
