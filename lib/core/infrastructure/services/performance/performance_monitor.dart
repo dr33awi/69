@@ -113,7 +113,7 @@ class PerformanceMonitor {
     if (!kDebugMode) return MemoryInfo.empty();
 
     try {
-      final info = await MethodChannel('flutter/system')
+      await MethodChannel('flutter/system')
           .invokeMethod('SystemChrome.getSystemGestureInsets');
       
       // هذا مثال بسيط - في التطبيق الحقيقي قد تحتاج لمكتبة أخرى

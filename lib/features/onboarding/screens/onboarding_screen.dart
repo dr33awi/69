@@ -75,7 +75,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       HapticFeedback.mediumImpact();
       
       // طلب الأذونات الحرجة
-      final result = await _permissionManager.requestMultiplePermissions(
+      await _permissionManager.requestMultiplePermissions(
         context,
         [
           AppPermissionType.notification,

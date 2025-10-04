@@ -250,10 +250,10 @@ class _OnboardingPageState extends State<OnboardingPage>
           child: Transform.translate(
             offset: Offset(0, 30 * (1 - _fadeAnimation.value)),
             child: Container(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(20.w),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(20.r),
                 border: Border.all(
                   color: Colors.white.withOpacity(0.15),
                   width: 1,
@@ -298,12 +298,12 @@ class _OnboardingPageState extends State<OnboardingPage>
               ],
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16.w),
           Expanded(
             child: Text(
               feature,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: 15.sp,
                 color: Colors.white.withOpacity(0.9),
                 fontWeight: FontWeight.w400,
                 height: 1.4,
@@ -370,19 +370,19 @@ class _OnboardingPageState extends State<OnboardingPage>
                             children: [
                               Text(
                                 widget.isLastPage ? 'ابدأ الآن' : 'التالي',
-                                style: const TextStyle(
-                                  fontSize: 18,
+                                style: TextStyle(
+                                  fontSize: 18.sp,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.white,
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8.w),
                               Icon(
                                 widget.isLastPage 
                                     ? Icons.check_rounded 
                                     : Icons.arrow_forward_rounded,
                                 color: Colors.white,
-                                size: 20,
+                                size: 20.sp,
                               ),
                             ],
                           ),

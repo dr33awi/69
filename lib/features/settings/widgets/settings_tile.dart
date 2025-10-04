@@ -128,7 +128,7 @@ class _SettingsTileState extends State<SettingsTile> {
                 ? context.textPrimaryColor
                 : context.textSecondaryColor.withValues(alpha: 0.7),
             fontWeight: ThemeConstants.medium,
-            height: 1.2,
+            height: 1.2.sp,
             fontSize: context.titleMedium?.fontSize?.sp,
           ),
           maxLines: 1,
@@ -142,7 +142,7 @@ class _SettingsTileState extends State<SettingsTile> {
               color: widget.enabled 
                   ? context.textSecondaryColor
                   : context.textSecondaryColor.withValues(alpha: 0.5),
-              height: 1.3,
+              height: 1.3.sp,
               fontSize: context.bodySmall?.fontSize?.sp,
             ),
             maxLines: 2,

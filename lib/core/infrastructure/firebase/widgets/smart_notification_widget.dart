@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:athkar_app/core/infrastructure/firebase/firebase_messaging_service.dart';
 import 'package:athkar_app/core/infrastructure/firebase/remote_config_manager.dart';
 
@@ -65,9 +66,8 @@ class _SmartNotificationWidgetState extends State<SmartNotificationWidget> {
     if (_messagingService == null) return;
     
     try {
-      // إعادة تفعيل الاشتراكات المهمة
-      await _messagingService!.subscribeToPrayerNotifications();
-      await _messagingService!.subscribeToAthkarNotifications();
+      // إعادة تفعيل الاشتراكات العامة
+      await _messagingService!.subscribeToGeneralNotifications();
       
       _showNotificationSnackBar(
         'تم تفعيل الإشعارات',
@@ -83,9 +83,8 @@ class _SmartNotificationWidgetState extends State<SmartNotificationWidget> {
     if (_messagingService == null) return;
     
     try {
-      // إلغاء الاشتراكات
-      await _messagingService!.unsubscribeFromPrayerNotifications();
-      await _messagingService!.unsubscribeFromAthkarNotifications();
+      // إلغاء الاشتراكات العامة
+      await _messagingService!.unsubscribeFromGeneralNotifications();
       
       _showNotificationSnackBar(
         'تم تعطيل الإشعارات',
@@ -120,9 +119,9 @@ class _SmartNotificationWidgetState extends State<SmartNotificationWidget> {
         ),
         backgroundColor: color,
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
+        margin: EdgeInsets.all(16.w),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
         ),
         duration: const Duration(seconds: 3),
       ),
@@ -177,13 +176,13 @@ class _NotificationStatusWidgetState extends State<NotificationStatusWidget> {
     final hasPermission = _messagingService?.isPermissionGranted ?? false;
     
     return Card(
-      margin: const EdgeInsets.all(16),
+      margin: EdgeInsets.all(16.w),
       elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

@@ -94,7 +94,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                       ScaleTransition(
                         scale: _scaleAnimation,
                         child: Container(
-                          padding: const EdgeInsets.all(32),
+                          padding: EdgeInsets.all(32.w),
                           decoration: BoxDecoration(
                             color: Colors.orange.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
@@ -105,21 +105,21 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                           ),
                           child: Icon(
                             Icons.build_circle_outlined,
-                            size: 80,
+                            size: 80.sp,
                             color: Colors.orange.shade300,
                           ),
                         ),
                       ),
                       
-                      const SizedBox(height: 40),
+                      SizedBox(height: 40.h),
                       
                       // العنوان
                       FadeTransition(
                         opacity: _fadeAnimation,
-                        child: const Text(
+                        child: Text(
                           'التطبيق قيد الصيانة',
                           style: TextStyle(
-                            fontSize: 24,
+                            fontSize: 24.sp,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                             fontFamily: 'Cairo',
@@ -128,7 +128,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                         ),
                       ),
                       
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12.h),
                       
                       // الوصف
                       FadeTransition(
@@ -136,7 +136,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                         child: Text(
                           'نعمل حالياً على تحسين التطبيق\nلتقديم تجربة أفضل لك',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 16.sp,
                             color: Colors.grey.shade300,
                             height: 1.5,
                             fontFamily: 'Cairo',
@@ -145,41 +145,41 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                         ),
                       ),
                       
-                      const SizedBox(height: 40),
+                      SizedBox(height: 40.h),
                       
                       // مؤشر التحميل
                       ScaleTransition(
                         scale: _scaleAnimation,
                         child: Container(
-                          padding: const EdgeInsets.all(20),
+                          padding: EdgeInsets.all(20.w),
                           decoration: BoxDecoration(
                             color: Colors.grey.shade900,
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(16.r),
                             border: Border.all(
                               color: Colors.grey.shade700,
-                              width: 1,
+                              width: 1.w,
                             ),
                           ),
                           child: Column(
                             children: [
                               // مؤشر دوار
                               SizedBox(
-                                height: 40,
-                                width: 40,
+                                height: 40.h,
+                                width: 40.w,
                                 child: CircularProgressIndicator(
-                                  strokeWidth: 3,
+                                  strokeWidth: 3.w,
                                   valueColor: AlwaysStoppedAnimation<Color>(
                                     Colors.orange.shade300,
                                   ),
                                 ),
                               ),
                               
-                              const SizedBox(height: 16),
+                              SizedBox(height: 16.h),
                               
                               Text(
                                 'جارٍ العمل على التحسينات...',
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 14.sp,
                                   color: Colors.grey.shade400,
                                   fontFamily: 'Cairo',
                                 ),
@@ -189,19 +189,19 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                         ),
                       ),
                       
-                      const SizedBox(height: 40),
+                      SizedBox(height: 40.h),
                       
                       // معلومات إضافية
                       FadeTransition(
                         opacity: _fadeAnimation,
                         child: Container(
-                          padding: const EdgeInsets.all(16),
+                          padding: EdgeInsets.all(16.w),
                           decoration: BoxDecoration(
                             color: Colors.blue.shade900.withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(12.r),
                             border: Border.all(
                               color: Colors.blue.shade700.withValues(alpha: 0.5),
-                              width: 1,
+                              width: 1.w,
                             ),
                           ),
                           child: Row(
@@ -209,14 +209,14 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                               Icon(
                                 Icons.info_outline,
                                 color: Colors.blue.shade300,
-                                size: 20,
+                                size: 20.sp,
                               ),
-                              const SizedBox(width: 12),
+                              SizedBox(width: 12.w),
                               Expanded(
                                 child: Text(
                                   'ستتم استعادة الخدمة في أقرب وقت ممكن\nشكراً لصبركم',
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: 12.sp,
                                     color: Colors.blue.shade200,
                                     height: 1.4,
                                     fontFamily: 'Cairo',
@@ -228,18 +228,18 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                         ),
                       ),
                       
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24.h),
                       
                       // زر إعادة المحاولة
                       ScaleTransition(
                         scale: _scaleAnimation,
                         child: ElevatedButton.icon(
                           onPressed: _retryConnection,
-                          icon: const Icon(Icons.refresh),
-                          label: const Text(
+                          icon: Icon(Icons.refresh),
+                          label: Text(
                             'إعادة المحاولة',
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 16.sp,
                               fontWeight: FontWeight.bold,
                               fontFamily: 'Cairo',
                             ),
@@ -247,12 +247,12 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.orange.shade600,
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 32,
-                              vertical: 16,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 32.w,
+                              vertical: 16.h,
                             ),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25),
+                              borderRadius: BorderRadius.circular(25.r),
                             ),
                             elevation: 0,
                           ),
@@ -280,16 +280,16 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
     // يمكن إضافة منطق إعادة فحص الاتصال هنا
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text(
+        content: Text(
           'جارٍ فحص الاتصال...',
           style: TextStyle(fontFamily: 'Cairo'),
         ),
         backgroundColor: Colors.orange.shade600,
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
+        margin: EdgeInsets.all(16.w),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
         ),
       ),
     );

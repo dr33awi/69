@@ -261,7 +261,7 @@ class _UnifiedAsmaAllahDetailsScreenState
             color: Colors.white,
             fontWeight: ThemeConstants.bold,
             fontFamily: ThemeConstants.fontFamilyArabic,
-            height: 1,
+            height: 1.h,
             shadows: [
               Shadow(
                 color: Colors.black.withValues(alpha: 0.2),
@@ -367,7 +367,7 @@ class _UnifiedAsmaAllahDetailsScreenState
         spans.add(TextSpan(
           text: text.substring(lastIndex, match.start),
           style: context.bodyLarge?.copyWith(
-            height: 2.2,
+            height: 2.2.sp,
             fontSize: 17.sp,
             color: context.textPrimaryColor,
             letterSpacing: 0.3,

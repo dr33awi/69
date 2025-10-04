@@ -142,7 +142,7 @@ class AthkarItemCard extends StatelessWidget {
                                 item.text,
                                 style: context.bodyLarge?.copyWith(
                                   fontSize: fontSize.sp,
-                                  height: 2.0,
+                                  height: 2.0.sp,
                                   fontFamily: ThemeConstants.fontFamilyArabic,
                                   color: isCompleted 
                                       ? effectiveColor.darken(0.2)

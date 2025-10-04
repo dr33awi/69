@@ -130,6 +130,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         setState(() {
           _isRetryingLocation = false;
         });
+        
         context.showSuccessSnackBar('تم تحديد الموقع وتحميل المواقيت بنجاح');
       }
     } catch (e) {

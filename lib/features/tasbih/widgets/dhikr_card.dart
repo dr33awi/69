@@ -159,7 +159,7 @@ class DhikrCardSimple extends StatelessWidget {
                             ? Colors.white
                             : context.textPrimaryColor,
                         fontWeight: ThemeConstants.medium,
-                        height: 1.8,
+                        height: 1.8.sp,
                         fontFamily: ThemeConstants.fontFamilyArabic,
                       ),
                       textAlign: TextAlign.center,
@@ -213,7 +213,7 @@ class DhikrCardSimple extends StatelessWidget {
                                     color: isSelected 
                                         ? Colors.white.withValues(alpha: 0.8)
                                         : context.textSecondaryColor,
-                                    height: 1.4,
+                                    height: 1.4.sp,
                                   ),
                                 ),
                               ],

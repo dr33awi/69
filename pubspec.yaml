@@ -64,6 +64,7 @@ dev_dependencies:
     sdk: flutter
 
   # --- Development Tools ---
+  flutter_lints: ^5.0.0
   leak_tracker: ^10.0.5
   device_preview: ^1.2.0
 

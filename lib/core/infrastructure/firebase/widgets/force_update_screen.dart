@@ -104,7 +104,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
             ),
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.all(24.w),
                 child: Column(
                   children: [
                     const Spacer(),
@@ -113,7 +113,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                     ScaleTransition(
                       scale: _bounceAnimation,
                       child: Container(
-                        padding: const EdgeInsets.all(32),
+                        padding: EdgeInsets.all(32.w),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
@@ -154,14 +154,14 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                       ),
                     ),
                     
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16.h),
                     
                     FadeTransition(
                       opacity: _fadeAnimation,
                       child: Text(
                         'يجب تحديث التطبيق للإصدار الأحدث\nللاستمرار في الاستخدام',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 16.sp,
                           color: Colors.grey.shade300,
                           height: 1.6,
                           fontFamily: 'Cairo',
@@ -170,20 +170,20 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                       ),
                     ),
                     
-                    const SizedBox(height: 40),
+                    SizedBox(height: 40.h),
                     
                     // معلومات الإصدار
                     ScaleTransition(
                       scale: _bounceAnimation,
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.all(20),
+                        padding: EdgeInsets.all(20.w),
                         decoration: BoxDecoration(
                           color: Colors.grey.shade900.withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(16.r),
                           border: Border.all(
                             color: Colors.blue.shade700.withValues(alpha: 0.3),
-                            width: 1,
+                            width: 1.w,
                           ),
                         ),
                         child: Column(
@@ -257,10 +257,10 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                       opacity: _fadeAnimation,
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.all(20),
+                        padding: EdgeInsets.all(20.w),
                         decoration: BoxDecoration(
                           color: Colors.green.shade900.withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(16.r),
                           border: Border.all(
                             color: Colors.green.shade700.withValues(alpha: 0.5),
                             width: 1,
@@ -274,9 +274,9 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                                 Icon(
                                   Icons.new_releases,
                                   color: Colors.green.shade300,
-                                  size: 20,
+                                  size: 20.sp,
                                 ),
-                                const SizedBox(width: 8),
+                                SizedBox(width: 8.w),
                                 Text(
                                   'ميزات جديدة في هذا التحديث:',
                                   style: TextStyle(
@@ -289,19 +289,19 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                               ],
                             ),
                             
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12.h),
                             
                             ...['تحسينات الأداء', 'إصلاح الأخطاء', 'ميزات جديدة']
                                 .map((feature) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
+                              padding: EdgeInsets.only(bottom: 8.h),
                               child: Row(
                                 children: [
                                   Icon(
                                     Icons.check_circle,
                                     color: Colors.green.shade400,
-                                    size: 16,
+                                    size: 16.sp,
                                   ),
-                                  const SizedBox(width: 8),
+                                  SizedBox(width: 8.w),
                                   Text(
                                     feature,
                                     style: TextStyle(
@@ -328,23 +328,23 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                           scale: _bounceAnimation,
                           child: SizedBox(
                             width: double.infinity,
-                            height: 56,
+                            height: 56.h,
                             child: ElevatedButton.icon(
                               onPressed: _isLoading ? null : _updateApp,
                               icon: _isLoading 
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
+                                  ? SizedBox(
+                                      width: 20.w,
+                                      height: 20.h,
                                       child: CircularProgressIndicator(
-                                        strokeWidth: 2,
+                                        strokeWidth: 2.w,
                                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                       ),
                                     )
-                                  : const Icon(Icons.download),
+                                  : Icon(Icons.download),
                               label: Text(
                                 _isLoading ? 'جارٍ فتح المتجر...' : 'تحديث التطبيق الآن',
-                                style: const TextStyle(
-                                  fontSize: 18,
+                                style: TextStyle(
+                                  fontSize: 18.sp,
                                   fontWeight: FontWeight.bold,
                                   fontFamily: 'Cairo',
                                 ),
@@ -353,7 +353,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                                 backgroundColor: Colors.blue.shade600,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(16.r),
                                 ),
                                 elevation: 0,
                               ),
@@ -361,7 +361,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                           ),
                         ),
                         
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16.h),
                         
                         // زر إغلاق
                         FadeTransition(
@@ -530,9 +530,9 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
         ),
         backgroundColor: Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
+        margin: EdgeInsets.all(16.w),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
         ),
       ),
     );
@@ -549,9 +549,9 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
         ),
         backgroundColor: Colors.blue.shade600,
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
+        margin: EdgeInsets.all(16.w),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
         ),
       ),
     );

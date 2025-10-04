@@ -1,4 +1,4 @@
-// lib/main.dart - محسّن مع flutter_screenutil
+// lib/main.dart - مع flutter_screenutil
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -36,28 +36,22 @@ import 'features/onboarding/services/onboarding_service.dart';
 
 /// نقطة دخول التطبيق
 Future<void> main() async {
-  // تهيئة ربط Flutter
   WidgetsFlutterBinding.ensureInitialized();
   
-  // تعيين اتجاه التطبيق
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
   
-  // تشغيل التطبيق مع معالجة الأخطاء
   runZonedGuarded(
     () async {
       try {
-        // تهيئة سريعة + Firebase بشكل صحيح
         await _fastBootstrap();
         
-        // تشغيل التطبيق مع Device Preview في وضع التطوير
         final app = const AthkarApp();
         final wrappedApp = DevicePreviewConfig.wrapApp(app);
         runApp(wrappedApp ?? app);
         
-        // تهيئة الباقي في الخلفية
         _backgroundInitialization();
         
       } catch (e, s) {
@@ -73,16 +67,13 @@ Future<void> main() async {
   );
 }
 
-/// تهيئة سريعة - مع Firebase Remote Config
 Future<void> _fastBootstrap() async {
   debugPrint('========== Fast Bootstrap Starting ==========');
   final stopwatch = Stopwatch()..start();
   
   try {
-    // 0. تهيئة أدوات التطوير
     DevelopmentConfig.initialize();
     
-    // 1. تهيئة Firebase FIRST
     debugPrint('🔥 تهيئة Firebase Core...');
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -93,20 +84,16 @@ Future<void> _fastBootstrap() async {
     }
     debugPrint('✅ Firebase initialized. Apps: ${Firebase.apps.length}');
     
-    // 2. الخدمات الأساسية
     await ServiceLocator.initEssential();
     
-    // 3. تسجيل OnboardingService
     if (!getIt.isRegistered<OnboardingService>()) {
       getIt.registerLazySingleton<OnboardingService>(
         () => OnboardingService(getIt<StorageService>()),
       );
     }
     
-    // 4. تهيئة Firebase Remote Config IMMEDIATELY (مهم جداً!)
     await _initializeRemoteConfigEarly();
     
-    // 5. فحص جاهزية الخدمات
     if (!ServiceLocator.areEssentialServicesReady()) {
       throw Exception('فشل في تهيئة الخدمات الأساسية');
     }
@@ -122,12 +109,10 @@ Future<void> _fastBootstrap() async {
   }
 }
 
-/// تهيئة Remote Config مبكراً (قبل عرض أول شاشة)
 Future<void> _initializeRemoteConfigEarly() async {
   try {
     debugPrint('🔧 تهيئة Remote Config مبكراً...');
     
-    // تسجيل الخدمات إذا لم تكن مسجلة
     if (!getIt.isRegistered<FirebaseRemoteConfigService>()) {
       getIt.registerLazySingleton<FirebaseRemoteConfigService>(
         () => FirebaseRemoteConfigService(),
@@ -140,18 +125,15 @@ Future<void> _initializeRemoteConfigEarly() async {
       );
     }
     
-    // تهيئة Remote Config Service
     final remoteConfigService = getIt<FirebaseRemoteConfigService>();
     await remoteConfigService.initialize();
     
-    // تهيئة Manager
     final configManager = getIt<RemoteConfigManager>();
     await configManager.initialize(
       remoteConfig: remoteConfigService,
       storage: getIt<StorageService>(),
     );
     
-    // طباعة القيم الحالية للتأكد
     debugPrint('📊 Remote Config Status:');
     debugPrint('  - Force Update: ${remoteConfigService.isForceUpdateRequired}');
     debugPrint('  - Maintenance: ${remoteConfigService.isMaintenanceModeEnabled}');
@@ -160,21 +142,17 @@ Future<void> _initializeRemoteConfigEarly() async {
     
   } catch (e) {
     debugPrint('⚠️ Remote Config early init failed (non-critical): $e');
-    // نستمر حتى لو فشلت - التطبيق سيعمل بدون Remote Config
   }
 }
 
-/// تهيئة الخدمات المتبقية في الخلفية
 void _backgroundInitialization() {
   Future.delayed(const Duration(milliseconds: 500), () async {
     try {
       debugPrint('========== Background Initialization Starting ==========');
       final stopwatch = Stopwatch()..start();
       
-      // 1. تسجيل خدمات الميزات
       await ServiceLocator.registerFeatureServices();
       
-      // 2. باقي Firebase services
       try {
         await ServiceLocator.initializeFirebaseInBackground();
         debugPrint('✅ Firebase services initialized in background');
@@ -212,10 +190,8 @@ class _AthkarAppState extends State<AthkarApp> {
     _permissionManager = getIt<UnifiedPermissionManager>();
     _onboardingService = getIt<OnboardingService>();
     
-    // محاولة الحصول على Config Manager
     _initializeConfigManager();
     
-    // جدولة فحص الأذونات
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_onboardingService.shouldShowOnboarding) {
         _schedulePermissionCheck();
@@ -223,25 +199,21 @@ class _AthkarAppState extends State<AthkarApp> {
     });
   }
 
-  /// تهيئة Config Manager
   void _initializeConfigManager() {
     try {
       if (getIt.isRegistered<RemoteConfigManager>()) {
         _configManager = getIt<RemoteConfigManager>();
         
-        // فحص إذا كان مُهيئاً
         if (_configManager!.isInitialized) {
           setState(() => _configManagerReady = true);
           debugPrint('✅ Config Manager ready in AthkarApp');
           
-          // طباعة القيم الحالية
           debugPrint('Current Remote Config Values:');
           debugPrint('  - Force Update: ${_configManager!.isForceUpdateRequired}');
           debugPrint('  - Maintenance: ${_configManager!.isMaintenanceModeActive}');
         } else {
           debugPrint('⚠️ Config Manager registered but not initialized yet');
           
-          // محاولة مرة أخرى بعد ثانية
           Future.delayed(const Duration(seconds: 1), () {
             if (mounted && _configManager!.isInitialized) {
               setState(() => _configManagerReady = true);
@@ -255,7 +227,6 @@ class _AthkarAppState extends State<AthkarApp> {
     }
   }
 
-  /// جدولة فحص الأذونات
   void _schedulePermissionCheck() {
     Future.delayed(const Duration(seconds: 2), () async {
       if (mounted && !_permissionManager.hasCheckedThisSession) {
@@ -265,56 +236,31 @@ class _AthkarAppState extends State<AthkarApp> {
     });
   }
 
-  /// تحديد حجم التصميم المرجعي حسب نوع الجهاز
-  Size _getDesignSize(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
-    final screenWidth = mediaQuery.size.width;
-    
-    // للايباد والتابلت
-    if (screenWidth >= 600) {
-      // iPad Mini/Air Portrait: 744x1133, iPad Pro 11": 834x1194
-      if (screenWidth >= 800) {
-        return const Size(834, 1194); // iPad Pro 11"
-      } else {
-        return const Size(744, 1133); // iPad Mini/Air
-      }
-    }
-    
-    // للهواتف الذكية
-    return const Size(375, 812); // iPhone X كمرجع
-  }
-
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: getIt<ThemeNotifier>(),
       builder: (context, themeMode, child) {
-        // تهيئة ScreenUtil مع دعم محسن للايباد
+        // تهيئة ScreenUtil
         return ScreenUtilInit(
-          // حجم الشاشة المرجعي للتصميم - متجاوب للايباد
-          designSize: _getDesignSize(context),
+          // حجم التصميم المرجعي - iPhone 11 كمرجع
+          designSize: const Size(375, 812),
           
-          // السماح بتغيير حجم النص
+          // السماح بتغيير حجم النص ديناميكياً
           minTextAdapt: true,
           
-          // تقسيم الشاشة - مهم للايباد
+          // دعم تقسيم الشاشة
           splitScreenMode: true,
-          
-          // دعم محسن للايباد
-          useInheritedMediaQuery: true,
           
           builder: (context, child) {
             return MaterialApp(
-              // معلومات التطبيق
               title: 'حصن المسلم',
               debugShowCheckedModeBanner: false,
               
-              // الثيمات
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
               themeMode: themeMode,
               
-              // اللغة العربية
               locale: const Locale('ar'),
               supportedLocales: const [Locale('ar')],
               localizationsDelegates: const [
@@ -323,16 +269,12 @@ class _AthkarAppState extends State<AthkarApp> {
                 GlobalCupertinoLocalizations.delegate,
               ],
               
-              // التنقل
               navigatorKey: AppRouter.navigatorKey,
               
-              // الشاشة الأولى
               home: _buildInitialScreen(),
               
-              // توليد المسارات
               onGenerateRoute: AppRouter.onGenerateRoute,
               
-              // Builder مع مراقب الأذونات
               builder: (context, child) {
                 if (child == null) {
                   return const Scaffold(
@@ -340,7 +282,6 @@ class _AthkarAppState extends State<AthkarApp> {
                   );
                 }
                 
-                // تطبيق مراقب الأذونات على الشاشة الرئيسية فقط
                 if (child is HomeScreen) {
                   return PermissionMonitor(
                     showNotifications: true,
@@ -357,7 +298,6 @@ class _AthkarAppState extends State<AthkarApp> {
     );
   }
 
-  /// بناء الشاشة الأولى
   Widget _buildInitialScreen() {
     Widget initialScreen;
     
@@ -374,13 +314,10 @@ class _AthkarAppState extends State<AthkarApp> {
       initialScreen = const HomeScreen();
     }
     
-    // لف الشاشة بـ AppStatusMonitor إذا كان متوفراً
     return _wrapWithAppMonitor(initialScreen);
   }
 
-  /// لف الشاشة بـ AppStatusMonitor (Force Update & Maintenance)
   Widget _wrapWithAppMonitor(Widget screen) {
-    // إذا كان Config Manager جاهزاً، استخدمه
     if (_configManagerReady && _configManager != null) {
       debugPrint('✅ Wrapping with AppStatusMonitor (Config Manager ready)');
       return AppStatusMonitor(
@@ -389,7 +326,6 @@ class _AthkarAppState extends State<AthkarApp> {
       );
     }
     
-    // إذا لم يكن جاهزاً بعد، عرض الشاشة مع إمكانية التحديث لاحقاً
     debugPrint('⏳ AppStatusMonitor not ready yet, showing screen directly');
     return screen;
   }
@@ -405,6 +341,7 @@ class _ErrorApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ScreenUtilInit(
       designSize: const Size(375, 812),
+      minTextAdapt: true,
       builder: (context, child) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
@@ -421,11 +358,10 @@ class _ErrorApp extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // أيقونة الخطأ
                         Container(
                           padding: EdgeInsets.all(32.w),
                           decoration: BoxDecoration(
-                            color: Colors.red.withValues(alpha: 0.1),
+                            color: Colors.red.withOpacity(0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(

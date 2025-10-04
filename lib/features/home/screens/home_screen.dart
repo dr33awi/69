@@ -120,20 +120,25 @@ class _HomeScreenState extends State<HomeScreen>
                       slivers: [
                         SliverPadding(
                           padding: EdgeInsets.symmetric(
-                            horizontal: 16.w, // استخدام .w بدلاً من ThemeConstants.space4
+                            horizontal: 20.w,
+                            vertical: 8.h,
                           ),
                           sliver: SliverList(
                             delegate: SliverChildListDelegate([
-                              SizedBox(height: 8.h), // استخدام SizedBox مع .h
+                              // مسافة صغيرة في البداية
+                              SizedBox(height: 12.h),
                               
+                              // بطاقة مواقيت الصلاة
                               const PrayerTimesCard(),
                               
-                              SizedBox(height: 16.h),
+                              SizedBox(height: 20.h),
                               
+                              // بطاقة الاقتباسات اليومية
                               const DailyQuotesCard(),
                               
                               SizedBox(height: 24.h),
                               
+                              // عنوان الأقسام
                               _buildSectionsHeader(context),
                               
                               SizedBox(height: 16.h),
@@ -428,43 +433,4 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  /// إظهار رسالة التحديث
-  void _showRefreshMessage(String message, Color color) {
-    if (!mounted) return;
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(
-              color == Colors.green 
-                ? Icons.check_circle_outline 
-                : Icons.info_outline,
-              color: Colors.white,
-              size: 20.sp,
-            ),
-            SizedBox(width: 12.w),
-            Expanded(
-              child: Text(
-                message,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontFamily: 'Cairo',
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: color,
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.all(16.w),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.r),
-        ),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
 }

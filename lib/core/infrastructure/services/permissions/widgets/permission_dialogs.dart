@@ -1,6 +1,7 @@
 // lib/core/infrastructure/services/permissions/widgets/permission_dialogs.dart (منظف)
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../permission_service.dart';
 import '../permission_constants.dart';
 
@@ -17,15 +18,15 @@ class PermissionDialogs {
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
         ),
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: EdgeInsets.all(8.w),
               decoration: BoxDecoration(
                 color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(8.r),
               ),
               child: Icon(
                 Icons.security,

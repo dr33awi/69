@@ -1,11 +1,11 @@
-// lib/app/themes/core/theme_extensions.dart - محدث مع flutter_screenutil
+// lib/app/themes/core/theme_extensions.dart - نظيف مع flutter_screenutil فقط
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../text_styles.dart';
 import '../theme_constants.dart';
 import 'color_utils.dart';
 
-/// Extensions لتسهيل الوصول للثيم مع ScreenUtil
+/// Extensions لتسهيل الوصول للثيم
 extension ThemeExtension on BuildContext {
   ThemeData get theme => Theme.of(this);
   TextTheme get textTheme => theme.textTheme;
@@ -54,18 +54,18 @@ extension ThemeExtension on BuildContext {
   TextStyle get athkarStyle => AppTextStyles.athkar;
   TextStyle get duaStyle => AppTextStyles.dua;
 
-  // معلومات الشاشة مع ScreenUtil
-  double get screenWidth => ScreenUtil().screenWidth;
-  double get screenHeight => ScreenUtil().screenHeight;
+  // معلومات الشاشة
+  double get screenWidth => MediaQuery.of(this).size.width;
+  double get screenHeight => MediaQuery.of(this).size.height;
   EdgeInsets get screenPadding => MediaQuery.paddingOf(this);
   EdgeInsets get viewInsets => MediaQuery.viewInsetsOf(this);
 
-  // نوع الجهاز مع ScreenUtil
-  bool get isMobile => ScreenUtil().screenWidth < 600;
-  bool get isTablet => ScreenUtil().screenWidth >= 600 && ScreenUtil().screenWidth < 1024;
-  bool get isDesktop => ScreenUtil().screenWidth >= 1024;
+  // نوع الجهاز
+  bool get isMobile => screenWidth < 600;
+  bool get isTablet => screenWidth >= 600 && screenWidth < 1024;
+  bool get isDesktop => screenWidth >= 1024;
 
-  // الحشوات المتجاوبة مع ScreenUtil
+  // الحشوات المتجاوبة
   EdgeInsets get responsivePadding {
     if (isMobile) return EdgeInsets.all(16.w);
     if (isTablet) return EdgeInsets.all(24.w);
@@ -85,7 +85,7 @@ extension ThemeExtension on BuildContext {
   double get safeBottom => screenPadding.bottom;
 }
 
-/// Extensions للألوان - استخدام ColorUtils
+/// Extensions للألوان
 extension ColorExtensions on Color {
   /// تطبيق شفافية آمنة
   Color withOpacitySafe(double opacity) => ColorUtils.applyOpacitySafely(this, opacity);
@@ -111,7 +111,7 @@ extension TextStyleExtensions on TextStyle {
   TextStyle get regular => copyWith(fontWeight: ThemeConstants.regular);
   TextStyle get light => copyWith(fontWeight: ThemeConstants.light);
 
-  TextStyle size(double fontSize) => copyWith(fontSize: fontSize);
+  TextStyle size(double fontSize) => copyWith(fontSize: fontSize.sp);
   TextStyle textColor(Color color) => copyWith(color: color);
   TextStyle withHeight(double height) => copyWith(height: height);
   TextStyle withSpacing(double letterSpacing) => copyWith(letterSpacing: letterSpacing);
@@ -136,44 +136,6 @@ extension EdgeInsetsExtensions on EdgeInsets {
     right: (right - other.right).clamp(0.0, double.infinity),
     bottom: (bottom - other.bottom).clamp(0.0, double.infinity),
   );
-
-  EdgeInsets get copyWith => EdgeInsets.only(
-    left: left,
-    top: top,
-    right: right,
-    bottom: bottom,
-  );
-}
-
-/// Extensions للأرقام مع ScreenUtil
-extension ScreenUtilExtensions on num {
-  // مسافات مع ScreenUtil
-  SizedBox get width => SizedBox(width: w);
-  SizedBox get height => SizedBox(height: h);
-  SizedBox get square => SizedBox(width: w, height: w);
-  
-  // حشوات مع ScreenUtil
-  EdgeInsets get allPadding => EdgeInsets.all(w);
-  EdgeInsets get horizontalPadding => EdgeInsets.symmetric(horizontal: w);
-  EdgeInsets get verticalPadding => EdgeInsets.symmetric(vertical: h);
-  EdgeInsets get leftPadding => EdgeInsets.only(left: w);
-  EdgeInsets get topPadding => EdgeInsets.only(top: h);
-  EdgeInsets get rightPadding => EdgeInsets.only(right: w);
-  EdgeInsets get bottomPadding => EdgeInsets.only(bottom: h);
-
-  // زوايا دائرية مع ScreenUtil
-  BorderRadius get circularRadius => BorderRadius.circular(r);
-  BorderRadius get topCircularRadius => BorderRadius.only(
-    topLeft: Radius.circular(r),
-    topRight: Radius.circular(r),
-  );
-  BorderRadius get bottomCircularRadius => BorderRadius.only(
-    bottomLeft: Radius.circular(r),
-    bottomRight: Radius.circular(r),
-  );
-  
-  // Radius مباشر
-  Radius get radiusCircular => Radius.circular(r);
 }
 
 /// Extensions للـ Lists
@@ -199,9 +161,9 @@ extension ListExtensions<T> on List<T> {
   T? get lastOrNull => isEmpty ? null : last;
 }
 
-/// Extensions للـ Widgets مع ScreenUtil
+/// Extensions للـ Widgets
 extension WidgetExtensions on Widget {
-  /// إضافة padding مع ScreenUtil
+  /// إضافة padding
   Widget paddingAll(double value) => Padding(
     padding: EdgeInsets.all(value.w),
     child: this,
@@ -249,7 +211,7 @@ extension WidgetExtensions on Widget {
     child: this,
   );
 
-  /// إضافة حاوية مع ScreenUtil
+  /// إضافة حاوية
   Widget container({
     EdgeInsetsGeometry? padding,
     EdgeInsetsGeometry? margin,
@@ -311,13 +273,13 @@ extension WidgetExtensions on Widget {
     child: this,
   );
 
-  /// إضافة ClipRRect مع ScreenUtil
+  /// إضافة ClipRRect
   Widget clipRRect(double radius) => ClipRRect(
     borderRadius: BorderRadius.circular(radius.r),
     child: this,
   );
 
-  /// إضافة Card مع ScreenUtil
+  /// إضافة Card
   Widget card({
     Color? color,
     double? elevation,
@@ -335,7 +297,7 @@ extension WidgetExtensions on Widget {
     child: this,
   );
 
-  /// إضافة SizedBox مع ScreenUtil
+  /// إضافة SizedBox
   Widget sized({double? width, double? height}) => SizedBox(
     width: width?.w,
     height: height?.h,

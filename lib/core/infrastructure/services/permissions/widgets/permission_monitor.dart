@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:athkar_app/app/di/service_locator.dart';
 import 'package:athkar_app/app/themes/app_theme.dart';
 import '../permission_manager.dart';
@@ -499,7 +500,7 @@ class _SimplePermissionCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(28),
         ),
         child: Container(
-          padding: const EdgeInsets.all(28),
+          padding: EdgeInsets.all(28.w),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -509,14 +510,14 @@ class _SimplePermissionCard extends StatelessWidget {
                 child: GestureDetector(
                   onTap: isProcessing ? null : onDismiss,
                   child: Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(8.w),
                     decoration: BoxDecoration(
                       color: Colors.grey.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.close,
-                      size: 20,
+                      size: 20.sp,
                       color: Colors.grey[600],
                     ),
                   ),

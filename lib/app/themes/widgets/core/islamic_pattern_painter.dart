@@ -1,6 +1,5 @@
 // lib/core/shared/widgets/islamic_pattern_painter.dart
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 
 /// رسام الأنماط الإسلامية الموحد لجميع الشاشات
 class IslamicPatternPainter extends CustomPainter {

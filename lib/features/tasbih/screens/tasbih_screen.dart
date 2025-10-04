@@ -289,7 +289,7 @@ class _TasbihScreenState extends State<TasbihScreen>
                         style: context.titleMedium?.copyWith(
                           color: Colors.white,
                           fontWeight: ThemeConstants.bold,
-                          height: 1.3,
+                          height: 1.3.sp,
                         ),
                         maxLines: null, // السماح بعدد غير محدود من السطور
                         overflow: TextOverflow.visible, // عدم قطع النص

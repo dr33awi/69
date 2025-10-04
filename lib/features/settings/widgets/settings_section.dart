@@ -99,7 +99,7 @@ class SettingsSection extends StatelessWidget {
                   style: context.titleMedium?.copyWith(
                     color: effectiveTitleColor,
                     fontWeight: ThemeConstants.bold,
-                    height: 1.2,
+                    height: 1.2.sp,
                     fontSize: context.titleMedium?.fontSize?.sp,
                   ),
                 ),
@@ -109,7 +109,7 @@ class SettingsSection extends StatelessWidget {
                     subtitle!,
                     style: context.bodySmall?.copyWith(
                       color: context.textSecondaryColor,
-                      height: 1.3,
+                      height: 1.3.sp,
                       fontSize: context.bodySmall?.fontSize?.sp,
                     ),
                   ),

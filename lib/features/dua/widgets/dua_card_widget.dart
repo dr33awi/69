@@ -282,7 +282,7 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
             style: context.bodyLarge?.copyWith(
               fontSize: widget.fontSize.sp,
               fontFamily: ThemeConstants.fontFamilyArabic,
-              height: 2.0,
+              height: 2.0.sp,
               fontWeight: ThemeConstants.medium,
               color: context.textPrimaryColor,
             ),
