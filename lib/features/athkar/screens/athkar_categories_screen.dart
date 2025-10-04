@@ -1,4 +1,6 @@
-// lib/features/athkar/screens/athkar_categories_screen.dart - محدث
+// =====================================================
+// 1. athkar_categories_screen.dart - محسن
+// =====================================================
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -84,7 +86,7 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
                               style: context.titleLarge?.copyWith(
                                 fontWeight: ThemeConstants.bold,
                                 color: context.textPrimaryColor,
-                                fontSize: 24.sp,
+                                fontSize: 22.sp,
                               ),
                             ),
                             SizedBox(height: 4.h),
@@ -92,7 +94,7 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
                               'اقرأ الأذكار اليومية وحافظ على ذكر الله في كل وقت',
                               style: context.bodyMedium?.copyWith(
                                 color: context.textSecondaryColor,
-                                fontSize: 14.sp,
+                                fontSize: 13.sp,
                               ),
                             ),
                           ],
@@ -133,13 +135,13 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
                         }
                         
                         return SliverPadding(
-                          padding: EdgeInsets.all(16.w),
+                          padding: EdgeInsets.all(16.r),
                           sliver: SliverGrid(
                             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
-                              mainAxisSpacing: 16.h,
-                              crossAxisSpacing: 16.w,
-                              childAspectRatio: 0.8,
+                              mainAxisSpacing: 14.h,
+                              crossAxisSpacing: 14.w,
+                              childAspectRatio: 0.85,
                             ),
                             delegate: SliverChildBuilderDelegate(
                               (context, index) {
@@ -158,7 +160,7 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
                     ),
                     
                     SliverPadding(
-                      padding: EdgeInsets.only(bottom: 32.h),
+                      padding: EdgeInsets.only(bottom: 24.h),
                     ),
                   ],
                 ),
@@ -172,13 +174,13 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
 
   Widget _buildCustomAppBar(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
         color: context.backgroundColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10.r,
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8.r,
             offset: Offset(0, 2.h),
           ),
         ],
@@ -189,33 +191,33 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           
-          SizedBox(width: 12.w),
+          SizedBox(width: 10.w),
           
           Container(
-            padding: EdgeInsets.all(8.w),
+            padding: EdgeInsets.all(7.r),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [ThemeConstants.accent, ThemeConstants.accentLight],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(10.r),
               boxShadow: [
                 BoxShadow(
-                  color: ThemeConstants.accent.withValues(alpha: 0.3),
-                  blurRadius: 8.r,
-                  offset: Offset(0, 4.h),
+                  color: ThemeConstants.accent.withOpacity(0.3),
+                  blurRadius: 6.r,
+                  offset: Offset(0, 3.h),
                 ),
               ],
             ),
             child: Icon(
               Icons.menu_book_rounded,
               color: Colors.white,
-              size: 24.sp,
+              size: 20.sp,
             ),
           ),
           
-          SizedBox(width: 12.w),
+          SizedBox(width: 10.w),
           
           Expanded(
             child: Column(
@@ -226,14 +228,14 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
                   style: context.titleLarge?.copyWith(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
-                    fontSize: 18.sp,
+                    fontSize: 17.sp,
                   ),
                 ),
                 Text(
                   'اذكر الله كثيراً',
                   style: context.bodySmall?.copyWith(
                     color: context.textSecondaryColor,
-                    fontSize: 12.sp,
+                    fontSize: 11.sp,
                   ),
                 ),
               ],
@@ -241,10 +243,10 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
           ),
           
           Container(
-            margin: EdgeInsets.only(left: 8.w),
+            margin: EdgeInsets.only(left: 6.w),
             child: Material(
               color: Colors.transparent,
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(10.r),
               child: InkWell(
                 onTap: () {
                   HapticFeedback.lightImpact();
@@ -255,20 +257,20 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
                     ),
                   );
                 },
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(10.r),
                 child: Container(
-                  padding: EdgeInsets.all(8.w),
+                  padding: EdgeInsets.all(7.r),
                   decoration: BoxDecoration(
                     color: context.cardColor,
-                    borderRadius: BorderRadius.circular(12.r),
+                    borderRadius: BorderRadius.circular(10.r),
                     border: Border.all(
-                      color: context.dividerColor.withValues(alpha: 0.3),
+                      color: context.dividerColor.withOpacity(0.3),
                       width: 1.w,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 4.r,
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 3.r,
                         offset: Offset(0, 2.h),
                       ),
                     ],
@@ -276,7 +278,7 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
                   child: Icon(
                     Icons.notifications_outlined,
                     color: context.textPrimaryColor,
-                    size: 24.sp,
+                    size: 20.sp,
                   ),
                 ),
               ),

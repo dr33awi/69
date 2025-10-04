@@ -1,4 +1,4 @@
-// lib/features/home/widgets/home_prayer_times_card.dart - محدث مع flutter_screenutil
+// lib/features/home/widgets/home_prayer_times_card.dart - محسن للشاشات الصغيرة
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,7 +8,6 @@ import '../../../app/themes/app_theme.dart';
 import '../../prayer_times/models/prayer_time_model.dart';
 import '../../prayer_times/services/prayer_times_service.dart';
 import '../../prayer_times/utils/prayer_utils.dart';
-import '../../prayer_times/widgets/shared/prayer_state_widgets.dart';
 import '../../../app/di/service_locator.dart';
 
 class PrayerTimesCard extends StatefulWidget {
@@ -189,29 +188,29 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
   Widget _buildPrayerCard(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24.r),
+        borderRadius: BorderRadius.circular(20.r),
         gradient: PrayerUtils.getPrayerGradient(_nextPrayer?.type ?? PrayerType.fajr),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24.r),
+        borderRadius: BorderRadius.circular(20.r),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
             onTap: _navigateToPrayerTimes,
-            borderRadius: BorderRadius.circular(24.r),
+            borderRadius: BorderRadius.circular(20.r),
             child: Container(
-              padding: EdgeInsets.all(14.w), // تقليل الحشو
+              padding: EdgeInsets.all(12.r),
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: Colors.white.withOpacity(0.2),
                   width: 1.w,
                 ),
-                borderRadius: BorderRadius.circular(24.r),
+                borderRadius: BorderRadius.circular(20.r),
               ),
               child: Column(
                 children: [
                   _buildCompactHeader(context),
-                  SizedBox(height: 12.h), // تقليل المسافة
+                  SizedBox(height: 10.h),
                   _buildSimplePrayerPoints(context),
                 ],
               ),
@@ -226,19 +225,19 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
     return Row(
       children: [
         Container(
-          padding: EdgeInsets.all(10.w), // تقليل حشو الأيقونة
+          padding: EdgeInsets.all(8.r),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(12.r),
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(10.r),
           ),
           child: Icon(
             Icons.mosque,
             color: Colors.white,
-            size: 28.sp, // تقليل حجم الأيقونة
+            size: 24.sp,
           ),
         ),
         
-        SizedBox(width: 12.w), // تقليل المسافة
+        SizedBox(width: 10.w),
         
         Expanded(
           child: Column(
@@ -247,9 +246,10 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
               Row(
                 children: [
                   Text(
-                    'الصلاة القادمة: ',
+                    'التالية: ',
                     style: context.labelMedium?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.8),
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 11.sp,
                     ),
                   ),
                   Text(
@@ -257,21 +257,22 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
                     style: context.titleMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: ThemeConstants.bold,
+                      fontSize: 14.sp,
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 4.h),
+              SizedBox(height: 3.h),
               Row(
                 children: [
                   Container(
                     padding: EdgeInsets.symmetric(
-                      horizontal: 8.w,
-                      vertical: 4.h,
+                      horizontal: 6.w,
+                      vertical: 3.h,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      borderRadius: BorderRadius.circular(8.r),
+                      color: Colors.white.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(6.r),
                     ),
                     child: Text(
                       _nextPrayer != null 
@@ -280,24 +281,25 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
                       style: context.titleSmall?.copyWith(
                         color: PrayerUtils.getPrayerColor(_nextPrayer?.type ?? PrayerType.fajr),
                         fontWeight: ThemeConstants.bold,
+                        fontSize: 11.sp,
                       ),
                     ),
                   ),
-                  SizedBox(width: 8.w),
+                  SizedBox(width: 6.w),
                   Icon(
                     Icons.schedule_rounded,
-                    color: Colors.white.withValues(alpha: 0.7),
-                    size: 16.sp,
+                    color: Colors.white.withOpacity(0.7),
+                    size: 14.sp,
                   ),
-                  SizedBox(width: 4.w),
+                  SizedBox(width: 3.w),
                   Expanded(
                     child: Text(
                       _nextPrayer != null
                         ? PrayerUtils.formatRemainingTime(_nextPrayer!.remainingTime)
                         : 'غير محدد',
                       style: context.labelSmall?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        fontSize: 11.sp,
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 10.sp,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -309,15 +311,15 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
         ),
         
         Container(
-          padding: EdgeInsets.all(8.w),
+          padding: EdgeInsets.all(6.r),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(16.r),
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(12.r),
           ),
           child: Icon(
             Icons.arrow_forward_ios_rounded,
             color: Colors.white,
-            size: 20.sp,
+            size: 16.sp,
           ),
         ),
       ],
@@ -328,12 +330,12 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
     final prayers = _dailyTimes?.prayers.where((p) => p.type != PrayerType.sunrise).toList() ?? [];
     
     return Container(
-      padding: EdgeInsets.all(10.w), // تقليل الحشو
+      padding: EdgeInsets.all(8.r),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16.r),
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.2),
+          color: Colors.white.withOpacity(0.2),
           width: 1.w,
         ),
       ),
@@ -350,132 +352,222 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
     final isActive = prayer.isNext;
     final isPassed = prayer.isPassed;
     
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        AnimatedBuilder(
-          animation: _pulseAnimation,
-          builder: (context, child) {
-            return Container(
-              width: isActive ? 28.w : 24.w, // تقليل الأحجام
-              height: isActive ? 28.h : 24.h,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isPassed || isActive ? Colors.white : Colors.white.withValues(alpha: 0.4),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.6),
-                  width: 1.w,
-                ),
-                boxShadow: isActive ? [
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.3 + (_pulseAnimation.value * 0.2)),
-                    blurRadius: (4 + (_pulseAnimation.value * 6)).r,
-                    spreadRadius: (1 + (_pulseAnimation.value * 1)).r,
+    return Expanded(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedBuilder(
+            animation: _pulseAnimation,
+            builder: (context, child) {
+              return Container(
+                width: isActive ? 24.r : 22.r,
+                height: isActive ? 24.r : 22.r,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isPassed || isActive 
+                    ? Colors.white 
+                    : Colors.white.withOpacity(0.4),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.6),
+                    width: 1.w,
                   ),
-                ] : null,
-              ),
-              child: Center(
-                child: Transform.scale(
-                  scale: isActive ? 1.0 + (_pulseAnimation.value * 0.1) : 1.0,
-                  child: Icon(
-                    prayer.icon,
-                    color: isPassed || isActive ? prayer.color : Colors.white,
-                    size: isActive ? 14.sp : 12.sp, // تقليل حجم الأيقونات
+                  boxShadow: isActive ? [
+                    BoxShadow(
+                      color: Colors.white.withOpacity(
+                        0.3 + (_pulseAnimation.value * 0.2)
+                      ),
+                      blurRadius: (3 + (_pulseAnimation.value * 4)).r,
+                      spreadRadius: (1 + (_pulseAnimation.value * 0.5)).r,
+                    ),
+                  ] : null,
+                ),
+                child: Center(
+                  child: Transform.scale(
+                    scale: isActive ? 1.0 + (_pulseAnimation.value * 0.1) : 1.0,
+                    child: Icon(
+                      prayer.icon,
+                      color: isPassed || isActive ? prayer.color : Colors.white,
+                      size: isActive ? 12.sp : 11.sp,
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
-        ),
-        
-        SizedBox(height: 6.h), // تقليل المسافة
-        
-        Text(
-          prayer.nameAr,
-          style: context.labelSmall?.copyWith(
-            color: Colors.white.withValues(alpha: isActive ? 1.0 : 0.7),
-            fontWeight: isActive ? ThemeConstants.semiBold : ThemeConstants.regular,
-            fontSize: 10.sp, // تقليل حجم النص
+              );
+            },
           ),
-        ),
-        
-        Text(
-          prayer.formattedTime,
-          style: context.labelSmall?.copyWith(
-            color: Colors.white.withValues(alpha: isActive ? 0.9 : 0.6),
-            fontSize: 8.sp, // تقليل حجم النص أكثر
+          
+          SizedBox(height: 4.h),
+          
+          Text(
+            prayer.nameAr,
+            style: context.labelSmall?.copyWith(
+              color: Colors.white.withOpacity(isActive ? 1.0 : 0.7),
+              fontWeight: isActive ? ThemeConstants.semiBold : ThemeConstants.regular,
+              fontSize: 9.sp,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-        ),
-      ],
+          
+          Text(
+            prayer.formattedTime,
+            style: context.labelSmall?.copyWith(
+              color: Colors.white.withOpacity(isActive ? 0.9 : 0.6),
+              fontSize: 8.sp,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildCompactLoadingCard(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      height: 140.h,
+      padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(24.r),
+        borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: context.dividerColor.withValues(alpha: 0.3),
+          color: context.dividerColor.withOpacity(0.3),
           width: 1.w,
         ),
       ),
-      child: const PrayerLoadingWidget(
-        message: 'جاري تحميل مواقيت الصلاة...',
-        isCompact: true,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 24.r,
+            height: 24.r,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.w,
+              valueColor: AlwaysStoppedAnimation<Color>(context.primaryColor),
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            'جاري تحميل مواقيت الصلاة...',
+            style: context.labelMedium?.copyWith(
+              color: context.textSecondaryColor,
+              fontSize: 11.sp,
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildCompactErrorCard(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(24.r),
+        borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: ThemeConstants.error.withValues(alpha: 0.3),
+          color: ThemeConstants.error.withOpacity(0.3),
           width: 1.w,
         ),
       ),
-      child: PrayerErrorWidget(
-        error: _lastError,
-        onRetry: _retryLoadPrayerTimes,
-        isCompact: true,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.error_outline,
+                color: ThemeConstants.error,
+                size: 20.sp,
+              ),
+              SizedBox(width: 6.w),
+              Expanded(
+                child: Text(
+                  PrayerUtils.getErrorMessage(_lastError),
+                  style: context.bodySmall?.copyWith(
+                    color: ThemeConstants.error,
+                    fontSize: 11.sp,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 8.h),
+          SizedBox(
+            height: 28.h,
+            child: ElevatedButton(
+              onPressed: _retryLoadPrayerTimes,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ThemeConstants.error,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 12.w),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.refresh, size: 14.sp),
+                  SizedBox(width: 4.w),
+                  Text(
+                    'إعادة المحاولة',
+                    style: TextStyle(fontSize: 11.sp),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildCompactEmptyCard(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(24.r),
+        borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: context.dividerColor.withValues(alpha: 0.3),
+          color: context.dividerColor.withOpacity(0.3),
           width: 1.w,
         ),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             Icons.location_off,
             color: context.textSecondaryColor,
-            size: 32.sp,
+            size: 28.sp,
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 6.h),
           Text(
             'لا توجد بيانات مواقيت الصلاة',
             style: context.labelMedium?.copyWith(
               color: context.textSecondaryColor,
+              fontSize: 11.sp,
             ),
           ),
           SizedBox(height: 8.h),
-          RetryButton(
-            onRetry: _retryLoadPrayerTimes,
-            text: 'تحديث',
+          SizedBox(
+            height: 28.h,
+            child: ElevatedButton.icon(
+              onPressed: _retryLoadPrayerTimes,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: context.primaryColor,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 12.w),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+              ),
+              icon: Icon(Icons.refresh, size: 14.sp),
+              label: Text(
+                'تحديث',
+                style: TextStyle(fontSize: 11.sp),
+              ),
+            ),
           ),
         ],
       ),

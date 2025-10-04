@@ -1,12 +1,11 @@
-// lib/features/qibla/widgets/compass_calibration_sheet.dart - نسخة كاملة محسّنة
+// 3. compass_calibration_sheet.dart - محسن
+// =====================================================
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import '../../../app/themes/app_theme.dart';
-import '../services/qibla_service.dart';
 
 class CompassCalibrationSheet extends StatefulWidget {
   final VoidCallback onStartCalibration;
@@ -58,16 +57,13 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
     
     return Container(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.8, // تحديد ارتفاع أقصى
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
       ),
-      padding: EdgeInsets.symmetric(
-        horizontal: 16.w,
-        vertical: 16.h,
-      ),
+      padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
         color: context.backgroundColor,
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20.r),
+          top: Radius.circular(18.r),
         ),
       ),
       child: Column(
@@ -75,9 +71,9 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
         children: [
           // Handle bar
           Container(
-            width: 40.w,
-            height: 4.h,
-            margin: EdgeInsets.only(bottom: 12.h), // تقليل المسافة
+            width: 36.w,
+            height: 3.h,
+            margin: EdgeInsets.only(bottom: 10.h),
             decoration: BoxDecoration(
               color: context.dividerColor,
               borderRadius: BorderRadius.circular(2.r),
@@ -89,39 +85,39 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: EdgeInsets.all(8.w),
+                padding: EdgeInsets.all(7.r),
                 decoration: BoxDecoration(
-                  color: ThemeConstants.warning.withValues(alpha: 0.1),
+                  color: ThemeConstants.warning.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.explore_rounded,
                   color: ThemeConstants.warning,
-                  size: 24.sp,
+                  size: 22.sp,
                 ),
               ),
-              SizedBox(width: 12.w),
+              SizedBox(width: 10.w),
               Text(
                 'معايرة البوصلة',
                 style: context.titleLarge?.copyWith(
                   fontWeight: ThemeConstants.bold,
-                  fontSize: context.titleLarge?.fontSize?.sp,
+                  fontSize: 18.sp,
                 ),
               ),
             ],
           ),
           
-          SizedBox(height: 12.h), // تقليل المسافة
+          SizedBox(height: 10.h),
           
           // Warning message
           Container(
             width: double.infinity,
-            padding: EdgeInsets.all(10.w), // تقليل الحشو
+            padding: EdgeInsets.all(8.r),
             decoration: BoxDecoration(
-              color: ThemeConstants.warning.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12.r),
+              color: ThemeConstants.warning.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10.r),
               border: Border.all(
-                color: ThemeConstants.warning.withValues(alpha: 0.3),
+                color: ThemeConstants.warning.withOpacity(0.3),
               ),
             ),
             child: Row(
@@ -129,16 +125,16 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                 Icon(
                   Icons.warning_amber_rounded,
                   color: ThemeConstants.warning,
-                  size: 20.sp, // تقليل حجم الأيقونة
+                  size: 18.sp,
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: 6.w),
                 Expanded(
                   child: Text(
                     'البوصلة تحتاج إلى معايرة',
                     style: context.bodyLarge?.copyWith(
                       color: ThemeConstants.warning,
                       fontWeight: FontWeight.w600,
-                      fontSize: 14.sp, // تحديد حجم نص صغير
+                      fontSize: 13.sp,
                     ),
                   ),
                 ),
@@ -146,14 +142,14 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
             ),
           ),
           
-          SizedBox(height: 12.h), // تقليل المسافة
+          SizedBox(height: 10.h),
           
           // Accuracy indicator
           Container(
-            padding: EdgeInsets.all(12.w),
+            padding: EdgeInsets.all(10.r),
             decoration: BoxDecoration(
               color: context.cardColor,
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(10.r),
             ),
             child: Column(
               children: [
@@ -162,50 +158,48 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                   children: [
                     Text(
                       'دقة البوصلة:',
-                      style: context.bodyLarge?.copyWith(
-                        fontSize: context.bodyLarge?.fontSize?.sp,
-                      ),
+                      style: context.bodyLarge?.copyWith(fontSize: 14.sp),
                     ),
                     Text(
                       '$accuracyPercentage%',
                       style: context.titleMedium?.copyWith(
                         color: accuracyColor,
                         fontWeight: FontWeight.bold,
-                        fontSize: context.titleMedium?.fontSize?.sp,
+                        fontSize: 15.sp,
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 12.h),
+                SizedBox(height: 10.h),
                 LinearProgressIndicator(
                   value: accuracyPercentage / 100,
-                  backgroundColor: context.dividerColor.withValues(alpha: 0.3),
+                  backgroundColor: context.dividerColor.withOpacity(0.3),
                   valueColor: AlwaysStoppedAnimation<Color>(accuracyColor),
-                  minHeight: 8.h,
-                  borderRadius: BorderRadius.circular(4.r),
+                  minHeight: 6.h,
+                  borderRadius: BorderRadius.circular(3.r),
                 ),
               ],
             ),
           ),
           
-          SizedBox(height: 20.h),
+          SizedBox(height: 16.h),
           
           // Phone animation with figure-8 motion
           Container(
-            height: 120.h, // تقليل الارتفاع
+            height: 100.h,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: context.cardColor.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(12.r),
+              color: context.cardColor.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(10.r),
             ),
             child: Stack(
               alignment: Alignment.center,
               children: [
                 // Figure-8 background
                 CustomPaint(
-                  size: Size(240.w, 100.h),
+                  size: Size(200.w, 80.h),
                   painter: Figure8BackgroundPainter(
-                    color: ThemeConstants.primary.withValues(alpha: 0.4),
+                    color: ThemeConstants.primary.withOpacity(0.4),
                   ),
                 ),
                 // Animated phone
@@ -213,8 +207,8 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                   animation: _figure8Animation,
                   builder: (context, child) {
                     final t = _figure8Animation.value;
-                    final x = math.sin(t) * 75.w;
-                    final y = math.sin(2 * t) * 30.h;
+                    final x = math.sin(t) * 60.w;
+                    final y = math.sin(2 * t) * 25.h;
                     final tilt = math.sin(t) * 0.2;
                     
                     return Transform.translate(
@@ -233,18 +227,18 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
             ),
           ),
           
-          SizedBox(height: 20.h),
+          SizedBox(height: 16.h),
           
           // Instructions title
           Text(
             'كيفية معايرة البوصلة:',
             style: context.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              fontSize: context.titleMedium?.fontSize?.sp,
+              fontSize: 15.sp,
             ),
           ),
           
-          SizedBox(height: 12.h),
+          SizedBox(height: 10.h),
           
           // Calibration steps
           _buildCalibrationStep(
@@ -268,11 +262,11 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
           _buildCalibrationStep(
             context: context,
             number: '4',
-            text: 'انتظر حتى تستقر القراءات (15-20 ثانية)',
+            text: 'انتظر حتى تستقر القراءات',
             icon: Icons.check_circle_outline,
           ),
           
-          SizedBox(height: 24.h),
+          SizedBox(height: 20.h),
           
           // Action buttons
           Row(
@@ -281,25 +275,19 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                 child: OutlinedButton(
                   onPressed: () => Navigator.of(context).pop(),
                   style: OutlinedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(
-                      vertical: 12.h,
-                    ),
-                    side: BorderSide(
-                      color: context.dividerColor,
-                    ),
+                    padding: EdgeInsets.symmetric(vertical: 10.h),
+                    side: BorderSide(color: context.dividerColor),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(10.r),
                     ),
                   ),
                   child: Text(
                     'إغلاق',
-                    style: context.bodyLarge?.copyWith(
-                      fontSize: context.bodyLarge?.fontSize?.sp,
-                    ),
+                    style: TextStyle(fontSize: 14.sp),
                   ),
                 ),
               ),
-              SizedBox(width: 12.w),
+              SizedBox(width: 10.w),
               Expanded(
                 flex: 2,
                 child: ElevatedButton(
@@ -310,18 +298,16 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: ThemeConstants.primary,
-                    padding: EdgeInsets.symmetric(
-                      vertical: 12.h,
-                    ),
+                    padding: EdgeInsets.symmetric(vertical: 10.h),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(10.r),
                     ),
                   ),
                   child: Text(
                     'بدء المعايرة',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 16.sp,
+                      fontSize: 15.sp,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -346,17 +332,17 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
     final bool isStep2 = number == '2';
     
     return Container(
-      margin: EdgeInsets.only(bottom: 12.h),
+      margin: EdgeInsets.only(bottom: 10.h),
       child: Row(
         children: [
           Container(
-            width: 32.w,
-            height: 32.h,
+            width: 28.r,
+            height: 28.r,
             decoration: BoxDecoration(
               color: context.cardColor,
               shape: BoxShape.circle,
               border: Border.all(
-                color: context.dividerColor.withValues(alpha: 0.5),
+                color: context.dividerColor.withOpacity(0.5),
               ),
             ),
             child: Center(
@@ -365,34 +351,32 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                 style: context.bodyMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: ThemeConstants.primary,
-                  fontSize: context.bodyMedium?.fontSize?.sp,
+                  fontSize: 13.sp,
                 ),
               ),
             ),
           ),
-          SizedBox(width: 12.w),
+          SizedBox(width: 10.w),
           if (isStep2) ...[
             CustomPaint(
-              size: Size(30.w, 15.h),
+              size: Size(26.w, 13.h),
               painter: SmallFigure8Painter(
                 color: ThemeConstants.primary,
               ),
             ),
-            SizedBox(width: 8.w),
+            SizedBox(width: 6.w),
           ] else ...[
             Icon(
               icon,
-              size: 20.sp,
+              size: 18.sp,
               color: context.textSecondaryColor,
             ),
-            SizedBox(width: 8.w),
+            SizedBox(width: 6.w),
           ],
           Expanded(
             child: Text(
               text,
-              style: context.bodyMedium?.copyWith(
-                fontSize: context.bodyMedium?.fontSize?.sp,
-              ),
+              style: context.bodyMedium?.copyWith(fontSize: 13.sp),
             ),
           ),
         ],
@@ -414,8 +398,8 @@ class PhoneAnimationWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 90.w,
-      height: 55.h,
+      width: 75.w,
+      height: 45.h,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -425,34 +409,34 @@ class PhoneAnimationWidget extends StatelessWidget {
             ThemeConstants.primaryDark,
           ],
         ),
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10.r),
         boxShadow: [
           BoxShadow(
-            color: ThemeConstants.primary.withValues(alpha: 0.5),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
+            color: ThemeConstants.primary.withOpacity(0.5),
+            blurRadius: 12.r,
+            offset: Offset(0, 6.h),
           ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 6.r,
+            offset: Offset(0, 3.h),
           ),
         ],
       ),
       child: Stack(
         children: [
           Positioned(
-            top: 7.h,
-            left: 12.w,
-            right: 12.w,
-            bottom: 7.h,
+            top: 6.h,
+            left: 10.w,
+            right: 10.w,
+            bottom: 6.h,
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(8.r),
+                borderRadius: BorderRadius.circular(6.r),
                 border: Border.all(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  width: 0.5,
+                  color: Colors.black.withOpacity(0.1),
+                  width: 0.5.w,
                 ),
               ),
               child: Row(
@@ -461,75 +445,21 @@ class PhoneAnimationWidget extends StatelessWidget {
                   Icon(
                     Icons.explore,
                     color: ThemeConstants.primary,
-                    size: 20.sp,
+                    size: 18.sp,
                   ),
-                  SizedBox(width: 10.w),
+                  SizedBox(width: 8.w),
                   ...List.generate(3, (index) => Container(
                     width: 3.w,
-                    height: (14 - (index * 2)).h,
+                    height: (12 - (index * 2)).h,
                     margin: EdgeInsets.symmetric(horizontal: 2.w),
                     decoration: BoxDecoration(
-                      color: ThemeConstants.primary.withValues(
-                        alpha: 0.7 - (index * 0.2),
+                      color: ThemeConstants.primary.withOpacity(
+                        0.7 - (index * 0.2),
                       ),
                       borderRadius: BorderRadius.circular(2.r),
                     ),
                   )),
                 ],
-              ),
-            ),
-          ),
-          Positioned(
-            top: 2.h,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                width: 5.w,
-                height: 5.h,
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.9),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            right: 4.w,
-            top: 0,
-            bottom: 0,
-            child: Center(
-              child: Container(
-                width: 4.w,
-                height: 22.h,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(2.r),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 4.w,
-            top: 14.h,
-            child: Container(
-              width: 3.w,
-              height: 10.h,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2.r),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 4.w,
-            bottom: 14.h,
-            child: Container(
-              width: 3.w,
-              height: 10.h,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2.r),
               ),
             ),
           ),
@@ -539,7 +469,7 @@ class PhoneAnimationWidget extends StatelessWidget {
   }
 }
 
-// Custom painter for drawing figure-8 path
+// Custom painter for drawing figure-8 path (simplified)
 class Figure8BackgroundPainter extends CustomPainter {
   final Color color;
   
@@ -550,79 +480,39 @@ class Figure8BackgroundPainter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 5
+      ..strokeWidth = 4.w
       ..strokeCap = StrokeCap.round;
-    
-    final glowPaint = Paint()
-      ..color = color.withValues(alpha: 0.2)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 12
-      ..strokeCap = StrokeCap.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
     
     final path = Path();
     final centerX = size.width / 2;
     final centerY = size.height / 2;
-    final radiusX = size.width * 0.42;
-    final radiusY = size.height * 0.4;
+    final radiusX = size.width * 0.4;
+    final radiusY = size.height * 0.35;
     
+    // Draw simplified figure-8 path
     path.moveTo(centerX - radiusX, centerY);
-    
     path.cubicTo(
       centerX - radiusX, centerY - radiusY,
       centerX - radiusX * 0.2, centerY - radiusY,
       centerX, centerY,
     );
-    
     path.cubicTo(
       centerX + radiusX * 0.2, centerY + radiusY,
       centerX + radiusX, centerY + radiusY,
       centerX + radiusX, centerY,
     );
-    
     path.cubicTo(
       centerX + radiusX, centerY - radiusY,
       centerX + radiusX * 0.2, centerY - radiusY,
       centerX, centerY,
     );
-    
     path.cubicTo(
       centerX - radiusX * 0.2, centerY + radiusY,
       centerX - radiusX, centerY + radiusY,
       centerX - radiusX, centerY,
     );
     
-    canvas.drawPath(path, glowPaint);
     canvas.drawPath(path, paint);
-    
-    final dotPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-    
-    for (int i = 0; i < 12; i++) {
-      final angle = (i / 12) * 2 * math.pi;
-      final x = centerX + math.sin(angle) * radiusX * 0.95;
-      final y = centerY + math.sin(2 * angle) * radiusY * 0.95;
-      canvas.drawCircle(Offset(x, y), 3, dotPaint);
-    }
-    
-    final arrowPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
-    
-    final leftArrowPath = Path();
-    leftArrowPath.moveTo(centerX - radiusX * 0.65, centerY - 8);
-    leftArrowPath.lineTo(centerX - radiusX * 0.75, centerY);
-    leftArrowPath.lineTo(centerX - radiusX * 0.65, centerY + 8);
-    canvas.drawPath(leftArrowPath, arrowPaint);
-    
-    final rightArrowPath = Path();
-    rightArrowPath.moveTo(centerX + radiusX * 0.65, centerY - 8);
-    rightArrowPath.lineTo(centerX + radiusX * 0.75, centerY);
-    rightArrowPath.lineTo(centerX + radiusX * 0.65, centerY + 8);
-    canvas.drawPath(rightArrowPath, arrowPaint);
   }
   
   @override
@@ -642,268 +532,43 @@ class SmallFigure8Painter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2
+      ..strokeWidth = 2.w
       ..strokeCap = StrokeCap.round;
     
     final path = Path();
     final centerX = size.width / 2;
     final centerY = size.height / 2;
-    final radiusX = size.width * 0.4;
-    final radiusY = size.height * 0.35;
+    final radiusX = size.width * 0.35;
+    final radiusY = size.height * 0.3;
     
+    // Draw small figure-8
     path.moveTo(centerX - radiusX, centerY);
-    
     path.cubicTo(
       centerX - radiusX, centerY - radiusY,
-      centerX - radiusX * 0.3, centerY - radiusY,
+      centerX, centerY - radiusY,
       centerX, centerY,
     );
-    
     path.cubicTo(
-      centerX + radiusX * 0.3, centerY + radiusY,
+      centerX, centerY + radiusY,
       centerX + radiusX, centerY + radiusY,
       centerX + radiusX, centerY,
     );
-    
     path.cubicTo(
       centerX + radiusX, centerY - radiusY,
-      centerX + radiusX * 0.3, centerY - radiusY,
+      centerX, centerY - radiusY,
       centerX, centerY,
     );
-    
     path.cubicTo(
-      centerX - radiusX * 0.3, centerY + radiusY,
+      centerX, centerY + radiusY,
       centerX - radiusX, centerY + radiusY,
       centerX - radiusX, centerY,
     );
     
     canvas.drawPath(path, paint);
-    
-    final dotPaint = Paint()
-      ..color = color.withValues(alpha: 0.6)
-      ..style = PaintingStyle.fill;
-    
-    canvas.drawCircle(Offset(centerX - radiusX * 0.5, centerY), 1, dotPaint);
-    canvas.drawCircle(Offset(centerX + radiusX * 0.5, centerY), 1, dotPaint);
-    canvas.drawCircle(Offset(centerX, centerY), 1.5, dotPaint);
   }
   
   @override
   bool shouldRepaint(SmallFigure8Painter oldDelegate) {
     return color != oldDelegate.color;
   }
-}
-
-// Calibration Progress Dialog
-class CalibrationProgressDialog extends StatefulWidget {
-  final VoidCallback onStartCalibration;
-  
-  const CalibrationProgressDialog({
-    super.key,
-    required this.onStartCalibration,
-  });
-  
-  @override
-  State<CalibrationProgressDialog> createState() => _CalibrationProgressDialogState();
-}
-
-class _CalibrationProgressDialogState extends State<CalibrationProgressDialog>
-    with SingleTickerProviderStateMixin {
-  
-  late AnimationController _animationController;
-  late Animation<double> _figure8Animation;
-  bool _hasStartedCalibration = false;
-  bool _hasCompleted = false;
-  
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(seconds: 4),
-      vsync: this,
-    )..repeat();
-    
-    _figure8Animation = Tween<double>(
-      begin: 0,
-      end: 2 * math.pi,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
-    
-    widget.onStartCalibration();
-    _hasStartedCalibration = true;
-  }
-  
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-  
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<QiblaService>(
-      builder: (context, qiblaService, child) {
-        if (qiblaService.calibrationProgress >= 100 && 
-            !qiblaService.isCalibrating && 
-            _hasStartedCalibration &&
-            !_hasCompleted) {
-          
-          _hasCompleted = true;
-          
-          Future.delayed(const Duration(milliseconds: 1500), () {
-            if (mounted) {
-              Navigator.of(context).pop();
-            }
-          });
-        }
-        
-        return WillPopScope(
-          onWillPop: () async => !qiblaService.isCalibrating,
-          child: AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20.r),
-            ),
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  qiblaService.calibrationProgress >= 100
-                      ? Icons.check_circle_outline
-                      : Icons.compass_calibration,
-                  color: qiblaService.calibrationProgress >= 100
-                      ? ThemeConstants.success
-                      : ThemeConstants.primary,
-                ),
-                SizedBox(width: 8.w),
-                Text(
-                  qiblaService.calibrationProgress >= 100
-                      ? 'اكتملت المعايرة!'
-                      : 'جاري المعايرة...',
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  height: 150.h,
-                  width: 280.w,
-                  decoration: BoxDecoration(
-                    color: context.cardColor.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      CustomPaint(
-                        size: Size(240.w, 100.h),
-                        painter: Figure8BackgroundPainter(
-                          color: qiblaService.calibrationProgress >= 100
-                              ? ThemeConstants.success.withValues(alpha: 0.4)
-                              : ThemeConstants.primary.withValues(alpha: 0.4),
-                        ),
-                      ),
-                      if (qiblaService.isCalibrating)
-                        AnimatedBuilder(
-                          animation: _figure8Animation,
-                          builder: (context, child) {
-                            final t = _figure8Animation.value;
-                            final x = math.sin(t) * 75.w;
-                            final y = math.sin(2 * t) * 30.h;
-                            final tilt = math.sin(t) * 0.2;
-                            
-                            return Transform.translate(
-                              offset: Offset(x, y),
-                              child: Transform(
-                                alignment: Alignment.center,
-                                transform: Matrix4.identity()
-                                  ..rotateY(tilt)
-                                  ..rotateZ(tilt * 0.5),
-                                child: const PhoneAnimationWidget(),
-                              ),
-                            );
-                          },
-                        )
-                      else
-                        const PhoneAnimationWidget(),
-                    ],
-                  ),
-                ),
-                
-                SizedBox(height: 16.h),
-                
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: Text(
-                    qiblaService.calibrationMessage,
-                    key: ValueKey(qiblaService.calibrationMessage),
-                    textAlign: TextAlign.center,
-                    style: context.bodyLarge?.copyWith(
-                      fontWeight: qiblaService.calibrationProgress >= 100
-                          ? ThemeConstants.bold
-                          : ThemeConstants.medium,
-                      color: qiblaService.calibrationProgress >= 100
-                          ? ThemeConstants.success
-                          : context.textPrimaryColor,
-                      fontSize: context.bodyLarge?.fontSize?.sp,
-                    ),
-                  ),
-                ),
-                
-                SizedBox(height: 12.h),
-                
-                if (qiblaService.calibrationProgress >= 100)
-                  Icon(
-                    Icons.check_circle,
-                    color: ThemeConstants.success,
-                    size: 32.sp,
-                  ),
-              ],
-            ),
-            actions: [
-              if (qiblaService.isCalibrating)
-                TextButton(
-                  onPressed: () {
-                    qiblaService.resetCalibration();
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('إلغاء'),
-                ),
-              
-              if (!qiblaService.isCalibrating && qiblaService.calibrationProgress >= 100)
-                ElevatedButton.icon(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.check),
-                  label: const Text('تم'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ThemeConstants.success,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-// Helper function
-void showCompassCalibrationSheet({
-  required BuildContext context,
-  required VoidCallback onStartCalibration,
-  double initialAccuracy = 0.0,
-}) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (context) => CompassCalibrationSheet(
-      onStartCalibration: onStartCalibration,
-      initialAccuracy: initialAccuracy,
-    ),
-  );
 }

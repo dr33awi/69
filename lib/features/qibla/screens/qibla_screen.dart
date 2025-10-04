@@ -1,4 +1,4 @@
-// lib/features/qibla/screens/qibla_screen.dart - نسخة كاملة محسّنة
+// lib/features/qibla/screens/qibla_screen.dart - محسن ومصلح
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -100,31 +100,53 @@ class _QiblaScreenState extends State<QiblaScreen>
     HapticFeedback.lightImpact();
     
     // Show calibration sheet
-    showCompassCalibrationSheet(
+    _showCompassCalibrationSheet(
       context: context,
       onStartCalibration: () async {
         await _qiblaService.startCalibration();
         
-        // Show progress dialog with Provider
+        // Show progress dialog
         if (mounted) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (dialogContext) => ChangeNotifierProvider.value(
-              value: _qiblaService,
-              child: CalibrationProgressDialog(
-                onStartCalibration: () {}, // Already started
-              ),
-            ),
-          ).then((_) {
-            if (_qiblaService.isCalibrated) {
-              _showSuccessSnackbar(_qiblaService.calibrationMessage);
-            }
-          });
+          _showCalibrationProgressDialog();
         }
       },
       initialAccuracy: _qiblaService.compassAccuracy,
     );
+  }
+
+  // Helper function to show calibration sheet
+  void _showCompassCalibrationSheet({
+    required BuildContext context,
+    required VoidCallback onStartCalibration,
+    double initialAccuracy = 0.0,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => CompassCalibrationSheet(
+        onStartCalibration: onStartCalibration,
+        initialAccuracy: initialAccuracy,
+      ),
+    );
+  }
+
+  // Show calibration progress dialog
+  void _showCalibrationProgressDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => ChangeNotifierProvider.value(
+        value: _qiblaService,
+        child: _CalibrationProgressDialog(
+          qiblaService: _qiblaService,
+        ),
+      ),
+    ).then((_) {
+      if (_qiblaService.isCalibrated) {
+        _showSuccessSnackbar(_qiblaService.calibrationMessage);
+      }
+    });
   }
 
   void _showErrorSnackbar(String message) {
@@ -200,21 +222,19 @@ class _QiblaScreenState extends State<QiblaScreen>
                           parent: BouncingScrollPhysics(),
                         ),
                         child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 16.w,
-                          ),
+                          padding: EdgeInsets.symmetric(horizontal: 14.w),
                           child: Column(
                             children: [
-                              SizedBox(height: 16.h),
+                              SizedBox(height: 14.h),
                               _buildMainContent(service),
-                              SizedBox(height: 24.h),
+                              SizedBox(height: 20.h),
                               
                               if (service.qiblaData != null) ...[
                                 QiblaInfoCard(qiblaData: service.qiblaData!),
-                                SizedBox(height: 16.h),
+                                SizedBox(height: 14.h),
                               ],
                               
-                              SizedBox(height: 48.h),
+                              SizedBox(height: 40.h),
                             ],
                           ),
                         ),
@@ -238,7 +258,7 @@ class _QiblaScreenState extends State<QiblaScreen>
     );
     
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(14.r),
       child: Row(
         children: [
           // زر الرجوع
@@ -246,30 +266,30 @@ class _QiblaScreenState extends State<QiblaScreen>
             onPressed: () => Navigator.of(context).pop(),
           ),
           
-          SizedBox(width: 12.w),
+          SizedBox(width: 10.w),
           
           // أيقونة القبلة مع التدرج اللوني
           Container(
-            padding: EdgeInsets.all(8.w),
+            padding: EdgeInsets.all(7.r),
             decoration: BoxDecoration(
               gradient: gradient,
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(10.r),
               boxShadow: [
                 BoxShadow(
-                  color: ThemeConstants.primary.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
+                  color: ThemeConstants.primary.withOpacity(0.3),
+                  blurRadius: 6.r,
+                  offset: Offset(0, 3.h),
                 ),
               ],
             ),
             child: Icon(
               Icons.explore_rounded,
               color: Colors.white,
-              size: 24.sp,
+              size: 20.sp,
             ),
           ),
           
-          SizedBox(width: 12.w),
+          SizedBox(width: 10.w),
           
           // العنوان والحالة
           Expanded(
@@ -281,14 +301,14 @@ class _QiblaScreenState extends State<QiblaScreen>
                   style: context.titleLarge?.copyWith(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
-                    fontSize: context.titleLarge?.fontSize?.sp,
+                    fontSize: 17.sp,
                   ),
                 ),
                 Text(
                   _getStatusText(service),
                   style: context.bodySmall?.copyWith(
                     color: _getStatusColor(service),
-                    fontSize: context.bodySmall?.fontSize?.sp,
+                    fontSize: 11.sp,
                   ),
                 ),
               ],
@@ -323,33 +343,33 @@ class _QiblaScreenState extends State<QiblaScreen>
     bool isSecondary = false,
   }) {
     return Container(
-      margin: EdgeInsets.only(left: 8.w),
+      margin: EdgeInsets.only(left: 6.w),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10.r),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(10.r),
           child: Container(
-            padding: EdgeInsets.all(8.w),
+            padding: EdgeInsets.all(7.r),
             decoration: BoxDecoration(
               color: context.cardColor,
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(10.r),
               border: Border.all(
-                color: context.dividerColor.withValues(alpha: 0.3),
+                color: context.dividerColor.withOpacity(0.3),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 3.r,
+                  offset: Offset(0, 2.h),
                 ),
               ],
             ),
             child: isLoading
                 ? SizedBox(
-                    width: 24.sp,
-                    height: 24.sp,
+                    width: 20.r,
+                    height: 20.r,
                     child: const CircularProgressIndicator(
                       strokeWidth: 2,
                       valueColor: AlwaysStoppedAnimation<Color>(ThemeConstants.primary),
@@ -358,7 +378,7 @@ class _QiblaScreenState extends State<QiblaScreen>
                 : Icon(
                     icon,
                     color: isSecondary ? context.textSecondaryColor : ThemeConstants.primary,
-                    size: 24.sp,
+                    size: 20.sp,
                   ),
           ),
         ),
@@ -407,13 +427,13 @@ class _QiblaScreenState extends State<QiblaScreen>
   Widget _buildCompassView(QiblaService service) {
     return Container(
       constraints: BoxConstraints(
-        minHeight: 320.h,
-        maxHeight: 400.h,
+        minHeight: 280.h,
+        maxHeight: 360.h,
       ),
       child: Stack(
         children: [
           Padding(
-            padding: EdgeInsets.all(16.w),
+            padding: EdgeInsets.all(14.r),
             child: QiblaCompass(
               qiblaDirection: service.qiblaData!.qiblaDirection,
               currentDirection: service.currentDirection,
@@ -425,18 +445,18 @@ class _QiblaScreenState extends State<QiblaScreen>
           
           if (service.isLoading)
             Positioned(
-              top: 8.h,
-              right: 8.w,
+              top: 6.h,
+              right: 6.w,
               child: Container(
-                padding: EdgeInsets.all(8.w),
+                padding: EdgeInsets.all(6.r),
                 decoration: BoxDecoration(
-                  color: context.cardColor.withValues(alpha: 0.9),
-                  borderRadius: BorderRadius.circular(12.r),
+                  color: context.cardColor.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(10.r),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 3.r,
+                      offset: Offset(0, 2.h),
                     ),
                   ],
                 ),
@@ -444,15 +464,15 @@ class _QiblaScreenState extends State<QiblaScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     SizedBox(
-                      width: 16.w,
-                      height: 16.h,
+                      width: 14.r,
+                      height: 14.r,
                       child: const CircularProgressIndicator(strokeWidth: 2),
                     ),
-                    SizedBox(width: 8.w),
+                    SizedBox(width: 6.w),
                     Text(
                       'تحديث...',
                       style: TextStyle(
-                        fontSize: 12.sp,
+                        fontSize: 11.sp,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -468,23 +488,23 @@ class _QiblaScreenState extends State<QiblaScreen>
   Widget _buildLoadingState() {
     return Container(
       constraints: BoxConstraints(
-        minHeight: 300.h,
-        maxHeight: 400.h,
+        minHeight: 260.h,
+        maxHeight: 340.h,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 150.w,
-            height: 150.h,
+            width: 120.r,
+            height: 120.r,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: context.cardColor.withValues(alpha: 0.8),
+              color: context.cardColor.withOpacity(0.8),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 6.r,
+                  offset: Offset(0, 3.h),
                 ),
               ],
             ),
@@ -494,19 +514,19 @@ class _QiblaScreenState extends State<QiblaScreen>
               ),
             ),
           ),
-          SizedBox(height: 24.h),
+          SizedBox(height: 20.h),
           Text(
             'جاري تحديد موقعك...',
             style: context.bodyLarge?.copyWith(
-              fontSize: 16.sp,
+              fontSize: 15.sp,
               fontWeight: FontWeight.w600,
             ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 6.h),
           Text(
             'يرجى الانتظار لحظات قليلة',
             style: context.bodyMedium?.copyWith(
-              fontSize: 14.sp,
+              fontSize: 13.sp,
               color: Colors.grey.shade600,
             ),
           ),
@@ -518,66 +538,66 @@ class _QiblaScreenState extends State<QiblaScreen>
   Widget _buildErrorState(QiblaService service) {
     return Container(
       constraints: BoxConstraints(
-        minHeight: 300.h,
-        maxHeight: 400.h,
+        minHeight: 260.h,
+        maxHeight: 340.h,
       ),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(24.w),
+              padding: EdgeInsets.all(20.r),
               decoration: BoxDecoration(
-                color: ThemeConstants.error.withValues(alpha: 0.1),
+                color: ThemeConstants.error.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.error_outline,
-                size: 48.sp,
+                size: 40.sp,
                 color: ThemeConstants.error,
               ),
             ),
-            SizedBox(height: 20.h),
+            SizedBox(height: 16.h),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32.w),
+              padding: EdgeInsets.symmetric(horizontal: 28.w),
               child: Text(
                 service.errorMessage ?? 'فشل تحميل البيانات',
                 style: TextStyle(
-                  fontSize: 16.sp,
+                  fontSize: 15.sp,
                   fontWeight: FontWeight.w600,
                   color: ThemeConstants.error,
                 ),
                 textAlign: TextAlign.center,
               ),
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: 6.h),
             Text(
               'تأكد من تفعيل الموقع والاتصال بالإنترنت',
               style: TextStyle(
-                fontSize: 14.sp,
+                fontSize: 13.sp,
                 color: Colors.grey.shade600,
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 24.h),
+            SizedBox(height: 20.h),
             ElevatedButton.icon(
               onPressed: () => _updateQiblaData(forceUpdate: true),
               style: ElevatedButton.styleFrom(
                 backgroundColor: ThemeConstants.error,
                 foregroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(
-                  horizontal: 24.w,
-                  vertical: 12.h,
+                  horizontal: 20.w,
+                  vertical: 10.h,
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: BorderRadius.circular(10.r),
                 ),
               ),
-              icon: Icon(Icons.refresh, size: 20.sp),
+              icon: Icon(Icons.refresh, size: 18.sp),
               label: Text(
                 'إعادة المحاولة',
                 style: TextStyle(
-                  fontSize: 16.sp,
+                  fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -591,59 +611,59 @@ class _QiblaScreenState extends State<QiblaScreen>
   Widget _buildNoCompassState(QiblaService service) {
     return Container(
       constraints: BoxConstraints(
-        minHeight: 320.h,
-        maxHeight: 450.h,
+        minHeight: 280.h,
+        maxHeight: 380.h,
       ),
-      padding: EdgeInsets.all(24.w),
+      padding: EdgeInsets.all(20.r),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: EdgeInsets.all(24.w),
+            padding: EdgeInsets.all(20.r),
             decoration: BoxDecoration(
-              color: Colors.amber.withValues(alpha: 0.1),
+              color: Colors.amber.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.compass_calibration_outlined,
-              size: 48.sp,
+              size: 40.sp,
               color: Colors.amber.shade700,
             ),
           ),
-          SizedBox(height: 20.h),
+          SizedBox(height: 16.h),
           Text(
             'البوصلة غير متوفرة',
             style: TextStyle(
-              fontSize: 18.sp,
+              fontSize: 17.sp,
               fontWeight: FontWeight.bold,
               color: Colors.amber.shade700,
             ),
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: 10.h),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            padding: EdgeInsets.symmetric(horizontal: 14.w),
             child: Text(
               'جهازك لا يدعم البوصلة. يمكنك استخدام اتجاه القبلة من موقعك.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 14.sp,
+                fontSize: 13.sp,
                 color: Colors.grey.shade600,
               ),
             ),
           ),
           if (service.qiblaData != null) ...[
-            SizedBox(height: 24.h),
+            SizedBox(height: 20.h),
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(16.w),
+              padding: EdgeInsets.all(14.r),
               decoration: BoxDecoration(
                 color: context.cardColor,
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(10.r),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 3.r,
+                    offset: Offset(0, 2.h),
                   ),
                 ],
               ),
@@ -652,17 +672,17 @@ class _QiblaScreenState extends State<QiblaScreen>
                   Text(
                     'اتجاه القبلة: ${service.qiblaData!.qiblaDirection.toStringAsFixed(1)}°',
                     style: TextStyle(
-                      fontSize: 16.sp,
+                      fontSize: 15.sp,
                       fontWeight: FontWeight.bold,
                       color: ThemeConstants.primary,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 8.h),
+                  SizedBox(height: 6.h),
                   Text(
                     service.qiblaData!.directionDescription,
                     style: TextStyle(
-                      fontSize: 14.sp,
+                      fontSize: 13.sp,
                       color: Colors.grey.shade700,
                     ),
                     textAlign: TextAlign.center,
@@ -679,65 +699,65 @@ class _QiblaScreenState extends State<QiblaScreen>
   Widget _buildInitialState() {
     return Container(
       constraints: BoxConstraints(
-        minHeight: 300.h,
-        maxHeight: 400.h,
+        minHeight: 260.h,
+        maxHeight: 340.h,
       ),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(24.w),
+              padding: EdgeInsets.all(20.r),
               decoration: BoxDecoration(
-                color: ThemeConstants.primary.withValues(alpha: 0.1),
+                color: ThemeConstants.primary.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.location_searching,
-                size: 48.sp,
+                size: 40.sp,
                 color: ThemeConstants.primary,
               ),
             ),
-            SizedBox(height: 20.h),
+            SizedBox(height: 16.h),
             Text(
               'حدد موقعك',
               style: TextStyle(
-                fontSize: 18.sp, 
+                fontSize: 17.sp, 
                 fontWeight: FontWeight.bold,
                 color: ThemeConstants.primary,
               ),
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: 6.h),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32.w),
+              padding: EdgeInsets.symmetric(horizontal: 28.w),
               child: Text(
                 'اضغط على زر التحديث لتحديد موقعك واتجاه القبلة',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 14.sp,
+                  fontSize: 13.sp,
                   color: Colors.grey.shade600,
                 ),
               ),
             ),
-            SizedBox(height: 24.h),
+            SizedBox(height: 20.h),
             ElevatedButton.icon(
               onPressed: () => _updateQiblaData(forceUpdate: true),
               style: ElevatedButton.styleFrom(
                 backgroundColor: ThemeConstants.primary,
                 foregroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(
-                  horizontal: 24.w,
-                  vertical: 12.h,
+                  horizontal: 20.w,
+                  vertical: 10.h,
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: BorderRadius.circular(10.r),
                 ),
               ),
-              icon: Icon(Icons.my_location, size: 20.sp),
+              icon: Icon(Icons.my_location, size: 18.sp),
               label: Text(
                 'تحديد الموقع',
                 style: TextStyle(
-                  fontSize: 16.sp,
+                  fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -745,6 +765,175 @@ class _QiblaScreenState extends State<QiblaScreen>
           ],
         ),
       ),
+    );
+  }
+}
+
+// Calibration Progress Dialog Widget
+class _CalibrationProgressDialog extends StatefulWidget {
+  final QiblaService qiblaService;
+  
+  const _CalibrationProgressDialog({
+    required this.qiblaService,
+  });
+  
+  @override
+  State<_CalibrationProgressDialog> createState() => __CalibrationProgressDialogState();
+}
+
+class __CalibrationProgressDialogState extends State<_CalibrationProgressDialog>
+    with SingleTickerProviderStateMixin {
+  
+  late AnimationController _animationController;
+  bool _hasCompleted = false;
+  
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat();
+  }
+  
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<QiblaService>(
+      builder: (context, service, child) {
+        if (service.calibrationProgress >= 100 && 
+            !service.isCalibrating && 
+            !_hasCompleted) {
+          
+          _hasCompleted = true;
+          
+          Future.delayed(const Duration(milliseconds: 1500), () {
+            if (mounted) {
+              Navigator.of(context).pop();
+            }
+          });
+        }
+        
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.r),
+          ),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                service.calibrationProgress >= 100
+                    ? Icons.check_circle_outline
+                    : Icons.compass_calibration,
+                color: service.calibrationProgress >= 100
+                    ? ThemeConstants.success
+                    : ThemeConstants.primary,
+                size: 22.sp,
+              ),
+              SizedBox(width: 8.w),
+              Text(
+                service.calibrationProgress >= 100
+                    ? 'اكتملت المعايرة!'
+                    : 'جاري المعايرة...',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16.sp),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                height: 120.h,
+                width: 240.w,
+                decoration: BoxDecoration(
+                  color: context.cardColor.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Center(
+                  child: service.isCalibrating
+                      ? RotationTransition(
+                          turns: _animationController,
+                          child: Icon(
+                            Icons.explore,
+                            size: 50.sp,
+                            color: ThemeConstants.primary,
+                          ),
+                        )
+                      : Icon(
+                          Icons.check_circle,
+                          size: 50.sp,
+                          color: ThemeConstants.success,
+                        ),
+                ),
+              ),
+              
+              SizedBox(height: 14.h),
+              
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: Text(
+                  service.calibrationMessage,
+                  key: ValueKey(service.calibrationMessage),
+                  textAlign: TextAlign.center,
+                  style: context.bodyLarge?.copyWith(
+                    fontWeight: service.calibrationProgress >= 100
+                        ? ThemeConstants.bold
+                        : ThemeConstants.medium,
+                    color: service.calibrationProgress >= 100
+                        ? ThemeConstants.success
+                        : context.textPrimaryColor,
+                    fontSize: 14.sp,
+                  ),
+                ),
+              ),
+              
+              SizedBox(height: 10.h),
+              
+              LinearProgressIndicator(
+                value: service.calibrationProgress / 100,
+                backgroundColor: context.dividerColor.withOpacity(0.3),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  service.calibrationProgress >= 100
+                      ? ThemeConstants.success
+                      : ThemeConstants.primary,
+                ),
+                minHeight: 4.h,
+              ),
+            ],
+          ),
+          actions: [
+            if (service.isCalibrating)
+              TextButton(
+                onPressed: () {
+                  service.resetCalibration();
+                  Navigator.of(context).pop();
+                },
+                child: Text('إلغاء', style: TextStyle(fontSize: 13.sp)),
+              ),
+            
+            if (!service.isCalibrating && service.calibrationProgress >= 100)
+              ElevatedButton.icon(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: Icon(Icons.check, size: 16.sp),
+                label: Text('تم', style: TextStyle(fontSize: 13.sp)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ThemeConstants.success,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }

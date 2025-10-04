@@ -1,4 +1,4 @@
-// lib/features/prayer_times/widgets/next_prayer_countdown.dart
+// 3. next_prayer_countdown.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -18,7 +18,7 @@ class NextPrayerCountdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(20.w),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -28,12 +28,12 @@ class NextPrayerCountdown extends StatelessWidget {
             _getPrayerColor(nextPrayer.type).darken(0.2),
           ],
         ),
-        borderRadius: BorderRadius.circular(24.r),
+        borderRadius: BorderRadius.circular(18.r),
         boxShadow: [
           BoxShadow(
-            color: _getPrayerColor(nextPrayer.type).withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: _getPrayerColor(nextPrayer.type).withOpacity(0.3),
+            blurRadius: 15.r,
+            offset: Offset(0, 8.h),
           ),
         ],
       ),
@@ -45,22 +45,22 @@ class NextPrayerCountdown extends StatelessWidget {
             children: [
               Icon(
                 Icons.access_time_filled,
-                color: Colors.white.withValues(alpha: 0.9),
-                size: 20.sp,
+                color: Colors.white.withOpacity(0.9),
+                size: 16.sp,
               ),
-              SizedBox(width: 8.w),
+              SizedBox(width: 6.w),
               Text(
                 'الصلاة القادمة',
                 style: context.bodyLarge?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.9),
+                  color: Colors.white.withOpacity(0.9),
                   fontWeight: ThemeConstants.medium,
-                  fontSize: context.bodyLarge?.fontSize?.sp,
+                  fontSize: 14.sp,
                 ),
               ),
             ],
           ),
           
-          SizedBox(height: 12.h),
+          SizedBox(height: 10.h),
           
           // اسم الصلاة والوقت
           Row(
@@ -76,16 +76,16 @@ class NextPrayerCountdown extends StatelessWidget {
                       style: context.headlineMedium?.copyWith(
                         color: Colors.white,
                         fontWeight: ThemeConstants.bold,
-                        fontSize: context.headlineMedium?.fontSize?.sp,
+                        fontSize: 22.sp,
                       ),
                     ),
                     if (currentPrayer != null) ...[
-                      SizedBox(height: 4.h),
+                      SizedBox(height: 2.h),
                       Text(
                         'الصلاة الحالية: ${currentPrayer!.nameAr}',
                         style: context.bodySmall?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          fontSize: context.bodySmall?.fontSize?.sp,
+                          color: Colors.white.withOpacity(0.7),
+                          fontSize: 10.sp,
                         ),
                       ),
                     ],
@@ -96,15 +96,15 @@ class NextPrayerCountdown extends StatelessWidget {
               // العد التنازلي
               Container(
                 padding: EdgeInsets.symmetric(
-                  horizontal: 16.w,
-                  vertical: 12.h,
+                  horizontal: 12.w,
+                  vertical: 8.h,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(16.r),
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    width: 1,
+                    color: Colors.white.withOpacity(0.3),
+                    width: 1.w,
                   ),
                 ),
                 child: StreamBuilder(
@@ -124,7 +124,7 @@ class NextPrayerCountdown extends StatelessWidget {
                           style: context.headlineSmall?.copyWith(
                             color: Colors.white,
                             fontWeight: ThemeConstants.bold,
-                            fontSize: context.headlineSmall?.fontSize?.sp,
+                            fontSize: 18.sp,
                           ),
                         ),
                         _buildTimeUnit(minutes.toString().padLeft(2, '0'), 'د'),
@@ -133,7 +133,7 @@ class NextPrayerCountdown extends StatelessWidget {
                           style: context.headlineSmall?.copyWith(
                             color: Colors.white,
                             fontWeight: ThemeConstants.bold,
-                            fontSize: context.headlineSmall?.fontSize?.sp,
+                            fontSize: 18.sp,
                           ),
                         ),
                         _buildTimeUnit(seconds.toString().padLeft(2, '0'), 'ث'),
@@ -145,18 +145,18 @@ class NextPrayerCountdown extends StatelessWidget {
             ],
           ),
           
-          SizedBox(height: 12.h),
+          SizedBox(height: 10.h),
           
           // شريط التقدم
           ClipRRect(
-            borderRadius: BorderRadius.circular(8.r),
+            borderRadius: BorderRadius.circular(6.r),
             child: StreamBuilder(
               stream: Stream.periodic(const Duration(seconds: 1)),
               builder: (context, snapshot) {
                 return LinearProgressIndicator(
                   value: _calculateProgress(),
-                  minHeight: 6.h,
-                  backgroundColor: Colors.white.withValues(alpha: 0.2),
+                  minHeight: 5.h,
+                  backgroundColor: Colors.white.withOpacity(0.2),
                   valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                 );
               }
@@ -176,15 +176,15 @@ class NextPrayerCountdown extends StatelessWidget {
           value,
           style: TextStyle(
             color: Colors.white,
-            fontSize: 24.sp,
+            fontSize: 20.sp,
             fontWeight: FontWeight.bold,
           ),
         ),
         Text(
           unit,
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.7),
-            fontSize: 14.sp,
+            color: Colors.white.withOpacity(0.7),
+            fontSize: 12.sp,
             fontWeight: FontWeight.w500,
           ),
         ),
