@@ -1,11 +1,11 @@
-// lib/core/infrastructure/firebase/remote_config_manager.dart
+// lib/core/infrastructure/firebase/remote_config_manager.dart - محدث ومبسط
 
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../services/storage/storage_service.dart';
 import 'remote_config_service.dart';
 
-/// مدير الإعدادات عن بعد - يربط Firebase Remote Config مع باقي التطبيق
+/// مدير الإعدادات عن بعد - مبسط للإعدادات الأساسية فقط
 class RemoteConfigManager {
   static final RemoteConfigManager _instance = RemoteConfigManager._internal();
   factory RemoteConfigManager() => _instance;
@@ -17,7 +17,7 @@ class RemoteConfigManager {
   bool _isInitialized = false;
   Timer? _periodicRefreshTimer;
   
-  // ValueNotifiers للميزات الرئيسية
+  // ValueNotifiers للميزات الرئيسية فقط
   final ValueNotifier<bool> _prayerTimesEnabled = ValueNotifier(true);
   final ValueNotifier<bool> _qiblaEnabled = ValueNotifier(true);
   final ValueNotifier<bool> _athkarEnabled = ValueNotifier(true);
@@ -73,6 +73,12 @@ class RemoteConfigManager {
       _forceUpdate.value = _remoteConfig.isForceUpdateRequired;
       
       debugPrint('All remote config values updated');
+      debugPrint('  - Prayer Times: ${_prayerTimesEnabled.value}');
+      debugPrint('  - Qibla: ${_qiblaEnabled.value}');
+      debugPrint('  - Athkar: ${_athkarEnabled.value}');
+      debugPrint('  - Notifications: ${_notificationsEnabled.value}');
+      debugPrint('  - Maintenance Mode: ${_maintenanceMode.value}');
+      debugPrint('  - Force Update: ${_forceUpdate.value}');
       
     } catch (e) {
       debugPrint('Error updating remote config values: $e');
@@ -128,56 +134,11 @@ class RemoteConfigManager {
   /// فحص الحاجة لتحديث إجباري
   bool get isForceUpdateRequired => _forceUpdate.value;
 
-  // ==================== إعدادات الأذكار ====================
+  /// الحصول على إصدار التطبيق المطلوب
+  String get requiredAppVersion => _remoteConfig.requiredAppVersion;
 
-  /// الحصول على إعدادات الأذكار
-  Map<String, dynamic> get athkarSettings => _remoteConfig.athkarSettings;
-
-  /// هل التمرير التلقائي مفعل
-  bool get isAutoScrollEnabled => athkarSettings['auto_scroll_enabled'] ?? true;
-
-  /// هل الاهتزاز مفعل
-  bool get isVibrationEnabled => athkarSettings['vibration_feedback'] ?? true;
-
-  /// هل الأصوات مفعلة
-  bool get isSoundEffectsEnabled => athkarSettings['sound_effects'] ?? false;
-
-  /// وضع القراءة
-  String get readingMode => athkarSettings['reading_mode'] ?? 'normal';
-
-  // ==================== إعدادات الإشعارات ====================
-
-  /// الحصول على إعدادات الإشعارات
-  Map<String, dynamic> get notificationConfig => _remoteConfig.notificationConfig;
-
-  /// هل إشعارات الصلاة مفعلة
-  bool get isPrayerNotificationsEnabled => notificationConfig['prayer_notifications'] ?? true;
-
-  /// هل تذكيرات الأذكار مفعلة
-  bool get isAthkarRemindersEnabled => notificationConfig['athkar_reminders'] ?? true;
-
-  /// هل التحفيز اليومي مفعل
-  bool get isDailyMotivationEnabled => notificationConfig['daily_motivations'] ?? true;
-
-  /// هل الإشعارات المخصصة مفعلة
-  bool get isCustomNotificationsEnabled => notificationConfig['custom_notifications'] ?? true;
-
-  // ==================== إعدادات الثيم ====================
-
-  /// الحصول على إعدادات الثيم
-  Map<String, dynamic> get themeConfig => _remoteConfig.themeConfig;
-
-  /// اللون الأساسي
-  String get primaryColor => themeConfig['primary_color'] ?? '#2E7D32';
-
-  /// اللون المساعد
-  String get accentColor => themeConfig['accent_color'] ?? '#4CAF50';
-
-  /// هل الوضع المظلم مفعل
-  bool get isDarkModeEnabled => themeConfig['dark_mode_enabled'] ?? true;
-
-  /// الثيمات المخصصة
-  List<dynamic> get customThemes => themeConfig['custom_themes'] ?? [];
+  /// الحصول على رابط التحديث
+  String get updateUrl => _remoteConfig.updateUrl;
 
   // ==================== إعدادات مخصصة ====================
 
@@ -274,6 +235,35 @@ class RemoteConfigManager {
     'last_fetch_status': _remoteConfig.lastFetchStatus.toString(),
     'last_fetch_time': _remoteConfig.lastFetchTime.toIso8601String(),
     'last_manager_refresh': lastRefreshTime?.toIso8601String(),
+    'features_status': {
+      'prayer_times': _prayerTimesEnabled.value,
+      'qibla': _qiblaEnabled.value,
+      'athkar': _athkarEnabled.value,
+      'notifications': _notificationsEnabled.value,
+    },
+    'system_status': {
+      'maintenance_mode': _maintenanceMode.value,
+      'force_update': _forceUpdate.value,
+      'required_version': requiredAppVersion,
+    }
+  };
+
+  /// معلومات التصحيح
+  Map<String, dynamic> get debugInfo => {
+    'initialized': _isInitialized,
+    'has_refresh_timer': _periodicRefreshTimer != null,
+    'last_refresh': lastRefreshTime?.toString(),
+    'current_features': {
+      'prayer_times': _prayerTimesEnabled.value,
+      'qibla': _qiblaEnabled.value,
+      'athkar': _athkarEnabled.value,
+      'notifications': _notificationsEnabled.value,
+    },
+    'current_system': {
+      'maintenance': _maintenanceMode.value,
+      'force_update': _forceUpdate.value,
+      'app_version': requiredAppVersion,
+    }
   };
 
   // ==================== تنظيف الموارد ====================

@@ -1,4 +1,4 @@
-// lib/core/infrastructure/firebase/remote_config_service.dart - محسّن ومصحح
+// lib/core/infrastructure/firebase/remote_config_service.dart - محدث ومبسط
 import 'dart:async';
 import 'dart:convert';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
@@ -17,16 +17,12 @@ class FirebaseRemoteConfigService {
   bool? _cachedMaintenanceMode;
   String? _cachedAppVersion;
   
-  // مفاتيح الإعدادات
-  static const String _keyTestConfig = 'Test';
+  // مفاتيح الإعدادات الأساسية فقط
   static const String _keyAppVersion = 'app_version';
   static const String _keyForceUpdate = 'force_update';
   static const String _keyMaintenanceMode = 'maintenance_mode';
   static const String _keyUpdateUrlAndroid = 'update_url_android';
   static const String _keyFeaturesConfig = 'features_config';
-  static const String _keyNotificationConfig = 'notification_config';
-  static const String _keyThemeConfig = 'theme_config';
-  static const String _keyAthkarSettings = 'athkar_settings';
 
   /// تهيئة الخدمة
   Future<void> initialize() async {
@@ -75,12 +71,6 @@ class FirebaseRemoteConfigService {
 
   Future<void> _setDefaults() async {
     await _remoteConfig.setDefaults({
-      _keyTestConfig: jsonEncode({
-        'force_update': false,
-        'app_version': '1.0.0',
-        'maintenance_mode': false,
-        'update_url_android': 'https://play.google.com/store/apps/details?id=com.example.test_athkar_app',
-      }),
       _keyAppVersion: '1.0.0',
       _keyForceUpdate: false,
       _keyMaintenanceMode: false,
@@ -92,24 +82,6 @@ class FirebaseRemoteConfigService {
         'tasbih_enabled': true,
         'dua_enabled': true,
         'notifications_enabled': true,
-      }),
-      _keyNotificationConfig: jsonEncode({
-        'prayer_notifications': true,
-        'athkar_reminders': true,
-        'daily_motivations': true,
-        'custom_notifications': true,
-      }),
-      _keyThemeConfig: jsonEncode({
-        'primary_color': '#2E7D32',
-        'accent_color': '#4CAF50',
-        'dark_mode_enabled': true,
-        'custom_themes': [],
-      }),
-      _keyAthkarSettings: jsonEncode({
-        'auto_scroll_enabled': true,
-        'vibration_feedback': true,
-        'sound_effects': false,
-        'reading_mode': 'normal',
       }),
     });
   }
@@ -197,60 +169,34 @@ class FirebaseRemoteConfigService {
 
   String get updateUrl => updateUrlAndroid;
 
-  // ==================== JSON Configs ====================
+  // ==================== Features Config Only ====================
 
-  Map<String, dynamic> _parseJsonConfig(String key, Map<String, dynamic> defaultValue) {
+  Map<String, dynamic> get featuresConfig {
     try {
-      final jsonString = _remoteConfig.getString(key);
-      if (jsonString.isEmpty) return defaultValue;
+      final jsonString = _remoteConfig.getString(_keyFeaturesConfig);
+      if (jsonString.isEmpty) {
+        return {
+          'prayer_times_enabled': true,
+          'qibla_enabled': true,
+          'athkar_enabled': true,
+          'tasbih_enabled': true,
+          'dua_enabled': true,
+          'notifications_enabled': true,
+        };
+      }
       return jsonDecode(jsonString) as Map<String, dynamic>;
     } catch (e) {
-      debugPrint('⚠️ Error parsing $key: $e');
-      return defaultValue;
+      debugPrint('⚠️ Error parsing features config: $e');
+      return {
+        'prayer_times_enabled': true,
+        'qibla_enabled': true,
+        'athkar_enabled': true,
+        'tasbih_enabled': true,
+        'dua_enabled': true,
+        'notifications_enabled': true,
+      };
     }
   }
-
-  Map<String, dynamic> get featuresConfig => _parseJsonConfig(
-    _keyFeaturesConfig,
-    {
-      'prayer_times_enabled': true,
-      'qibla_enabled': true,
-      'athkar_enabled': true,
-      'tasbih_enabled': true,
-      'dua_enabled': true,
-      'notifications_enabled': true,
-    },
-  );
-
-  Map<String, dynamic> get notificationConfig => _parseJsonConfig(
-    _keyNotificationConfig,
-    {
-      'prayer_notifications': true,
-      'athkar_reminders': true,
-      'daily_motivations': true,
-      'custom_notifications': true,
-    },
-  );
-
-  Map<String, dynamic> get themeConfig => _parseJsonConfig(
-    _keyThemeConfig,
-    {
-      'primary_color': '#2E7D32',
-      'accent_color': '#4CAF50',
-      'dark_mode_enabled': true,
-      'custom_themes': [],
-    },
-  );
-
-  Map<String, dynamic> get athkarSettings => _parseJsonConfig(
-    _keyAthkarSettings,
-    {
-      'auto_scroll_enabled': true,
-      'vibration_feedback': true,
-      'sound_effects': false,
-      'reading_mode': 'normal',
-    },
-  );
 
   // ==================== Custom Values ====================
 
@@ -300,6 +246,7 @@ class FirebaseRemoteConfigService {
       debugPrint('Force Update: $_cachedForceUpdate');
       debugPrint('Maintenance Mode: $_cachedMaintenanceMode');
       debugPrint('App Version: $_cachedAppVersion');
+      debugPrint('Features Config: ${featuresConfig.toString()}');
       debugPrint('==============================================');
     } catch (e) {
       debugPrint('⚠️ Error printing debug info: $e');
