@@ -182,6 +182,7 @@ class _AthkarAppState extends State<AthkarApp> {
   late final OnboardingService _onboardingService;
   RemoteConfigManager? _configManager;
   bool _configManagerReady = false;
+  bool _shouldShowOnboarding = false;
 
   @override
   void initState() {
@@ -189,14 +190,14 @@ class _AthkarAppState extends State<AthkarApp> {
     
     _permissionManager = getIt<UnifiedPermissionManager>();
     _onboardingService = getIt<OnboardingService>();
+    _shouldShowOnboarding = _onboardingService.shouldShowOnboarding;
     
     _initializeConfigManager();
     
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_onboardingService.shouldShowOnboarding) {
-        _schedulePermissionCheck();
-      }
-    });
+    // إذا كان المستخدم قد أكمل الـ onboarding، قم بفحص أولي للأذونات
+    if (!_shouldShowOnboarding) {
+      _scheduleInitialPermissionCheck();
+    }
   }
 
   void _initializeConfigManager() {
@@ -227,8 +228,9 @@ class _AthkarAppState extends State<AthkarApp> {
     }
   }
 
-  void _schedulePermissionCheck() {
-    Future.delayed(const Duration(seconds: 2), () async {
+  void _scheduleInitialPermissionCheck() {
+    // تأخير قصير للسماح بإكمال بناء الواجهة
+    Future.delayed(const Duration(milliseconds: 1500), () async {
       if (mounted && !_permissionManager.hasCheckedThisSession) {
         debugPrint('[AthkarApp] Performing initial permission check');
         await _permissionManager.performInitialCheck();
@@ -282,13 +284,7 @@ class _AthkarAppState extends State<AthkarApp> {
                   );
                 }
                 
-                if (child is HomeScreen) {
-                  return PermissionMonitor(
-                    showNotifications: true,
-                    child: child,
-                  );
-                }
-                
+                // لا نطبق PermissionMonitor هنا، سنطبقه في _buildInitialScreen
                 return child;
               },
             );
@@ -299,22 +295,31 @@ class _AthkarAppState extends State<AthkarApp> {
   }
 
   Widget _buildInitialScreen() {
-    Widget initialScreen;
+    Widget screen;
     
     try {
-      if (_onboardingService.shouldShowOnboarding) {
+      if (_shouldShowOnboarding) {
         debugPrint('🎯 Starting with onboarding screen');
-        initialScreen = const OnboardingScreen();
+        // لا نطبق PermissionMonitor على شاشة الـ Onboarding
+        screen = const OnboardingScreen();
       } else {
         debugPrint('🏠 Starting with home screen directly');
-        initialScreen = const HomeScreen();
+        // نطبق PermissionMonitor على HomeScreen فقط
+        screen = const PermissionMonitor(
+          showNotifications: true,
+          child: HomeScreen(),
+        );
       }
     } catch (e) {
       debugPrint('❌ Error determining initial screen: $e');
-      initialScreen = const HomeScreen();
+      screen = const PermissionMonitor(
+        showNotifications: true,
+        child: HomeScreen(),
+      );
     }
     
-    return _wrapWithAppMonitor(initialScreen);
+    // تطبيق AppStatusMonitor إذا كان جاهزاً
+    return _wrapWithAppMonitor(screen);
   }
 
   Widget _wrapWithAppMonitor(Widget screen) {

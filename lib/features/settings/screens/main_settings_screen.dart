@@ -58,9 +58,8 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
     setState(() => _isLoading = true);
     
     try {
-      // تحميل حالة الأذونات
-      _permissionResult = await _permissionManager.performBackgroundCheck();
-      await _loadPermissionStatuses();
+      // تحميل حالة الأذونات بشكل جديد (فحص حقيقي وليس من الكاش)
+      await _refreshPermissionStatuses();
       setState(() {});
     } catch (e) {
       debugPrint('Error loading settings data: $e');
@@ -80,6 +79,43 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
     } catch (e) {
       if (mounted) {
         _showErrorMessage('حدث خطأ في تحميل حالة الأذونات');
+      }
+    }
+  }
+  
+  Future<void> _refreshPermissionStatuses() async {
+    try {
+      debugPrint('[Settings] Refreshing permission statuses...');
+      
+      // مسح الكاش أولاً لضمان فحص جديد
+      _permissionService.clearPermissionCache();
+      
+      // فحص جديد لكل الأذونات
+      final statuses = <AppPermissionType, AppPermissionStatus>{};
+      
+      for (final permission in _criticalPermissions) {
+        final status = await _permissionService.checkPermissionStatus(permission);
+        statuses[permission] = status;
+        debugPrint('[Settings] $permission: $status');
+      }
+      
+      if (mounted) {
+        setState(() {
+          _permissionStatuses = statuses;
+        });
+      }
+      
+      // تحديث نتيجة الفحص الكامل
+      _permissionResult = await _permissionManager.performQuickCheck();
+      
+      debugPrint('[Settings] Permission refresh completed');
+      debugPrint('[Settings] Granted: ${_permissionResult?.grantedCount ?? 0}');
+      debugPrint('[Settings] Missing: ${_permissionResult?.missingCount ?? 0}');
+      
+    } catch (e) {
+      debugPrint('[Settings] Error refreshing permissions: $e');
+      if (mounted) {
+        _showErrorMessage('حدث خطأ في تحديث حالة الأذونات');
       }
     }
   }
@@ -215,7 +251,10 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
     final settings = _settingsManager.settings;
     
     return RefreshIndicator(
-      onRefresh: _loadInitialData,
+      onRefresh: _handleRefresh,
+      color: context.primaryColor,
+      backgroundColor: context.cardColor,
+      displacement: 40.h,
       child: SingleChildScrollView(
         padding: EdgeInsets.only(bottom: 32.h),
         child: Column(
@@ -714,8 +753,8 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
         ),
       ),
     ).then((_) {
-      // تحديث البيانات عند إغلاق النافذة
-      _loadInitialData();
+      // تحديث البيانات عند إغلاق النافذة (بعد العودة من الإعدادات مثلاً)
+      _handleRefresh();
     });
   }
   
@@ -908,9 +947,40 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
       }
     }
     
-    await _loadPermissionStatuses();
-    _permissionResult = await _permissionManager.performBackgroundCheck();
-    setState(() {});
+    // تحديث مباشر بعد تغيير الإذن
+    await _refreshPermissionStatuses();
+  }
+
+  // ==================== معالج Pull to Refresh ====================
+  Future<void> _handleRefresh() async {
+    HapticFeedback.mediumImpact();
+    
+    try {
+      debugPrint('[Settings] ========== Starting Refresh ==========');
+      
+      // 1. مسح الكاش أولاً
+      _permissionService.clearPermissionCache();
+      debugPrint('[Settings] ✅ Cache cleared');
+      
+      // 2. فحص جديد ومباشر لكل الأذونات
+      await _refreshPermissionStatuses();
+      
+      // 3. تأخير بسيط لتحسين تجربة المستخدم
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      // 4. عرض رسالة نجاح
+      if (mounted) {
+        _showSuccessMessage('تم تحديث حالة الأذونات بنجاح');
+      }
+      
+      debugPrint('[Settings] ========== Refresh Completed ==========');
+      
+    } catch (e) {
+      debugPrint('[Settings] ❌ Refresh error: $e');
+      if (mounted) {
+        _showErrorMessage('حدث خطأ أثناء التحديث');
+      }
+    }
   }
 
   // ==================== الدوال المساعدة ====================
