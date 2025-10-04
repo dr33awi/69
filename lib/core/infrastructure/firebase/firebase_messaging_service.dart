@@ -1,9 +1,8 @@
-// lib/core/infrastructure/firebase/firebase_messaging_service.dart - محدث
+// lib/core/infrastructure/firebase/firebase_messaging_service.dart - محسّن
 import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../services/storage/storage_service.dart';
 import '../services/notifications/notification_service.dart';
 import '../services/notifications/models/notification_models.dart' as LocalNotificationModels hide NotificationSettings;
@@ -27,10 +26,8 @@ class FirebaseMessagingService {
   
   bool _isInitialized = false;
   String? _fcmToken;
+  StreamSubscription<String>? _tokenRefreshSubscription;
   
-  static const MethodChannel _fcmChannel = MethodChannel('com.athkar.app/firebase_messaging');
-  
-  // Topic واحد فقط
   static const String _generalTopic = 'general_notifications';
 
   /// تهيئة الخدمة
@@ -101,19 +98,7 @@ class FirebaseMessagingService {
     if (_messaging == null) return;
     
     try {
-      // محاولة الحصول على Token من Firebase
       _fcmToken = await _messaging!.getToken();
-      
-      if (_fcmToken == null || _fcmToken!.isEmpty) {
-        debugPrint('⚠️ FCM Token is null, trying native method...');
-        
-        // Fallback إلى Native Method
-        try {
-          _fcmToken = await _fcmChannel.invokeMethod<String>('getToken');
-        } catch (nativeError) {
-          debugPrint('❌ Native token method failed: $nativeError');
-        }
-      }
       
       if (_fcmToken != null && _fcmToken!.isNotEmpty) {
         debugPrint('✅ FCM Token: ${_fcmToken!.substring(0, 20)}...');
@@ -126,7 +111,7 @@ class FirebaseMessagingService {
       }
       
       // مراقبة تحديث Token
-      _messaging!.onTokenRefresh.listen((newToken) async {
+      _tokenRefreshSubscription = _messaging!.onTokenRefresh.listen((newToken) async {
         _fcmToken = newToken;
         await _storage.setString('fcm_token', newToken);
         await _sendTokenToServer(newToken);
@@ -287,6 +272,8 @@ class FirebaseMessagingService {
   }
 
   Future<void> subscribeToTopic(String topic) async {
+    if (_messaging == null) return;
+    
     try {
       await _messaging!.subscribeToTopic(topic);
       debugPrint('✅ Subscribed to: $topic');
@@ -302,6 +289,8 @@ class FirebaseMessagingService {
   }
 
   Future<void> unsubscribeFromTopic(String topic) async {
+    if (_messaging == null) return;
+    
     try {
       await _messaging!.unsubscribeFromTopic(topic);
       debugPrint('✅ Unsubscribed from: $topic');
@@ -317,10 +306,6 @@ class FirebaseMessagingService {
   List<String> getSubscribedTopics() {
     return _storage.getStringList('subscribed_topics') ?? [];
   }
-
-  // ✅ دالة واحدة فقط للإشعارات العامة
-  Future<void> subscribeToGeneralNotifications() => subscribeToTopic(_generalTopic);
-  Future<void> unsubscribeFromGeneralNotifications() => unsubscribeFromTopic(_generalTopic);
 
   // ==================== Getters ====================
 
@@ -351,6 +336,7 @@ class FirebaseMessagingService {
   }
 
   void dispose() {
+    _tokenRefreshSubscription?.cancel();
     _isInitialized = false;
     _fcmToken = null;
     _messaging = null;
