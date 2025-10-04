@@ -1,7 +1,4 @@
-// =====================================================
-// 1. athkar_categories_screen.dart - محسن
-// =====================================================
-
+// lib/features/athkar/screens/athkar_categories_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -83,7 +80,7 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
                           children: [
                             Text(
                               'اختر فئة الأذكار',
-                              style: context.titleLarge?.copyWith(
+                              style: TextStyle(
                                 fontWeight: ThemeConstants.bold,
                                 color: context.textPrimaryColor,
                                 fontSize: 22.sp,
@@ -92,7 +89,7 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
                             SizedBox(height: 4.h),
                             Text(
                               'اقرأ الأذكار اليومية وحافظ على ذكر الله في كل وقت',
-                              style: context.bodyMedium?.copyWith(
+                              style: TextStyle(
                                 color: context.textSecondaryColor,
                                 fontSize: 13.sp,
                               ),
@@ -135,13 +132,16 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
                         }
                         
                         return SliverPadding(
-                          padding: EdgeInsets.all(16.r),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16.w,
+                            vertical: 8.h,
+                          ),
                           sliver: SliverGrid(
                             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
-                              mainAxisSpacing: 14.h,
-                              crossAxisSpacing: 14.w,
-                              childAspectRatio: 0.85,
+                              mainAxisSpacing: 12.h,
+                              crossAxisSpacing: 12.w,
+                              childAspectRatio: 0.9,
                             ),
                             delegate: SliverChildBuilderDelegate(
                               (context, index) {
@@ -196,7 +196,7 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
           Container(
             padding: EdgeInsets.all(7.r),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 colors: [ThemeConstants.accent, ThemeConstants.accentLight],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -225,7 +225,7 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
               children: [
                 Text(
                   'أذكار المسلم',
-                  style: context.titleLarge?.copyWith(
+                  style: TextStyle(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
                     fontSize: 17.sp,
@@ -233,7 +233,7 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
                 ),
                 Text(
                   'اذكر الله كثيراً',
-                  style: context.bodySmall?.copyWith(
+                  style: TextStyle(
                     color: context.textSecondaryColor,
                     fontSize: 11.sp,
                   ),

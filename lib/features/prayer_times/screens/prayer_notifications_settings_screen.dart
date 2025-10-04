@@ -135,9 +135,9 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
               borderRadius: BorderRadius.circular(12.r),
               boxShadow: [
                 BoxShadow(
-                  color: ThemeConstants.primary.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
+                  color: ThemeConstants.primary.withOpacity(0.3),
+                  blurRadius: 8.r,
+                  offset: Offset(0, 4.h),
                 ),
               ],
             ),
@@ -157,17 +157,17 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
               children: [
                 Text(
                   'إعدادات إشعارات الصلوات',
-                  style: context.titleLarge?.copyWith(
+                  style: TextStyle(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
-                    fontSize: context.titleLarge?.fontSize?.sp,
+                    fontSize: 18.sp,
                   ),
                 ),
                 Text(
                   'تخصيص تنبيهات أوقات الصلاة',
-                  style: context.bodySmall?.copyWith(
+                  style: TextStyle(
                     color: context.textSecondaryColor,
-                    fontSize: context.bodySmall?.fontSize?.sp,
+                    fontSize: 12.sp,
                   ),
                 ),
               ],
@@ -193,13 +193,13 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
                       color: context.cardColor,
                       borderRadius: BorderRadius.circular(12.r),
                       border: Border.all(
-                        color: context.dividerColor.withValues(alpha: 0.3),
+                        color: context.dividerColor.withOpacity(0.3),
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4.r,
+                          offset: Offset(0, 2.h),
                         ),
                       ],
                     ),
@@ -251,9 +251,9 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
         color: context.cardColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10.r,
+            offset: Offset(0, 4.h),
           ),
         ],
       ),
@@ -268,7 +268,7 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
                 Container(
                   padding: EdgeInsets.all(10.w),
                   decoration: BoxDecoration(
-                    color: _primaryGreenColor.withValues(alpha: 0.1),
+                    color: _primaryGreenColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: Icon(
@@ -284,15 +284,16 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
                     children: [
                       Text(
                         'إعدادات الإشعارات العامة',
-                        style: context.titleMedium?.semiBold.copyWith(
-                          fontSize: context.titleMedium?.fontSize?.sp,
+                        style: TextStyle(
+                          fontWeight: ThemeConstants.semiBold,
+                          fontSize: 16.sp,
                         ),
                       ),
                       Text(
                         'تفعيل أو تعطيل الإشعارات لجميع الصلوات',
-                        style: context.bodySmall?.copyWith(
+                        style: TextStyle(
                           color: context.textSecondaryColor,
-                          fontSize: context.bodySmall?.fontSize?.sp,
+                          fontSize: 12.sp,
                         ),
                       ),
                     ],
@@ -360,9 +361,9 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
         color: context.cardColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10.r,
+            offset: Offset(0, 4.h),
           ),
         ],
       ),
@@ -377,7 +378,7 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
                 Container(
                   padding: EdgeInsets.all(10.w),
                   decoration: BoxDecoration(
-                    color: _primaryGreenColor.withValues(alpha: 0.1),
+                    color: _primaryGreenColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: Icon(
@@ -393,15 +394,16 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
                     children: [
                       Text(
                         'إعدادات إشعارات الصلوات',
-                        style: context.titleMedium?.semiBold.copyWith(
-                          fontSize: context.titleMedium?.fontSize?.sp,
+                        style: TextStyle(
+                          fontWeight: ThemeConstants.semiBold,
+                          fontSize: 16.sp,
                         ),
                       ),
                       Text(
                         'تخصيص الإشعارات لكل صلاة على حدة',
-                        style: context.bodySmall?.copyWith(
+                        style: TextStyle(
                           color: context.textSecondaryColor,
-                          fontSize: context.bodySmall?.fontSize?.sp,
+                          fontSize: 12.sp,
                         ),
                       ),
                     ],
@@ -435,9 +437,9 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
     return ExpansionTile(
       leading: Container(
         width: 40.w,
-        height: 40.h,
+        height: 40.w,
         decoration: BoxDecoration(
-          color: _primaryGreenColor.withValues(alpha: 0.1),
+          color: _primaryGreenColor.withOpacity(0.1),
           borderRadius: BorderRadius.circular(10.r),
         ),
         child: Icon(
@@ -544,10 +546,10 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
           child: _isSaving
               ? SizedBox(
                   width: 24.w,
-                  height: 24.h,
-                  child: const CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  height: 24.w,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.w,
+                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
                 )
               : Text(

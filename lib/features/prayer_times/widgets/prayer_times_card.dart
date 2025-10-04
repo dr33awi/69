@@ -1,5 +1,4 @@
-// 2. prayer_times_card.dart
-// =====================================================
+// lib/features/prayer_times/widgets/prayer_times_card.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -60,15 +59,15 @@ class PrayerTimeCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(16.r),
             ),
             child: Padding(
-              padding: EdgeInsets.all(12.r),
+              padding: EdgeInsets.all(10.w),
               child: Row(
                 children: [
                   _buildPrayerIcon(context, useGradient),
-                  SizedBox(width: 12.w),
+                  SizedBox(width: 10.w),
                   Expanded(
                     child: _buildPrayerInfo(context, useGradient),
                   ),
-                  SizedBox(width: 8.w),
+                  SizedBox(width: 6.w),
                   _buildTimeSection(context, useGradient),
                 ],
               ),
@@ -86,8 +85,8 @@ class PrayerTimeCard extends StatelessWidget {
       : prayer.color.withOpacity(0.1);
     
     return Container(
-      width: 48.r,
-      height: 48.r,
+      width: 42.w,
+      height: 42.w,
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(12.r),
@@ -101,7 +100,7 @@ class PrayerTimeCard extends StatelessWidget {
       child: Icon(
         prayer.icon,
         color: iconColor,
-        size: 24.sp,
+        size: 22.sp,
       ),
     );
   }
@@ -113,14 +112,18 @@ class PrayerTimeCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          prayer.nameAr,
-          style: context.titleLarge?.copyWith(
-            color: textColor,
-            fontWeight: prayer.isNext 
-              ? ThemeConstants.bold 
-              : ThemeConstants.semiBold,
-            fontSize: 16.sp,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerRight,
+          child: Text(
+            prayer.nameAr,
+            style: TextStyle(
+              color: textColor,
+              fontWeight: prayer.isNext 
+                ? ThemeConstants.bold 
+                : ThemeConstants.semiBold,
+              fontSize: 15.sp,
+            ),
           ),
         ),
         SizedBox(height: 2.h),
@@ -151,7 +154,7 @@ class PrayerTimeCard extends StatelessWidget {
             SizedBox(width: 3.w),
             Text(
               prayer.statusText,
-              style: context.bodySmall?.copyWith(
+              style: TextStyle(
                 color: Colors.white,
                 fontWeight: ThemeConstants.semiBold,
                 fontSize: 10.sp,
@@ -171,7 +174,7 @@ class PrayerTimeCard extends StatelessWidget {
           SizedBox(width: 3.w),
           Text(
             'انتهى الوقت',
-            style: context.bodySmall?.copyWith(
+            style: TextStyle(
               color: useGradient 
                 ? Colors.white.withOpacity(0.8)
                 : context.textSecondaryColor,
@@ -184,7 +187,7 @@ class PrayerTimeCard extends StatelessWidget {
     } else {
       return Text(
         PrayerUtils.formatTimeUntil(prayer.time),
-        style: context.bodySmall?.copyWith(
+        style: TextStyle(
           color: _getTextColor(context, useGradient).withOpacity(0.8),
           fontSize: 10.sp,
         ),
@@ -195,7 +198,7 @@ class PrayerTimeCard extends StatelessWidget {
   Widget _buildTimeSection(BuildContext context, bool useGradient) {
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: 10.w,
+        horizontal: 8.w,
         vertical: 6.h,
       ),
       decoration: BoxDecoration(
@@ -209,12 +212,15 @@ class PrayerTimeCard extends StatelessWidget {
             : prayer.color.withOpacity(0.2),
         ),
       ),
-      child: Text(
-        prayer.formattedTime,
-        style: context.titleLarge?.copyWith(
-          color: useGradient ? Colors.white : prayer.color,
-          fontWeight: ThemeConstants.bold,
-          fontSize: 14.sp,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          prayer.formattedTime,
+          style: TextStyle(
+            color: useGradient ? Colors.white : prayer.color,
+            fontWeight: ThemeConstants.bold,
+            fontSize: 14.sp,
+          ),
         ),
       ),
     );
@@ -251,7 +257,7 @@ class PrayerDetailsDialog extends StatelessWidget {
         borderRadius: BorderRadius.circular(16.r),
       ),
       child: Container(
-        padding: EdgeInsets.all(16.r),
+        padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16.r),
           gradient: prayer.gradient,
@@ -262,7 +268,7 @@ class PrayerDetailsDialog extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(10.r),
+                  padding: EdgeInsets.all(10.w),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(10.r),
@@ -280,7 +286,7 @@ class PrayerDetailsDialog extends StatelessWidget {
                     children: [
                       Text(
                         prayer.nameAr,
-                        style: context.headlineSmall?.copyWith(
+                        style: TextStyle(
                           color: Colors.white,
                           fontWeight: ThemeConstants.bold,
                           fontSize: 20.sp,
@@ -288,7 +294,7 @@ class PrayerDetailsDialog extends StatelessWidget {
                       ),
                       Text(
                         prayer.nameEn,
-                        style: context.bodyMedium?.copyWith(
+                        style: TextStyle(
                           color: Colors.white.withOpacity(0.8),
                           fontSize: 12.sp,
                         ),
@@ -303,7 +309,7 @@ class PrayerDetailsDialog extends StatelessWidget {
             
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(12.r),
+              padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(12.r),
@@ -402,7 +408,7 @@ class PrayerDetailsDialog extends StatelessWidget {
         SizedBox(width: 6.w),
         Text(
           label,
-          style: context.bodyMedium?.copyWith(
+          style: TextStyle(
             color: Colors.white.withOpacity(0.8),
             fontSize: 11.sp,
           ),
@@ -410,7 +416,7 @@ class PrayerDetailsDialog extends StatelessWidget {
         const Spacer(),
         Text(
           value,
-          style: context.titleMedium?.copyWith(
+          style: TextStyle(
             color: Colors.white,
             fontWeight: ThemeConstants.semiBold,
             fontSize: 13.sp,

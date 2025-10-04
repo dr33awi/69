@@ -35,16 +35,16 @@ class TasbihBeadWidget extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: gradient[0].withValues(alpha: 0.3),
+            color: gradient[0].withOpacity(0.3),
             blurRadius: isPressed ? 25.r : 20.r,
             offset: Offset(0, isPressed ? 8.h : 12.h),
-            spreadRadius: isPressed ? 2.w : 4.w,
+            spreadRadius: isPressed ? 2.r : 4.r,
           ),
           BoxShadow(
-            color: gradient[1].withValues(alpha: 0.1),
+            color: gradient[1].withOpacity(0.1),
             blurRadius: isPressed ? 35.r : 30.r,
             offset: Offset(0, isPressed ? 12.h : 18.h),
-            spreadRadius: isPressed ? 4.w : 6.w,
+            spreadRadius: isPressed ? 4.r : 6.r,
           ),
         ],
       ),
@@ -56,16 +56,16 @@ class TasbihBeadWidget extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.3),
+                color: Colors.white.withOpacity(0.3),
                 width: 2.w,
               ),
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.white.withValues(alpha: 0.1),
+                  Colors.white.withOpacity(0.1),
                   Colors.transparent,
-                  Colors.black.withValues(alpha: 0.1),
+                  Colors.black.withOpacity(0.1),
                 ],
                 stops: const [0.0, 0.5, 1.0],
               ),

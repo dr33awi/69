@@ -94,23 +94,24 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
               children: [
                 Text(
                   'موقعك الحالي',
-                  style: context.bodySmall?.copyWith(
+                  style: TextStyle(
                     color: context.textSecondaryColor,
-                    fontSize: context.bodySmall?.fontSize?.sp,
+                    fontSize: 12.sp,
                   ),
                 ),
                 Text(
                   _getLocationName(),
-                  style: context.bodyLarge?.bold.copyWith(
-                    fontSize: context.bodyLarge?.fontSize?.sp,
+                  style: TextStyle(
+                    fontWeight: ThemeConstants.bold,
+                    fontSize: 16.sp,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   _getDataStatusText(),
-                  style: context.bodySmall?.copyWith(
+                  style: TextStyle(
                     color: _getStatusColor(),
-                    fontSize: context.bodySmall?.fontSize?.sp,
+                    fontSize: 11.sp,
                   ),
                 ),
               ],
@@ -152,10 +153,10 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
           SizedBox(width: 4.w),
           Text(
             hasGoodQuality ? 'موثوق' : 'محدود',
-            style: context.bodySmall?.copyWith(
+            style: TextStyle(
               color: hasGoodQuality ? ThemeConstants.success : ThemeConstants.warning,
               fontWeight: ThemeConstants.semiBold,
-              fontSize: context.bodySmall?.fontSize?.sp,
+              fontSize: 11.sp,
             ),
           ),
         ],
@@ -267,10 +268,10 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
                 children: [
                   Text(
                     _isExpanded ? 'إخفاء التفاصيل' : 'عرض المزيد',
-                    style: context.bodyMedium?.copyWith(
+                    style: TextStyle(
                       color: context.primaryColor,
                       fontWeight: ThemeConstants.medium,
-                      fontSize: context.bodyMedium?.fontSize?.sp,
+                      fontSize: 14.sp,
                     ),
                   ),
                   AnimatedRotation(
@@ -404,24 +405,26 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
               SizedBox(height: 8.h),
               Text(
                 title,
-                style: context.bodySmall?.copyWith(
+                style: TextStyle(
                   color: context.textSecondaryColor,
-                  fontSize: context.bodySmall?.fontSize?.sp,
+                  fontSize: 11.sp,
                 ),
                 textAlign: TextAlign.center,
               ),
               Text(
                 value,
-                style: context.titleMedium?.bold.textColor(color).copyWith(
-                  fontSize: context.titleMedium?.fontSize?.sp,
+                style: TextStyle(
+                  fontWeight: ThemeConstants.bold,
+                  color: color,
+                  fontSize: 14.sp,
                 ),
                 textAlign: TextAlign.center,
               ),
               Text(
                 subtitle,
-                style: context.bodySmall?.copyWith(
+                style: TextStyle(
                   color: context.textSecondaryColor.withOpacity(0.7),
-                  fontSize: context.bodySmall?.fontSize?.sp,
+                  fontSize: 10.sp,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -432,7 +435,6 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
     );
   }
 
-  // بقية الـ Helper methods
   Widget _buildStatRow({
     required BuildContext context,
     required String label,
@@ -449,25 +451,170 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
         Expanded(
           child: Text(
             label,
-            style: context.bodySmall?.copyWith(
+            style: TextStyle(
               color: context.textSecondaryColor,
-              fontSize: context.bodySmall?.fontSize?.sp,
+              fontSize: 12.sp,
             ),
           ),
         ),
         Text(
           value,
-          style: context.bodySmall?.copyWith(
+          style: TextStyle(
             fontWeight: ThemeConstants.semiBold,
             color: valueColor ?? context.textPrimaryColor,
-            fontSize: context.bodySmall?.fontSize?.sp,
+            fontSize: 11.sp,
           ),
         ),
       ],
     );
   }
 
-  // ... بقية الكود (متابعة للملف الأصلي مع تطبيق ScreenUtil)
+  Widget _buildDetailSection({
+    required BuildContext context,
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: context.backgroundColor,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: context.dividerColor.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 24.sp, color: context.primaryColor),
+              SizedBox(width: 8.w),
+              Text(
+                title,
+                style: TextStyle(
+                  fontWeight: ThemeConstants.semiBold,
+                  color: context.primaryColor,
+                  fontSize: 14.sp,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow({
+    required BuildContext context,
+    required String label,
+    required String value,
+    Color? valueColor,
+    VoidCallback? onTap,
+  }) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 4.h),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8.r),
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: 4.w,
+              vertical: 4.h,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: context.textSecondaryColor,
+                      fontSize: 11.sp,
+                    ),
+                  ),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      value,
+                      style: TextStyle(
+                        fontWeight: ThemeConstants.medium,
+                        color: valueColor ?? context.textPrimaryColor,
+                        fontSize: 11.sp,
+                      ),
+                    ),
+                    if (onTap != null) ...[
+                      SizedBox(width: 4.w),
+                      Icon(
+                        Icons.copy,
+                        size: 20.sp,
+                        color: context.textSecondaryColor.withOpacity(0.5),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWarningCard({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String message,
+    required Color color,
+  }) {
+    return Container(
+      margin: EdgeInsets.only(top: 12.h),
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 24.sp),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: ThemeConstants.semiBold,
+                    fontSize: 13.sp,
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  message,
+                  style: TextStyle(
+                    color: color.darken(0.1),
+                    fontSize: 11.sp,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   // Helper Methods
   String _getLocationName() {
@@ -532,153 +679,6 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
     );
   }
 
-  // Helper widget methods remaining
-  Widget _buildDetailSection({
-    required BuildContext context,
-    required String title,
-    required IconData icon,
-    required List<Widget> children,
-  }) {
-    return Container(
-      padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: context.backgroundColor,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: context.dividerColor.withOpacity(0.2),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 24.sp, color: context.primaryColor),
-              SizedBox(width: 8.w),
-              Text(
-                title,
-                style: context.titleSmall?.semiBold.textColor(context.primaryColor).copyWith(
-                  fontSize: context.titleSmall?.fontSize?.sp,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 12.h),
-          ...children,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailRow({
-    required BuildContext context,
-    required String label,
-    required String value,
-    Color? valueColor,
-    VoidCallback? onTap,
-  }) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4.h),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(8.r),
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 4.w,
-              vertical: 4.h,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    label,
-                    style: context.bodySmall?.copyWith(
-                      color: context.textSecondaryColor,
-                      fontSize: context.bodySmall?.fontSize?.sp,
-                    ),
-                  ),
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      value,
-                      style: context.bodySmall?.copyWith(
-                        fontWeight: ThemeConstants.medium,
-                        color: valueColor ?? context.textPrimaryColor,
-                        fontSize: context.bodySmall?.fontSize?.sp,
-                      ),
-                    ),
-                    if (onTap != null) ...[
-                      SizedBox(width: 4.w),
-                      Icon(
-                        Icons.copy,
-                        size: 20.sp,
-                        color: context.textSecondaryColor.withOpacity(0.5),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWarningCard({
-    required BuildContext context,
-    required IconData icon,
-    required String title,
-    required String message,
-    required Color color,
-  }) {
-    return Container(
-      margin: EdgeInsets.only(top: 12.h),
-      padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 24.sp),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: context.bodyMedium?.copyWith(
-                    color: color,
-                    fontWeight: ThemeConstants.semiBold,
-                    fontSize: context.bodyMedium?.fontSize?.sp,
-                  ),
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  message,
-                  style: context.bodySmall?.copyWith(
-                    color: color.darken(0.1),
-                    fontSize: context.bodySmall?.fontSize?.sp,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Show dialog methods
   void _showDirectionDetails(BuildContext context) {
     showDialog(
       context: context,
@@ -748,16 +748,16 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
         children: [
           Text(
             label,
-            style: context.bodySmall?.copyWith(
+            style: TextStyle(
               color: context.textSecondaryColor,
               fontWeight: ThemeConstants.medium,
-              fontSize: context.bodySmall?.fontSize?.sp,
+              fontSize: 11.sp,
             ),
           ),
           Text(
             value,
-            style: context.bodyMedium?.copyWith(
-              fontSize: context.bodyMedium?.fontSize?.sp,
+            style: TextStyle(
+              fontSize: 13.sp,
             ),
           ),
         ],

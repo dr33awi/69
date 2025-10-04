@@ -30,8 +30,8 @@ class DhikrCardSimple extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: isSelected 
-                ? dhikr.primaryColor.withValues(alpha: 0.3)
-                : Colors.black.withValues(alpha: 0.05),
+                ? dhikr.primaryColor.withOpacity(0.3)
+                : Colors.black.withOpacity(0.05),
             blurRadius: isSelected ? 12.r : 8.r,
             offset: Offset(0, isSelected ? 6.h : 4.h),
           ),
@@ -56,11 +56,11 @@ class DhikrCardSimple extends StatelessWidget {
               borderRadius: BorderRadius.circular(16.r),
               border: isSelected 
                   ? Border.all(
-                      color: Colors.white.withValues(alpha: 0.3),
+                      color: Colors.white.withOpacity(0.3),
                       width: 1.w,
                     )
                   : Border.all(
-                      color: context.dividerColor.withValues(alpha: 0.2),
+                      color: context.dividerColor.withOpacity(0.2),
                       width: 1.w,
                     ),
             ),
@@ -80,8 +80,8 @@ class DhikrCardSimple extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: isSelected 
-                              ? Colors.white.withValues(alpha: 0.2)
-                              : dhikr.primaryColor.withValues(alpha: 0.1),
+                              ? Colors.white.withOpacity(0.2)
+                              : dhikr.primaryColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Row(
@@ -97,11 +97,12 @@ class DhikrCardSimple extends StatelessWidget {
                             SizedBox(width: 4.w),
                             Text(
                               dhikr.category.title,
-                              style: context.labelSmall?.copyWith(
+                              style: TextStyle(
                                 color: isSelected 
                                     ? Colors.white
                                     : dhikr.primaryColor,
                                 fontWeight: ThemeConstants.medium,
+                                fontSize: 11.sp,
                               ),
                             ),
                           ],
@@ -118,17 +119,18 @@ class DhikrCardSimple extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: isSelected 
-                              ? Colors.white.withValues(alpha: 0.2)
-                              : context.textSecondaryColor.withValues(alpha: 0.1),
+                              ? Colors.white.withOpacity(0.2)
+                              : context.textSecondaryColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Text(
                           '${dhikr.recommendedCount}×',
-                          style: context.labelSmall?.copyWith(
+                          style: TextStyle(
                             color: isSelected 
                                 ? Colors.white
                                 : context.textSecondaryColor,
                             fontWeight: ThemeConstants.semiBold,
+                            fontSize: 11.sp,
                           ),
                         ),
                       ),
@@ -143,23 +145,24 @@ class DhikrCardSimple extends StatelessWidget {
                     padding: EdgeInsets.all(16.w),
                     decoration: BoxDecoration(
                       color: isSelected 
-                          ? Colors.white.withValues(alpha: 0.15)
-                          : dhikr.primaryColor.withValues(alpha: 0.05),
+                          ? Colors.white.withOpacity(0.15)
+                          : dhikr.primaryColor.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(12.r),
                       border: Border.all(
                         color: isSelected 
-                            ? Colors.white.withValues(alpha: 0.3)
-                            : dhikr.primaryColor.withValues(alpha: 0.1),
+                            ? Colors.white.withOpacity(0.3)
+                            : dhikr.primaryColor.withOpacity(0.1),
                       ),
                     ),
                     child: Text(
                       dhikr.text,
-                      style: context.bodyLarge?.copyWith(
+                      style: TextStyle(
                         color: isSelected 
                             ? Colors.white
                             : context.textPrimaryColor,
                         fontWeight: ThemeConstants.medium,
-                        height: 1.8.sp,
+                        fontSize: 16.sp,
+                        height: 1.8,
                         fontFamily: ThemeConstants.fontFamilyArabic,
                       ),
                       textAlign: TextAlign.center,
@@ -173,13 +176,13 @@ class DhikrCardSimple extends StatelessWidget {
                       padding: EdgeInsets.all(12.w),
                       decoration: BoxDecoration(
                         color: isSelected 
-                            ? Colors.white.withValues(alpha: 0.1)
-                            : ThemeConstants.accent.withValues(alpha: 0.05),
+                            ? Colors.white.withOpacity(0.1)
+                            : ThemeConstants.accent.withOpacity(0.05),
                         borderRadius: BorderRadius.circular(8.r),
                         border: Border.all(
                           color: isSelected 
-                              ? Colors.white.withValues(alpha: 0.2)
-                              : ThemeConstants.accent.withValues(alpha: 0.2),
+                              ? Colors.white.withOpacity(0.2)
+                              : ThemeConstants.accent.withOpacity(0.2),
                         ),
                       ),
                       child: Row(
@@ -199,21 +202,23 @@ class DhikrCardSimple extends StatelessWidget {
                               children: [
                                 Text(
                                   'الفضل',
-                                  style: context.labelSmall?.copyWith(
+                                  style: TextStyle(
                                     color: isSelected 
                                         ? Colors.white
                                         : ThemeConstants.accent,
                                     fontWeight: ThemeConstants.semiBold,
+                                    fontSize: 11.sp,
                                   ),
                                 ),
                                 SizedBox(height: 4.h),
                                 Text(
                                   dhikr.virtue!,
-                                  style: context.bodySmall?.copyWith(
+                                  style: TextStyle(
                                     color: isSelected 
-                                        ? Colors.white.withValues(alpha: 0.8)
+                                        ? Colors.white.withOpacity(0.8)
                                         : context.textSecondaryColor,
-                                    height: 1.4.sp,
+                                    fontSize: 12.sp,
+                                    height: 1.4,
                                   ),
                                 ),
                               ],
@@ -231,7 +236,7 @@ class DhikrCardSimple extends StatelessWidget {
                       width: double.infinity,
                       padding: EdgeInsets.symmetric(vertical: 8.h),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(8.r),
                       ),
                       child: Row(
@@ -245,9 +250,10 @@ class DhikrCardSimple extends StatelessWidget {
                           SizedBox(width: 8.w),
                           Text(
                             'مُحدد حالياً',
-                            style: context.labelMedium?.copyWith(
+                            style: TextStyle(
                               color: Colors.white,
                               fontWeight: ThemeConstants.semiBold,
+                              fontSize: 12.sp,
                             ),
                           ),
                         ],

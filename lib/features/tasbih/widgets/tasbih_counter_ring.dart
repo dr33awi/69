@@ -103,7 +103,7 @@ class _CounterRingPainter extends CustomPainter {
 
     // رسم الحلقة الخلفية
     final backgroundPaint = Paint()
-      ..color = gradient[0].withValues(alpha: 0.1)
+      ..color = gradient[0].withOpacity(0.1)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
@@ -151,7 +151,7 @@ class _CounterRingPainter extends CustomPainter {
         
         // هالة حول النقطة
         final haloPaint = Paint()
-          ..color = gradient.last.withValues(alpha: 0.3)
+          ..color = gradient.last.withOpacity(0.3)
           ..style = PaintingStyle.fill;
         
         canvas.drawCircle(

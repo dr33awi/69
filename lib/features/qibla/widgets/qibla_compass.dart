@@ -8,9 +8,9 @@ import '../../../app/themes/app_theme.dart';
 
 /// بوصلة القبلة المحسنة مع أداء أفضل وتفاعل محسن
 class QiblaCompass extends StatefulWidget {
-  final double qiblaDirection; // اتجاه القبلة (درجات من الشمال الحقيقي)
-  final double currentDirection; // الاتجاه الحالي للجهاز (درجات من الشمال المغناطيسي)
-  final double accuracy; // دقة البوصلة (0.0 - 1.0)
+  final double qiblaDirection;
+  final double currentDirection;
+  final double accuracy;
   final bool isCalibrated;
   final VoidCallback? onCalibrate;
   final bool showAccuracyIndicator;
@@ -34,49 +34,41 @@ class QiblaCompass extends StatefulWidget {
 class _QiblaCompassState extends State<QiblaCompass>
     with TickerProviderStateMixin {
   
-  // Controllers للرسوم المتحركة
   late AnimationController _rotationController;
   late AnimationController _pulseController;
   late AnimationController _qiblaFoundController;
   late AnimationController _accuracyController;
   
-  // Animations
   late Animation<double> _pulseAnimation;
   late Animation<double> _qiblaFoundAnimation;
   late Animation<double> _accuracyAnimation;
   late Animation<Color?> _qiblaColorAnimation;
 
-  // حالة البوصلة
   double _smoothDirection = 0;
   bool _hasVibratedForQibla = false;
   bool _isPointingToQibla = false;
   Timer? _smoothingTimer;
   Timer? _hapticTimer;
 
-  // إعدادات الأداء
   static const Duration _animationDuration = Duration(milliseconds: 300);
   static const Duration _smoothingInterval = Duration(milliseconds: 50);
-  static const double _qiblaThreshold = 5.0; // درجات للاعتبار أن الجهاز يشير للقبلة
-  static const double _smoothingFactor = 0.3; // عامل تنعيم الحركة
+  static const double _qiblaThreshold = 5.0;
+  static const double _smoothingFactor = 0.3;
 
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
-
     _smoothDirection = widget.currentDirection;
     _startSmoothingTimer();
   }
 
-  /// تهيئة الرسوم المتحركة
   void _initializeAnimations() {
-    // تحكم في دوران البوصلة
     _rotationController = AnimationController(
       duration: _animationDuration,
       vsync: this,
     );
 
-    // نبض للدقة المنخفضة
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
@@ -90,7 +82,6 @@ class _QiblaCompassState extends State<QiblaCompass>
       curve: Curves.easeInOut,
     ));
 
-    // رسوم متحركة عند العثور على القبلة
     _qiblaFoundController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -104,13 +95,11 @@ class _QiblaCompassState extends State<QiblaCompass>
       curve: Curves.elasticOut,
     ));
 
-    // تحريك لون القبلة
     _qiblaColorAnimation = ColorTween(
       begin: ThemeConstants.primary,
       end: ThemeConstants.success,
     ).animate(_qiblaFoundController);
 
-    // رسوم متحركة للدقة
     _accuracyController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
@@ -127,7 +116,6 @@ class _QiblaCompassState extends State<QiblaCompass>
     _accuracyController.forward();
   }
 
-  /// بدء مؤقت التنعيم
   void _startSmoothingTimer() {
     _smoothingTimer = Timer.periodic(_smoothingInterval, (timer) {
       if (!mounted) {
@@ -138,12 +126,9 @@ class _QiblaCompassState extends State<QiblaCompass>
     });
   }
 
-  /// تحديث الاتجاه المنعم
   void _updateSmoothDirection() {
     final targetDirection = widget.currentDirection;
     final difference = _calculateAngleDifference(_smoothDirection, targetDirection);
-    
-    // تطبيق التنعيم
     _smoothDirection = (_smoothDirection + difference * _smoothingFactor) % 360;
     
     if (mounted) {
@@ -151,14 +136,10 @@ class _QiblaCompassState extends State<QiblaCompass>
     }
   }
 
-  /// حساب الفرق بين زاويتين مع مراعاة الدوران الدائري
   double _calculateAngleDifference(double from, double to) {
     double diff = to - from;
-    
-    // تطبيع الفرق ليكون بين -180 و 180
     while (diff > 180) diff -= 360;
     while (diff < -180) diff += 360;
-    
     return diff;
   }
 
@@ -166,7 +147,6 @@ class _QiblaCompassState extends State<QiblaCompass>
   void didUpdateWidget(QiblaCompass oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // تحديث الدقة
     if (oldWidget.accuracy != widget.accuracy) {
       _accuracyAnimation = Tween<double>(
         begin: oldWidget.accuracy,
@@ -178,24 +158,20 @@ class _QiblaCompassState extends State<QiblaCompass>
       _accuracyController.forward(from: 0);
     }
 
-    // فحص التوجه نحو القبلة
     _checkQiblaAlignment();
   }
 
-  /// فحص ما إذا كان الجهاز يشير نحو القبلة
   void _checkQiblaAlignment() {
     final qiblaAngle = _calculateQiblaAngle();
     final wasPointingToQibla = _isPointingToQibla;
     _isPointingToQibla = qiblaAngle.abs() <= _qiblaThreshold;
 
-    // تفعيل الاهتزاز عند العثور على القبلة
     if (widget.enableHapticFeedback && _isPointingToQibla && !_hasVibratedForQibla) {
       _triggerQiblaFoundFeedback();
     } else if (!_isPointingToQibla && _hasVibratedForQibla) {
       _hasVibratedForQibla = false;
     }
 
-    // رسوم متحركة عند العثور على القبلة
     if (_isPointingToQibla && !wasPointingToQibla) {
       _qiblaFoundController.forward().then((_) {
         if (mounted) {
@@ -205,14 +181,10 @@ class _QiblaCompassState extends State<QiblaCompass>
     }
   }
 
-  /// تفعيل ردود الفعل عند العثور على القبلة
   void _triggerQiblaFoundFeedback() {
     _hasVibratedForQibla = true;
-    
-    // اهتزاز خفيف
     HapticFeedback.lightImpact();
     
-    // اهتزاز إضافي بعد قليل للتأكيد
     _hapticTimer?.cancel();
     _hapticTimer = Timer(const Duration(milliseconds: 100), () {
       if (mounted && _isPointingToQibla) {
@@ -221,10 +193,8 @@ class _QiblaCompassState extends State<QiblaCompass>
     });
   }
 
-  /// حساب زاوية القبلة النسبية
   double _calculateQiblaAngle() {
     final relativeAngle = (widget.qiblaDirection - _smoothDirection + 360) % 360;
-    // تحويل إلى أقصر مسار (-180 إلى 180)
     return relativeAngle > 180 ? relativeAngle - 360 : relativeAngle;
   }
 
@@ -250,25 +220,12 @@ class _QiblaCompassState extends State<QiblaCompass>
         return Stack(
           alignment: Alignment.center,
           children: [
-            // خلفية البوصلة مع مؤشر الدقة
             _buildCompassBackground(size),
-            
-            // البوصلة الدوارة
             _buildRotatingCompass(size),
-            
-            // مؤشر القبلة
             _buildQiblaIndicator(size, qiblaAngle),
-            
-            // النقطة المركزية
             _buildCenterDot(),
-            
-            // مؤشر اتجاه الجهاز
             _buildDeviceIndicator(size),
-            
-            // معلومات الحالة
             _buildStatusInfo(size),
-            
-            // مؤشر الدقة إذا كان مطلوباً
             if (widget.showAccuracyIndicator)
               _buildAccuracyRing(size),
           ],
@@ -277,7 +234,6 @@ class _QiblaCompassState extends State<QiblaCompass>
     );
   }
 
-  /// بناء خلفية البوصلة
   Widget _buildCompassBackground(double size) {
     return AnimatedBuilder(
       animation: _pulseAnimation,
@@ -318,10 +274,9 @@ class _QiblaCompassState extends State<QiblaCompass>
     );
   }
 
-  /// بناء البوصلة الدوارة
   Widget _buildRotatingCompass(double size) {
     return Transform.rotate(
-      angle: -_smoothDirection * (math.pi / 180), // دوران عكس اتجاه الجهاز
+      angle: -_smoothDirection * (math.pi / 180),
       child: SizedBox(
         width: size,
         height: size,
@@ -334,7 +289,8 @@ class _QiblaCompassState extends State<QiblaCompass>
         ),
       ),
     );
-  }/// بناء مؤشر القبلة
+  }
+
   Widget _buildQiblaIndicator(double size, double qiblaAngle) {
     return AnimatedBuilder(
       animation: Listenable.merge([_qiblaFoundAnimation, _qiblaColorAnimation]),
@@ -350,7 +306,6 @@ class _QiblaCompassState extends State<QiblaCompass>
               child: Stack(
                 alignment: Alignment.topCenter,
                 children: [
-                  // السهم الرئيسي
                   Positioned(
                     top: 0,
                     child: SizedBox(
@@ -366,7 +321,6 @@ class _QiblaCompassState extends State<QiblaCompass>
                     ),
                   ),
                   
-                  // تسمية "قبلة"
                   Positioned(
                     top: size * 0.08,
                     child: AnimatedContainer(
@@ -390,7 +344,7 @@ class _QiblaCompassState extends State<QiblaCompass>
                       ),
                       child: Text(
                         'قبلة',
-                        style: context.bodySmall?.copyWith(
+                        style: TextStyle(
                           color: Colors.white,
                           fontWeight: _isPointingToQibla 
                               ? ThemeConstants.bold 
@@ -409,18 +363,17 @@ class _QiblaCompassState extends State<QiblaCompass>
     );
   }
 
-  /// بناء النقطة المركزية
   Widget _buildCenterDot() {
     return AnimatedContainer(
       duration: _animationDuration,
       width: _isPointingToQibla ? 32.w : 24.w,
-      height: _isPointingToQibla ? 32.h : 24.h,
+      height: _isPointingToQibla ? 32.w : 24.w,
       decoration: BoxDecoration(
         color: _isPointingToQibla ? ThemeConstants.success : context.primaryColor,
         shape: BoxShape.circle,
         border: Border.all(
           color: context.cardColor,
-          width: ThemeConstants.borderMedium,
+          width: 3.w,
         ),
         boxShadow: [
           BoxShadow(
@@ -434,7 +387,6 @@ class _QiblaCompassState extends State<QiblaCompass>
     );
   }
 
-  /// بناء مؤشر اتجاه الجهاز
   Widget _buildDeviceIndicator(double size) {
     return Positioned(
       top: (size * 0.05),
@@ -462,13 +414,11 @@ class _QiblaCompassState extends State<QiblaCompass>
     );
   }
 
-  /// بناء معلومات الحالة
   Widget _buildStatusInfo(double size) {
     return Positioned(
       bottom: size * 0.1,
       child: Column(
         children: [
-          // عرض الاتجاه الحالي
           AnimatedContainer(
             duration: _animationDuration,
             padding: EdgeInsets.symmetric(
@@ -484,7 +434,13 @@ class _QiblaCompassState extends State<QiblaCompass>
                     : context.primaryColor.withOpacity(0.3),
                 width: _isPointingToQibla ? 2.w : 1.w,
               ),
-              boxShadow: ThemeConstants.shadowMd,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8.r,
+                  offset: Offset(0, 3.h),
+                ),
+              ],
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -497,9 +453,10 @@ class _QiblaCompassState extends State<QiblaCompass>
                 SizedBox(width: 8.w),
                 Text(
                   '${_smoothDirection.toStringAsFixed(1)}°',
-                  style: context.titleMedium?.copyWith(
+                  style: TextStyle(
                     fontWeight: _isPointingToQibla ? ThemeConstants.bold : ThemeConstants.semiBold,
                     color: _isPointingToQibla ? ThemeConstants.success : context.textPrimaryColor,
+                    fontSize: 16.sp,
                   ),
                 ),
               ],
@@ -508,7 +465,6 @@ class _QiblaCompassState extends State<QiblaCompass>
 
           SizedBox(height: 8.h),
 
-          // مؤشر الدقة المبسط
           Container(
             padding: EdgeInsets.symmetric(
               horizontal: 12.w,
@@ -532,16 +488,16 @@ class _QiblaCompassState extends State<QiblaCompass>
                 SizedBox(width: 4.w),
                 Text(
                   _getAccuracyText(),
-                  style: context.bodySmall?.copyWith(
+                  style: TextStyle(
                     color: _getAccuracyColor(),
                     fontWeight: ThemeConstants.medium,
+                    fontSize: 12.sp,
                   ),
                 ),
               ],
             ),
           ),
 
-          // رسالة القبلة
           if (_isPointingToQibla) ...[
             SizedBox(height: 8.h),
             Container(
@@ -558,9 +514,10 @@ class _QiblaCompassState extends State<QiblaCompass>
               ),
               child: Text(
                 '🕋 تشير نحو القبلة',
-                style: context.bodySmall?.copyWith(
+                style: TextStyle(
                   color: ThemeConstants.success,
                   fontWeight: ThemeConstants.semiBold,
+                  fontSize: 12.sp,
                 ),
               ),
             ),
@@ -570,7 +527,6 @@ class _QiblaCompassState extends State<QiblaCompass>
     );
   }
 
-  /// بناء حلقة الدقة
   Widget _buildAccuracyRing(double size) {
     return AnimatedBuilder(
       animation: _accuracyAnimation,
@@ -586,21 +542,18 @@ class _QiblaCompassState extends State<QiblaCompass>
     );
   }
 
-  /// الحصول على لون الدقة
   Color _getAccuracyColor() {
     if (widget.accuracy >= 0.8) return ThemeConstants.success;
     if (widget.accuracy >= 0.5) return ThemeConstants.warning;
     return ThemeConstants.error;
   }
 
-  /// الحصول على أيقونة الدقة
   IconData _getAccuracyIcon() {
     if (widget.accuracy >= 0.8) return Icons.gps_fixed;
     if (widget.accuracy >= 0.5) return Icons.gps_not_fixed;
     return Icons.gps_off;
   }
 
-  /// الحصول على نص الدقة
   String _getAccuracyText() {
     if (widget.accuracy >= 0.8) return 'دقة عالية';
     if (widget.accuracy >= 0.5) return 'دقة متوسطة';
@@ -608,9 +561,7 @@ class _QiblaCompassState extends State<QiblaCompass>
   }
 }
 
-// ==================== Painters المحسنة ====================
-
-/// رسام البوصلة المحسن
+// Painters
 class EnhancedCompassPainter extends CustomPainter {
   final double accuracy;
   final bool isDarkMode;
@@ -627,7 +578,6 @@ class EnhancedCompassPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
 
-    // ضبط الألوان حسب الدقة والثيم
     final primaryLineColor = Color.lerp(
       ThemeConstants.error.withOpacity(0.6),
       isDarkMode ? Colors.white.withOpacity(0.8) : Colors.black.withOpacity(0.8),
@@ -640,13 +590,8 @@ class EnhancedCompassPainter extends CustomPainter {
       accuracy,
     )!;
 
-    // رسم الدوائر
     _drawCircles(canvas, center, radius, primaryLineColor);
-    
-    // رسم العلامات
     _drawMarkings(canvas, center, radius, primaryLineColor, secondaryLineColor);
-    
-    // رسم تسميات الاتجاهات
     _drawDirectionLabels(canvas, center, radius, primaryLineColor);
   }
 
@@ -656,7 +601,6 @@ class EnhancedCompassPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.w;
 
-    // دوائر متحدة المركز
     for (int i = 1; i <= 3; i++) {
       canvas.drawCircle(
         center, 
@@ -727,10 +671,10 @@ class EnhancedCompassPainter extends CustomPainter {
 
     final directions = ['N', 'E', 'S', 'W'];
     final positions = [
-      Offset(center.dx, center.dy - radius + 45.h), // N
-      Offset(center.dx + radius - 45.w, center.dy), // E
-      Offset(center.dx, center.dy + radius - 45.h), // S
-      Offset(center.dx - radius + 45.w, center.dy), // W
+      Offset(center.dx, center.dy - radius + 45.h),
+      Offset(center.dx + radius - 45.w, center.dy),
+      Offset(center.dx, center.dy + radius - 45.h),
+      Offset(center.dx - radius + 45.w, center.dy),
     ];
 
     for (int i = 0; i < directions.length; i++) {
@@ -741,7 +685,6 @@ class EnhancedCompassPainter extends CustomPainter {
       );
       textPainter.layout();
       
-      // رسم دائرة خلف النص
       if (directions[i] == 'N') {
         canvas.drawCircle(
           positions[i],
@@ -765,7 +708,6 @@ class EnhancedCompassPainter extends CustomPainter {
   }
 }
 
-/// رسام سهم القبلة المحسن
 class QiblaArrowPainter extends CustomPainter {
   final Color color;
   final bool isPointingToQibla;
@@ -783,7 +725,6 @@ class QiblaArrowPainter extends CustomPainter {
       ..color = color
       ..style = PaintingStyle.fill;
 
-    // رسم الظل/التوهج
     if (isPointingToQibla) {
       final glowPaint = Paint()
         ..color = color.withOpacity(0.3 * glowIntensity)
@@ -792,10 +733,8 @@ class QiblaArrowPainter extends CustomPainter {
       _drawArrowPath(canvas, size, glowPaint);
     }
 
-    // رسم السهم الرئيسي
     _drawArrowPath(canvas, size, paint);
 
-    // إضافة تأثير لامع
     final glossPaint = Paint()
       ..shader = LinearGradient(
         begin: Alignment.topCenter,
@@ -812,14 +751,13 @@ class QiblaArrowPainter extends CustomPainter {
   void _drawArrowPath(Canvas canvas, Size size, Paint paint) {
     final path = Path();
 
-    // تصميم سهم محسن
-    path.moveTo(size.width / 2, 0); // القمة
-    path.lineTo(size.width * 0.75, size.height * 0.3); // الجناح الأيمن
-    path.lineTo(size.width * 0.65, size.height * 0.3); // الداخل الأيمن
-    path.lineTo(size.width * 0.65, size.height * 0.85); // الجانب الأيمن
-    path.lineTo(size.width * 0.35, size.height * 0.85); // الجانب الأيسر
-    path.lineTo(size.width * 0.35, size.height * 0.3); // الداخل الأيسر
-    path.lineTo(size.width * 0.25, size.height * 0.3); // الجناح الأيسر
+    path.moveTo(size.width / 2, 0);
+    path.lineTo(size.width * 0.75, size.height * 0.3);
+    path.lineTo(size.width * 0.65, size.height * 0.3);
+    path.lineTo(size.width * 0.65, size.height * 0.85);
+    path.lineTo(size.width * 0.35, size.height * 0.85);
+    path.lineTo(size.width * 0.35, size.height * 0.3);
+    path.lineTo(size.width * 0.25, size.height * 0.3);
     path.close();
 
     canvas.drawPath(path, paint);
@@ -833,7 +771,6 @@ class QiblaArrowPainter extends CustomPainter {
   }
 }
 
-/// رسام حلقة الدقة
 class AccuracyRingPainter extends CustomPainter {
   final double accuracy;
   final Color color;
@@ -848,7 +785,6 @@ class AccuracyRingPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2 - 10.w;
 
-    // خلفية الحلقة
     final backgroundPaint = Paint()
       ..color = color.withOpacity(0.1)
       ..style = PaintingStyle.stroke
@@ -856,7 +792,6 @@ class AccuracyRingPainter extends CustomPainter {
 
     canvas.drawCircle(center, radius, backgroundPaint);
 
-    // حلقة الدقة
     if (accuracy > 0) {
       final accuracyPaint = Paint()
         ..color = color.withOpacity(0.8)
@@ -864,7 +799,7 @@ class AccuracyRingPainter extends CustomPainter {
         ..strokeWidth = 6.w
         ..strokeCap = StrokeCap.round;
 
-      const startAngle = -math.pi / 2; // البداية من الأعلى
+      const startAngle = -math.pi / 2;
       final sweepAngle = 2 * math.pi * accuracy;
 
       canvas.drawArc(
@@ -875,7 +810,6 @@ class AccuracyRingPainter extends CustomPainter {
         accuracyPaint,
       );
 
-      // رسم نقطة في نهاية الخط
       if (accuracy < 1.0) {
         final endAngle = startAngle + sweepAngle;
         final endX = center.dx + radius * math.cos(endAngle);
@@ -891,7 +825,6 @@ class AccuracyRingPainter extends CustomPainter {
           dotPaint,
         );
         
-        // هالة حول النقطة
         final haloPaint = Paint()
           ..color = color.withOpacity(0.3)
           ..style = PaintingStyle.fill;

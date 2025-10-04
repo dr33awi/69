@@ -1,6 +1,4 @@
-// 2. athkar_category_card.dart - محسن
-// =====================================================
-
+// lib/features/athkar/widgets/athkar_category_card.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -63,68 +61,47 @@ class AthkarCategoryCard extends StatelessWidget {
             ),
             
             Padding(
-              padding: EdgeInsets.all(14.r),
+              padding: EdgeInsets.all(12.r),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 46.r,
-                    height: 46.r,
+                    width: 48.r,
+                    height: 48.r,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.25),
+                      color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(14.r),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.3),
-                        width: 1.w,
-                      ),
                     ),
                     child: Icon(
                       categoryIcon,
                       color: Colors.white,
-                      size: 28.sp,
+                      size: 26.sp,
                     ),
                   ),
                   
                   const Spacer(),
                   
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        category.title,
-                        style: context.titleMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: ThemeConstants.bold,
-                          fontSize: 15.sp,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      
-                      SizedBox(height: 3.h),
-                      
-                      Text(
-                        description,
-                        style: context.bodySmall?.copyWith(
-                          color: Colors.white.withOpacity(0.85),
-                          fontSize: 11.sp,
-                          height: 1.3,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                  Text(
+                    category.title,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: ThemeConstants.bold,
+                      fontSize: 16.sp,
+                      height: 1.2,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
                   ),
                   
-                  SizedBox(height: 10.h),
-                  
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
+                  if (category.notifyTime != null && CategoryUtils.shouldShowTime(category.id)) ...[
+                    SizedBox(height: 8.h),
+                    Center(
+                      child: Container(
                         padding: EdgeInsets.symmetric(
-                          horizontal: 7.w,
-                          vertical: 3.h,
+                          horizontal: 8.w,
+                          vertical: 4.h,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.2),
@@ -134,55 +111,24 @@ class AthkarCategoryCard extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              Icons.format_list_numbered_rounded,
+                              Icons.access_time_rounded,
                               color: Colors.white.withOpacity(0.9),
                               size: 14.sp,
                             ),
-                            SizedBox(width: 3.w),
+                            SizedBox(width: 4.w),
                             Text(
-                              '${category.athkar.length} ذكر',
-                              style: context.labelSmall?.copyWith(
+                              category.notifyTime!.format(context),
+                              style: TextStyle(
                                 color: Colors.white.withOpacity(0.9),
-                                fontSize: 10.sp,
+                                fontSize: 11.sp,
                                 fontWeight: ThemeConstants.medium,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      
-                      if (category.notifyTime != null && CategoryUtils.shouldShowTime(category.id))
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 7.w,
-                            vertical: 3.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(999.r),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.access_time_rounded,
-                                color: Colors.white.withOpacity(0.9),
-                                size: 14.sp,
-                              ),
-                              SizedBox(width: 3.w),
-                              Text(
-                                category.notifyTime!.format(context),
-                                style: context.labelSmall?.copyWith(
-                                  color: Colors.white.withOpacity(0.9),
-                                  fontSize: 10.sp,
-                                  fontWeight: ThemeConstants.medium,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ],
               ),
             ),

@@ -1,4 +1,4 @@
-// 3. next_prayer_countdown.dart
+// lib/features/prayer_times/widgets/next_prayer_countdown.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -18,7 +18,7 @@ class NextPrayerCountdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -51,7 +51,7 @@ class NextPrayerCountdown extends StatelessWidget {
               SizedBox(width: 6.w),
               Text(
                 'الصلاة القادمة',
-                style: context.bodyLarge?.copyWith(
+                style: TextStyle(
                   color: Colors.white.withOpacity(0.9),
                   fontWeight: ThemeConstants.medium,
                   fontSize: 14.sp,
@@ -73,7 +73,7 @@ class NextPrayerCountdown extends StatelessWidget {
                   children: [
                     Text(
                       nextPrayer.nameAr,
-                      style: context.headlineMedium?.copyWith(
+                      style: TextStyle(
                         color: Colors.white,
                         fontWeight: ThemeConstants.bold,
                         fontSize: 22.sp,
@@ -83,7 +83,7 @@ class NextPrayerCountdown extends StatelessWidget {
                       SizedBox(height: 2.h),
                       Text(
                         'الصلاة الحالية: ${currentPrayer!.nameAr}',
-                        style: context.bodySmall?.copyWith(
+                        style: TextStyle(
                           color: Colors.white.withOpacity(0.7),
                           fontSize: 10.sp,
                         ),
@@ -121,7 +121,7 @@ class NextPrayerCountdown extends StatelessWidget {
                         _buildTimeUnit(hours.toString().padLeft(2, '0'), 'س'),
                         Text(
                           ':',
-                          style: context.headlineSmall?.copyWith(
+                          style: TextStyle(
                             color: Colors.white,
                             fontWeight: ThemeConstants.bold,
                             fontSize: 18.sp,
@@ -130,7 +130,7 @@ class NextPrayerCountdown extends StatelessWidget {
                         _buildTimeUnit(minutes.toString().padLeft(2, '0'), 'د'),
                         Text(
                           ':',
-                          style: context.headlineSmall?.copyWith(
+                          style: TextStyle(
                             color: Colors.white,
                             fontWeight: ThemeConstants.bold,
                             fontSize: 18.sp,

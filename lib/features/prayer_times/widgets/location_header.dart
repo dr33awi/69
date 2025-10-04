@@ -1,4 +1,4 @@
-// 4. location_header.dart
+// lib/features/prayer_times/widgets/location_header.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -113,7 +113,7 @@ class _LocationHeaderState extends State<LocationHeader>
     final hasError = _lastError != null;
     
     return Container(
-      margin: EdgeInsets.all(12.r),
+      margin: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         color: context.cardColor,
         borderRadius: BorderRadius.circular(16.r),
@@ -138,15 +138,15 @@ class _LocationHeaderState extends State<LocationHeader>
           onTap: widget.showRefreshButton ? _updateLocation : widget.onTap,
           borderRadius: BorderRadius.circular(16.r),
           child: Padding(
-            padding: EdgeInsets.all(12.r),
+            padding: EdgeInsets.all(12.w),
             child: Column(
               children: [
                 Row(
                   children: [
                     // أيقونة الموقع
                     Container(
-                      width: 45.r,
-                      height: 45.r,
+                      width: 45.w,
+                      height: 45.w,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
@@ -184,7 +184,7 @@ class _LocationHeaderState extends State<LocationHeader>
                               Expanded(
                                 child: Text(
                                   _getLocationDisplayName(),
-                                  style: context.titleLarge?.copyWith(
+                                  style: TextStyle(
                                     fontWeight: ThemeConstants.bold,
                                     color: hasError 
                                       ? ThemeConstants.error 
@@ -214,7 +214,7 @@ class _LocationHeaderState extends State<LocationHeader>
                           if (hasError)
                             Text(
                               PrayerUtils.getErrorMessage(_lastError),
-                              style: context.bodyMedium?.copyWith(
+                              style: TextStyle(
                                 color: ThemeConstants.error,
                                 fontWeight: ThemeConstants.medium,
                                 fontSize: 11.sp,
@@ -223,7 +223,7 @@ class _LocationHeaderState extends State<LocationHeader>
                           else
                             Text(
                               _getCoordinatesText(),
-                              style: context.bodyMedium?.copyWith(
+                              style: TextStyle(
                                 color: context.textSecondaryColor,
                                 fontSize: 11.sp,
                               ),
@@ -241,7 +241,7 @@ class _LocationHeaderState extends State<LocationHeader>
                                 SizedBox(width: 3.w),
                                 Text(
                                   _currentLocation!.timezone,
-                                  style: context.bodySmall?.copyWith(
+                                  style: TextStyle(
                                     color: context.textSecondaryColor,
                                     fontSize: 10.sp,
                                   ),
@@ -256,7 +256,7 @@ class _LocationHeaderState extends State<LocationHeader>
                     if (widget.showRefreshButton) ...[
                       SizedBox(width: 10.w),
                       Container(
-                        padding: EdgeInsets.all(6.r),
+                        padding: EdgeInsets.all(6.w),
                         decoration: BoxDecoration(
                           color: (hasError ? ThemeConstants.error : context.primaryColor)
                               .withOpacity(0.1),

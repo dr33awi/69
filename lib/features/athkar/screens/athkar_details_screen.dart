@@ -1,4 +1,4 @@
-// lib/features/athkar/screens/athkar_details_screen.dart - محدث مع flutter_screenutil
+// lib/features/athkar/screens/athkar_details_screen.dart
 import 'package:athkar_app/features/athkar/utils/athkar_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -268,20 +268,20 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
             
             await _service.saveFontSize(size);
             
-            Navigator.pop(context);
+            if (mounted) Navigator.pop(context);
           },
           borderRadius: BorderRadius.circular(12.r),
           child: Container(
-            padding: EdgeInsets.all(16.w),
+            padding: EdgeInsets.all(16.r),
             decoration: BoxDecoration(
               color: isSelected 
-                  ? ThemeConstants.primary.withValues(alpha: 0.1)
+                  ? ThemeConstants.primary.withOpacity(0.1)
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(12.r),
               border: Border.all(
                 color: isSelected 
-                    ? ThemeConstants.primary.withValues(alpha: 0.3)
-                    : context.dividerColor.withValues(alpha: 0.2),
+                    ? ThemeConstants.primary.withOpacity(0.3)
+                    : context.dividerColor.withOpacity(0.2),
                 width: 1.w,
               ),
             ),
@@ -296,7 +296,7 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
                 Expanded(
                   child: Text(
                     label,
-                    style: context.bodyLarge?.copyWith(
+                    style: TextStyle(
                       fontSize: size.sp,
                       fontWeight: isSelected ? ThemeConstants.semiBold : ThemeConstants.regular,
                       color: isSelected ? ThemeConstants.primary : context.textPrimaryColor,
@@ -305,7 +305,7 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
                 ),
                 Text(
                   '${size.toInt()}px',
-                  style: context.labelSmall?.copyWith(
+                  style: TextStyle(
                     color: context.textSecondaryColor,
                     fontSize: 11.sp,
                   ),
@@ -384,7 +384,7 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
     );
     
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(16.r),
       child: Row(
         children: [
           AppBackButton(
@@ -394,13 +394,13 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
           SizedBox(width: 12.w),
           
           Container(
-            padding: EdgeInsets.all(8.w),
+            padding: EdgeInsets.all(8.r),
             decoration: BoxDecoration(
               gradient: gradient,
               borderRadius: BorderRadius.circular(12.r),
               boxShadow: [
                 BoxShadow(
-                  color: ThemeConstants.primary.withValues(alpha: 0.3),
+                  color: ThemeConstants.primary.withOpacity(0.3),
                   blurRadius: 8.r,
                   offset: Offset(0, 4.h),
                 ),
@@ -421,7 +421,7 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
               children: [
                 Text(
                   title,
-                  style: context.titleLarge?.copyWith(
+                  style: TextStyle(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
                     fontSize: 18.sp,
@@ -432,7 +432,7 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
                 if (category != null)
                   Text(
                     '${category.athkar.length} ذكر - ${_completedItems.length} مكتمل',
-                    style: context.bodySmall?.copyWith(
+                    style: TextStyle(
                       color: context.textSecondaryColor,
                       fontSize: 12.sp,
                     ),
@@ -440,7 +440,7 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
                 else
                   Text(
                     'الأذكار والأدعية الإسلامية',
-                    style: context.bodySmall?.copyWith(
+                    style: TextStyle(
                       color: context.textSecondaryColor,
                       fontSize: 12.sp,
                     ),
@@ -462,17 +462,17 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
                   },
                   borderRadius: BorderRadius.circular(12.r),
                   child: Container(
-                    padding: EdgeInsets.all(8.w),
+                    padding: EdgeInsets.all(8.r),
                     decoration: BoxDecoration(
                       color: context.cardColor,
                       borderRadius: BorderRadius.circular(12.r),
                       border: Border.all(
-                        color: context.dividerColor.withValues(alpha: 0.3),
+                        color: context.dividerColor.withOpacity(0.3),
                         width: 1.w,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
+                          color: Colors.black.withOpacity(0.1),
                           blurRadius: 4.r,
                           offset: Offset(0, 2.h),
                         ),
@@ -505,17 +505,17 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
                   },
                   borderRadius: BorderRadius.circular(12.r),
                   child: Container(
-                    padding: EdgeInsets.all(8.w),
+                    padding: EdgeInsets.all(8.r),
                     decoration: BoxDecoration(
                       color: context.cardColor,
                       borderRadius: BorderRadius.circular(12.r),
                       border: Border.all(
-                        color: context.dividerColor.withValues(alpha: 0.3),
+                        color: context.dividerColor.withOpacity(0.3),
                         width: 1.w,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
+                          color: Colors.black.withOpacity(0.1),
                           blurRadius: 4.r,
                           offset: Offset(0, 2.h),
                         ),
@@ -540,18 +540,18 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
     if (_visibleItems.isEmpty && _completedItems.isNotEmpty) {
       return Center(
         child: Padding(
-          padding: EdgeInsets.all(24.w),
+          padding: EdgeInsets.all(24.r),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 120.w,
-                height: 120.h,
+                width: 120.r,
+                height: 120.r,
                 decoration: BoxDecoration(
-                  color: ThemeConstants.success.withValues(alpha: 0.1),
+                  color: ThemeConstants.success.withOpacity(0.1),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: ThemeConstants.success.withValues(alpha: 0.3),
+                    color: ThemeConstants.success.withOpacity(0.3),
                     width: 2.w,
                   ),
                 ),
@@ -566,7 +566,7 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
               
               Text(
                 'أحسنت! أكملت جميع الأذكار',
-                style: context.headlineSmall?.copyWith(
+                style: TextStyle(
                   color: ThemeConstants.success,
                   fontWeight: ThemeConstants.bold,
                   fontSize: 20.sp,
@@ -578,7 +578,7 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
               
               Text(
                 'جعله الله في ميزان حسناتك',
-                style: context.bodyLarge?.copyWith(
+                style: TextStyle(
                   color: context.textSecondaryColor,
                   fontSize: 16.sp,
                 ),
@@ -619,7 +619,7 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView.builder(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.all(16.r),
         itemCount: _visibleItems.length,
         itemBuilder: (context, index) {
           final item = _visibleItems[index];

@@ -1,4 +1,4 @@
-// lib/features/athkar/utils/athkar_extensions.dart (نظيف من التكرار)
+// lib/features/athkar/utils/athkar_extensions.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
@@ -8,7 +8,6 @@ import '../../../app/themes/app_theme.dart';
 extension AthkarSpecificHelpers on BuildContext {
   
   /// عرض رسالة معلومات خاصة بالأذكار
-  /// تستخدم للرسائل الإعلامية مثل "تم إعادة تعيين العداد"
   void showAthkarInfoSnackBar(String message, {Duration? duration}) {
     ScaffoldMessenger.of(this).showSnackBar(
       SnackBar(
@@ -23,9 +22,9 @@ extension AthkarSpecificHelpers on BuildContext {
             Expanded(
               child: Text(
                 message,
-                style: bodyMedium?.copyWith(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: bodyMedium?.fontSize?.sp,
+                  fontSize: 14.sp,
                 ),
               ),
             ),
@@ -33,7 +32,7 @@ extension AthkarSpecificHelpers on BuildContext {
         ),
         backgroundColor: ThemeConstants.info,
         behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.all(16.w),
+        margin: EdgeInsets.all(16.r),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.r),
         ),
@@ -43,7 +42,6 @@ extension AthkarSpecificHelpers on BuildContext {
   }
   
   /// عرض رسالة تقدم الأذكار
-  /// تستخدم عند إكمال ذكر أو مجموعة أذكار
   void showAthkarProgressSnackBar({
     required String message,
     required int progress,
@@ -55,15 +53,14 @@ extension AthkarSpecificHelpers on BuildContext {
       SnackBar(
         content: Row(
           children: [
-            // دائرة تقدم صغيرة
             SizedBox(
               width: 24.w,
-              height: 24.h,
+              height: 24.w,
               child: CircularProgressIndicator(
                 value: progress / 100,
                 strokeWidth: 3.w,
-                backgroundColor: Colors.white.withValues(alpha: 0.3),
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                backgroundColor: Colors.white.withOpacity(0.3),
+                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
               ),
             ),
             SizedBox(width: 12.w),
@@ -74,17 +71,17 @@ extension AthkarSpecificHelpers on BuildContext {
                 children: [
                   Text(
                     message,
-                    style: bodyMedium?.copyWith(
+                    style: TextStyle(
                       color: Colors.white,
                       fontWeight: ThemeConstants.medium,
-                      fontSize: bodyMedium?.fontSize?.sp,
+                      fontSize: 14.sp,
                     ),
                   ),
                   Text(
                     'التقدم: $progress%',
-                    style: labelSmall?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      fontSize: labelSmall?.fontSize?.sp,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 11.sp,
                     ),
                   ),
                 ],
@@ -94,7 +91,7 @@ extension AthkarSpecificHelpers on BuildContext {
         ),
         backgroundColor: color,
         behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.all(16.w),
+        margin: EdgeInsets.all(16.r),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.r),
         ),
@@ -112,7 +109,6 @@ extension AthkarSpecificHelpers on BuildContext {
       SnackBar(
         content: Row(
           children: [
-            // أيقونة متحركة
             TweenAnimationBuilder<double>(
               tween: Tween(begin: 0, end: 1),
               duration: const Duration(milliseconds: 500),
@@ -120,9 +116,9 @@ extension AthkarSpecificHelpers on BuildContext {
                 return Transform.scale(
                   scale: value,
                   child: Container(
-                    padding: EdgeInsets.all(4.w),
+                    padding: EdgeInsets.all(4.r),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: Colors.white.withOpacity(0.2),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -142,17 +138,17 @@ extension AthkarSpecificHelpers on BuildContext {
                 children: [
                   Text(
                     'أحسنت! أكملت $categoryName',
-                    style: bodyMedium?.copyWith(
+                    style: TextStyle(
                       color: Colors.white,
                       fontWeight: ThemeConstants.semiBold,
-                      fontSize: bodyMedium?.fontSize?.sp,
+                      fontSize: 14.sp,
                     ),
                   ),
                   Text(
                     'جعله الله في ميزان حسناتك',
-                    style: labelSmall?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      fontSize: labelSmall?.fontSize?.sp,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 11.sp,
                     ),
                   ),
                 ],
@@ -163,10 +159,10 @@ extension AthkarSpecificHelpers on BuildContext {
                 onPressed: onShare,
                 child: Text(
                   'مشاركة',
-                  style: labelMedium?.copyWith(
+                  style: TextStyle(
                     color: Colors.white,
                     fontWeight: ThemeConstants.bold,
-                    fontSize: labelMedium?.fontSize?.sp,
+                    fontSize: 13.sp,
                   ),
                 ),
               ),
@@ -174,7 +170,7 @@ extension AthkarSpecificHelpers on BuildContext {
         ),
         backgroundColor: ThemeConstants.success,
         behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.all(16.w),
+        margin: EdgeInsets.all(16.r),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.r),
         ),
@@ -190,7 +186,6 @@ extension AthkarTextExtensions on String {
   String truncateAthkar(int maxLength) {
     if (length <= maxLength) return this;
     
-    // البحث عن آخر مسافة قبل الحد الأقصى
     final lastSpace = lastIndexOf(' ', maxLength);
     final cutIndex = lastSpace > 0 ? lastSpace : maxLength;
     

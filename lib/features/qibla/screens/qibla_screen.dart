@@ -258,7 +258,7 @@ class _QiblaScreenState extends State<QiblaScreen>
     );
     
     return Container(
-      padding: EdgeInsets.all(14.r),
+      padding: EdgeInsets.all(14.w),
       child: Row(
         children: [
           // زر الرجوع
@@ -270,7 +270,7 @@ class _QiblaScreenState extends State<QiblaScreen>
           
           // أيقونة القبلة مع التدرج اللوني
           Container(
-            padding: EdgeInsets.all(7.r),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               gradient: gradient,
               borderRadius: BorderRadius.circular(10.r),
@@ -298,7 +298,7 @@ class _QiblaScreenState extends State<QiblaScreen>
               children: [
                 Text(
                   'اتجاه القبلة',
-                  style: context.titleLarge?.copyWith(
+                  style: TextStyle(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
                     fontSize: 17.sp,
@@ -306,7 +306,7 @@ class _QiblaScreenState extends State<QiblaScreen>
                 ),
                 Text(
                   _getStatusText(service),
-                  style: context.bodySmall?.copyWith(
+                  style: TextStyle(
                     color: _getStatusColor(service),
                     fontSize: 11.sp,
                   ),
@@ -351,7 +351,7 @@ class _QiblaScreenState extends State<QiblaScreen>
           onTap: onTap,
           borderRadius: BorderRadius.circular(10.r),
           child: Container(
-            padding: EdgeInsets.all(7.r),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               color: context.cardColor,
               borderRadius: BorderRadius.circular(10.r),
@@ -368,11 +368,11 @@ class _QiblaScreenState extends State<QiblaScreen>
             ),
             child: isLoading
                 ? SizedBox(
-                    width: 20.r,
-                    height: 20.r,
-                    child: const CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(ThemeConstants.primary),
+                    width: 20.w,
+                    height: 20.w,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.w,
+                      valueColor: const AlwaysStoppedAnimation<Color>(ThemeConstants.primary),
                     ),
                   )
                 : Icon(
@@ -433,7 +433,7 @@ class _QiblaScreenState extends State<QiblaScreen>
       child: Stack(
         children: [
           Padding(
-            padding: EdgeInsets.all(14.r),
+            padding: EdgeInsets.all(14.w),
             child: QiblaCompass(
               qiblaDirection: service.qiblaData!.qiblaDirection,
               currentDirection: service.currentDirection,
@@ -448,7 +448,7 @@ class _QiblaScreenState extends State<QiblaScreen>
               top: 6.h,
               right: 6.w,
               child: Container(
-                padding: EdgeInsets.all(6.r),
+                padding: EdgeInsets.all(6.w),
                 decoration: BoxDecoration(
                   color: context.cardColor.withOpacity(0.9),
                   borderRadius: BorderRadius.circular(10.r),
@@ -464,9 +464,9 @@ class _QiblaScreenState extends State<QiblaScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     SizedBox(
-                      width: 14.r,
-                      height: 14.r,
-                      child: const CircularProgressIndicator(strokeWidth: 2),
+                      width: 14.w,
+                      height: 14.w,
+                      child: CircularProgressIndicator(strokeWidth: 2.w),
                     ),
                     SizedBox(width: 6.w),
                     Text(
@@ -495,8 +495,8 @@ class _QiblaScreenState extends State<QiblaScreen>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 120.r,
-            height: 120.r,
+            width: 120.w,
+            height: 120.w,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: context.cardColor.withOpacity(0.8),
@@ -508,16 +508,16 @@ class _QiblaScreenState extends State<QiblaScreen>
                 ),
               ],
             ),
-            child: const Center(
+            child: Center(
               child: CircularProgressIndicator(
-                strokeWidth: 3,
+                strokeWidth: 3.w,
               ),
             ),
           ),
           SizedBox(height: 20.h),
           Text(
             'جاري تحديد موقعك...',
-            style: context.bodyLarge?.copyWith(
+            style: TextStyle(
               fontSize: 15.sp,
               fontWeight: FontWeight.w600,
             ),
@@ -525,7 +525,7 @@ class _QiblaScreenState extends State<QiblaScreen>
           SizedBox(height: 6.h),
           Text(
             'يرجى الانتظار لحظات قليلة',
-            style: context.bodyMedium?.copyWith(
+            style: TextStyle(
               fontSize: 13.sp,
               color: Colors.grey.shade600,
             ),
@@ -546,7 +546,7 @@ class _QiblaScreenState extends State<QiblaScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(20.r),
+              padding: EdgeInsets.all(20.w),
               decoration: BoxDecoration(
                 color: ThemeConstants.error.withOpacity(0.1),
                 shape: BoxShape.circle,
@@ -614,12 +614,12 @@ class _QiblaScreenState extends State<QiblaScreen>
         minHeight: 280.h,
         maxHeight: 380.h,
       ),
-      padding: EdgeInsets.all(20.r),
+      padding: EdgeInsets.all(20.w),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: EdgeInsets.all(20.r),
+            padding: EdgeInsets.all(20.w),
             decoration: BoxDecoration(
               color: Colors.amber.withOpacity(0.1),
               shape: BoxShape.circle,
@@ -655,7 +655,7 @@ class _QiblaScreenState extends State<QiblaScreen>
             SizedBox(height: 20.h),
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(14.r),
+              padding: EdgeInsets.all(14.w),
               decoration: BoxDecoration(
                 color: context.cardColor,
                 borderRadius: BorderRadius.circular(10.r),
@@ -707,7 +707,7 @@ class _QiblaScreenState extends State<QiblaScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(20.r),
+              padding: EdgeInsets.all(20.w),
               decoration: BoxDecoration(
                 color: ThemeConstants.primary.withOpacity(0.1),
                 shape: BoxShape.circle,
@@ -881,7 +881,7 @@ class __CalibrationProgressDialogState extends State<_CalibrationProgressDialog>
                   service.calibrationMessage,
                   key: ValueKey(service.calibrationMessage),
                   textAlign: TextAlign.center,
-                  style: context.bodyLarge?.copyWith(
+                  style: TextStyle(
                     fontWeight: service.calibrationProgress >= 100
                         ? ThemeConstants.bold
                         : ThemeConstants.medium,

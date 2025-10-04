@@ -159,9 +159,9 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
               borderRadius: BorderRadius.circular(12.r),
               boxShadow: [
                 BoxShadow(
-                  color: ThemeConstants.primary.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
+                  color: ThemeConstants.primary.withOpacity(0.3),
+                  blurRadius: 8.r,
+                  offset: Offset(0, 4.h),
                 ),
               ],
             ),
@@ -181,17 +181,17 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
               children: [
                 Text(
                   'إعدادات مواقيت الصلاة',
-                  style: context.titleLarge?.copyWith(
+                  style: TextStyle(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
-                    fontSize: context.titleLarge?.fontSize?.sp,
+                    fontSize: 18.sp,
                   ),
                 ),
                 Text(
                   'تخصيص طريقة حساب أوقات الصلاة',
-                  style: context.bodySmall?.copyWith(
+                  style: TextStyle(
                     color: context.textSecondaryColor,
-                    fontSize: context.bodySmall?.fontSize?.sp,
+                    fontSize: 12.sp,
                   ),
                 ),
               ],
@@ -217,13 +217,13 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
                       color: context.cardColor,
                       borderRadius: BorderRadius.circular(12.r),
                       border: Border.all(
-                        color: context.dividerColor.withValues(alpha: 0.3),
+                        color: context.dividerColor.withOpacity(0.3),
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4.r,
+                          offset: Offset(0, 2.h),
                         ),
                       ],
                     ),
@@ -390,7 +390,10 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
             child: Text(
               adjustment > 0 ? '+$adjustment' : adjustment.toString(),
               textAlign: TextAlign.center,
-              style: context.titleMedium?.semiBold,
+              style: TextStyle(
+                fontWeight: ThemeConstants.semiBold,
+                fontSize: 16.sp,
+              ),
             ),
           ),
           IconButton(
@@ -428,8 +431,6 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
         isLoading: _isSaving,
         isFullWidth: true,
         icon: Icons.save,
-        // استخدام الخاصية backgroundColor إذا كانت مدعومة في AppButton.primary
-        // وإلا يمكن استخدام customColor من خلال الطريقة العادية
         backgroundColor: ThemeConstants.success,
       ),
     );
@@ -463,7 +464,7 @@ class SettingsSection extends StatelessWidget {
               Container(
                 padding: EdgeInsets.all(8.w),
                 decoration: BoxDecoration(
-                  color: ThemeConstants.success.withValues(alpha: 0.1),
+                  color: ThemeConstants.success.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Icon(
@@ -479,17 +480,18 @@ class SettingsSection extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: context.titleMedium?.semiBold.copyWith(
-                        fontSize: context.titleMedium?.fontSize?.sp,
+                      style: TextStyle(
+                        fontWeight: ThemeConstants.semiBold,
+                        fontSize: 16.sp,
                       ),
                     ),
                     if (subtitle != null) ...[
                       SizedBox(height: 4.h),
                       Text(
                         subtitle!,
-                        style: context.bodySmall?.copyWith(
+                        style: TextStyle(
                           color: context.textSecondaryColor,
-                          fontSize: context.bodySmall?.fontSize?.sp,
+                          fontSize: 12.sp,
                         ),
                       ),
                     ],
@@ -549,8 +551,9 @@ class CalculationMethodDialog extends StatelessWidget {
             padding: EdgeInsets.all(16.w),
             child: Text(
               'اختر طريقة الحساب',
-              style: context.titleLarge?.semiBold.copyWith(
-                fontSize: context.titleLarge?.fontSize?.sp,
+              style: TextStyle(
+                fontWeight: ThemeConstants.semiBold,
+                fontSize: 18.sp,
               ),
             ),
           ),
@@ -565,9 +568,9 @@ class CalculationMethodDialog extends StatelessWidget {
                     title: Text(method.$2),
                     subtitle: Text(
                       method.$3,
-                      style: context.bodySmall?.copyWith(
+                      style: TextStyle(
                         color: context.textSecondaryColor,
-                        fontSize: context.bodySmall?.fontSize?.sp,
+                        fontSize: 12.sp,
                       ),
                     ),
                     value: method.$1,

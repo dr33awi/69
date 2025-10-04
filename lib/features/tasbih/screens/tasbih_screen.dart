@@ -143,7 +143,7 @@ class _TasbihScreenState extends State<TasbihScreen>
           return CustomPaint(
             painter: IslamicPatternPainter(
               rotation: _rotationAnimation.value,
-              color: _currentDhikr.primaryColor.withValues(alpha: 0.05),
+              color: _currentDhikr.primaryColor.withOpacity(0.05),
             ),
             size: Size.infinite,
           );
@@ -217,7 +217,7 @@ class _TasbihScreenState extends State<TasbihScreen>
                         color: context.cardColor,
                         borderRadius: BorderRadius.circular(12.r),
                         border: Border.all(
-                          color: context.dividerColor.withValues(alpha: 0.3),
+                          color: context.dividerColor.withOpacity(0.3),
                         ),
                       ),
                       child: Icon(
@@ -251,12 +251,12 @@ class _TasbihScreenState extends State<TasbihScreen>
               gradient: LinearGradient(colors: _currentDhikr.gradient),
               borderRadius: BorderRadius.circular(20.r),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.3),
+                color: Colors.white.withOpacity(0.3),
                 width: 1.w,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: _currentDhikr.primaryColor.withValues(alpha: 0.3),
+                  color: _currentDhikr.primaryColor.withOpacity(0.3),
                   blurRadius: 12.r,
                   offset: Offset(0, 6.h),
                 ),
@@ -267,7 +267,7 @@ class _TasbihScreenState extends State<TasbihScreen>
                 Container(
                   padding: EdgeInsets.all(8.w),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
+                    color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: Icon(
@@ -286,10 +286,11 @@ class _TasbihScreenState extends State<TasbihScreen>
                       // عرض النص كاملاً مع إمكانية التفاف السطور
                       Text(
                         _currentDhikr.text,
-                        style: context.titleMedium?.copyWith(
+                        style: TextStyle(
                           color: Colors.white,
                           fontWeight: ThemeConstants.bold,
-                          height: 1.3.sp,
+                          fontSize: 14.sp, // استخدام sp للخط
+                          height: 1.3,
                         ),
                         maxLines: null, // السماح بعدد غير محدود من السطور
                         overflow: TextOverflow.visible, // عدم قطع النص
@@ -299,20 +300,23 @@ class _TasbihScreenState extends State<TasbihScreen>
                         children: [
                           Text(
                             _currentDhikr.category.title,
-                            style: context.bodySmall?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.8),
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 12.sp,
                             ),
                           ),
                           Text(
                             ' • ',
-                            style: context.bodySmall?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.8),
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 12.sp,
                             ),
                           ),
                           Text(
                             '${_currentDhikr.recommendedCount}×',
-                            style: context.bodySmall?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.8),
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 12.sp,
                             ),
                           ),
                         ],
@@ -344,113 +348,125 @@ class _TasbihScreenState extends State<TasbihScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // العداد الدائري الرئيسي
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  // الحلقة الخارجية للتقدم
-                  SizedBox(
-                    width: 280.w,
-                    height: 280.h,
-                    child: TasbihCounterRing(
-                      progress: progress,
-                      gradient: _currentDhikr.gradient,
-                      strokeWidth: 8.w,
-                    ),
-                  ),
-                  
-                  // الحلقة الداخلية للعد الكامل
-                  SizedBox(
-                    width: 240.w,
-                    height: 240.h,
-                    child: TasbihCounterRing(
-                      progress: service.count / 1000, // تقدم إجمالي لألف
-                      gradient: [
-                        context.textSecondaryColor.withValues(alpha: 0.2),
-                        context.textSecondaryColor.withValues(alpha: 0.1),
-                      ],
-                      strokeWidth: 4.w,
-                    ),
-                  ),
-                  
-                  // الزر المركزي للتسبيح
-                  AnimatedBuilder(
-                    animation: _beadAnimation,
-                    builder: (context, child) {
-                      return Transform.scale(
-                        scale: _beadAnimation.value,
-                        child: GestureDetector(
-                          onTapDown: (_) {
-                            setState(() => _isPressed = true);
-                            _beadController.forward();
-                            HapticFeedback.lightImpact();
-                          },
-                          onTapUp: (_) {
-                            setState(() => _isPressed = false);
-                            _beadController.reverse();
-                            _incrementCounter(service);
-                          },
-                          onTapCancel: () {
-                            setState(() => _isPressed = false);
-                            _beadController.reverse();
-                          },
-                          child: TasbihBeadWidget(
-                            size: 180.w,
-                            gradient: _currentDhikr.gradient,
-                            isPressed: _isPressed,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  '${service.count}',
-                                  style: context.displayMedium?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: ThemeConstants.bold,
-                                    shadows: [
-                                      Shadow(
-                                        color: Colors.black.withValues(alpha: 0.3),
-                                        offset: Offset(0, 2.h),
-                                        blurRadius: 4.r,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(height: 4.h),
-                                Text(
-                                  'اضغط للتسبيح',
-                                  style: context.bodySmall?.copyWith(
-                                    color: Colors.white.withValues(alpha: 0.9),
-                                  ),
-                                ),
-                              ],
+              // العداد الدائري الرئيسي - تحسين الأحجام للشاشات الصغيرة
+              Flexible(
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final size = constraints.maxWidth;
+                      return Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // الحلقة الخارجية للتقدم
+                          SizedBox(
+                            width: size * 0.9,
+                            height: size * 0.9,
+                            child: TasbihCounterRing(
+                              progress: progress,
+                              gradient: _currentDhikr.gradient,
+                              strokeWidth: 8.w,
                             ),
                           ),
-                        ),
+                          
+                          // الحلقة الداخلية للعد الكامل
+                          SizedBox(
+                            width: size * 0.75,
+                            height: size * 0.75,
+                            child: TasbihCounterRing(
+                              progress: service.count / 1000,
+                              gradient: [
+                                context.textSecondaryColor.withOpacity(0.2),
+                                context.textSecondaryColor.withOpacity(0.1),
+                              ],
+                              strokeWidth: 4.w,
+                            ),
+                          ),
+                          
+                          // الزر المركزي للتسبيح
+                          AnimatedBuilder(
+                            animation: _beadAnimation,
+                            builder: (context, child) {
+                              return Transform.scale(
+                                scale: _beadAnimation.value,
+                                child: GestureDetector(
+                                  onTapDown: (_) {
+                                    setState(() => _isPressed = true);
+                                    _beadController.forward();
+                                    HapticFeedback.lightImpact();
+                                  },
+                                  onTapUp: (_) {
+                                    setState(() => _isPressed = false);
+                                    _beadController.reverse();
+                                    _incrementCounter(service);
+                                  },
+                                  onTapCancel: () {
+                                    setState(() => _isPressed = false);
+                                    _beadController.reverse();
+                                  },
+                                  child: TasbihBeadWidget(
+                                    size: size * 0.6,
+                                    gradient: _currentDhikr.gradient,
+                                    isPressed: _isPressed,
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          '${service.count}',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: ThemeConstants.bold,
+                                            fontSize: 36.sp,
+                                            shadows: [
+                                              Shadow(
+                                                color: Colors.black.withOpacity(0.3),
+                                                offset: Offset(0, 2.h),
+                                                blurRadius: 4.r,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        SizedBox(height: 4.h),
+                                        Text(
+                                          'اضغط للتسبيح',
+                                          style: TextStyle(
+                                            color: Colors.white.withOpacity(0.9),
+                                            fontSize: 12.sp,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          
+                          // تأثير الموجات عند الضغط
+                          if (_isPressed)
+                            AnimatedBuilder(
+                              animation: _rippleAnimation,
+                              builder: (context, child) {
+                                return Container(
+                                  width: (size * 0.6) + (_rippleAnimation.value * 40.w),
+                                  height: (size * 0.6) + (_rippleAnimation.value * 40.w),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: _currentDhikr.primaryColor.withOpacity(
+                                        (1 - _rippleAnimation.value) * 0.5,
+                                      ),
+                                      width: 2.w,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                        ],
                       );
                     },
                   ),
-                  
-                  // تأثير الموجات عند الضغط
-                  if (_isPressed)
-                    AnimatedBuilder(
-                      animation: _rippleAnimation,
-                      builder: (context, child) {
-                        return Container(
-                          width: 180.w + (_rippleAnimation.value * 40.w),
-                          height: 180.h + (_rippleAnimation.value * 40.h),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: _currentDhikr.primaryColor.withValues(
-                                alpha: (1 - _rippleAnimation.value) * 0.5,
-                              ),
-                              width: 2.w,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                ],
+                ),
               ),
               
               SizedBox(height: 24.h),
@@ -474,17 +490,19 @@ class _TasbihScreenState extends State<TasbihScreen>
         color: context.cardColor,
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: context.dividerColor.withValues(alpha: 0.3),
+          color: context.dividerColor.withOpacity(0.3),
         ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildInfoItem(
-            'الجولة الحالية',
-            '$currentRound / ${currentDhikr.recommendedCount}',
-            Icons.radio_button_checked,
-            currentDhikr.primaryColor,
+          Expanded(
+            child: _buildInfoItem(
+              'الجولة الحالية',
+              '$currentRound / ${currentDhikr.recommendedCount}',
+              Icons.radio_button_checked,
+              currentDhikr.primaryColor,
+            ),
           ),
           
           Container(
@@ -493,11 +511,13 @@ class _TasbihScreenState extends State<TasbihScreen>
             color: context.dividerColor,
           ),
           
-          _buildInfoItem(
-            'الجولات المكتملة',
-            '$completedRounds',
-            Icons.check_circle,
-            ThemeConstants.success,
+          Expanded(
+            child: _buildInfoItem(
+              'الجولات المكتملة',
+              '$completedRounds',
+              Icons.check_circle,
+              ThemeConstants.success,
+            ),
           ),
           
           Container(
@@ -506,11 +526,13 @@ class _TasbihScreenState extends State<TasbihScreen>
             color: context.dividerColor,
           ),
           
-          _buildInfoItem(
-            'الإجمالي اليوم',
-            '${service.todayCount}',
-            Icons.star,
-            ThemeConstants.accent,
+          Expanded(
+            child: _buildInfoItem(
+              'الإجمالي اليوم',
+              '${service.todayCount}',
+              Icons.star,
+              ThemeConstants.accent,
+            ),
           ),
         ],
       ),
@@ -519,6 +541,7 @@ class _TasbihScreenState extends State<TasbihScreen>
 
   Widget _buildInfoItem(String label, String value, IconData icon, Color color) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Icon(
           icon,
@@ -526,19 +549,26 @@ class _TasbihScreenState extends State<TasbihScreen>
           size: 24.sp,
         ),
         SizedBox(height: 4.h),
-        Text(
-          value,
-          style: context.titleMedium?.copyWith(
-            color: color,
-            fontWeight: ThemeConstants.bold,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontWeight: ThemeConstants.bold,
+              fontSize: 14.sp,
+            ),
           ),
         ),
         Text(
           label,
-          style: context.labelSmall?.copyWith(
+          style: TextStyle(
             color: context.textSecondaryColor,
+            fontSize: 10.sp,
           ),
           textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
@@ -585,7 +615,9 @@ class _TasbihScreenState extends State<TasbihScreen>
         );
       }
     });
-  }void _showDhikrSelectionModal() {
+  }
+  
+  void _showDhikrSelectionModal() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -704,13 +736,13 @@ class _TasbihScreenState extends State<TasbihScreen>
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      ThemeConstants.primary.withValues(alpha: 0.1),
-                      ThemeConstants.primaryLight.withValues(alpha: 0.05),
+                      ThemeConstants.primary.withOpacity(0.1),
+                      ThemeConstants.primaryLight.withOpacity(0.05),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(
-                    color: ThemeConstants.primary.withValues(alpha: 0.2),
+                    color: ThemeConstants.primary.withOpacity(0.2),
                   ),
                 ),
                 child: Row(
@@ -732,14 +764,15 @@ class _TasbihScreenState extends State<TasbihScreen>
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
                       decoration: BoxDecoration(
-                        color: ThemeConstants.primary.withValues(alpha: 0.1),
+                        color: ThemeConstants.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8.r),
                       ),
                       child: Text(
                         '${adhkar.length}',
-                        style: context.labelSmall?.copyWith(
+                        style: TextStyle(
                           color: ThemeConstants.primary,
                           fontWeight: ThemeConstants.bold,
+                          fontSize: 11.sp,
                         ),
                       ),
                     ),
@@ -778,13 +811,13 @@ class _TasbihScreenState extends State<TasbihScreen>
                       padding: EdgeInsets.all(16.w),
                       decoration: BoxDecoration(
                         color: _currentDhikr.id == dhikr.id 
-                            ? dhikr.primaryColor.withValues(alpha: 0.1)
+                            ? dhikr.primaryColor.withOpacity(0.1)
                             : context.cardColor,
                         borderRadius: BorderRadius.circular(12.r),
                         border: Border.all(
                           color: _currentDhikr.id == dhikr.id 
-                              ? dhikr.primaryColor.withValues(alpha: 0.3)
-                              : context.dividerColor.withValues(alpha: 0.2),
+                              ? dhikr.primaryColor.withOpacity(0.3)
+                              : context.dividerColor.withOpacity(0.2),
                         ),
                       ),
                       child: Row(
@@ -811,18 +844,19 @@ class _TasbihScreenState extends State<TasbihScreen>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  dhikr.text, // عرض النص كاملاً
-                                  style: context.bodyMedium?.copyWith(
+                                  dhikr.text,
+                                  style: TextStyle(
                                     fontWeight: _currentDhikr.id == dhikr.id 
                                         ? ThemeConstants.semiBold 
                                         : ThemeConstants.regular,
                                     color: _currentDhikr.id == dhikr.id 
                                         ? dhikr.primaryColor
                                         : context.textPrimaryColor,
+                                    fontSize: 13.sp,
                                     height: 1.4,
                                   ),
-                                  maxLines: null, // السماح بعدد غير محدود من السطور
-                                  overflow: TextOverflow.visible, // عدم قطع النص
+                                  maxLines: null,
+                                  overflow: TextOverflow.visible,
                                 ),
                                 
                                 // عرض الفضل إذا وُجد
@@ -832,13 +866,13 @@ class _TasbihScreenState extends State<TasbihScreen>
                                     padding: EdgeInsets.all(8.w),
                                     decoration: BoxDecoration(
                                       color: _currentDhikr.id == dhikr.id 
-                                          ? dhikr.primaryColor.withValues(alpha: 0.1)
-                                          : ThemeConstants.accent.withValues(alpha: 0.05),
+                                          ? dhikr.primaryColor.withOpacity(0.1)
+                                          : ThemeConstants.accent.withOpacity(0.05),
                                       borderRadius: BorderRadius.circular(6.r),
                                       border: Border.all(
                                         color: _currentDhikr.id == dhikr.id 
-                                            ? dhikr.primaryColor.withValues(alpha: 0.2)
-                                            : ThemeConstants.accent.withValues(alpha: 0.1),
+                                            ? dhikr.primaryColor.withOpacity(0.2)
+                                            : ThemeConstants.accent.withOpacity(0.1),
                                       ),
                                     ),
                                     child: Row(
@@ -855,12 +889,12 @@ class _TasbihScreenState extends State<TasbihScreen>
                                         Expanded(
                                           child: Text(
                                             dhikr.virtue!,
-                                            style: context.bodySmall?.copyWith(
+                                            style: TextStyle(
                                               color: context.textSecondaryColor,
-                                              height: 1.3,
                                               fontSize: 11.sp,
+                                              height: 1.3,
                                             ),
-                                            maxLines: 2, // عرض سطرين من الفضل
+                                            maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
@@ -878,14 +912,15 @@ class _TasbihScreenState extends State<TasbihScreen>
                           Container(
                             padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                             decoration: BoxDecoration(
-                              color: dhikr.primaryColor.withValues(alpha: 0.1),
+                              color: dhikr.primaryColor.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8.r),
                             ),
                             child: Text(
                               '${dhikr.recommendedCount}×',
-                              style: context.labelSmall?.copyWith(
+                              style: TextStyle(
                                 color: dhikr.primaryColor,
                                 fontWeight: ThemeConstants.semiBold,
+                                fontSize: 11.sp,
                               ),
                             ),
                           ),
@@ -902,7 +937,7 @@ class _TasbihScreenState extends State<TasbihScreen>
                             SizedBox(width: 8.w),
                             Icon(
                               Icons.radio_button_unchecked,
-                              color: context.textSecondaryColor.withValues(alpha: 0.3),
+                              color: context.textSecondaryColor.withOpacity(0.3),
                               size: 20.sp,
                             ),
                           ],

@@ -1,4 +1,5 @@
 // lib/features/prayer_times/widgets/shared/prayer_state_widgets.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -27,9 +28,9 @@ class PrayerLoadingWidget extends StatelessWidget {
           children: [
             SizedBox(
               width: 20.w,
-              height: 20.h,
+              height: 20.w,
               child: CircularProgressIndicator(
-                strokeWidth: 2,
+                strokeWidth: 2.w,
                 valueColor: AlwaysStoppedAnimation<Color>(context.primaryColor),
               ),
             ),
@@ -37,9 +38,9 @@ class PrayerLoadingWidget extends StatelessWidget {
               SizedBox(width: 8.w),
               Text(
                 message!,
-                style: context.labelMedium?.copyWith(
+                style: TextStyle(
                   color: context.textSecondaryColor,
-                  fontSize: context.labelMedium?.fontSize?.sp,
+                  fontSize: 12.sp,
                 ),
               ),
             ],
@@ -58,10 +59,10 @@ class PrayerLoadingWidget extends StatelessWidget {
             SizedBox(height: 16.h),
             Text(
               message!,
-              style: context.bodyLarge?.copyWith(
+              style: TextStyle(
                 fontWeight: ThemeConstants.medium,
                 color: context.textSecondaryColor,
-                fontSize: context.bodyLarge?.fontSize?.sp,
+                fontSize: 16.sp,
               ),
               textAlign: TextAlign.center,
             ),
@@ -101,7 +102,7 @@ class PrayerErrorWidget extends StatelessWidget {
           color: context.cardColor,
           borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
-            color: ThemeConstants.error.withValues(alpha: 0.3),
+            color: ThemeConstants.error.withOpacity(0.3),
           ),
         ),
         child: Column(
@@ -118,9 +119,9 @@ class PrayerErrorWidget extends StatelessWidget {
                 Expanded(
                   child: Text(
                     errorMessage,
-                    style: context.bodyMedium?.copyWith(
+                    style: TextStyle(
                       color: ThemeConstants.error,
-                      fontSize: context.bodyMedium?.fontSize?.sp,
+                      fontSize: 13.sp,
                     ),
                   ),
                 ),
@@ -154,9 +155,9 @@ class PrayerErrorWidget extends StatelessWidget {
             // الأيقونة
             Container(
               width: 80.w,
-              height: 80.h,
+              height: 80.w,
               decoration: BoxDecoration(
-                color: ThemeConstants.error.withValues(alpha: 0.1),
+                color: ThemeConstants.error.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -171,10 +172,10 @@ class PrayerErrorWidget extends StatelessWidget {
             // العنوان
             Text(
               _getErrorTitle(errorType),
-              style: context.titleLarge?.copyWith(
+              style: TextStyle(
                 color: ThemeConstants.error,
                 fontWeight: ThemeConstants.bold,
-                fontSize: context.titleLarge?.fontSize?.sp,
+                fontSize: 18.sp,
               ),
               textAlign: TextAlign.center,
             ),
@@ -184,9 +185,9 @@ class PrayerErrorWidget extends StatelessWidget {
             // الرسالة
             Text(
               errorMessage,
-              style: context.bodyMedium?.copyWith(
+              style: TextStyle(
                 color: context.textSecondaryColor,
-                fontSize: context.bodyMedium?.fontSize?.sp,
+                fontSize: 14.sp,
               ),
               textAlign: TextAlign.center,
             ),
@@ -307,16 +308,16 @@ class PrayerEmptyWidget extends StatelessWidget {
             Icon(
               icon ?? Icons.inbox_outlined,
               size: 64.sp,
-              color: context.textSecondaryColor.withValues(alpha: 0.5),
+              color: context.textSecondaryColor.withOpacity(0.5),
             ),
             
             SizedBox(height: 16.h),
             
             Text(
               title ?? 'لا توجد بيانات',
-              style: context.titleLarge?.copyWith(
+              style: TextStyle(
                 fontWeight: ThemeConstants.semiBold,
-                fontSize: context.titleLarge?.fontSize?.sp,
+                fontSize: 18.sp,
               ),
               textAlign: TextAlign.center,
             ),
@@ -325,9 +326,9 @@ class PrayerEmptyWidget extends StatelessWidget {
               SizedBox(height: 8.h),
               Text(
                 message!,
-                style: context.bodyMedium?.copyWith(
+                style: TextStyle(
                   color: context.textSecondaryColor,
-                  fontSize: context.bodyMedium?.fontSize?.sp,
+                  fontSize: 14.sp,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -394,14 +395,17 @@ class _RetryButtonState extends State<RetryButton> {
       icon: isLoading
           ? SizedBox(
               width: 18.w,
-              height: 18.h,
-              child: const CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              height: 18.w,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.w,
+                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
               ),
             )
           : Icon(Icons.refresh, size: 20.sp),
-      label: Text(isLoading ? 'جاري المحاولة...' : widget.text),
+      label: Text(
+        isLoading ? 'جاري المحاولة...' : widget.text,
+        style: TextStyle(fontSize: 14.sp),
+      ),
       style: ElevatedButton.styleFrom(
         backgroundColor: ThemeConstants.primary,
         foregroundColor: Colors.white,

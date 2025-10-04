@@ -1,5 +1,4 @@
-// 3. compass_calibration_sheet.dart - محسن
-// =====================================================
+// lib/features/qibla/widgets/compass_calibration_sheet.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -52,273 +51,236 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
   
   @override
   Widget build(BuildContext context) {
-    final accuracyPercentage = (widget.initialAccuracy * 100).clamp(0, 100).toInt();
-    final accuracyColor = _getAccuracyColor(accuracyPercentage);
     
     return Container(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.85,
+        maxHeight: 0.85.sh, // 85% من ارتفاع الشاشة
       ),
-      padding: EdgeInsets.all(14.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: context.backgroundColor,
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(18.r),
+          top: Radius.circular(20.r),
         ),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle bar
-          Container(
-            width: 36.w,
-            height: 3.h,
-            margin: EdgeInsets.only(bottom: 10.h),
-            decoration: BoxDecoration(
-              color: context.dividerColor,
-              borderRadius: BorderRadius.circular(2.r),
-            ),
-          ),
-          
-          // Title with icon
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: EdgeInsets.all(7.r),
-                decoration: BoxDecoration(
-                  color: ThemeConstants.warning.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.explore_rounded,
-                  color: ThemeConstants.warning,
-                  size: 22.sp,
-                ),
-              ),
-              SizedBox(width: 10.w),
-              Text(
-                'معايرة البوصلة',
-                style: context.titleLarge?.copyWith(
-                  fontWeight: ThemeConstants.bold,
-                  fontSize: 18.sp,
-                ),
-              ),
-            ],
-          ),
-          
-          SizedBox(height: 10.h),
-          
-          // Warning message
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(8.r),
-            decoration: BoxDecoration(
-              color: ThemeConstants.warning.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10.r),
-              border: Border.all(
-                color: ThemeConstants.warning.withOpacity(0.3),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              width: 40.w,
+              height: 4.h,
+              margin: EdgeInsets.only(bottom: 12.h),
+              decoration: BoxDecoration(
+                color: context.dividerColor,
+                borderRadius: BorderRadius.circular(2.r),
               ),
             ),
-            child: Row(
+            
+            // Title with icon
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.warning_amber_rounded,
-                  color: ThemeConstants.warning,
-                  size: 18.sp,
+                Container(
+                  padding: EdgeInsets.all(10.r),
+                  decoration: BoxDecoration(
+                    color: ThemeConstants.warning.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.explore_rounded,
+                    color: ThemeConstants.warning,
+                    size: 24.sp,
+                  ),
                 ),
-                SizedBox(width: 6.w),
+                SizedBox(width: 12.w),
+                Text(
+                  'معايرة البوصلة',
+                  style: TextStyle(
+                    fontWeight: ThemeConstants.bold,
+                    fontSize: 20.sp,
+                  ),
+                ),
+              ],
+            ),
+            
+            SizedBox(height: 12.h),
+            
+            // Warning message
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                horizontal: 12.w,
+                vertical: 10.h,
+              ),
+              decoration: BoxDecoration(
+                color: ThemeConstants.warning.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12.r),
+                border: Border.all(
+                  color: ThemeConstants.warning.withOpacity(0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: ThemeConstants.warning,
+                    size: 20.sp,
+                  ),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: Text(
+                      'البوصلة تحتاج إلى معايرة',
+                      style: TextStyle(
+                        color: ThemeConstants.warning,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14.sp,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            SizedBox(height: 20.h),
+            
+            // Phone animation with figure-8 motion
+            Container(
+              height: 120.h,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: context.cardColor.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Figure-8 background
+                  CustomPaint(
+                    size: Size(180.w, 90.h),
+                    painter: Figure8BackgroundPainter(
+                      color: ThemeConstants.primary.withOpacity(0.4),
+                    ),
+                  ),
+                  // Animated phone
+                  AnimatedBuilder(
+                    animation: _figure8Animation,
+                    builder: (context, child) {
+                      final t = _figure8Animation.value;
+                      final x = math.sin(t) * 50.w;
+                      final y = math.sin(2 * t) * 30.h;
+                      final tilt = math.sin(t) * 0.2;
+                      
+                      return Transform.translate(
+                        offset: Offset(x, y),
+                        child: Transform(
+                          alignment: Alignment.center,
+                          transform: Matrix4.identity()
+                            ..rotateY(tilt)
+                            ..rotateZ(tilt * 0.5),
+                          child: const PhoneAnimationWidget(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            
+            SizedBox(height: 20.h),
+            
+            // Instructions title
+            Text(
+              'كيفية معايرة البوصلة:',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16.sp,
+              ),
+            ),
+            
+            SizedBox(height: 12.h),
+            
+            // Calibration steps
+            _buildCalibrationStep(
+              context: context,
+              number: '1',
+              text: 'ابتعد عن الأجهزة الإلكترونية والمعادن',
+              icon: Icons.phone_android_rounded,
+            ),
+            _buildCalibrationStep(
+              context: context,
+              number: '2',
+              text: 'احمل الهاتف وحركه على شكل رقم 8',
+              icon: Icons.gesture,
+            ),
+            _buildCalibrationStep(
+              context: context,
+              number: '3',
+              text: 'كرر الحركة 3-4 مرات ببطء',
+              icon: Icons.loop_rounded,
+            ),
+            _buildCalibrationStep(
+              context: context,
+              number: '4',
+              text: 'انتظر حتى تستقر القراءات',
+              icon: Icons.check_circle_outline,
+            ),
+            
+            SizedBox(height: 24.h),
+            
+            // Action buttons
+            Row(
+              children: [
                 Expanded(
-                  child: Text(
-                    'البوصلة تحتاج إلى معايرة',
-                    style: context.bodyLarge?.copyWith(
-                      color: ThemeConstants.warning,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13.sp,
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                      side: BorderSide(color: context.dividerColor),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                    ),
+                    child: Text(
+                      'إغلاق',
+                      style: TextStyle(fontSize: 15.sp),
                     ),
                   ),
                 ),
-              ],
-            ),
-          ),
-          
-          SizedBox(height: 10.h),
-          
-          // Accuracy indicator
-          Container(
-            padding: EdgeInsets.all(10.r),
-            decoration: BoxDecoration(
-              color: context.cardColor,
-              borderRadius: BorderRadius.circular(10.r),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'دقة البوصلة:',
-                      style: context.bodyLarge?.copyWith(fontSize: 14.sp),
+                SizedBox(width: 12.w),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      widget.onStartCalibration();
+                      Navigator.of(context).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: ThemeConstants.primary,
+                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
                     ),
-                    Text(
-                      '$accuracyPercentage%',
-                      style: context.titleMedium?.copyWith(
-                        color: accuracyColor,
+                    child: Text(
+                      'بدء المعايرة',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16.sp,
                         fontWeight: FontWeight.bold,
-                        fontSize: 15.sp,
                       ),
                     ),
-                  ],
-                ),
-                SizedBox(height: 10.h),
-                LinearProgressIndicator(
-                  value: accuracyPercentage / 100,
-                  backgroundColor: context.dividerColor.withOpacity(0.3),
-                  valueColor: AlwaysStoppedAnimation<Color>(accuracyColor),
-                  minHeight: 6.h,
-                  borderRadius: BorderRadius.circular(3.r),
+                  ),
                 ),
               ],
             ),
-          ),
-          
-          SizedBox(height: 16.h),
-          
-          // Phone animation with figure-8 motion
-          Container(
-            height: 100.h,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: context.cardColor.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(10.r),
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Figure-8 background
-                CustomPaint(
-                  size: Size(200.w, 80.h),
-                  painter: Figure8BackgroundPainter(
-                    color: ThemeConstants.primary.withOpacity(0.4),
-                  ),
-                ),
-                // Animated phone
-                AnimatedBuilder(
-                  animation: _figure8Animation,
-                  builder: (context, child) {
-                    final t = _figure8Animation.value;
-                    final x = math.sin(t) * 60.w;
-                    final y = math.sin(2 * t) * 25.h;
-                    final tilt = math.sin(t) * 0.2;
-                    
-                    return Transform.translate(
-                      offset: Offset(x, y),
-                      child: Transform(
-                        alignment: Alignment.center,
-                        transform: Matrix4.identity()
-                          ..rotateY(tilt)
-                          ..rotateZ(tilt * 0.5),
-                        child: const PhoneAnimationWidget(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-          
-          SizedBox(height: 16.h),
-          
-          // Instructions title
-          Text(
-            'كيفية معايرة البوصلة:',
-            style: context.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: 15.sp,
-            ),
-          ),
-          
-          SizedBox(height: 10.h),
-          
-          // Calibration steps
-          _buildCalibrationStep(
-            context: context,
-            number: '1',
-            text: 'ابتعد عن الأجهزة الإلكترونية والمعادن',
-            icon: Icons.phone_android_rounded,
-          ),
-          _buildCalibrationStep(
-            context: context,
-            number: '2',
-            text: 'احمل الهاتف وحركه على شكل رقم 8',
-            icon: Icons.gesture,
-          ),
-          _buildCalibrationStep(
-            context: context,
-            number: '3',
-            text: 'كرر الحركة 3-4 مرات ببطء',
-            icon: Icons.loop_rounded,
-          ),
-          _buildCalibrationStep(
-            context: context,
-            number: '4',
-            text: 'انتظر حتى تستقر القراءات',
-            icon: Icons.check_circle_outline,
-          ),
-          
-          SizedBox(height: 20.h),
-          
-          // Action buttons
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: OutlinedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 10.h),
-                    side: BorderSide(color: context.dividerColor),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.r),
-                    ),
-                  ),
-                  child: Text(
-                    'إغلاق',
-                    style: TextStyle(fontSize: 14.sp),
-                  ),
-                ),
-              ),
-              SizedBox(width: 10.w),
-              Expanded(
-                flex: 2,
-                child: ElevatedButton(
-                  onPressed: () {
-                    HapticFeedback.lightImpact();
-                    widget.onStartCalibration();
-                    Navigator.of(context).pop();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ThemeConstants.primary,
-                    padding: EdgeInsets.symmetric(vertical: 10.h),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.r),
-                    ),
-                  ),
-                  child: Text(
-                    'بدء المعايرة',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          
-          // Safe area for bottom sheet
-          SizedBox(height: MediaQuery.of(context).padding.bottom),
-        ],
+            
+            // Safe area for bottom sheet
+            SizedBox(height: MediaQuery.of(context).padding.bottom + 8.h),
+          ],
+        ),
       ),
     );
   }
@@ -332,12 +294,12 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
     final bool isStep2 = number == '2';
     
     return Container(
-      margin: EdgeInsets.only(bottom: 10.h),
+      margin: EdgeInsets.only(bottom: 12.h),
       child: Row(
         children: [
           Container(
-            width: 28.r,
-            height: 28.r,
+            width: 32.r,
+            height: 32.r,
             decoration: BoxDecoration(
               color: context.cardColor,
               shape: BoxShape.circle,
@@ -348,46 +310,40 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
             child: Center(
               child: Text(
                 number,
-                style: context.bodyMedium?.copyWith(
+                style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: ThemeConstants.primary,
-                  fontSize: 13.sp,
+                  fontSize: 14.sp,
                 ),
               ),
             ),
           ),
-          SizedBox(width: 10.w),
+          SizedBox(width: 12.w),
           if (isStep2) ...[
             CustomPaint(
-              size: Size(26.w, 13.h),
+              size: Size(30.w, 15.h),
               painter: SmallFigure8Painter(
                 color: ThemeConstants.primary,
               ),
             ),
-            SizedBox(width: 6.w),
+            SizedBox(width: 8.w),
           ] else ...[
             Icon(
               icon,
-              size: 18.sp,
+              size: 20.sp,
               color: context.textSecondaryColor,
             ),
-            SizedBox(width: 6.w),
+            SizedBox(width: 8.w),
           ],
           Expanded(
             child: Text(
               text,
-              style: context.bodyMedium?.copyWith(fontSize: 13.sp),
+              style: TextStyle(fontSize: 14.sp),
             ),
           ),
         ],
       ),
     );
-  }
-  
-  Color _getAccuracyColor(int percentage) {
-    if (percentage >= 80) return ThemeConstants.success;
-    if (percentage >= 50) return ThemeConstants.warning;
-    return ThemeConstants.error;
   }
 }
 
@@ -398,8 +354,8 @@ class PhoneAnimationWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 75.w,
-      height: 45.h,
+      width: 60.w,
+      height: 50.h,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -409,7 +365,7 @@ class PhoneAnimationWidget extends StatelessWidget {
             ThemeConstants.primaryDark,
           ],
         ),
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(8.r),
         boxShadow: [
           BoxShadow(
             color: ThemeConstants.primary.withOpacity(0.5),
@@ -426,17 +382,17 @@ class PhoneAnimationWidget extends StatelessWidget {
       child: Stack(
         children: [
           Positioned(
-            top: 6.h,
-            left: 10.w,
-            right: 10.w,
-            bottom: 6.h,
+            top: 8.h,
+            left: 8.w,
+            right: 8.w,
+            bottom: 8.h,
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(6.r),
+                borderRadius: BorderRadius.circular(4.r),
                 border: Border.all(
                   color: Colors.black.withOpacity(0.1),
-                  width: 0.5.w,
+                  width: 0.5,
                 ),
               ),
               child: Row(
@@ -445,18 +401,18 @@ class PhoneAnimationWidget extends StatelessWidget {
                   Icon(
                     Icons.explore,
                     color: ThemeConstants.primary,
-                    size: 18.sp,
+                    size: 16.sp,
                   ),
-                  SizedBox(width: 8.w),
+                  SizedBox(width: 6.w),
                   ...List.generate(3, (index) => Container(
                     width: 3.w,
-                    height: (12 - (index * 2)).h,
-                    margin: EdgeInsets.symmetric(horizontal: 2.w),
+                    height: (14 - (index * 3)).h,
+                    margin: EdgeInsets.symmetric(horizontal: 1.5.w),
                     decoration: BoxDecoration(
                       color: ThemeConstants.primary.withOpacity(
                         0.7 - (index * 0.2),
                       ),
-                      borderRadius: BorderRadius.circular(2.r),
+                      borderRadius: BorderRadius.circular(1.5.r),
                     ),
                   )),
                 ],
@@ -469,7 +425,7 @@ class PhoneAnimationWidget extends StatelessWidget {
   }
 }
 
-// Custom painter for drawing figure-8 path (simplified)
+// Custom painter for drawing figure-8 path
 class Figure8BackgroundPainter extends CustomPainter {
   final Color color;
   
@@ -480,7 +436,7 @@ class Figure8BackgroundPainter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 4.w
+      ..strokeWidth = 3.0
       ..strokeCap = StrokeCap.round;
     
     final path = Path();
@@ -489,7 +445,7 @@ class Figure8BackgroundPainter extends CustomPainter {
     final radiusX = size.width * 0.4;
     final radiusY = size.height * 0.35;
     
-    // Draw simplified figure-8 path
+    // Draw figure-8 path
     path.moveTo(centerX - radiusX, centerY);
     path.cubicTo(
       centerX - radiusX, centerY - radiusY,
@@ -532,7 +488,7 @@ class SmallFigure8Painter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.w
+      ..strokeWidth = 2.0
       ..strokeCap = StrokeCap.round;
     
     final path = Path();

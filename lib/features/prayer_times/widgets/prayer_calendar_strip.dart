@@ -1,6 +1,7 @@
 // lib/features/prayer_times/widgets/prayer_calendar_strip.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
 
 class PrayerCalendarStrip extends StatelessWidget {
@@ -21,22 +22,22 @@ class PrayerCalendarStrip extends StatelessWidget {
     });
     
     return Container(
-      height: 100,
+      height: 100.h,
       decoration: BoxDecoration(
         color: context.cardColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10.r,
+            offset: Offset(0, 5.h),
           ),
         ],
       ),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(
-          horizontal: ThemeConstants.space3,
-          vertical: ThemeConstants.space2,
+        padding: EdgeInsets.symmetric(
+          horizontal: 16.w,
+          vertical: 12.h,
         ),
         itemCount: dates.length,
         itemBuilder: (context, index) {
@@ -45,7 +46,7 @@ class PrayerCalendarStrip extends StatelessWidget {
           final isToday = _isSameDay(date, today);
           
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: ThemeConstants.space1),
+            padding: EdgeInsets.symmetric(horizontal: 4.w),
             child: _buildDateItem(
               context,
               date: date,
@@ -72,30 +73,30 @@ class PrayerCalendarStrip extends StatelessWidget {
     
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(16.r),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         child: Container(
-          width: 65,
-          padding: const EdgeInsets.symmetric(
-            horizontal: ThemeConstants.space2,
-            vertical: ThemeConstants.space2,
+          width: 65.w,
+          padding: EdgeInsets.symmetric(
+            horizontal: 8.w,
+            vertical: 8.h,
           ),
           decoration: BoxDecoration(
             color: isSelected
                 ? context.primaryColor
                 : isToday
-                    ? context.primaryColor.withValues(alpha: 0.1)
+                    ? context.primaryColor.withOpacity(0.1)
                     : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(16.r),
             border: Border.all(
               color: isSelected
                   ? context.primaryColor
                   : isToday
-                      ? context.primaryColor.withValues(alpha: 0.3)
-                      : context.dividerColor.withValues(alpha: 0.2),
-              width: isSelected ? 2 : 1,
+                      ? context.primaryColor.withOpacity(0.3)
+                      : context.dividerColor.withOpacity(0.2),
+              width: isSelected ? 2.w : 1.w,
             ),
           ),
           child: Column(
@@ -103,7 +104,7 @@ class PrayerCalendarStrip extends StatelessWidget {
             children: [
               Text(
                 dayName,
-                style: context.labelSmall?.copyWith(
+                style: TextStyle(
                   color: isSelected
                       ? Colors.white
                       : isToday
@@ -112,26 +113,29 @@ class PrayerCalendarStrip extends StatelessWidget {
                   fontWeight: isSelected || isToday
                       ? ThemeConstants.semiBold
                       : ThemeConstants.regular,
+                  fontSize: 10.sp,
                 ),
               ),
-              ThemeConstants.space1.h,
+              SizedBox(height: 4.h),
               Text(
                 dayNumber,
-                style: context.titleLarge?.copyWith(
+                style: TextStyle(
                   color: isSelected
                       ? Colors.white
                       : isToday
                           ? context.primaryColor
                           : context.textPrimaryColor,
                   fontWeight: ThemeConstants.bold,
+                  fontSize: 18.sp,
                 ),
               ),
               Text(
                 monthName,
-                style: context.labelSmall?.copyWith(
+                style: TextStyle(
                   color: isSelected
-                      ? Colors.white.withValues(alpha: 0.8)
+                      ? Colors.white.withOpacity(0.8)
                       : context.textSecondaryColor,
+                  fontSize: 10.sp,
                 ),
               ),
             ],
