@@ -1,4 +1,4 @@
-// lib/features/home/screens/home_screen.dart - محدث مع flutter_screenutil
+// lib/features/home/screens/home_screen.dart - محدث مع flutter_screenutil و Remote Config المبسط
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -74,6 +74,85 @@ class _HomeScreenState extends State<HomeScreen>
         'icon': Icons.nightlight_outlined,
         'message': 'لا تنسَ أذكار النوم',
       };
+    }
+  }
+
+  /// معالج Pull to Refresh - مع تحديث Remote Config المبسط
+  Future<void> _handlePullToRefresh() async {
+    if (_isRefreshing) return;
+    
+    setState(() => _isRefreshing = true);
+    HapticFeedback.mediumImpact();
+    
+    try {
+      debugPrint('🔄 [HomeScreen] Starting refresh...');
+      
+      // 1. محاولة تحديث Remote Config
+      await _refreshRemoteConfig();
+      
+      // 2. تأخير قصير لتجربة مستخدم أفضل
+      await Future.delayed(const Duration(milliseconds: 800));
+      
+      debugPrint('✅ [HomeScreen] Refresh completed successfully');
+      
+    } catch (e) {
+      debugPrint('❌ [HomeScreen] Refresh error: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isRefreshing = false);
+      }
+    }
+  }
+
+  /// تحديث Remote Config - مبسط
+  Future<bool> _refreshRemoteConfig() async {
+    try {
+      debugPrint('🔧 [HomeScreen] Fetching Remote Config updates...');
+      
+      // التحقق من توفر RemoteConfigManager
+      if (!getIt.isRegistered<RemoteConfigManager>()) {
+        debugPrint('⚠️ [HomeScreen] RemoteConfigManager not registered');
+        return false;
+      }
+      
+      final configManager = getIt<RemoteConfigManager>();
+      
+      // التحقق من أنه مُهيأ
+      if (!configManager.isInitialized) {
+        debugPrint('⚠️ [HomeScreen] RemoteConfigManager not initialized');
+        return false;
+      }
+      
+      // تحديث الإعدادات
+      final success = await configManager.refreshConfig();
+      
+      if (success) {
+        debugPrint('✅ [HomeScreen] Remote Config updated successfully');
+        
+        // طباعة القيم المحدثة (المبسطة)
+        debugPrint('📊 Updated Config Values:');
+        debugPrint('  - Maintenance Mode: ${configManager.isMaintenanceModeActive}');
+        debugPrint('  - Force Update: ${configManager.isForceUpdateRequired}');
+        debugPrint('  - Required Version: ${configManager.requiredAppVersion}');
+        
+        // إذا كان في وضع الصيانة أو يحتاج تحديث، سيتعامل معه AppStatusMonitor تلقائياً
+        if (configManager.isMaintenanceModeActive) {
+          debugPrint('🔧 App is now in maintenance mode');
+        }
+        
+        if (configManager.isForceUpdateRequired) {
+          debugPrint('🚨 Force update is now required');
+        }
+        
+        return true;
+      } else {
+        debugPrint('⚠️ [HomeScreen] Remote Config update returned false');
+        return false;
+      }
+      
+    } catch (e) {
+      debugPrint('❌ [HomeScreen] Remote Config refresh error: $e');
+      return false;
     }
   }
 
@@ -175,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen>
         final timeString = timeFormatter.format(currentTime);
     
         return Container(
-          padding: EdgeInsets.all(16.w), // استخدام .w للحشوات
+          padding: EdgeInsets.all(16.w),
           child: Row(
             children: [
               Expanded(
@@ -187,7 +266,7 @@ class _HomeScreenState extends State<HomeScreen>
                         Icon(
                           messageData['icon'] as IconData,
                           color: context.primaryColor,
-                          size: 24.sp, // استخدام .sp للأيقونات
+                          size: 24.sp,
                         ),
                         SizedBox(width: 8.w),
                         Text(
@@ -195,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen>
                           style: context.titleMedium?.copyWith(
                             fontWeight: ThemeConstants.bold,
                             color: context.textPrimaryColor,
-                            fontSize: 16.sp, // إضافة حجم خط متجاوب
+                            fontSize: 16.sp,
                           ),
                         ),
                       ],
@@ -255,7 +334,7 @@ class _HomeScreenState extends State<HomeScreen>
               
               Material(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(12.r), // استخدام .r للزوايا
+                borderRadius: BorderRadius.circular(12.r),
                 child: InkWell(
                   onTap: () {
                     HapticFeedback.lightImpact();
@@ -269,7 +348,7 @@ class _HomeScreenState extends State<HomeScreen>
                       borderRadius: BorderRadius.circular(12.r),
                       border: Border.all(
                         color: context.dividerColor.withValues(alpha: 0.3),
-                        width: 1.w, // عرض الحد متجاوب
+                        width: 1.w,
                       ),
                       boxShadow: [
                         BoxShadow(
@@ -359,78 +438,4 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     );
   }
-
-  /// معالج Pull to Refresh - مع تحديث Remote Config
-  Future<void> _handlePullToRefresh() async {
-    if (_isRefreshing) return;
-    
-    setState(() => _isRefreshing = true);
-    HapticFeedback.mediumImpact();
-    
-    try {
-      debugPrint('🔄 [HomeScreen] Starting refresh...');
-      
-      // 1. محاولة تحديث Remote Config
-      await _refreshRemoteConfig();
-      
-      // 2. تأخير قصير لتجربة مستخدم أفضل
-      await Future.delayed(const Duration(milliseconds: 800));
-      
-      debugPrint('✅ [HomeScreen] Refresh completed successfully');
-      
-    } catch (e) {
-      debugPrint('❌ [HomeScreen] Refresh error: $e');
-    } finally {
-      if (mounted) {
-        setState(() => _isRefreshing = false);
-      }
-    }
-  }
-
-  /// تحديث Remote Config
-  Future<bool> _refreshRemoteConfig() async {
-    try {
-      debugPrint('🔧 [HomeScreen] Fetching Remote Config updates...');
-      
-      // التحقق من توفر RemoteConfigManager
-      if (!getIt.isRegistered<RemoteConfigManager>()) {
-        debugPrint('⚠️ [HomeScreen] RemoteConfigManager not registered');
-        return false;
-      }
-      
-      final configManager = getIt<RemoteConfigManager>();
-      
-      // التحقق من أنه مُهيأ
-      if (!configManager.isInitialized) {
-        debugPrint('⚠️ [HomeScreen] RemoteConfigManager not initialized');
-        return false;
-      }
-      
-      // تحديث الإعدادات
-      final success = await configManager.refreshConfig();
-      
-      if (success) {
-        debugPrint('✅ [HomeScreen] Remote Config updated successfully');
-        
-        // طباعة القيم المحدثة
-        debugPrint('📊 Updated Config Values:');
-        debugPrint('  - Prayer Times Enabled: ${configManager.isPrayerTimesFeatureEnabled}');
-        debugPrint('  - Qibla Enabled: ${configManager.isQiblaFeatureEnabled}');
-        debugPrint('  - Athkar Enabled: ${configManager.isAthkarFeatureEnabled}');
-        debugPrint('  - Notifications Enabled: ${configManager.isNotificationsFeatureEnabled}');
-        debugPrint('  - Maintenance Mode: ${configManager.isMaintenanceModeActive}');
-        debugPrint('  - Force Update: ${configManager.isForceUpdateRequired}');
-        
-        return true;
-      } else {
-        debugPrint('⚠️ [HomeScreen] Remote Config update returned false');
-        return false;
-      }
-      
-    } catch (e) {
-      debugPrint('❌ [HomeScreen] Remote Config refresh error: $e');
-      return false;
-    }
-  }
-
 }

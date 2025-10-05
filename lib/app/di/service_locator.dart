@@ -1,4 +1,4 @@
-// lib/app/di/service_locator.dart - محسن نهائياً مع Lazy Loading حقيقي
+// lib/app/di/service_locator.dart - محدث مع Remote Config المبسط
 import 'package:athkar_app/app/themes/core/theme_notifier.dart';
 import 'package:athkar_app/core/error/error_handler.dart';
 import 'package:athkar_app/core/infrastructure/firebase/firebase_messaging_service.dart';
@@ -783,28 +783,50 @@ extension ServiceLocatorExtensions on BuildContext {
     }
   }
   
-  bool isFeatureEnabled(String featureName) {
+  // ==================== Remote Config Status (مبسط) ====================
+  
+  /// فحص وضع الصيانة
+  bool get isMaintenanceModeActive {
     final manager = remoteConfigManager;
-    if (manager == null) return true;
-    
-    try {
-      switch (featureName.toLowerCase()) {
-        case 'prayer_times':
-          return manager.isPrayerTimesFeatureEnabled;
-        case 'qibla':
-          return manager.isQiblaFeatureEnabled;
-        case 'athkar':
-          return manager.isAthkarFeatureEnabled;
-        case 'notifications':
-          return manager.isNotificationsFeatureEnabled;
-        default:
-          return true;
-      }
-    } catch (e) {
-      debugPrint('Error checking feature enabled: $e');
-      return true;
-    }
+    return manager?.isMaintenanceModeActive ?? false;
   }
+  
+  /// فحص التحديث الإجباري
+  bool get isForceUpdateRequired {
+    final manager = remoteConfigManager;
+    return manager?.isForceUpdateRequired ?? false;
+  }
+  
+  /// الحصول على الإصدار المطلوب
+  String get requiredAppVersion {
+    final manager = remoteConfigManager;
+    return manager?.requiredAppVersion ?? '1.0.0';
+  }
+  
+  /// الحصول على رابط التحديث
+  String? get updateUrl {
+    final manager = remoteConfigManager;
+    return manager?.updateUrl;
+  }
+  
+  /// تحديث Remote Config يدوياً
+  Future<bool> refreshRemoteConfig() async {
+    final manager = remoteConfigManager;
+    if (manager == null || !manager.isInitialized) {
+      debugPrint('⚠️ RemoteConfigManager not available or not initialized');
+      return false;
+    }
+    
+    return await manager.refreshConfig();
+  }
+  
+  /// فحص حالة Remote Config
+  Map<String, dynamic>? get remoteConfigStatus {
+    final manager = remoteConfigManager;
+    return manager?.configStatus;
+  }
+  
+  // ==================== Permission Helpers ====================
   
   Future<bool> requestPermission(
     AppPermissionType permission, {

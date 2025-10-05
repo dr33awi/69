@@ -23,6 +23,7 @@ import 'core/infrastructure/services/preview/device_preview_config.dart';
 // Firebase services
 import 'core/infrastructure/firebase/remote_config_manager.dart';
 import 'core/infrastructure/firebase/remote_config_service.dart';
+// استورد AppStatusMonitor هنا
 import 'core/infrastructure/firebase/widgets/app_status_monitor.dart';
 
 // الثيمات والمسارات
@@ -128,17 +129,39 @@ Future<void> _initializeRemoteConfigEarly() async {
     final remoteConfigService = getIt<FirebaseRemoteConfigService>();
     await remoteConfigService.initialize();
     
+    // فرض جلب البيانات الجديدة
+    debugPrint('🔄 Forcing refresh of Remote Config...');
+    bool refreshSuccess = await remoteConfigService.refresh();
+    debugPrint('  - First refresh result: $refreshSuccess');
+    
+    // إذا كانت القيم افتراضية، جرب forceRefreshForTesting
+    if (remoteConfigService.requiredAppVersion == "1.0.0" || 
+        remoteConfigService.requiredAppVersion == "1.1.0") {
+      debugPrint('⚠️ Default values detected, trying force refresh...');
+      await remoteConfigService.forceRefreshForTesting();
+      refreshSuccess = await remoteConfigService.refresh();
+      debugPrint('  - Second refresh result: $refreshSuccess');
+    }
+    
     final configManager = getIt<RemoteConfigManager>();
     await configManager.initialize(
       remoteConfig: remoteConfigService,
       storage: getIt<StorageService>(),
     );
     
-    debugPrint('📊 Remote Config Status:');
+    debugPrint('📊 Final Remote Config Values:');
     debugPrint('  - Force Update: ${remoteConfigService.isForceUpdateRequired}');
     debugPrint('  - Maintenance: ${remoteConfigService.isMaintenanceModeEnabled}');
     debugPrint('  - App Version: ${remoteConfigService.requiredAppVersion}');
-    debugPrint('✅ Remote Config initialized successfully');
+    debugPrint('  - Update URL: ${remoteConfigService.updateUrl}');
+    
+    if (remoteConfigService.requiredAppVersion == "1.0.0" || 
+        remoteConfigService.requiredAppVersion == "1.1.0") {
+      debugPrint('⚠️ WARNING: Still using default app_version!');
+      debugPrint('⚠️ Check Firebase Console and publish changes');
+    } else {
+      debugPrint('✅ Remote Config initialized with Firebase values');
+    }
     
   } catch (e) {
     debugPrint('⚠️ Remote Config early init failed (non-critical): $e');
@@ -212,6 +235,7 @@ class _AthkarAppState extends State<AthkarApp> {
           debugPrint('Current Remote Config Values:');
           debugPrint('  - Force Update: ${_configManager!.isForceUpdateRequired}');
           debugPrint('  - Maintenance: ${_configManager!.isMaintenanceModeActive}');
+          debugPrint('  - Required Version: ${_configManager!.requiredAppVersion}');
         } else {
           debugPrint('⚠️ Config Manager registered but not initialized yet');
           
@@ -325,6 +349,7 @@ class _AthkarAppState extends State<AthkarApp> {
   Widget _wrapWithAppMonitor(Widget screen) {
     if (_configManagerReady && _configManager != null) {
       debugPrint('✅ Wrapping with AppStatusMonitor (Config Manager ready)');
+      // AppStatusMonitor مستورد في الأعلى، لذا يمكن استخدامه مباشرة
       return AppStatusMonitor(
         configManager: _configManager,
         child: screen,
@@ -366,7 +391,7 @@ class _ErrorApp extends StatelessWidget {
                         Container(
                           padding: EdgeInsets.all(32.w),
                           decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.1),
+                            color: Colors.red.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(

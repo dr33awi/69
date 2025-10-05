@@ -1,9 +1,10 @@
-// lib/core/infrastructure/firebase/remote_config_service.dart - محدث ومبسط
+// lib/core/infrastructure/firebase/remote_config_service.dart - النسخة الكاملة مع قائمة الميزات
 import 'dart:async';
 import 'dart:convert';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 
+/// خدمة Firebase Remote Config - مبسطة مع دعم قائمة الميزات
 class FirebaseRemoteConfigService {
   static final FirebaseRemoteConfigService _instance = FirebaseRemoteConfigService._internal();
   factory FirebaseRemoteConfigService() => _instance;
@@ -16,13 +17,15 @@ class FirebaseRemoteConfigService {
   bool? _cachedForceUpdate;
   bool? _cachedMaintenanceMode;
   String? _cachedAppVersion;
+  String? _cachedUpdateUrl;
+  List<String>? _cachedFeaturesList;
   
-  // مفاتيح الإعدادات الأساسية فقط
+  // مفاتيح الإعدادات
   static const String _keyAppVersion = 'app_version';
   static const String _keyForceUpdate = 'force_update';
   static const String _keyMaintenanceMode = 'maintenance_mode';
   static const String _keyUpdateUrlAndroid = 'update_url_android';
-  static const String _keyFeaturesConfig = 'features_config';
+  static const String _keyUpdateFeaturesList = 'update_features_list';
 
   /// تهيئة الخدمة
   Future<void> initialize() async {
@@ -31,15 +34,19 @@ class FirebaseRemoteConfigService {
     try {
       _remoteConfig = FirebaseRemoteConfig.instance;
       
+      // إعدادات الجلب
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(minutes: 1),
         minimumFetchInterval: const Duration(minutes: 5),
       ));
       
+      // القيم الافتراضية
       await _setDefaults();
+      
+      // جلب وتفعيل
       await _fetchAndActivate();
       
-      // ✅ تحديث Cache بعد التهيئة
+      // تحديث Cache
       _updateCache();
       
       _isInitialized = true;
@@ -48,44 +55,79 @@ class FirebaseRemoteConfigService {
       
     } catch (e) {
       debugPrint('❌ Error initializing Firebase Remote Config: $e');
+      _isInitialized = false;
       throw Exception('Failed to initialize Firebase Remote Config: $e');
     }
   }
 
-  /// ✅ تحديث Cache
+  /// تحديث Cache
   void _updateCache() {
     try {
-      // قراءة مرة واحدة فقط
       _cachedForceUpdate = _remoteConfig.getBool(_keyForceUpdate);
       _cachedMaintenanceMode = _remoteConfig.getBool(_keyMaintenanceMode);
       _cachedAppVersion = _remoteConfig.getString(_keyAppVersion);
+      _cachedUpdateUrl = _remoteConfig.getString(_keyUpdateUrlAndroid);
+      
+      // تحديث cache قائمة الميزات
+      _cachedFeaturesList = _parseFeaturesList();
       
       debugPrint('✅ Cache updated:');
       debugPrint('  - Force Update: $_cachedForceUpdate');
       debugPrint('  - Maintenance: $_cachedMaintenanceMode');
       debugPrint('  - App Version: $_cachedAppVersion');
+      debugPrint('  - Update URL: ${_cachedUpdateUrl?.substring(0, 30)}...');
+      debugPrint('  - Features Count: ${_cachedFeaturesList?.length}');
     } catch (e) {
       debugPrint('⚠️ Error updating cache: $e');
     }
   }
 
+  /// تحليل قائمة الميزات من JSON
+  List<String> _parseFeaturesList() {
+    try {
+      final jsonString = _remoteConfig.getString(_keyUpdateFeaturesList);
+      if (jsonString.isEmpty) {
+        return _getDefaultFeaturesList();
+      }
+      
+      // محاولة تحليل JSON
+      final dynamic decoded = jsonDecode(jsonString);
+      if (decoded is List) {
+        return decoded.map((e) => e.toString()).toList();
+      }
+      
+      return _getDefaultFeaturesList();
+    } catch (e) {
+      debugPrint('⚠️ Error parsing update features list: $e');
+      return _getDefaultFeaturesList();
+    }
+  }
+
+  /// القائمة الافتراضية للميزات
+  List<String> _getDefaultFeaturesList() {
+    return [
+      'تحسينات الأداء',
+      'إصلاح الأخطاء', 
+      'ميزات جديدة'
+    ];
+  }
+
+  /// تعيين القيم الافتراضية
   Future<void> _setDefaults() async {
     await _remoteConfig.setDefaults({
       _keyAppVersion: '1.0.0',
       _keyForceUpdate: false,
       _keyMaintenanceMode: false,
       _keyUpdateUrlAndroid: 'https://play.google.com/store/apps/details?id=com.example.test_athkar_app',
-      _keyFeaturesConfig: jsonEncode({
-        'prayer_times_enabled': true,
-        'qibla_enabled': true,
-        'athkar_enabled': true,
-        'tasbih_enabled': true,
-        'dua_enabled': true,
-        'notifications_enabled': true,
-      }),
+      _keyUpdateFeaturesList: jsonEncode([
+        'تحسينات الأداء',
+        'إصلاح الأخطاء',
+        'ميزات جديدة'
+      ]),
     });
   }
 
+  /// جلب وتفعيل الإعدادات
   Future<bool> _fetchAndActivate() async {
     try {
       final fetchResult = await _remoteConfig.fetchAndActivate();
@@ -97,42 +139,49 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  /// جلب الإعدادات يدوياً
+  /// تحديث الإعدادات يدوياً
   Future<bool> refresh() async {
     if (!_isInitialized) return false;
     
-    final result = await _fetchAndActivate();
-    if (result) {
-      _updateCache(); // ✅ تحديث Cache بعد Refresh
-      _printDebugInfo();
+    try {
+      final result = await _fetchAndActivate();
+      if (result) {
+        _updateCache();
+        _printDebugInfo();
+      }
+      return result;
+    } catch (e) {
+      debugPrint('❌ Error refreshing config: $e');
+      return false;
     }
-    return result;
   }
 
-  // ==================== ✅ Getters المحسّنة ====================
+  // ==================== Getters الأساسية ====================
 
-  /// إصدار التطبيق المطلوب (من Cache)
+  /// إصدار التطبيق المطلوب
   String get requiredAppVersion {
     if (_cachedAppVersion != null && _cachedAppVersion!.isNotEmpty) {
       return _cachedAppVersion!;
     }
     
-    // Fallback إلى القراءة المباشرة
-    final version = _remoteConfig.getString(_keyAppVersion);
-    return version.isNotEmpty ? version : '1.0.0';
+    try {
+      final version = _remoteConfig.getString(_keyAppVersion);
+      return version.isNotEmpty ? version : '1.0.0';
+    } catch (e) {
+      return '1.0.0';
+    }
   }
 
-  /// هل يجب فرض التحديث (من Cache)
+  /// هل يجب فرض التحديث؟
   bool get isForceUpdateRequired {
     if (_cachedForceUpdate != null) {
       if (_cachedForceUpdate!) {
-        debugPrint('🚨 FORCE UPDATE REQUIRED (from cache)!');
+        debugPrint('🚨 FORCE UPDATE REQUIRED!');
         debugPrint('Required version: $requiredAppVersion');
       }
       return _cachedForceUpdate!;
     }
     
-    // Fallback
     try {
       return _remoteConfig.getBool(_keyForceUpdate);
     } catch (e) {
@@ -141,16 +190,15 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  /// هل التطبيق في وضع الصيانة (من Cache)
+  /// هل التطبيق في وضع الصيانة؟
   bool get isMaintenanceModeEnabled {
     if (_cachedMaintenanceMode != null) {
       if (_cachedMaintenanceMode!) {
-        debugPrint('🔧 MAINTENANCE MODE ENABLED (from cache)!');
+        debugPrint('🔧 MAINTENANCE MODE ENABLED!');
       }
       return _cachedMaintenanceMode!;
     }
     
-    // Fallback
     try {
       return _remoteConfig.getBool(_keyMaintenanceMode);
     } catch (e) {
@@ -159,152 +207,120 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  /// رابط التحديث Android
-  String get updateUrlAndroid {
-    final url = _remoteConfig.getString(_keyUpdateUrlAndroid);
-    if (url.isNotEmpty) return url;
+  /// رابط التحديث
+  String get updateUrl {
+    if (_cachedUpdateUrl != null && _cachedUpdateUrl!.isNotEmpty) {
+      return _cachedUpdateUrl!;
+    }
     
-    return 'https://play.google.com/store/apps/details?id=com.example.test_athkar_app';
-  }
-
-  String get updateUrl => updateUrlAndroid;
-
-  // ==================== Features Config Only ====================
-
-  Map<String, dynamic> get featuresConfig {
     try {
-      final jsonString = _remoteConfig.getString(_keyFeaturesConfig);
-      if (jsonString.isEmpty) {
-        return {
-          'prayer_times_enabled': true,
-          'qibla_enabled': true,
-          'athkar_enabled': true,
-          'tasbih_enabled': true,
-          'dua_enabled': true,
-          'notifications_enabled': true,
-        };
-      }
-      return jsonDecode(jsonString) as Map<String, dynamic>;
+      final url = _remoteConfig.getString(_keyUpdateUrlAndroid);
+      return url.isNotEmpty ? url : 'https://play.google.com/store/apps/details?id=com.example.athkar_app';
     } catch (e) {
-      debugPrint('⚠️ Error parsing features config: $e');
-      return {
-        'prayer_times_enabled': true,
-        'qibla_enabled': true,
-        'athkar_enabled': true,
-        'tasbih_enabled': true,
-        'dua_enabled': true,
-        'notifications_enabled': true,
-      };
+      return 'https://play.google.com/store/apps/details?id=com.example.athkar_app';
     }
   }
 
-  // ==================== Custom Values ====================
-
-  String getCustomString(String key, {String defaultValue = ''}) {
-    final value = _remoteConfig.getString(key);
-    return value.isEmpty ? defaultValue : value;
-  }
-
-  bool getCustomBool(String key, {bool defaultValue = false}) {
-    try {
-      return _remoteConfig.getBool(key);
-    } catch (e) {
-      debugPrint('⚠️ Error getting custom bool for key $key: $e');
-      return defaultValue;
+  /// قائمة ميزات التحديث
+  List<String> get updateFeaturesList {
+    if (_cachedFeaturesList != null && _cachedFeaturesList!.isNotEmpty) {
+      return _cachedFeaturesList!;
     }
+    
+    return _parseFeaturesList();
   }
 
-  int getCustomInt(String key, {int defaultValue = 0}) {
-    try {
-      return _remoteConfig.getInt(key);
-    } catch (e) {
-      debugPrint('⚠️ Error getting custom int for key $key: $e');
-      return defaultValue;
-    }
-  }
+  // Alias للتوافق
+  String get updateUrlAndroid => updateUrl;
 
-  Map<String, dynamic>? getCustomJson(String key) {
-    try {
-      final jsonString = _remoteConfig.getString(key);
-      if (jsonString.isEmpty) return null;
-      return jsonDecode(jsonString) as Map<String, dynamic>;
-    } catch (e) {
-      debugPrint('⚠️ Error parsing custom JSON for key $key: $e');
-      return null;
-    }
-  }
-
-  // ==================== Debug ====================
-
-  void _printDebugInfo() {
-    try {
-      debugPrint('========== Remote Config Debug Info ==========');
-      debugPrint('Is initialized: $_isInitialized');
-      debugPrint('Last fetch status: ${_remoteConfig.lastFetchStatus}');
-      debugPrint('Last fetch time: ${_remoteConfig.lastFetchTime}');
-      debugPrint('--- Cached Values ---');
-      debugPrint('Force Update: $_cachedForceUpdate');
-      debugPrint('Maintenance Mode: $_cachedMaintenanceMode');
-      debugPrint('App Version: $_cachedAppVersion');
-      debugPrint('Features Config: ${featuresConfig.toString()}');
-      debugPrint('==============================================');
-    } catch (e) {
-      debugPrint('⚠️ Error printing debug info: $e');
-    }
-  }
+  // ==================== معلومات الحالة ====================
 
   RemoteConfigFetchStatus get lastFetchStatus => _remoteConfig.lastFetchStatus;
   DateTime get lastFetchTime => _remoteConfig.lastFetchTime;
   bool get isInitialized => _isInitialized;
 
+  /// معلومات التصحيح
   Map<String, dynamic> get debugInfo => {
     'is_initialized': _isInitialized,
-    'platform': 'android',
     'last_fetch_status': lastFetchStatus.toString(),
     'last_fetch_time': lastFetchTime.toIso8601String(),
-    'cached_force_update': _cachedForceUpdate,
-    'cached_maintenance': _cachedMaintenanceMode,
-    'cached_app_version': _cachedAppVersion,
-    'features_config': featuresConfig,
+    'cached_values': {
+      'force_update': _cachedForceUpdate,
+      'maintenance_mode': _cachedMaintenanceMode,
+      'app_version': _cachedAppVersion,
+      'features_count': _cachedFeaturesList?.length,
+    },
   };
 
-  // ==================== Testing ====================
+  /// طباعة معلومات التصحيح
+  void _printDebugInfo() {
+    try {
+      debugPrint('========== Remote Config Info ==========');
+      debugPrint('Is initialized: $_isInitialized');
+      debugPrint('Last fetch status: ${_remoteConfig.lastFetchStatus}');
+      debugPrint('Last fetch time: ${_remoteConfig.lastFetchTime}');
+      debugPrint('--- Current Values ---');
+      debugPrint('Force Update: $_cachedForceUpdate');
+      debugPrint('Maintenance Mode: $_cachedMaintenanceMode');
+      debugPrint('App Version: $_cachedAppVersion');
+      debugPrint('Features List: $_cachedFeaturesList');
+      debugPrint('========================================');
+    } catch (e) {
+      debugPrint('⚠️ Error printing debug info: $e');
+    }
+  }
 
+  // ==================== للاختبار فقط ====================
+
+  /// فرض التحديث للاختبار
   Future<void> forceRefreshForTesting() async {
     if (!_isInitialized) return;
     
     try {
       debugPrint('🧪 FORCE REFRESH FOR TESTING...');
       
+      // إزالة قيود الوقت للاختبار
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(seconds: 30),
         minimumFetchInterval: Duration.zero,
       ));
       
       final result = await _remoteConfig.fetchAndActivate();
-      _updateCache(); // ✅ تحديث Cache
+      _updateCache();
       
       debugPrint('🧪 Force refresh result: $result');
       _printDebugInfo();
+      
+      // إعادة الإعدادات الطبيعية
+      await _remoteConfig.setConfigSettings(RemoteConfigSettings(
+        fetchTimeout: const Duration(minutes: 1),
+        minimumFetchInterval: const Duration(minutes: 5),
+      ));
       
     } catch (e) {
       debugPrint('🧪 Error in force refresh: $e');
     }
   }
 
+  /// إعادة التهيئة
   Future<void> reinitialize() async {
     _isInitialized = false;
     _cachedForceUpdate = null;
     _cachedMaintenanceMode = null;
     _cachedAppVersion = null;
+    _cachedUpdateUrl = null;
+    _cachedFeaturesList = null;
     await initialize();
   }
 
+  /// تنظيف الموارد
   void dispose() {
     _isInitialized = false;
     _cachedForceUpdate = null;
     _cachedMaintenanceMode = null;
     _cachedAppVersion = null;
+    _cachedUpdateUrl = null;
+    _cachedFeaturesList = null;
     debugPrint('FirebaseRemoteConfigService disposed');
   }
 }
