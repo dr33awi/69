@@ -86,10 +86,6 @@ Future<void> _fastBootstrap() async {
     }
     debugPrint('✅ Firebase initialized. Apps: ${Firebase.apps.length}');
         
-    debugPrint('📖 تهيئة مكتبة القرآن الكريم...');
-    await QuranLibrary.init();
-    debugPrint('✅ Quran Library initialized');
-
     await ServiceLocator.initEssential();
     
     if (!getIt.isRegistered<OnboardingService>()) {
