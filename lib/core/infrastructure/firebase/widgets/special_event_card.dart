@@ -1,15 +1,13 @@
-// lib/features/home/widgets/special_event_card.dart
-// كارد المناسبات الإسلامية والوطنية
+// lib/core/infrastructure/firebase/widgets/special_event_card.dart
+// كارد المناسبات الإسلامية والوطنية - مُصحح
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get_it/get_it.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../core/infrastructure/firebase/remote_config_service.dart';
-import '../../../app/themes/app_theme.dart';
-
-final GetIt getIt = GetIt.instance;
+import '../../../../app/di/service_locator.dart' as sl;
+import '../../../../app/themes/app_theme.dart';
+import '../remote_config_service.dart';
 
 /// كارد المناسبات الخاصة - يظهر في المناسبات الإسلامية والوطنية
 class SpecialEventCard extends StatefulWidget {
@@ -69,8 +67,8 @@ class _SpecialEventCardState extends State<SpecialEventCard>
   /// جلب بيانات المناسبة من Firebase Remote Config
   Future<void> _loadEventData() async {
     try {
-      if (getIt.isRegistered<FirebaseRemoteConfigService>()) {
-        final remoteConfig = getIt<FirebaseRemoteConfigService>();
+      if (sl.getIt.isRegistered<FirebaseRemoteConfigService>()) {
+        final remoteConfig = sl.getIt<FirebaseRemoteConfigService>();
         
         if (remoteConfig.isInitialized) {
           final eventData = remoteConfig.specialEventData;
@@ -397,6 +395,7 @@ class _SpecialEventCardState extends State<SpecialEventCard>
                 fontSize: 22.sp,
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Cairo',
+                color: context.textPrimaryColor,
               ),
             ),
             

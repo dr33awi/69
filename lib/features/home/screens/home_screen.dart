@@ -1,4 +1,4 @@
-// lib/features/home/screens/home_screen.dart - محدث مع flutter_screenutil و Remote Config المبسط
+// lib/features/home/screens/home_screen.dart - محدث مع SpecialEventCard
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,6 +11,8 @@ import 'package:athkar_app/features/home/daily_quotes/daily_quotes_card.dart';
 import 'package:athkar_app/features/home/widgets/home_prayer_times_card.dart';
 import 'package:athkar_app/app/di/service_locator.dart';
 import 'package:athkar_app/core/infrastructure/firebase/remote_config_manager.dart';
+// استورد SpecialEventCard
+import 'package:athkar_app/core/infrastructure/firebase/widgets/special_event_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -211,6 +213,11 @@ class _HomeScreenState extends State<HomeScreen>
                               const PrayerTimesCard(),
                               
                               SizedBox(height: 20.h),
+                              
+                              // ========== كارد المناسبة الخاصة - جديد! ==========
+                              // سيظهر فقط إذا كانت هناك مناسبة نشطة في Firebase
+                              const SpecialEventCard(),
+                              // =================================================
                               
                               // بطاقة الاقتباسات اليومية
                               const DailyQuotesCard(),
