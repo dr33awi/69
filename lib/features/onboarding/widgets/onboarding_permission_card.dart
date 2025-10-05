@@ -19,32 +19,32 @@ class OnboardingPermissionCard extends StatelessWidget {
     final info = PermissionConstants.getInfo(permission);
     
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 6.h),
+      margin: EdgeInsets.symmetric(vertical: 5.h),
       child: Material(
         color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(14.r),
+        borderRadius: BorderRadius.circular(12.r),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(14.r),
+          borderRadius: BorderRadius.circular(12.r),
           child: Container(
-            padding: EdgeInsets.all(16.w),
+            padding: EdgeInsets.all(12.w),
             child: Row(
               children: [
                 Container(
-                  width: 48.w,
-                  height: 48.w,
+                  width: 40.w,
+                  height: 40.w,
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(12.r),
+                    borderRadius: BorderRadius.circular(10.r),
                   ),
                   child: Icon(
                     info.icon,
                     color: Colors.white,
-                    size: 24.sp,
+                    size: 20.sp,
                   ),
                 ),
                 
-                SizedBox(width: 12.w),
+                SizedBox(width: 10.w),
                 
                 Expanded(
                   child: Column(
@@ -53,7 +53,7 @@ class OnboardingPermissionCard extends StatelessWidget {
                       Text(
                         info.name,
                         style: TextStyle(
-                          fontSize: 16.sp,
+                          fontSize: 14.sp,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -62,7 +62,7 @@ class OnboardingPermissionCard extends StatelessWidget {
                       Text(
                         info.description,
                         style: TextStyle(
-                          fontSize: 13.sp,
+                          fontSize: 11.sp,
                           color: Colors.white.withOpacity(0.8),
                           height: 1.3,
                         ),
@@ -74,7 +74,7 @@ class OnboardingPermissionCard extends StatelessWidget {
                 Icon(
                   Icons.arrow_forward_ios,
                   color: Colors.white.withOpacity(0.6),
-                  size: 14.sp,
+                  size: 12.sp,
                 ),
               ],
             ),

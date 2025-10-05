@@ -7,7 +7,7 @@ import 'package:permission_handler/permission_handler.dart' as handler;
 import '../storage/storage_service.dart';
 import 'permission_service.dart';
 import 'permission_constants.dart';
-import 'widgets/permission_dialogs.dart';
+import '../../../../features/onboarding/widgets/permission_dialogs.dart';
 import 'handlers/permission_handler_factory.dart';
 
 /// تنفيذ مبسط لخدمة الأذونات بدون مراقبة دورية

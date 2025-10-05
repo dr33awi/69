@@ -1,5 +1,4 @@
-// lib/features/dua/screens/dua_categories_screen.dart - محدث
-// ============================================================================
+// lib/features/dua/screens/dua_categories_screen.dart - محسّن للشاشات الصغيرة
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -63,40 +62,40 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
 
   Widget _buildEnhancedAppBar() {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
       child: Row(
         children: [
           AppBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
           
-          SizedBox(width: 12.w),
+          SizedBox(width: 8.w),
           
           Container(
-            padding: EdgeInsets.all(8.w),
+            padding: EdgeInsets.all(6.r),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [ThemeConstants.primary, ThemeConstants.primaryLight],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(10.r),
               boxShadow: [
                 BoxShadow(
-                  color: ThemeConstants.primary.withValues(alpha: 0.3),
-                  blurRadius: 8.r,
-                  offset: Offset(0, 4.h),
+                  color: ThemeConstants.primary.withValues(alpha: 0.25),
+                  blurRadius: 6.r,
+                  offset: Offset(0, 3.h),
                 ),
               ],
             ),
             child: Icon(
               Icons.pan_tool_rounded,
               color: Colors.white,
-              size: 24.sp,
+              size: 20.sp,
             ),
           ),
           
-          SizedBox(width: 12.w),
+          SizedBox(width: 8.w),
           
           Expanded(
             child: Column(
@@ -104,17 +103,17 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
               children: [
                 Text(
                   'الأدعية المأثورة',
-                  style: context.titleLarge?.copyWith(
+                  style: TextStyle(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
-                    fontSize: 18.sp,
+                    fontSize: 16.sp,
                   ),
                 ),
                 Text(
-                  'أدعية من الكتاب والسنة',
-                  style: context.bodySmall?.copyWith(
+                  'من الكتاب والسنة',
+                  style: TextStyle(
                     color: context.textSecondaryColor,
-                    fontSize: 12.sp,
+                    fontSize: 11.sp,
                   ),
                 ),
               ],
@@ -126,35 +125,35 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
   }
 
   Widget _buildLoading() {
-    return Container(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: EdgeInsets.all(16.w),
+            padding: EdgeInsets.all(14.r),
             decoration: BoxDecoration(
               color: ThemeConstants.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: CircularProgressIndicator(
               color: ThemeConstants.primary,
-              strokeWidth: 3.w,
+              strokeWidth: 2.5.w,
             ),
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: 14.h),
           Text(
             'جاري تحميل الأدعية...',
-            style: context.titleMedium?.copyWith(
+            style: TextStyle(
               color: context.textSecondaryColor,
-              fontSize: 16.sp,
+              fontSize: 14.sp,
             ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 6.h),
           Text(
             'يرجى الانتظار قليلاً',
-            style: context.bodySmall?.copyWith(
+            style: TextStyle(
               color: context.textSecondaryColor.withOpacity(0.7),
-              fontSize: 12.sp,
+              fontSize: 11.sp,
             ),
           ),
         ],
@@ -170,23 +169,20 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
     return Column(
       children: [
         Container(
-          margin: EdgeInsets.symmetric(
-            horizontal: 16.w,
-            vertical: 8.h,
-          ),
+          margin: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
           child: Row(
             children: [
               Icon(
                 Icons.category_rounded,
-                size: 16.sp,
+                size: 14.sp,
                 color: context.textSecondaryColor,
               ),
               SizedBox(width: 4.w),
               Text(
                 'عدد الفئات: ${_categories.length}',
-                style: context.labelMedium?.copyWith(
+                style: TextStyle(
                   color: context.textSecondaryColor,
-                  fontSize: 14.sp,
+                  fontSize: 12.sp,
                 ),
               ),
             ],
@@ -195,7 +191,7 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
         
         Expanded(
           child: ListView.builder(
-            padding: EdgeInsets.all(16.w),
+            padding: EdgeInsets.all(12.r),
             physics: const BouncingScrollPhysics(),
             itemCount: _categories.length,
             itemBuilder: (context, index) {
@@ -213,56 +209,53 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Container(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: EdgeInsets.all(24.w),
+            padding: EdgeInsets.all(20.r),
             decoration: BoxDecoration(
               color: context.textSecondaryColor.withValues(alpha: 0.05),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.menu_book_outlined,
-              size: 60.sp,
+              size: 50.sp,
               color: context.textSecondaryColor.withValues(alpha: 0.5),
             ),
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: 14.h),
           Text(
             'لا توجد فئات',
-            style: context.titleLarge?.copyWith(
+            style: TextStyle(
               color: context.textSecondaryColor,
               fontWeight: ThemeConstants.bold,
-              fontSize: 20.sp,
+              fontSize: 18.sp,
             ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 6.h),
           Text(
             'لم يتم العثور على فئات الأدعية',
-            style: context.bodyMedium?.copyWith(
+            style: TextStyle(
               color: context.textSecondaryColor.withValues(alpha: 0.7),
-              fontSize: 14.sp,
+              fontSize: 13.sp,
             ),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 24.h),
+          SizedBox(height: 20.h),
           ElevatedButton.icon(
             onPressed: _loadData,
             style: ElevatedButton.styleFrom(
               backgroundColor: ThemeConstants.primary,
               foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(
-                horizontal: 24.w,
-                vertical: 12.h,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20.r),
+                borderRadius: BorderRadius.circular(16.r),
               ),
             ),
-            icon: const Icon(Icons.refresh_rounded),
-            label: const Text('إعادة المحاولة'),
+            icon: Icon(Icons.refresh_rounded, size: 18.sp),
+            label: Text('إعادة المحاولة', style: TextStyle(fontSize: 13.sp)),
           ),
         ],
       ),
@@ -274,15 +267,15 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
     
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(16.r),
+      borderRadius: BorderRadius.circular(14.r),
       child: InkWell(
         onTap: () => _onCategoryPressed(category),
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(14.r),
         child: Container(
-          padding: EdgeInsets.all(12.w),
+          padding: EdgeInsets.all(10.r),
           decoration: BoxDecoration(
             color: context.cardColor,
-            borderRadius: BorderRadius.circular(16.r),
+            borderRadius: BorderRadius.circular(14.r),
             border: Border.all(
               color: color.withOpacity(0.2),
               width: 1.w,
@@ -290,7 +283,7 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 8.r,
+                blurRadius: 6.r,
                 offset: Offset(0, 2.h),
               ),
             ],
@@ -298,17 +291,17 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
           child: Row(
             children: [
               Container(
-                width: 44.w,
-                height: 44.h,
+                width: 38.r,
+                height: 38.r,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [color, color.withOpacity(0.8)],
                   ),
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: BorderRadius.circular(10.r),
                   boxShadow: [
                     BoxShadow(
-                      color: color.withValues(alpha: 0.3),
-                      blurRadius: 6.r,
+                      color: color.withValues(alpha: 0.25),
+                      blurRadius: 4.r,
                       offset: Offset(0, 2.h),
                     ),
                   ],
@@ -316,11 +309,11 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
                 child: Icon(
                   _getCategoryIcon(category.type),
                   color: _shouldUseWhiteIcon(category.type) ? Colors.white : Colors.black87,
-                  size: 20.sp,
+                  size: 18.sp,
                 ),
               ),
               
-              SizedBox(width: 12.w),
+              SizedBox(width: 10.w),
               
               Expanded(
                 child: Column(
@@ -328,43 +321,43 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
                   children: [
                     Text(
                       category.name,
-                      style: context.titleMedium?.copyWith(
+                      style: TextStyle(
                         color: color,
                         fontWeight: ThemeConstants.bold,
                         fontFamily: ThemeConstants.fontFamilyArabic,
-                        fontSize: 16.sp,
+                        fontSize: 14.sp,
                       ),
                     ),
                     
-                    SizedBox(height: 4.h),
+                    SizedBox(height: 3.h),
                     
                     Text(
                       category.description,
-                      style: context.bodySmall?.copyWith(
+                      style: TextStyle(
                         color: context.textSecondaryColor,
                         height: 1.3,
-                        fontSize: 12.sp,
+                        fontSize: 11.sp,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     
-                    SizedBox(height: 4.h),
+                    SizedBox(height: 3.h),
                     
                     Row(
                       children: [
                         Icon(
                           Icons.format_list_numbered_rounded,
-                          size: 12.sp,
+                          size: 11.sp,
                           color: ThemeConstants.accent,
                         ),
-                        SizedBox(width: 4.w),
+                        SizedBox(width: 3.w),
                         Text(
                           '${category.duaCount} دعاء',
-                          style: context.labelSmall?.copyWith(
+                          style: TextStyle(
                             color: ThemeConstants.accent,
                             fontWeight: ThemeConstants.medium,
-                            fontSize: 11.sp,
+                            fontSize: 10.sp,
                           ),
                         ),
                       ],
@@ -374,7 +367,7 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
               ),
               
               Container(
-                padding: EdgeInsets.all(6.w),
+                padding: EdgeInsets.all(5.r),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8.r),
@@ -382,7 +375,7 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
                 child: Icon(
                   Icons.chevron_left_rounded,
                   color: color,
-                  size: 18.sp,
+                  size: 16.sp,
                 ),
               ),
             ],

@@ -14,7 +14,7 @@ import 'firebase_options.dart';
 import 'app/di/service_locator.dart';
 import 'app/themes/core/theme_notifier.dart';
 import 'core/infrastructure/services/permissions/permission_manager.dart';
-import 'core/infrastructure/services/permissions/widgets/permission_monitor.dart';
+import 'features/onboarding/widgets/permission_monitor.dart';
 import 'core/infrastructure/services/storage/storage_service.dart';
 
 // خدمات التطوير والمراقبة

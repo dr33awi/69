@@ -1,9 +1,8 @@
-// lib/features/tasbih/widgets/tasbih_counter_ring.dart
+// lib/features/tasbih/widgets/tasbih_counter_ring.dart - محسّن للشاشات الصغيرة
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:math' as math;
 
-/// ويدجت الحلقة الدائرية لعرض التقدم
 class TasbihCounterRing extends StatefulWidget {
   final double progress;
   final List<Color> gradient;
@@ -101,7 +100,6 @@ class _CounterRingPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width - strokeWidth) / 2;
 
-    // رسم الحلقة الخلفية
     final backgroundPaint = Paint()
       ..color = gradient[0].withOpacity(0.1)
       ..style = PaintingStyle.stroke
@@ -110,7 +108,6 @@ class _CounterRingPainter extends CustomPainter {
 
     canvas.drawCircle(center, radius, backgroundPaint);
 
-    // رسم حلقة التقدم
     if (progress > 0) {
       final progressPaint = Paint()
         ..shader = LinearGradient(
@@ -122,7 +119,7 @@ class _CounterRingPainter extends CustomPainter {
         ..strokeWidth = strokeWidth
         ..strokeCap = StrokeCap.round;
 
-      const startAngle = -math.pi / 2; // البداية من الأعلى
+      const startAngle = -math.pi / 2;
       final sweepAngle = 2 * math.pi * progress;
 
       canvas.drawArc(
@@ -133,7 +130,6 @@ class _CounterRingPainter extends CustomPainter {
         progressPaint,
       );
 
-      // رسم نقطة في نهاية الخط
       if (progress < 1.0) {
         final endAngle = startAngle + sweepAngle;
         final endX = center.dx + radius * math.cos(endAngle);
@@ -145,18 +141,17 @@ class _CounterRingPainter extends CustomPainter {
         
         canvas.drawCircle(
           Offset(endX, endY),
-          strokeWidth / 2 + 2.w,
+          strokeWidth / 2 + 1.5.w,
           dotPaint,
         );
         
-        // هالة حول النقطة
         final haloPaint = Paint()
           ..color = gradient.last.withOpacity(0.3)
           ..style = PaintingStyle.fill;
         
         canvas.drawCircle(
           Offset(endX, endY),
-          strokeWidth / 2 + 6.w,
+          strokeWidth / 2 + 4.w,
           haloPaint,
         );
       }

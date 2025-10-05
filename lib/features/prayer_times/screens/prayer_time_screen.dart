@@ -261,36 +261,36 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     );
     
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
       child: Row(
         children: [
           AppBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
           
-          SizedBox(width: 8.w),
+          SizedBox(width: 6.w),
           
           Container(
-            padding: EdgeInsets.all(8.w),
+            padding: EdgeInsets.all(6.w),
             decoration: BoxDecoration(
               gradient: gradient,
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(8.r),
               boxShadow: [
                 BoxShadow(
                   color: ThemeConstants.primary.withOpacity(0.3),
-                  blurRadius: 6.r,
-                  offset: Offset(0, 3.h),
+                  blurRadius: 4.r,
+                  offset: Offset(0, 2.h),
                 ),
               ],
             ),
             child: Icon(
               Icons.schedule_rounded,
               color: Colors.white,
-              size: 20.sp,
+              size: 18.sp,
             ),
           ),
           
-          SizedBox(width: 8.w),
+          SizedBox(width: 6.w),
           
           Expanded(
             child: Column(
@@ -301,7 +301,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                   style: TextStyle(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
-                    fontSize: 18.sp,
+                    fontSize: 15.sp,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -312,21 +312,13 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                       : 'وَأَقِمِ الصَّلَاةَ لِذِكْرِي',
                   style: TextStyle(
                     color: context.textSecondaryColor,
-                    fontSize: 11.sp,
+                    fontSize: 10.sp,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
-          ),
-          
-          _buildActionButton(
-            icon: (_isRetryingLocation || _isRefreshing)
-                ? Icons.hourglass_empty
-                : Icons.my_location_rounded,
-            onTap: (_isRetryingLocation || _isRefreshing) ? null : _requestLocation,
-            isLoading: _isRetryingLocation || _isRefreshing,
           ),
           
           _buildActionButton(
@@ -357,42 +349,42 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     bool isSecondary = false,
   }) {
     return Container(
-      margin: EdgeInsets.only(left: 6.w),
+      margin: EdgeInsets.only(left: 4.w),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(8.r),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(10.r),
+          borderRadius: BorderRadius.circular(8.r),
           child: Container(
-            padding: EdgeInsets.all(8.w),
+            padding: EdgeInsets.all(6.w),
             decoration: BoxDecoration(
               color: context.cardColor,
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(8.r),
               border: Border.all(
                 color: context.dividerColor.withOpacity(0.3),
               ),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.05),
-                  blurRadius: 3.r,
-                  offset: Offset(0, 2.h),
+                  blurRadius: 2.r,
+                  offset: Offset(0, 1.h),
                 ),
               ],
             ),
             child: isLoading
                 ? SizedBox(
-                    width: 20.w,
-                    height: 20.w,
+                    width: 18.w,
+                    height: 18.w,
                     child: CircularProgressIndicator(
-                      strokeWidth: 2.w,
+                      strokeWidth: 1.5.w,
                       valueColor: const AlwaysStoppedAnimation<Color>(ThemeConstants.primary),
                     ),
                   )
                 : Icon(
                     icon,
                     color: isSecondary ? context.textSecondaryColor : ThemeConstants.primary,
-                    size: 20.sp,
+                    size: 18.sp,
                   ),
           ),
         ),
@@ -413,7 +405,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       if (_nextPrayer != null)
         SliverToBoxAdapter(
           child: Padding(
-            padding: EdgeInsets.all(12.w),
+            padding: EdgeInsets.all(10.w),
             child: NextPrayerCountdown(
               nextPrayer: _nextPrayer!,
               currentPrayer: _dailyTimes!.currentPrayer,
@@ -422,7 +414,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         ),
       
       SliverPadding(
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
         sliver: SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) {
@@ -433,7 +425,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
               }
               
               return Padding(
-                padding: EdgeInsets.only(bottom: 10.h),
+                padding: EdgeInsets.only(bottom: 8.h),
                 child: PrayerTimeCard(
                   prayer: prayer,
                   forceColored: true,
@@ -446,7 +438,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       ),
       
       SliverToBoxAdapter(
-        child: SizedBox(height: 20.h),
+        child: SizedBox(height: 16.h),
       ),
     ];
   }

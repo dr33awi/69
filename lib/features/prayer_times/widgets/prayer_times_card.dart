@@ -25,23 +25,23 @@ class PrayerTimeCard extends StatelessWidget {
     
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           if (isNext)
             BoxShadow(
               color: prayer.color.withOpacity(0.2),
-              blurRadius: 10.r,
-              offset: Offset(0, 4.h),
+              blurRadius: 8.r,
+              offset: Offset(0, 3.h),
             ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(12.r),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: () => _showPrayerDetails(context),
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(12.r),
           child: Container(
             decoration: BoxDecoration(
               gradient: useGradient ? prayer.gradient : null,
@@ -56,18 +56,18 @@ class PrayerTimeCard extends StatelessWidget {
                   : context.dividerColor.withOpacity(0.2),
                 width: isNext ? 1.5.w : 1.w,
               ),
-              borderRadius: BorderRadius.circular(16.r),
+              borderRadius: BorderRadius.circular(12.r),
             ),
             child: Padding(
-              padding: EdgeInsets.all(10.w),
+              padding: EdgeInsets.all(8.w),
               child: Row(
                 children: [
                   _buildPrayerIcon(context, useGradient),
-                  SizedBox(width: 10.w),
+                  SizedBox(width: 8.w),
                   Expanded(
                     child: _buildPrayerInfo(context, useGradient),
                   ),
-                  SizedBox(width: 6.w),
+                  SizedBox(width: 4.w),
                   _buildTimeSection(context, useGradient),
                 ],
               ),
@@ -85,11 +85,11 @@ class PrayerTimeCard extends StatelessWidget {
       : prayer.color.withOpacity(0.1);
     
     return Container(
-      width: 42.w,
-      height: 42.w,
+      width: 38.w,
+      height: 38.w,
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10.r),
         border: Border.all(
           color: useGradient 
             ? Colors.white.withOpacity(0.3)
@@ -100,7 +100,7 @@ class PrayerTimeCard extends StatelessWidget {
       child: Icon(
         prayer.icon,
         color: iconColor,
-        size: 22.sp,
+        size: 20.sp,
       ),
     );
   }
@@ -122,7 +122,7 @@ class PrayerTimeCard extends StatelessWidget {
               fontWeight: prayer.isNext 
                 ? ThemeConstants.bold 
                 : ThemeConstants.semiBold,
-              fontSize: 15.sp,
+              fontSize: 13.sp,
             ),
           ),
         ),
@@ -136,28 +136,28 @@ class PrayerTimeCard extends StatelessWidget {
     if (prayer.isNext) {
       return Container(
         padding: EdgeInsets.symmetric(
-          horizontal: 6.w,
+          horizontal: 5.w,
           vertical: 2.h,
         ),
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(6.r),
+          borderRadius: BorderRadius.circular(5.r),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               Icons.schedule_rounded,
-              size: 12.sp,
+              size: 11.sp,
               color: Colors.white,
             ),
-            SizedBox(width: 3.w),
+            SizedBox(width: 2.w),
             Text(
               prayer.statusText,
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: ThemeConstants.semiBold,
-                fontSize: 10.sp,
+                fontSize: 9.sp,
               ),
             ),
           ],
@@ -168,10 +168,10 @@ class PrayerTimeCard extends StatelessWidget {
         children: [
           Icon(
             Icons.check_circle_rounded,
-            size: 12.sp,
+            size: 11.sp,
             color: useGradient ? Colors.white : ThemeConstants.success,
           ),
-          SizedBox(width: 3.w),
+          SizedBox(width: 2.w),
           Text(
             'انتهى الوقت',
             style: TextStyle(
@@ -179,7 +179,7 @@ class PrayerTimeCard extends StatelessWidget {
                 ? Colors.white.withOpacity(0.8)
                 : context.textSecondaryColor,
               fontWeight: ThemeConstants.medium,
-              fontSize: 10.sp,
+              fontSize: 9.sp,
             ),
           ),
         ],
@@ -189,7 +189,7 @@ class PrayerTimeCard extends StatelessWidget {
         PrayerUtils.formatTimeUntil(prayer.time),
         style: TextStyle(
           color: _getTextColor(context, useGradient).withOpacity(0.8),
-          fontSize: 10.sp,
+          fontSize: 9.sp,
         ),
       );
     }
@@ -198,14 +198,14 @@ class PrayerTimeCard extends StatelessWidget {
   Widget _buildTimeSection(BuildContext context, bool useGradient) {
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: 8.w,
-        vertical: 6.h,
+        horizontal: 7.w,
+        vertical: 5.h,
       ),
       decoration: BoxDecoration(
         color: useGradient 
           ? Colors.white.withOpacity(0.2)
           : prayer.color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(8.r),
         border: Border.all(
           color: useGradient 
             ? Colors.white.withOpacity(0.3)
@@ -219,7 +219,7 @@ class PrayerTimeCard extends StatelessWidget {
           style: TextStyle(
             color: useGradient ? Colors.white : prayer.color,
             fontWeight: ThemeConstants.bold,
-            fontSize: 14.sp,
+            fontSize: 13.sp,
           ),
         ),
       ),
@@ -254,12 +254,12 @@ class PrayerDetailsDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(14.r),
       ),
       child: Container(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.all(14.w),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(14.r),
           gradient: prayer.gradient,
         ),
         child: Column(
@@ -268,18 +268,18 @@ class PrayerDetailsDialog extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(10.w),
+                  padding: EdgeInsets.all(8.w),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(10.r),
+                    borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: Icon(
                     prayer.icon,
                     color: Colors.white,
-                    size: 28.sp,
+                    size: 24.sp,
                   ),
                 ),
-                SizedBox(width: 10.w),
+                SizedBox(width: 8.w),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -289,14 +289,14 @@ class PrayerDetailsDialog extends StatelessWidget {
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: ThemeConstants.bold,
-                          fontSize: 20.sp,
+                          fontSize: 18.sp,
                         ),
                       ),
                       Text(
                         prayer.nameEn,
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.8),
-                          fontSize: 12.sp,
+                          fontSize: 11.sp,
                         ),
                       ),
                     ],
@@ -305,14 +305,14 @@ class PrayerDetailsDialog extends StatelessWidget {
               ],
             ),
             
-            SizedBox(height: 12.h),
+            SizedBox(height: 10.h),
             
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(12.w),
+              padding: EdgeInsets.all(10.w),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(10.r),
               ),
               child: Column(
                 children: [
@@ -324,7 +324,7 @@ class PrayerDetailsDialog extends StatelessWidget {
                   ),
                   
                   if (prayer.isNext) ...[
-                    SizedBox(height: 6.h),
+                    SizedBox(height: 5.h),
                     _buildDetailRow(
                       context,
                       icon: Icons.hourglass_empty,
@@ -334,7 +334,7 @@ class PrayerDetailsDialog extends StatelessWidget {
                   ],
                   
                   if (prayer.isPassed) ...[
-                    SizedBox(height: 6.h),
+                    SizedBox(height: 5.h),
                     _buildDetailRow(
                       context,
                       icon: Icons.check_circle,
@@ -346,7 +346,7 @@ class PrayerDetailsDialog extends StatelessWidget {
               ),
             ),
             
-            SizedBox(height: 12.h),
+            SizedBox(height: 10.h),
             
             Row(
               children: [
@@ -355,15 +355,15 @@ class PrayerDetailsDialog extends StatelessWidget {
                     onPressed: () => Navigator.pop(context),
                     style: TextButton.styleFrom(
                       foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 10.h),
+                      padding: EdgeInsets.symmetric(vertical: 8.h),
                     ),
                     child: Text(
                       'إغلاق',
-                      style: TextStyle(fontSize: 14.sp),
+                      style: TextStyle(fontSize: 13.sp),
                     ),
                   ),
                 ),
-                SizedBox(width: 10.w),
+                SizedBox(width: 8.w),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
@@ -373,14 +373,14 @@ class PrayerDetailsDialog extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white.withOpacity(0.2),
                       foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 10.h),
+                      padding: EdgeInsets.symmetric(vertical: 8.h),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.r),
+                        borderRadius: BorderRadius.circular(8.r),
                       ),
                     ),
                     child: Text(
                       'الإعدادات',
-                      style: TextStyle(fontSize: 14.sp),
+                      style: TextStyle(fontSize: 13.sp),
                     ),
                   ),
                 ),
@@ -403,14 +403,14 @@ class PrayerDetailsDialog extends StatelessWidget {
         Icon(
           icon,
           color: Colors.white.withOpacity(0.8),
-          size: 16.sp,
+          size: 14.sp,
         ),
-        SizedBox(width: 6.w),
+        SizedBox(width: 5.w),
         Text(
           label,
           style: TextStyle(
             color: Colors.white.withOpacity(0.8),
-            fontSize: 11.sp,
+            fontSize: 10.sp,
           ),
         ),
         const Spacer(),
@@ -419,7 +419,7 @@ class PrayerDetailsDialog extends StatelessWidget {
           style: TextStyle(
             color: Colors.white,
             fontWeight: ThemeConstants.semiBold,
-            fontSize: 13.sp,
+            fontSize: 12.sp,
           ),
         ),
       ],

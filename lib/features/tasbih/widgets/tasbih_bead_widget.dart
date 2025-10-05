@@ -1,10 +1,9 @@
-// lib/features/tasbih/widgets/tasbih_bead_widget.dart
+// lib/features/tasbih/widgets/tasbih_bead_widget.dart - محسّن للشاشات الصغيرة
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:ui';
 import '../../../app/themes/app_theme.dart';
 
-/// ويدجت حبة المسبحة الرقمية
 class TasbihBeadWidget extends StatelessWidget {
   final double size;
   final List<Color> gradient;
@@ -35,16 +34,16 @@ class TasbihBeadWidget extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: gradient[0].withOpacity(0.3),
-            blurRadius: isPressed ? 25.r : 20.r,
-            offset: Offset(0, isPressed ? 8.h : 12.h),
-            spreadRadius: isPressed ? 2.r : 4.r,
+            color: gradient[0].withOpacity(0.25),
+            blurRadius: isPressed ? 20.r : 16.r,
+            offset: Offset(0, isPressed ? 6.h : 10.h),
+            spreadRadius: isPressed ? 1.5.r : 3.r,
           ),
           BoxShadow(
             color: gradient[1].withOpacity(0.1),
-            blurRadius: isPressed ? 35.r : 30.r,
-            offset: Offset(0, isPressed ? 12.h : 18.h),
-            spreadRadius: isPressed ? 4.r : 6.r,
+            blurRadius: isPressed ? 28.r : 24.r,
+            offset: Offset(0, isPressed ? 10.h : 14.h),
+            spreadRadius: isPressed ? 3.r : 5.r,
           ),
         ],
       ),
@@ -57,7 +56,7 @@ class TasbihBeadWidget extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(
                 color: Colors.white.withOpacity(0.3),
-                width: 2.w,
+                width: 1.5.w,
               ),
               gradient: LinearGradient(
                 begin: Alignment.topCenter,

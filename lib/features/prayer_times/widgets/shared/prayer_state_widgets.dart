@@ -21,26 +21,26 @@ class PrayerLoadingWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (isCompact) {
       return Container(
-        padding: EdgeInsets.all(12.w),
+        padding: EdgeInsets.all(10.w),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(
-              width: 20.w,
-              height: 20.w,
+              width: 18.w,
+              height: 18.w,
               child: CircularProgressIndicator(
                 strokeWidth: 2.w,
                 valueColor: AlwaysStoppedAnimation<Color>(context.primaryColor),
               ),
             ),
             if (message != null) ...[
-              SizedBox(width: 8.w),
+              SizedBox(width: 6.w),
               Text(
                 message!,
                 style: TextStyle(
                   color: context.textSecondaryColor,
-                  fontSize: 12.sp,
+                  fontSize: 11.sp,
                 ),
               ),
             ],
@@ -56,13 +56,13 @@ class PrayerLoadingWidget extends StatelessWidget {
         children: [
           AppLoading.circular(size: LoadingSize.large),
           if (message != null) ...[
-            SizedBox(height: 16.h),
+            SizedBox(height: 12.h),
             Text(
               message!,
               style: TextStyle(
                 fontWeight: ThemeConstants.medium,
                 color: context.textSecondaryColor,
-                fontSize: 16.sp,
+                fontSize: 14.sp,
               ),
               textAlign: TextAlign.center,
             ),
@@ -97,10 +97,10 @@ class PrayerErrorWidget extends StatelessWidget {
     
     if (isCompact) {
       return Container(
-        padding: EdgeInsets.all(12.w),
+        padding: EdgeInsets.all(10.w),
         decoration: BoxDecoration(
           color: context.cardColor,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(10.r),
           border: Border.all(
             color: ThemeConstants.error.withOpacity(0.3),
           ),
@@ -113,22 +113,22 @@ class PrayerErrorWidget extends StatelessWidget {
                 Icon(
                   _getErrorIcon(errorType),
                   color: ThemeConstants.error,
-                  size: 24.sp,
+                  size: 20.sp,
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: 6.w),
                 Expanded(
                   child: Text(
                     errorMessage,
                     style: TextStyle(
                       color: ThemeConstants.error,
-                      fontSize: 13.sp,
+                      fontSize: 12.sp,
                     ),
                   ),
                 ),
               ],
             ),
             if (onRetry != null) ...[
-              SizedBox(height: 8.h),
+              SizedBox(height: 6.h),
               SizedBox(
                 width: double.infinity,
                 child: AppButton.primary(
@@ -147,54 +147,50 @@ class PrayerErrorWidget extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.all(12.w),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // الأيقونة
             Container(
-              width: 80.w,
-              height: 80.w,
+              width: 70.w,
+              height: 70.w,
               decoration: BoxDecoration(
                 color: ThemeConstants.error.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 _getErrorIcon(errorType),
-                size: 40.sp,
+                size: 35.sp,
                 color: ThemeConstants.error,
               ),
             ),
             
-            SizedBox(height: 16.h),
+            SizedBox(height: 12.h),
             
-            // العنوان
             Text(
               _getErrorTitle(errorType),
               style: TextStyle(
                 color: ThemeConstants.error,
                 fontWeight: ThemeConstants.bold,
-                fontSize: 18.sp,
+                fontSize: 16.sp,
               ),
               textAlign: TextAlign.center,
             ),
             
-            SizedBox(height: 8.h),
+            SizedBox(height: 6.h),
             
-            // الرسالة
             Text(
               errorMessage,
               style: TextStyle(
                 color: context.textSecondaryColor,
-                fontSize: 14.sp,
+                fontSize: 12.sp,
               ),
               textAlign: TextAlign.center,
             ),
             
-            SizedBox(height: 16.h),
+            SizedBox(height: 12.h),
             
-            // الأزرار
             _buildActionButtons(context, errorType),
           ],
         ),
@@ -220,7 +216,7 @@ class PrayerErrorWidget extends StatelessWidget {
           ),
         
         if (showSettings && (errorType == ErrorType.permission || errorType == ErrorType.locationService)) ...[
-          if (onRetry != null) SizedBox(width: 12.w),
+          if (onRetry != null) SizedBox(width: 10.w),
           Expanded(
             child: AppButton.outline(
               text: 'الإعدادات',
@@ -300,42 +296,42 @@ class PrayerEmptyWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.all(12.w),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon ?? Icons.inbox_outlined,
-              size: 64.sp,
+              size: 56.sp,
               color: context.textSecondaryColor.withOpacity(0.5),
             ),
             
-            SizedBox(height: 16.h),
+            SizedBox(height: 12.h),
             
             Text(
               title ?? 'لا توجد بيانات',
               style: TextStyle(
                 fontWeight: ThemeConstants.semiBold,
-                fontSize: 18.sp,
+                fontSize: 16.sp,
               ),
               textAlign: TextAlign.center,
             ),
             
             if (message != null) ...[
-              SizedBox(height: 8.h),
+              SizedBox(height: 6.h),
               Text(
                 message!,
                 style: TextStyle(
                   color: context.textSecondaryColor,
-                  fontSize: 14.sp,
+                  fontSize: 12.sp,
                 ),
                 textAlign: TextAlign.center,
               ),
             ],
             
             if (onAction != null && actionText != null) ...[
-              SizedBox(height: 16.h),
+              SizedBox(height: 12.h),
               AppButton.primary(
                 text: actionText!,
                 onPressed: onAction!,
@@ -377,7 +373,6 @@ class _RetryButtonState extends State<RetryButton> {
     
     try {
       widget.onRetry();
-      // انتظار قليلاً للسماح للـ callback بالبدء
       await Future.delayed(const Duration(milliseconds: 500));
     } finally {
       if (mounted) {
@@ -394,27 +389,27 @@ class _RetryButtonState extends State<RetryButton> {
       onPressed: isLoading ? null : _handleRetry,
       icon: isLoading
           ? SizedBox(
-              width: 18.w,
-              height: 18.w,
+              width: 16.w,
+              height: 16.w,
               child: CircularProgressIndicator(
                 strokeWidth: 2.w,
                 valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
               ),
             )
-          : Icon(Icons.refresh, size: 20.sp),
+          : Icon(Icons.refresh, size: 18.sp),
       label: Text(
         isLoading ? 'جاري المحاولة...' : widget.text,
-        style: TextStyle(fontSize: 14.sp),
+        style: TextStyle(fontSize: 13.sp),
       ),
       style: ElevatedButton.styleFrom(
         backgroundColor: ThemeConstants.primary,
         foregroundColor: Colors.white,
         padding: EdgeInsets.symmetric(
-          horizontal: 16.w,
-          vertical: 12.h,
+          horizontal: 14.w,
+          vertical: 10.h,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(10.r),
         ),
       ),
     );

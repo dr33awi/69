@@ -1,5 +1,4 @@
-// lib/features/dua/screens/dua_details_screen.dart - محدث
-// ============================================================================
+// lib/features/dua/screens/dua_details_screen.dart - محسّن للشاشات الصغيرة
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -8,8 +7,6 @@ import '../../../app/di/service_locator.dart';
 import '../services/dua_service.dart';
 import '../models/dua_model.dart';
 import '../widgets/dua_card_widget.dart';
-
-
 
 class DuaDetailsScreen extends StatefulWidget {
   final String categoryId;
@@ -30,7 +27,7 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
   
   List<Dua> _duas = [];
   bool _isLoading = true;
-  double _fontSize = 18.0;
+  double _fontSize = 16.0;
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -81,40 +78,40 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
 
   Widget _buildEnhancedAppBar() {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
       child: Row(
         children: [
           AppBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
           
-          SizedBox(width: 12.w),
+          SizedBox(width: 8.w),
           
           Container(
-            padding: EdgeInsets.all(8.w),
+            padding: EdgeInsets.all(6.r),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [ThemeConstants.primary, ThemeConstants.primaryLight],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(10.r),
               boxShadow: [
                 BoxShadow(
-                  color: ThemeConstants.primary.withValues(alpha: 0.3),
-                  blurRadius: 8.r,
-                  offset: Offset(0, 4.h),
+                  color: ThemeConstants.primary.withValues(alpha: 0.25),
+                  blurRadius: 6.r,
+                  offset: Offset(0, 3.h),
                 ),
               ],
             ),
             child: Icon(
               Icons.menu_book_rounded,
               color: Colors.white,
-              size: 24.sp,
+              size: 20.sp,
             ),
           ),
           
-          SizedBox(width: 12.w),
+          SizedBox(width: 8.w),
           
           Expanded(
             child: Column(
@@ -122,17 +119,19 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
               children: [
                 Text(
                   widget.categoryName,
-                  style: context.titleLarge?.copyWith(
+                  style: TextStyle(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
-                    fontSize: 18.sp,
+                    fontSize: 16.sp,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   '${_duas.length} دعاء',
-                  style: context.bodySmall?.copyWith(
+                  style: TextStyle(
                     color: context.textSecondaryColor,
-                    fontSize: 12.sp,
+                    fontSize: 11.sp,
                   ),
                 ),
               ],
@@ -142,12 +141,6 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
           _buildActionButton(
             icon: Icons.text_fields_rounded,
             onTap: _showFontSizeDialog,
-          ),
-          
-          _buildActionButton(
-            icon: Icons.refresh_rounded,
-            onTap: _loadDuas,
-            isSecondary: true,
           ),
         ],
       ),
@@ -160,34 +153,34 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
     bool isSecondary = false,
   }) {
     return Container(
-      margin: EdgeInsets.only(left: 8.w),
+      margin: EdgeInsets.only(left: 6.w),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10.r),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(10.r),
           child: Container(
-            padding: EdgeInsets.all(8.w),
+            padding: EdgeInsets.all(6.r),
             decoration: BoxDecoration(
               color: context.cardColor,
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(10.r),
               border: Border.all(
                 color: context.dividerColor.withValues(alpha: 0.3),
                 width: 1.w,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 4.r,
-                  offset: Offset(0, 2.h),
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 3.r,
+                  offset: Offset(0, 1.5.h),
                 ),
               ],
             ),
             child: Icon(
               icon,
               color: isSecondary ? context.textSecondaryColor : ThemeConstants.primary,
-              size: 24.sp,
+              size: 20.sp,
             ),
           ),
         ),
@@ -196,35 +189,35 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
   }
 
   Widget _buildLoading() {
-    return Container(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: EdgeInsets.all(16.w),
+            padding: EdgeInsets.all(14.r),
             decoration: BoxDecoration(
               color: ThemeConstants.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: CircularProgressIndicator(
               color: ThemeConstants.primary,
-              strokeWidth: 3.w,
+              strokeWidth: 2.5.w,
             ),
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: 14.h),
           Text(
             'جاري تحميل ${widget.categoryName}...',
-            style: context.titleMedium?.copyWith(
+            style: TextStyle(
               color: context.textSecondaryColor,
-              fontSize: 16.sp,
+              fontSize: 14.sp,
             ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 6.h),
           Text(
             'يرجى الانتظار قليلاً',
-            style: context.bodySmall?.copyWith(
+            style: TextStyle(
               color: context.textSecondaryColor.withOpacity(0.7),
-              fontSize: 12.sp,
+              fontSize: 11.sp,
             ),
           ),
         ],
@@ -240,23 +233,20 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
     return Column(
       children: [
         Container(
-          margin: EdgeInsets.symmetric(
-            horizontal: 16.w,
-            vertical: 8.h,
-          ),
+          margin: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
           child: Row(
             children: [
               Icon(
                 Icons.format_list_numbered_rounded,
-                size: 16.sp,
+                size: 14.sp,
                 color: context.textSecondaryColor,
               ),
               SizedBox(width: 4.w),
               Text(
                 'عدد الأدعية: ${_duas.length}',
-                style: context.labelMedium?.copyWith(
+                style: TextStyle(
                   color: context.textSecondaryColor,
-                  fontSize: 14.sp,
+                  fontSize: 12.sp,
                 ),
               ),
               
@@ -265,15 +255,15 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
               if (_duas.any((d) => d.readCount > 0)) ...[
                 Icon(
                   Icons.check_circle_rounded,
-                  size: 16.sp,
+                  size: 14.sp,
                   color: ThemeConstants.accent,
                 ),
                 SizedBox(width: 4.w),
                 Text(
                   'مقروءة: ${_duas.where((d) => d.readCount > 0).length}',
-                  style: context.labelMedium?.copyWith(
+                  style: TextStyle(
                     color: ThemeConstants.accent,
-                    fontSize: 14.sp,
+                    fontSize: 12.sp,
                   ),
                 ),
               ],
@@ -284,14 +274,14 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
         Expanded(
           child: ListView.builder(
             controller: _scrollController,
-            padding: EdgeInsets.all(16.w),
+            padding: EdgeInsets.all(12.r),
             physics: const BouncingScrollPhysics(),
             itemCount: _duas.length,
             itemBuilder: (context, index) {
               final dua = _duas[index];
               
               return Container(
-                margin: EdgeInsets.only(bottom: 12.h),
+                margin: EdgeInsets.only(bottom: 10.h),
                 child: DuaCardWidget(
                   dua: dua,
                   index: index,
@@ -309,56 +299,53 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Container(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: EdgeInsets.all(24.w),
+            padding: EdgeInsets.all(20.r),
             decoration: BoxDecoration(
               color: context.textSecondaryColor.withValues(alpha: 0.05),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.menu_book_outlined,
-              size: 60.sp,
+              size: 50.sp,
               color: context.textSecondaryColor.withValues(alpha: 0.5),
             ),
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: 14.h),
           Text(
             'لا توجد أدعية',
-            style: context.titleLarge?.copyWith(
+            style: TextStyle(
               color: context.textSecondaryColor,
               fontWeight: ThemeConstants.bold,
-              fontSize: 20.sp,
+              fontSize: 18.sp,
             ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 6.h),
           Text(
             'لا توجد أدعية في هذه الفئة حالياً',
-            style: context.bodyMedium?.copyWith(
+            style: TextStyle(
               color: context.textSecondaryColor.withValues(alpha: 0.7),
-              fontSize: 14.sp,
+              fontSize: 13.sp,
             ),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 24.h),
+          SizedBox(height: 20.h),
           ElevatedButton.icon(
             onPressed: _loadDuas,
             style: ElevatedButton.styleFrom(
               backgroundColor: ThemeConstants.primary,
               foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(
-                horizontal: 24.w,
-                vertical: 12.h,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20.r),
+                borderRadius: BorderRadius.circular(16.r),
               ),
             ),
-            icon: const Icon(Icons.refresh_rounded),
-            label: const Text('إعادة المحاولة'),
+            icon: Icon(Icons.refresh_rounded, size: 18.sp),
+            label: Text('إعادة المحاولة', style: TextStyle(fontSize: 13.sp)),
           ),
         ],
       ),
@@ -371,24 +358,25 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: context.cardColor,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20.r),
+          borderRadius: BorderRadius.circular(16.r),
         ),
+        contentPadding: EdgeInsets.all(16.r),
         title: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(8.w),
+              padding: EdgeInsets.all(6.r),
               decoration: BoxDecoration(
                 color: ThemeConstants.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(10.r),
               ),
               child: Icon(
                 Icons.text_fields_rounded,
                 color: ThemeConstants.primary,
-                size: 20.sp,
+                size: 18.sp,
               ),
             ),
-            SizedBox(width: 8.w),
-            const Text('حجم الخط'),
+            SizedBox(width: 6.w),
+            Text('حجم الخط', style: TextStyle(fontSize: 16.sp)),
           ],
         ),
         content: Column(
@@ -408,10 +396,10 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
     final isSelected = _fontSize == size;
     
     return Container(
-      margin: EdgeInsets.only(bottom: 8.h),
+      margin: EdgeInsets.only(bottom: 6.h),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10.r),
         child: InkWell(
           onTap: () async {
             HapticFeedback.lightImpact();
@@ -421,14 +409,14 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
             
             Navigator.pop(context);
           },
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(10.r),
           child: Container(
-            padding: EdgeInsets.all(12.w),
+            padding: EdgeInsets.all(10.r),
             decoration: BoxDecoration(
               color: isSelected 
                   ? ThemeConstants.primary.withValues(alpha: 0.1)
                   : Colors.transparent,
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(10.r),
               border: Border.all(
                 color: isSelected 
                     ? ThemeConstants.primary.withValues(alpha: 0.3)
@@ -439,8 +427,8 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
             child: Row(
               children: [
                 Container(
-                  width: 20.w,
-                  height: 20.h,
+                  width: 18.r,
+                  height: 18.r,
                   decoration: BoxDecoration(
                     color: isSelected ? ThemeConstants.primary : Colors.transparent,
                     shape: BoxShape.circle,
@@ -453,15 +441,15 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
                       ? Icon(
                           Icons.check,
                           color: Colors.white,
-                          size: 14.sp,
+                          size: 12.sp,
                         )
                       : null,
                 ),
-                SizedBox(width: 12.w),
+                SizedBox(width: 10.w),
                 Expanded(
                   child: Text(
                     label,
-                    style: context.bodyLarge?.copyWith(
+                    style: TextStyle(
                       fontSize: size.sp,
                       fontWeight: isSelected ? ThemeConstants.semiBold : ThemeConstants.regular,
                       color: isSelected ? ThemeConstants.primary : context.textPrimaryColor,
@@ -469,20 +457,17 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 8.w,
-                    vertical: 4.h,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 3.h),
                   decoration: BoxDecoration(
                     color: context.textSecondaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(999.r),
                   ),
                   child: Text(
                     '${size.toInt()}',
-                    style: context.labelSmall?.copyWith(
+                    style: TextStyle(
                       color: context.textSecondaryColor,
                       fontWeight: ThemeConstants.medium,
-                      fontSize: 11.sp,
+                      fontSize: 10.sp,
                     ),
                   ),
                 ),

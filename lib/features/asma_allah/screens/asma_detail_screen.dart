@@ -1,4 +1,4 @@
-// lib/features/asma_allah/screens/asma_detail_screen.dart - محدث مع flutter_screenutil
+// lib/features/asma_allah/screens/asma_detail_screen.dart - محسن للشاشات الصغيرة
 import 'dart:ui';
 import 'package:athkar_app/app/themes/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -57,10 +57,8 @@ class _UnifiedAsmaAllahDetailsScreenState
       body: SafeArea(
         child: Column(
           children: [
-            // شريط التطبيق المحسن (متناسق مع صفحة الصلوات)
             _buildEnhancedAppBar(),
             
-            // المحتوى الرئيسي مع PageView
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -80,7 +78,6 @@ class _UnifiedAsmaAllahDetailsScreenState
               ),
             ),
             
-            // شريط التنقل السفلي
             _buildBottomNavigationBar(),
           ],
         ),
@@ -93,31 +90,29 @@ class _UnifiedAsmaAllahDetailsScreenState
     final color = _currentItem.getColor();
     
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(12.w),
       child: Row(
         children: [
-          // زر الرجوع (متناسق مع صفحة الصلوات)
           AppBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
           
-          SizedBox(width: 12.w),
+          SizedBox(width: 8.w),
           
-          // أيقونة مميزة (نفس ستايل صفحة الصلوات)
           Container(
-            padding: EdgeInsets.all(8.w),
+            padding: EdgeInsets.all(6.w),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [color, color.withOpacity(0.8)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(10.r),
               boxShadow: [
                 BoxShadow(
                   color: color.withValues(alpha: 0.3),
-                  blurRadius: 8.r,
-                  offset: Offset(0, 4.h),
+                  blurRadius: 6.r,
+                  offset: Offset(0, 3.h),
                 ),
               ],
             ),
@@ -126,13 +121,13 @@ class _UnifiedAsmaAllahDetailsScreenState
               style: context.titleMedium?.copyWith(
                 color: Colors.white,
                 fontWeight: ThemeConstants.bold,
+                fontSize: 14.sp,
               ),
             ),
           ),
           
-          SizedBox(width: 12.w),
+          SizedBox(width: 8.w),
           
-          // معلومات الاسم الحالي
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,19 +138,20 @@ class _UnifiedAsmaAllahDetailsScreenState
                     fontWeight: ThemeConstants.bold,
                     color: color,
                     fontFamily: ThemeConstants.fontFamilyArabic,
+                    fontSize: 16.sp,
                   ),
                 ),
                 Text(
                   '${_currentIndex + 1} من $total',
                   style: context.bodySmall?.copyWith(
                     color: context.textSecondaryColor,
+                    fontSize: 10.sp,
                   ),
                 ),
               ],
             ),
           ),
           
-          // أزرار الإجراءات (نفس ستايل صفحة الصلوات)
           _buildActionButton(
             icon: Icons.copy_rounded,
             onTap: () => _copyContent(_currentItem),
@@ -177,18 +173,18 @@ class _UnifiedAsmaAllahDetailsScreenState
     bool isSecondary = false,
   }) {
     return Container(
-      margin: EdgeInsets.only(left: 8.w),
+      margin: EdgeInsets.only(left: 6.w),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10.r),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(10.r),
           child: Container(
-            padding: EdgeInsets.all(8.w),
+            padding: EdgeInsets.all(6.w),
             decoration: BoxDecoration(
               color: context.cardColor,
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(10.r),
               border: Border.all(
                 color: context.dividerColor.withValues(alpha: 0.3),
                 width: 1.w,
@@ -196,7 +192,7 @@ class _UnifiedAsmaAllahDetailsScreenState
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 4.r,
+                  blurRadius: 3.r,
                   offset: Offset(0, 2.h),
                 ),
               ],
@@ -204,7 +200,7 @@ class _UnifiedAsmaAllahDetailsScreenState
             child: Icon(
               icon,
               color: isSecondary ? context.textSecondaryColor : _currentItem.getColor(),
-              size: 24.sp,
+              size: 20.sp,
             ),
           ),
         ),
@@ -214,20 +210,17 @@ class _UnifiedAsmaAllahDetailsScreenState
 
   Widget _buildContentPage(AsmaAllahModel item) {
     return SingleChildScrollView(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(12.w),
       physics: const BouncingScrollPhysics(),
       child: Column(
         children: [
-          // بطاقة الاسم الرئيسية
           _buildMainNameCard(item),
           
-          SizedBox(height: 16.h),
+          SizedBox(height: 12.h),
           
-          // بطاقة الشرح المفصل مع الآيات المميزة
           _buildEnhancedExplanationCard(item),
           
-          // مساحة إضافية في الأسفل
-          SizedBox(height: 32.h),
+          SizedBox(height: 24.h),
         ],
       ),
     );
@@ -238,19 +231,19 @@ class _UnifiedAsmaAllahDetailsScreenState
     
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [color, color.withValues(alpha: 0.8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
             color: color.withValues(alpha: 0.3),
-            blurRadius: 16.r,
-            offset: Offset(0, 8.h),
+            blurRadius: 12.r,
+            offset: Offset(0, 6.h),
           ),
         ],
       ),
@@ -262,6 +255,7 @@ class _UnifiedAsmaAllahDetailsScreenState
             fontWeight: ThemeConstants.bold,
             fontFamily: ThemeConstants.fontFamilyArabic,
             height: 1.h,
+            fontSize: 32.sp,
             shadows: [
               Shadow(
                 color: Colors.black.withValues(alpha: 0.2),
@@ -279,10 +273,10 @@ class _UnifiedAsmaAllahDetailsScreenState
   Widget _buildEnhancedExplanationCard(AsmaAllahModel item) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(20.w),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(24.r),
+        borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
           color: item.getColor().withValues(alpha: 0.2),
           width: 1.w,
@@ -290,46 +284,45 @@ class _UnifiedAsmaAllahDetailsScreenState
         boxShadow: [
           BoxShadow(
             color: item.getColor().withValues(alpha: 0.05),
-            blurRadius: 10.r,
-            offset: Offset(0, 4.h),
+            blurRadius: 8.r,
+            offset: Offset(0, 3.h),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // عنوان القسم
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(8.w),
+                padding: EdgeInsets.all(6.w),
                 decoration: BoxDecoration(
                   color: item.getColor().withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: BorderRadius.circular(10.r),
                 ),
                 child: Icon(
                   Icons.auto_stories_rounded,
                   color: item.getColor(),
-                  size: 24.sp,
+                  size: 20.sp,
                 ),
               ),
-              SizedBox(width: 12.w),
+              SizedBox(width: 10.w),
               Text(
                 'الشرح والتفسير',
                 style: context.titleLarge?.copyWith(
                   fontWeight: ThemeConstants.bold,
                   color: item.getColor(),
+                  fontSize: 16.sp,
                 ),
               ),
             ],
           ),
           
-          SizedBox(height: 16.h),
+          SizedBox(height: 12.h),
           
-          // خط فاصل
           Container(
             height: 2.h,
-            width: 80.w,
+            width: 70.w,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [item.getColor(), Colors.transparent],
@@ -338,9 +331,8 @@ class _UnifiedAsmaAllahDetailsScreenState
             ),
           ),
           
-          SizedBox(height: 16.h),
+          SizedBox(height: 12.h),
           
-          // نص الشرح المفصل مع الآيات المميزة
           _buildFormattedExplanationText(item),
         ],
       ),
@@ -357,33 +349,30 @@ class _UnifiedAsmaAllahDetailsScreenState
   TextSpan _buildFormattedTextSpan(String text, BuildContext context, Color itemColor) {
     final List<TextSpan> spans = [];
     
-    // البحث عن الآيات بين ﴿ و ﴾
     final RegExp ayahPattern = RegExp(r'﴿([^﴾]+)﴾');
     int lastIndex = 0;
     
     for (final match in ayahPattern.allMatches(text)) {
-      // إضافة النص العادي قبل الآية
       if (match.start > lastIndex) {
         spans.add(TextSpan(
           text: text.substring(lastIndex, match.start),
           style: context.bodyLarge?.copyWith(
-            height: 2.2.sp,
-            fontSize: 17.sp,
+            height: 2.0.sp,
+            fontSize: 15.sp,
             color: context.textPrimaryColor,
             letterSpacing: 0.3,
           ),
         ));
       }
       
-      // إضافة الآية مميزة
       spans.add(TextSpan(
-        text: match.group(0), // النص الكامل مع ﴿ و ﴾
+        text: match.group(0),
         style: context.titleMedium?.copyWith(
           color: ThemeConstants.tertiary,
           fontFamily: ThemeConstants.fontFamilyQuran,
-          fontSize: 18.sp,
+          fontSize: 16.sp,
           fontWeight: ThemeConstants.medium,
-          height: 2.0,
+          height: 1.8,
           backgroundColor: ThemeConstants.tertiary.withValues(alpha: 0.08),
         ),
       ));
@@ -391,26 +380,24 @@ class _UnifiedAsmaAllahDetailsScreenState
       lastIndex = match.end;
     }
     
-    // إضافة باقي النص بعد آخر آية
     if (lastIndex < text.length) {
       spans.add(TextSpan(
         text: text.substring(lastIndex),
         style: context.bodyLarge?.copyWith(
-          height: 2.2,
-          fontSize: 17.sp,
+          height: 2.0,
+          fontSize: 15.sp,
           color: context.textPrimaryColor,
           letterSpacing: 0.3,
         ),
       ));
     }
     
-    // إذا لم توجد آيات، عرض النص كاملاً بالتنسيق العادي
     if (spans.isEmpty) {
       spans.add(TextSpan(
         text: text,
         style: context.bodyLarge?.copyWith(
-          height: 2.2,
-          fontSize: 17.sp,
+          height: 2.0,
+          fontSize: 15.sp,
           color: context.textPrimaryColor,
           letterSpacing: 0.3,
         ),
@@ -426,7 +413,7 @@ class _UnifiedAsmaAllahDetailsScreenState
     final color = _currentItem.getColor();
     
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         color: context.cardColor,
         border: Border(
@@ -438,44 +425,42 @@ class _UnifiedAsmaAllahDetailsScreenState
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10.r,
+            blurRadius: 8.r,
             offset: Offset(0, -2.h),
           ),
         ],
       ),
       child: Row(
         children: [
-          // زر السابق
           Expanded(
             child: ElevatedButton.icon(
               onPressed: canPrev ? _goToPrevious : null,
-              icon: const Icon(Icons.chevron_left_rounded),
-              label: const Text('السابق'),
+              icon: Icon(Icons.chevron_left_rounded, size: 18.sp),
+              label: Text('السابق', style: TextStyle(fontSize: 12.sp)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: canPrev ? context.surfaceColor : context.surfaceColor.withOpacity(0.5),
                 foregroundColor: canPrev 
                     ? context.textPrimaryColor 
                     : context.textSecondaryColor.withOpacity(0.5),
                 elevation: 0,
-                padding: EdgeInsets.symmetric(vertical: 12.h),
+                padding: EdgeInsets.symmetric(vertical: 10.h),
                 side: BorderSide(
                   color: context.dividerColor.withValues(alpha: 0.3),
                   width: 1.w,
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: BorderRadius.circular(10.r),
                 ),
               ),
             ),
           ),
           
-          SizedBox(width: 12.w),
+          SizedBox(width: 10.w),
           
-          // مؤشر الصفحة
           Container(
             padding: EdgeInsets.symmetric(
-              horizontal: 12.w,
-              vertical: 8.h,
+              horizontal: 10.w,
+              vertical: 6.h,
             ),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
@@ -490,25 +475,25 @@ class _UnifiedAsmaAllahDetailsScreenState
               style: context.labelMedium?.copyWith(
                 color: color,
                 fontWeight: ThemeConstants.bold,
+                fontSize: 11.sp,
               ),
             ),
           ),
           
-          SizedBox(width: 12.w),
+          SizedBox(width: 10.w),
           
-          // زر التالي
           Expanded(
             child: ElevatedButton.icon(
               onPressed: canNext ? _goToNext : null,
-              icon: const Icon(Icons.chevron_right_rounded),
-              label: const Text('التالي'),
+              icon: Icon(Icons.chevron_right_rounded, size: 18.sp),
+              label: Text('التالي', style: TextStyle(fontSize: 12.sp)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: canNext ? color : context.surfaceColor.withOpacity(0.5),
                 foregroundColor: canNext 
                     ? Colors.white 
                     : context.textSecondaryColor.withOpacity(0.5),
                 elevation: canNext ? 2 : 0,
-                padding: EdgeInsets.symmetric(vertical: 12.h),
+                padding: EdgeInsets.symmetric(vertical: 10.h),
                 side: canNext 
                     ? null
                     : BorderSide(
@@ -516,7 +501,7 @@ class _UnifiedAsmaAllahDetailsScreenState
                         width: 1.w,
                       ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: BorderRadius.circular(10.r),
                 ),
                 shadowColor: canNext ? color.withValues(alpha: 0.3) : null,
               ),

@@ -1,4 +1,4 @@
-// lib/features/onboarding/screens/onboarding_screen.dart
+// lib/features/onboarding/screens/onboarding_screen.dart - محسّن للشاشات الصغيرة
 import 'package:athkar_app/core/infrastructure/services/permissions/permission_service.dart';
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
 import 'package:athkar_app/features/onboarding/models/onboarding_item.dart';
@@ -143,7 +143,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           ConcentricPageView(
             colors: _items.map((item) => item.primaryColor).toList(),
-            radius: 1.sw * 0.85,
+            radius: 1.sw * 0.82,
             curve: Curves.easeInOutCubic,
             duration: ThemeConstants.durationSlow,
             opacityFactor: 2.5,
@@ -165,7 +165,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           
           Positioned(
-            top: MediaQuery.of(context).padding.top + 20.h,
+            top: MediaQuery.of(context).padding.top + 16.h,
             left: 0,
             right: 0,
             child: Center(

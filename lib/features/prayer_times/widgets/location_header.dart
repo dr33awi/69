@@ -113,10 +113,10 @@ class _LocationHeaderState extends State<LocationHeader>
     final hasError = _lastError != null;
     
     return Container(
-      margin: EdgeInsets.all(12.w),
+      margin: EdgeInsets.all(10.w),
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: hasError 
             ? ThemeConstants.error.withOpacity(0.3)
@@ -126,27 +126,27 @@ class _LocationHeaderState extends State<LocationHeader>
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 8.r,
-            offset: Offset(0, 3.h),
+            blurRadius: 6.r,
+            offset: Offset(0, 2.h),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(12.r),
         child: InkWell(
           onTap: widget.showRefreshButton ? _updateLocation : widget.onTap,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(12.r),
           child: Padding(
-            padding: EdgeInsets.all(12.w),
+            padding: EdgeInsets.all(10.w),
             child: Column(
               children: [
                 Row(
                   children: [
                     // أيقونة الموقع
                     Container(
-                      width: 45.w,
-                      height: 45.w,
+                      width: 40.w,
+                      height: 40.w,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
@@ -155,24 +155,24 @@ class _LocationHeaderState extends State<LocationHeader>
                             ? [ThemeConstants.error, ThemeConstants.error.darken(0.1)]
                             : [context.primaryColor, context.primaryColor.darken(0.1)],
                         ),
-                        borderRadius: BorderRadius.circular(12.r),
+                        borderRadius: BorderRadius.circular(10.r),
                         boxShadow: [
                           BoxShadow(
                             color: (hasError ? ThemeConstants.error : context.primaryColor)
                                 .withOpacity(0.3),
-                            blurRadius: 6.r,
-                            offset: Offset(0, 3.h),
+                            blurRadius: 4.r,
+                            offset: Offset(0, 2.h),
                           ),
                         ],
                       ),
                       child: Icon(
                         hasError ? Icons.location_off_rounded : Icons.location_on_rounded,
                         color: Colors.white,
-                        size: 26.sp,
+                        size: 22.sp,
                       ),
                     ),
                     
-                    SizedBox(width: 12.w),
+                    SizedBox(width: 10.w),
                     
                     // معلومات الموقع
                     Expanded(
@@ -189,19 +189,19 @@ class _LocationHeaderState extends State<LocationHeader>
                                     color: hasError 
                                       ? ThemeConstants.error 
                                       : context.textPrimaryColor,
-                                    fontSize: 15.sp,
+                                    fontSize: 13.sp,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
                                 ),
                               ),
                               if (_isUpdating) ...[
-                                SizedBox(width: 6.w),
+                                SizedBox(width: 4.w),
                                 RotationTransition(
                                   turns: _refreshAnimationController,
                                   child: Icon(
                                     Icons.refresh,
-                                    size: 16.sp,
+                                    size: 14.sp,
                                     color: context.primaryColor,
                                   ),
                                 ),
@@ -209,7 +209,7 @@ class _LocationHeaderState extends State<LocationHeader>
                             ],
                           ),
                           
-                          SizedBox(height: 3.h),
+                          SizedBox(height: 2.h),
                           
                           if (hasError)
                             Text(
@@ -217,7 +217,7 @@ class _LocationHeaderState extends State<LocationHeader>
                               style: TextStyle(
                                 color: ThemeConstants.error,
                                 fontWeight: ThemeConstants.medium,
-                                fontSize: 11.sp,
+                                fontSize: 10.sp,
                               ),
                             )
                           else
@@ -225,25 +225,25 @@ class _LocationHeaderState extends State<LocationHeader>
                               _getCoordinatesText(),
                               style: TextStyle(
                                 color: context.textSecondaryColor,
-                                fontSize: 11.sp,
+                                fontSize: 10.sp,
                               ),
                             ),
                           
                           if (_currentLocation?.timezone != null && !hasError) ...[
-                            SizedBox(height: 3.h),
+                            SizedBox(height: 2.h),
                             Row(
                               children: [
                                 Icon(
                                   Icons.access_time_rounded,
-                                  size: 11.sp,
+                                  size: 10.sp,
                                   color: context.textSecondaryColor,
                                 ),
-                                SizedBox(width: 3.w),
+                                SizedBox(width: 2.w),
                                 Text(
                                   _currentLocation!.timezone,
                                   style: TextStyle(
                                     color: context.textSecondaryColor,
-                                    fontSize: 10.sp,
+                                    fontSize: 9.sp,
                                   ),
                                 ),
                               ],
@@ -254,13 +254,13 @@ class _LocationHeaderState extends State<LocationHeader>
                     ),
                     
                     if (widget.showRefreshButton) ...[
-                      SizedBox(width: 10.w),
+                      SizedBox(width: 8.w),
                       Container(
-                        padding: EdgeInsets.all(6.w),
+                        padding: EdgeInsets.all(5.w),
                         decoration: BoxDecoration(
                           color: (hasError ? ThemeConstants.error : context.primaryColor)
                               .withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10.r),
+                          borderRadius: BorderRadius.circular(8.r),
                           border: Border.all(
                             color: (hasError ? ThemeConstants.error : context.primaryColor)
                                 .withOpacity(0.2),
@@ -271,7 +271,7 @@ class _LocationHeaderState extends State<LocationHeader>
                             ? Icons.hourglass_empty 
                             : (hasError ? Icons.error_outline : Icons.refresh_rounded),
                           color: hasError ? ThemeConstants.error : context.primaryColor,
-                          size: 20.sp,
+                          size: 18.sp,
                         ),
                       ),
                     ],
@@ -279,7 +279,7 @@ class _LocationHeaderState extends State<LocationHeader>
                 ),
                 
                 if (hasError) ...[
-                  SizedBox(height: 10.h),
+                  SizedBox(height: 8.h),
                   RetryButton(
                     onRetry: _updateLocation,
                     isLoading: _isUpdating,

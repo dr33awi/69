@@ -33,11 +33,11 @@ class SettingsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectiveMargin = margin ?? EdgeInsets.symmetric(
-      horizontal: 16.w,
-      vertical: 12.h,
+      horizontal: 12.w,
+      vertical: 8.h,
     );
 
-    final effectiveBorderRadius = BorderRadius.circular(20.r);
+    final effectiveBorderRadius = BorderRadius.circular(16.r);
 
     return Container(
       margin: effectiveMargin,
@@ -46,10 +46,10 @@ class SettingsSection extends StatelessWidget {
         borderRadius: effectiveBorderRadius,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 12.r,
-            offset: Offset(0, 4.h),
-            spreadRadius: -2,
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8.r,
+            offset: Offset(0, 2.h),
+            spreadRadius: -1,
           ),
         ],
       ),
@@ -66,7 +66,10 @@ class SettingsSection extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     final effectiveTitleColor = titleColor ?? context.primaryColor;
     final effectiveIconColor = iconColor ?? context.primaryColor;
-    final effectivePadding = padding ?? EdgeInsets.all(16.w);
+    final effectivePadding = padding ?? EdgeInsets.symmetric(
+      horizontal: 12.w,
+      vertical: 10.h,
+    );
 
     return Container(
       padding: effectivePadding,
@@ -75,18 +78,18 @@ class SettingsSection extends StatelessWidget {
           // أيقونة القسم
           if (icon != null) ...[
             Container(
-              padding: EdgeInsets.all(8.w),
+              padding: EdgeInsets.all(6.w),
               decoration: BoxDecoration(
                 color: effectiveIconColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(10.r),
               ),
               child: Icon(
                 icon,
-                size: 20.sp,
+                size: 18.sp,
                 color: effectiveIconColor,
               ),
             ),
-            SizedBox(width: 12.w),
+            SizedBox(width: 10.w),
           ],
           
           // العنوان والعنوان الفرعي
@@ -99,18 +102,18 @@ class SettingsSection extends StatelessWidget {
                   style: context.titleMedium?.copyWith(
                     color: effectiveTitleColor,
                     fontWeight: ThemeConstants.bold,
-                    height: 1.2.sp,
-                    fontSize: context.titleMedium?.fontSize?.sp,
+                    height: 1.2,
+                    fontSize: 14.sp,
                   ),
                 ),
                 if (subtitle != null) ...[
-                  SizedBox(height: 4.h),
+                  SizedBox(height: 2.h),
                   Text(
                     subtitle!,
                     style: context.bodySmall?.copyWith(
                       color: context.textSecondaryColor,
-                      height: 1.3.sp,
-                      fontSize: context.bodySmall?.fontSize?.sp,
+                      height: 1.3,
+                      fontSize: 11.sp,
                     ),
                   ),
                 ],
@@ -151,12 +154,13 @@ class SettingsSection extends StatelessWidget {
                 child,
                 // خط فاصل بين العناصر
                 if (!isLast && showDividers)
-                  Divider(
-                    height: 1.h,
-                    thickness: 1.h,
-                    indent: 24.w,
-                    endIndent: 24.w,
-                    color: context.dividerColor.withValues(alpha: 0.3),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12.w),
+                    child: Divider(
+                      height: 1.h,
+                      thickness: 1.h,
+                      color: context.dividerColor.withValues(alpha: 0.2),
+                    ),
                   ),
               ],
             );

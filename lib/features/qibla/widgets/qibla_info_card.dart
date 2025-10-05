@@ -1,11 +1,10 @@
-// lib/features/qibla/widgets/qibla_info_card.dart - نسخة منظفة
+// lib/features/qibla/widgets/qibla_info_card.dart - للشاشات الصغيرة
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
 import '../models/qibla_model.dart';
 
-/// بطاقة معلومات القبلة
 class QiblaInfoCard extends StatefulWidget {
   final QiblaModel qiblaData;
   final bool showDetailedInfo;
@@ -47,7 +46,7 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
   Widget build(BuildContext context) {
     return AppCard(
       padding: EdgeInsets.zero,
-      borderRadius: 24.r,
+      borderRadius: 18.r,
       child: Column(
         children: [
           _buildHeader(context),
@@ -61,7 +60,7 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
 
   Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -70,13 +69,13 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
           ],
         ),
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(24.r),
+          top: Radius.circular(18.r),
         ),
       ),
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(8.w),
+            padding: EdgeInsets.all(6.w),
             decoration: BoxDecoration(
               color: _getAccuracyColor().withOpacity(0.1),
               shape: BoxShape.circle,
@@ -84,10 +83,10 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
             child: Icon(
               Icons.location_on,
               color: _getAccuracyColor(),
-              size: 24.sp,
+              size: 20.sp,
             ),
           ),
-          SizedBox(width: 12.w),
+          SizedBox(width: 10.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,14 +95,14 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
                   'موقعك الحالي',
                   style: TextStyle(
                     color: context.textSecondaryColor,
-                    fontSize: 12.sp,
+                    fontSize: 10.sp,
                   ),
                 ),
                 Text(
                   _getLocationName(),
                   style: TextStyle(
                     fontWeight: ThemeConstants.bold,
-                    fontSize: 16.sp,
+                    fontSize: 14.sp,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -111,7 +110,7 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
                   _getDataStatusText(),
                   style: TextStyle(
                     color: _getStatusColor(),
-                    fontSize: 11.sp,
+                    fontSize: 9.sp,
                   ),
                 ),
               ],
@@ -128,14 +127,14 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
     
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: 8.w,
-        vertical: 4.h,
+        horizontal: 6.w,
+        vertical: 3.h,
       ),
       decoration: BoxDecoration(
         color: hasGoodQuality 
             ? ThemeConstants.success.withOpacity(0.1)
             : ThemeConstants.warning.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10.r),
         border: Border.all(
           color: hasGoodQuality 
               ? ThemeConstants.success.withOpacity(0.3)
@@ -147,16 +146,16 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
         children: [
           Icon(
             hasGoodQuality ? Icons.verified : Icons.warning_amber,
-            size: 20.sp,
+            size: 16.sp,
             color: hasGoodQuality ? ThemeConstants.success : ThemeConstants.warning,
           ),
-          SizedBox(width: 4.w),
+          SizedBox(width: 3.w),
           Text(
             hasGoodQuality ? 'موثوق' : 'محدود',
             style: TextStyle(
               color: hasGoodQuality ? ThemeConstants.success : ThemeConstants.warning,
               fontWeight: ThemeConstants.semiBold,
-              fontSize: 11.sp,
+              fontSize: 10.sp,
             ),
           ),
         ],
@@ -166,7 +165,7 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
 
   Widget _buildBasicInfo(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(12.w),
       child: Column(
         children: [
           Row(
@@ -184,9 +183,9 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
               ),
               Container(
                 width: 1,
-                height: 60.h,
+                height: 50.h,
                 color: context.dividerColor.withOpacity(0.5),
-                margin: EdgeInsets.symmetric(horizontal: 12.w),
+                margin: EdgeInsets.symmetric(horizontal: 10.w),
               ),
               Expanded(
                 child: _buildInfoTile(
@@ -201,7 +200,7 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
               ),
             ],
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: 12.h),
           _buildQuickStats(context),
         ],
       ),
@@ -210,10 +209,10 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
 
   Widget _buildQuickStats(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(12.w),
+      padding: EdgeInsets.all(10.w),
       decoration: BoxDecoration(
         color: context.surfaceColor,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10.r),
         border: Border.all(
           color: context.dividerColor.withOpacity(0.2),
         ),
@@ -227,9 +226,9 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
             valueColor: _getAccuracyColor(),
             icon: _getAccuracyIcon(),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 6.h),
           const Divider(height: 1),
-          SizedBox(height: 8.h),
+          SizedBox(height: 6.h),
           _buildStatRow(
             context: context,
             label: 'عمر البيانات',
@@ -260,8 +259,8 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
             },
             child: Container(
               padding: EdgeInsets.symmetric(
-                horizontal: 16.w,
-                vertical: 8.h,
+                horizontal: 12.w,
+                vertical: 6.h,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -271,7 +270,7 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
                     style: TextStyle(
                       color: context.primaryColor,
                       fontWeight: ThemeConstants.medium,
-                      fontSize: 14.sp,
+                      fontSize: 12.sp,
                     ),
                   ),
                   AnimatedRotation(
@@ -280,7 +279,7 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
                     child: Icon(
                       Icons.keyboard_arrow_down,
                       color: context.primaryColor,
-                      size: 24.sp,
+                      size: 20.sp,
                     ),
                   ),
                 ],
@@ -301,7 +300,7 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
 
   Widget _buildDetailedContent(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(12.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -324,7 +323,7 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
               ),
             ],
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: 12.h),
           _buildDetailSection(
             context: context,
             title: 'معلومات السفر',
@@ -374,15 +373,14 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
     
     return Padding(
       padding: EdgeInsets.only(
-        left: 16.w,
-        right: 16.w,
-        bottom: 16.h,
+        left: 12.w,
+        right: 12.w,
+        bottom: 12.h,
       ),
       child: Column(children: warnings),
     );
   }
 
-  // Helper Widgets
   Widget _buildInfoTile({
     required BuildContext context,
     required IconData icon,
@@ -396,18 +394,18 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10.r),
         child: Padding(
-          padding: EdgeInsets.all(8.w),
+          padding: EdgeInsets.all(6.w),
           child: Column(
             children: [
-              Icon(icon, color: color, size: 32.sp),
-              SizedBox(height: 8.h),
+              Icon(icon, color: color, size: 28.sp),
+              SizedBox(height: 6.h),
               Text(
                 title,
                 style: TextStyle(
                   color: context.textSecondaryColor,
-                  fontSize: 11.sp,
+                  fontSize: 10.sp,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -416,7 +414,7 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
                 style: TextStyle(
                   fontWeight: ThemeConstants.bold,
                   color: color,
-                  fontSize: 14.sp,
+                  fontSize: 13.sp,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -424,7 +422,7 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
                 subtitle,
                 style: TextStyle(
                   color: context.textSecondaryColor.withOpacity(0.7),
-                  fontSize: 10.sp,
+                  fontSize: 9.sp,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -445,15 +443,15 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
     return Row(
       children: [
         if (icon != null) ...[
-          Icon(icon, size: 20.sp, color: valueColor ?? context.textSecondaryColor),
-          SizedBox(width: 8.w),
+          Icon(icon, size: 18.sp, color: valueColor ?? context.textSecondaryColor),
+          SizedBox(width: 6.w),
         ],
         Expanded(
           child: Text(
             label,
             style: TextStyle(
               color: context.textSecondaryColor,
-              fontSize: 12.sp,
+              fontSize: 11.sp,
             ),
           ),
         ),
@@ -462,7 +460,7 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
           style: TextStyle(
             fontWeight: ThemeConstants.semiBold,
             color: valueColor ?? context.textPrimaryColor,
-            fontSize: 11.sp,
+            fontSize: 10.sp,
           ),
         ),
       ],
@@ -476,10 +474,10 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
     required List<Widget> children,
   }) {
     return Container(
-      padding: EdgeInsets.all(12.w),
+      padding: EdgeInsets.all(10.w),
       decoration: BoxDecoration(
         color: context.backgroundColor,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10.r),
         border: Border.all(
           color: context.dividerColor.withOpacity(0.2),
         ),
@@ -489,19 +487,19 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
         children: [
           Row(
             children: [
-              Icon(icon, size: 24.sp, color: context.primaryColor),
-              SizedBox(width: 8.w),
+              Icon(icon, size: 20.sp, color: context.primaryColor),
+              SizedBox(width: 6.w),
               Text(
                 title,
                 style: TextStyle(
                   fontWeight: ThemeConstants.semiBold,
                   color: context.primaryColor,
-                  fontSize: 14.sp,
+                  fontSize: 12.sp,
                 ),
               ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: 10.h),
           ...children,
         ],
       ),
@@ -516,16 +514,16 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
     VoidCallback? onTap,
   }) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4.h),
+      padding: EdgeInsets.symmetric(vertical: 3.h),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(8.r),
+          borderRadius: BorderRadius.circular(6.r),
           child: Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: 4.w,
-              vertical: 4.h,
+              horizontal: 3.w,
+              vertical: 3.h,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -535,7 +533,7 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
                     label,
                     style: TextStyle(
                       color: context.textSecondaryColor,
-                      fontSize: 11.sp,
+                      fontSize: 10.sp,
                     ),
                   ),
                 ),
@@ -547,14 +545,14 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
                       style: TextStyle(
                         fontWeight: ThemeConstants.medium,
                         color: valueColor ?? context.textPrimaryColor,
-                        fontSize: 11.sp,
+                        fontSize: 10.sp,
                       ),
                     ),
                     if (onTap != null) ...[
-                      SizedBox(width: 4.w),
+                      SizedBox(width: 3.w),
                       Icon(
                         Icons.copy,
-                        size: 20.sp,
+                        size: 16.sp,
                         color: context.textSecondaryColor.withOpacity(0.5),
                       ),
                     ],
@@ -576,18 +574,18 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
     required Color color,
   }) {
     return Container(
-      margin: EdgeInsets.only(top: 12.h),
-      padding: EdgeInsets.all(12.w),
+      margin: EdgeInsets.only(top: 10.h),
+      padding: EdgeInsets.all(10.w),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10.r),
         border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 24.sp),
-          SizedBox(width: 12.w),
+          Icon(icon, color: color, size: 20.sp),
+          SizedBox(width: 10.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -597,15 +595,15 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
                   style: TextStyle(
                     color: color,
                     fontWeight: ThemeConstants.semiBold,
-                    fontSize: 13.sp,
+                    fontSize: 12.sp,
                   ),
                 ),
-                SizedBox(height: 4.h),
+                SizedBox(height: 3.h),
                 Text(
                   message,
                   style: TextStyle(
                     color: color.darken(0.1),
-                    fontSize: 11.sp,
+                    fontSize: 10.sp,
                   ),
                 ),
               ],
@@ -672,7 +670,7 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('تم نسخ $label: $text'),
+        content: Text('تم نسخ $label: $text', style: TextStyle(fontSize: 11.sp)),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
       ),
@@ -683,11 +681,12 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
         title: Row(
           children: [
-            Icon(Icons.navigation, color: context.primaryColor),
-            SizedBox(width: 8.w),
-            const Text('تفاصيل الاتجاه'),
+            Icon(Icons.navigation, color: context.primaryColor, size: 20.sp),
+            SizedBox(width: 6.w),
+            Text('تفاصيل الاتجاه', style: TextStyle(fontSize: 15.sp)),
           ],
         ),
         content: Column(
@@ -702,7 +701,7 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('إغلاق'),
+            child: Text('إغلاق', style: TextStyle(fontSize: 12.sp)),
           ),
         ],
       ),
@@ -713,11 +712,12 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
         title: Row(
           children: [
-            Icon(Icons.straighten, color: ThemeConstants.info),
-            SizedBox(width: 8.w),
-            const Text('تفاصيل المسافة'),
+            Icon(Icons.straighten, color: ThemeConstants.info, size: 20.sp),
+            SizedBox(width: 6.w),
+            Text('تفاصيل المسافة', style: TextStyle(fontSize: 15.sp)),
           ],
         ),
         content: Column(
@@ -733,7 +733,7 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('إغلاق'),
+            child: Text('إغلاق', style: TextStyle(fontSize: 12.sp)),
           ),
         ],
       ),
@@ -742,7 +742,7 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
 
   Widget _buildDetailItem(String label, String value) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 8.h),
+      padding: EdgeInsets.only(bottom: 6.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -751,13 +751,13 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
             style: TextStyle(
               color: context.textSecondaryColor,
               fontWeight: ThemeConstants.medium,
-              fontSize: 11.sp,
+              fontSize: 10.sp,
             ),
           ),
           Text(
             value,
             style: TextStyle(
-              fontSize: 13.sp,
+              fontSize: 12.sp,
             ),
           ),
         ],

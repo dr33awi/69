@@ -60,12 +60,12 @@ class _SettingsTileState extends State<SettingsTile> {
   Widget build(BuildContext context) {
     final effectiveIconColor = widget.iconColor ?? context.primaryColor;
     final effectivePadding = widget.padding ?? EdgeInsets.symmetric(
-      horizontal: 16.w,
-      vertical: 16.h,
+      horizontal: 12.w,
+      vertical: 12.h,
     );
 
     return Opacity(
-      opacity: widget.enabled ? (_isPressed ? 0.8 : 1.0) : 0.6,
+      opacity: widget.enabled ? (_isPressed ? 0.7 : 1.0) : 0.6,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -73,7 +73,7 @@ class _SettingsTileState extends State<SettingsTile> {
           onTapDown: _handleTapDown,
           onTapUp: _handleTapUp,
           onTapCancel: _handleTapCancel,
-          borderRadius: BorderRadius.circular(20.r),
+          borderRadius: BorderRadius.circular(16.r),
           splashColor: effectiveIconColor.withValues(alpha: 0.1),
           highlightColor: effectiveIconColor.withValues(alpha: 0.05),
           child: Padding(
@@ -82,10 +82,10 @@ class _SettingsTileState extends State<SettingsTile> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 _buildIcon(context, effectiveIconColor),
-                SizedBox(width: 16.w),
+                SizedBox(width: 12.w),
                 Expanded(child: _buildContent(context)),
                 if (widget.trailing != null) ...[
-                  SizedBox(width: 12.w),
+                  SizedBox(width: 8.w),
                   widget.trailing!,
                 ],
               ],
@@ -98,20 +98,20 @@ class _SettingsTileState extends State<SettingsTile> {
 
   Widget _buildIcon(BuildContext context, Color iconColor) {
     return Container(
-      width: 48.w,
-      height: 48.h,
+      width: 40.w,
+      height: 40.h,
       decoration: BoxDecoration(
         color: widget.enabled 
-            ? iconColor.withValues(alpha: _isPressed ? 0.2 : 0.1)
+            ? iconColor.withValues(alpha: _isPressed ? 0.15 : 0.1)
             : context.textSecondaryColor.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10.r),
       ),
       child: Icon(
         widget.icon,
         color: widget.enabled 
             ? iconColor
             : context.textSecondaryColor.withValues(alpha: 0.5),
-        size: 24.sp,
+        size: 20.sp,
       ),
     );
   }
@@ -128,22 +128,22 @@ class _SettingsTileState extends State<SettingsTile> {
                 ? context.textPrimaryColor
                 : context.textSecondaryColor.withValues(alpha: 0.7),
             fontWeight: ThemeConstants.medium,
-            height: 1.2.sp,
-            fontSize: context.titleMedium?.fontSize?.sp,
+            height: 1.2,
+            fontSize: 14.sp,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         if (widget.subtitle != null) ...[
-          SizedBox(height: 4.h),
+          SizedBox(height: 2.h),
           Text(
             widget.subtitle!,
             style: context.bodySmall?.copyWith(
               color: widget.enabled 
                   ? context.textSecondaryColor
                   : context.textSecondaryColor.withValues(alpha: 0.5),
-              height: 1.3.sp,
-              fontSize: context.bodySmall?.fontSize?.sp,
+              height: 1.3,
+              fontSize: 11.sp,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -171,11 +171,14 @@ class SettingsSwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Switch.adaptive(
-      value: value,
-      onChanged: enabled ? onChanged : null,
-      activeColor: activeColor ?? context.primaryColor,
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    return Transform.scale(
+      scale: 0.85, // تصغير حجم السويتش قليلاً للشاشات الصغيرة
+      child: Switch.adaptive(
+        value: value,
+        onChanged: enabled ? onChanged : null,
+        activeColor: activeColor ?? context.primaryColor,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
     );
   }
 }

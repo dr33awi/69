@@ -229,15 +229,16 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.r),
         ),
+        contentPadding: EdgeInsets.all(16.r),
         title: Row(
           children: [
             Icon(
               Icons.text_fields_rounded,
               color: ThemeConstants.primary,
-              size: 24.sp,
+              size: 20.sp,
             ),
-            SizedBox(width: 8.w),
-            const Text('حجم الخط'),
+            SizedBox(width: 6.w),
+            Text('حجم الخط', style: TextStyle(fontSize: 16.sp)),
           ],
         ),
         content: Column(
@@ -257,10 +258,10 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
     final isSelected = _fontSize == size;
     
     return Container(
-      margin: EdgeInsets.only(bottom: 8.h),
+      margin: EdgeInsets.only(bottom: 6.h),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10.r),
         child: InkWell(
           onTap: () async {
             HapticFeedback.lightImpact();
@@ -270,14 +271,14 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
             
             if (mounted) Navigator.pop(context);
           },
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(10.r),
           child: Container(
-            padding: EdgeInsets.all(16.r),
+            padding: EdgeInsets.all(12.r),
             decoration: BoxDecoration(
               color: isSelected 
                   ? ThemeConstants.primary.withOpacity(0.1)
                   : Colors.transparent,
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(10.r),
               border: Border.all(
                 color: isSelected 
                     ? ThemeConstants.primary.withOpacity(0.3)
@@ -290,9 +291,9 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
                 Icon(
                   isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
                   color: isSelected ? ThemeConstants.primary : context.textSecondaryColor,
-                  size: 20.sp,
+                  size: 18.sp,
                 ),
-                SizedBox(width: 12.w),
+                SizedBox(width: 10.w),
                 Expanded(
                   child: Text(
                     label,
@@ -307,7 +308,7 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
                   '${size.toInt()}px',
                   style: TextStyle(
                     color: context.textSecondaryColor,
-                    fontSize: 11.sp,
+                    fontSize: 10.sp,
                   ),
                 ),
               ],
@@ -384,36 +385,36 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
     );
     
     return Container(
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
       child: Row(
         children: [
           AppBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
           
-          SizedBox(width: 12.w),
+          SizedBox(width: 8.w),
           
           Container(
-            padding: EdgeInsets.all(8.r),
+            padding: EdgeInsets.all(6.r),
             decoration: BoxDecoration(
               gradient: gradient,
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(10.r),
               boxShadow: [
                 BoxShadow(
-                  color: ThemeConstants.primary.withOpacity(0.3),
-                  blurRadius: 8.r,
-                  offset: Offset(0, 4.h),
+                  color: ThemeConstants.primary.withOpacity(0.25),
+                  blurRadius: 6.r,
+                  offset: Offset(0, 3.h),
                 ),
               ],
             ),
             child: Icon(
               category?.icon ?? Icons.menu_book,
               color: Colors.white,
-              size: 24.sp,
+              size: 20.sp,
             ),
           ),
           
-          SizedBox(width: 12.w),
+          SizedBox(width: 8.w),
           
           Expanded(
             child: Column(
@@ -424,7 +425,7 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
                   style: TextStyle(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
-                    fontSize: 18.sp,
+                    fontSize: 16.sp,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -434,15 +435,15 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
                     '${category.athkar.length} ذكر - ${_completedItems.length} مكتمل',
                     style: TextStyle(
                       color: context.textSecondaryColor,
-                      fontSize: 12.sp,
+                      fontSize: 11.sp,
                     ),
                   )
                 else
                   Text(
-                    'الأذكار والأدعية الإسلامية',
+                    'الأذكار والأدعية',
                     style: TextStyle(
                       color: context.textSecondaryColor,
-                      fontSize: 12.sp,
+                      fontSize: 11.sp,
                     ),
                   ),
               ],
@@ -451,37 +452,37 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
           
           if (category != null) ...[
             Container(
-              margin: EdgeInsets.only(left: 8.w),
+              margin: EdgeInsets.only(left: 6.w),
               child: Material(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(10.r),
                 child: InkWell(
                   onTap: () {
                     HapticFeedback.lightImpact();
                     _showFontSizeDialog();
                   },
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: BorderRadius.circular(10.r),
                   child: Container(
-                    padding: EdgeInsets.all(8.r),
+                    padding: EdgeInsets.all(6.r),
                     decoration: BoxDecoration(
                       color: context.cardColor,
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(10.r),
                       border: Border.all(
                         color: context.dividerColor.withOpacity(0.3),
                         width: 1.w,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4.r,
-                          offset: Offset(0, 2.h),
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 3.r,
+                          offset: Offset(0, 1.5.h),
                         ),
                       ],
                     ),
                     child: Icon(
                       Icons.text_fields_rounded,
                       color: context.textPrimaryColor,
-                      size: 24.sp,
+                      size: 20.sp,
                     ),
                   ),
                 ),
@@ -489,10 +490,10 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
             ),
             
             Container(
-              margin: EdgeInsets.only(left: 8.w),
+              margin: EdgeInsets.only(left: 6.w),
               child: Material(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(10.r),
                 child: InkWell(
                   onTap: () {
                     HapticFeedback.lightImpact();
@@ -503,28 +504,28 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
                       ),
                     );
                   },
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: BorderRadius.circular(10.r),
                   child: Container(
-                    padding: EdgeInsets.all(8.r),
+                    padding: EdgeInsets.all(6.r),
                     decoration: BoxDecoration(
                       color: context.cardColor,
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(10.r),
                       border: Border.all(
                         color: context.dividerColor.withOpacity(0.3),
                         width: 1.w,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4.r,
-                          offset: Offset(0, 2.h),
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 3.r,
+                          offset: Offset(0, 1.5.h),
                         ),
                       ],
                     ),
                     child: Icon(
                       Icons.notifications_outlined,
                       color: context.textPrimaryColor,
-                      size: 24.sp,
+                      size: 20.sp,
                     ),
                   ),
                 ),
@@ -540,13 +541,13 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
     if (_visibleItems.isEmpty && _completedItems.isNotEmpty) {
       return Center(
         child: Padding(
-          padding: EdgeInsets.all(24.r),
+          padding: EdgeInsets.all(20.r),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 120.r,
-                height: 120.r,
+                width: 100.r,
+                height: 100.r,
                 decoration: BoxDecoration(
                   color: ThemeConstants.success.withOpacity(0.1),
                   shape: BoxShape.circle,
@@ -557,48 +558,48 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
                 ),
                 child: Icon(
                   Icons.check_circle_rounded,
-                  size: 60.sp,
+                  size: 50.sp,
                   color: ThemeConstants.success,
                 ),
               ),
               
-              SizedBox(height: 24.h),
+              SizedBox(height: 20.h),
               
               Text(
                 'أحسنت! أكملت جميع الأذكار',
                 style: TextStyle(
                   color: ThemeConstants.success,
                   fontWeight: ThemeConstants.bold,
-                  fontSize: 20.sp,
+                  fontSize: 18.sp,
                 ),
                 textAlign: TextAlign.center,
               ),
               
-              SizedBox(height: 12.h),
+              SizedBox(height: 10.h),
               
               Text(
                 'جعله الله في ميزان حسناتك',
                 style: TextStyle(
                   color: context.textSecondaryColor,
-                  fontSize: 16.sp,
+                  fontSize: 14.sp,
                 ),
                 textAlign: TextAlign.center,
               ),
               
-              SizedBox(height: 32.h),
+              SizedBox(height: 24.h),
               
               Row(
                 children: [
                   Expanded(
                     child: AppButton.outline(
-                      text: 'مشاركة الإنجاز',
+                      text: 'مشاركة',
                       icon: Icons.share_rounded,
                       onPressed: _shareProgress,
                       color: ThemeConstants.success,
                     ),
                   ),
                   
-                  SizedBox(width: 16.w),
+                  SizedBox(width: 12.w),
                   
                   Expanded(
                     child: AppButton.primary(
@@ -619,7 +620,7 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView.builder(
-        padding: EdgeInsets.all(16.r),
+        padding: EdgeInsets.all(12.r),
         itemCount: _visibleItems.length,
         itemBuilder: (context, index) {
           final item = _visibleItems[index];
@@ -631,7 +632,7 @@ ${item.source != null ? 'المصدر: ${item.source}' : ''}
           
           return Padding(
             padding: EdgeInsets.only(
-              bottom: index < _visibleItems.length - 1 ? 12.h : 0,
+              bottom: index < _visibleItems.length - 1 ? 10.h : 0,
             ),
             child: AthkarItemCard(
               item: item,

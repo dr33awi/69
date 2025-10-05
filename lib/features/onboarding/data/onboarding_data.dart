@@ -139,17 +139,22 @@ class OnboardingData {
       ],
     ),
     
-    // الشاشة الأخيرة - الأذونات
+    // الشاشة الأخيرة - الأذونات المطلوبة
     OnboardingItem(
-      title: 'أذونات مطلوبة',
+      title: '🔐 أذونات مطلوبة',
       lottiePath: 'assets/animations/security_shield.json',
       useLottie: true,
-      primaryColor: AppColors.info,
-      secondaryColor: Colors.blue.shade300,
-      darkColor: Colors.blue.shade700,
+      primaryColor: const Color(0xFF3B82F6),
+      secondaryColor: const Color(0xFF60A5FA),
+      darkColor: const Color(0xFF1E40AF),
       emoji: '🔐',
       iconData: Icons.security_rounded,
       animationType: OnboardingAnimationType.permissions,
+      features: [
+        'الإشعارات - لإرسال تنبيهات الصلاة والأذكار',
+        'الموقع - لحساب أوقات الصلاة بدقة واتجاه القبلة',
+        'تحسين البطارية - لضمان عمل التذكيرات في الخلفية',
+      ],
     ),
   ];
   
@@ -158,7 +163,7 @@ class OnboardingData {
   
   /// الحصول على شاشات الفئات فقط
   static List<OnboardingItem> get categoryItems => 
-      items.where((item) => item.features != null).toList();
+      items.where((item) => item.features != null && item.features!.length > 3).toList();
   
   /// إعدادات خاصة لكل نوع من أنواع Lottie
   static Map<OnboardingAnimationType, LottieConfig> get lottieConfigs => {
@@ -193,7 +198,7 @@ class OnboardingData {
     OnboardingAnimationType.qiblaDirection: const LottieConfig(
       repeat: true,
       autoStart: true,
-      speed: 0.6, // بطء أكثر للبوصلة
+      speed: 0.6,
       frameRate: 24,
       enableMergePaths: true,
     ),
@@ -212,7 +217,7 @@ class OnboardingData {
       enableMergePaths: true,
     ),
     OnboardingAnimationType.permissions: const LottieConfig(
-      repeat: false, // مرة واحدة فقط
+      repeat: false,
       autoStart: true,
       speed: 1.0,
       frameRate: 30,

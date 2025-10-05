@@ -172,11 +172,11 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
         // عنوان القسم
         _buildSectionHeader(context),
         
-        SizedBox(height: 12.h),
+        SizedBox(height: 10.h),
         
         // بطاقة الاقتباسات
         SizedBox(
-          height: 260.h,
+          height: 220.h,
           child: PageView.builder(
             controller: _pageController,
             onPageChanged: (index) {
@@ -192,7 +192,7 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
           ),
         ),
         
-        SizedBox(height: 12.h),
+        SizedBox(height: 10.h),
         
         // مؤشر الصفحات
         _buildPageIndicator(context),
@@ -202,10 +202,10 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
 
   Widget _buildSectionHeader(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(14.r),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: context.dividerColor.withOpacity(0.2),
           width: 1.w,
@@ -213,7 +213,7 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
         boxShadow: [
           BoxShadow(
             color: context.primaryColor.withOpacity(0.05),
-            blurRadius: 6.r,
+            blurRadius: 4.r,
             offset: Offset(0, 2.h),
           ),
         ],
@@ -221,27 +221,27 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
       child: Row(
         children: [
           Container(
-            width: 34.r,
-            height: 34.r,
+            width: 30.r,
+            height: 30.r,
             decoration: BoxDecoration(
               gradient: ThemeConstants.primaryGradient,
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(8.r),
             ),
             child: Icon(
               Icons.auto_stories_rounded,
               color: Colors.white,
-              size: 18.sp,
+              size: 16.sp,
             ),
           ),
           
-          SizedBox(width: 10.w),
+          SizedBox(width: 8.w),
           
           Expanded(
             child: Text(
               'الاقتباس اليومي',
               style: context.titleMedium?.copyWith(
                 fontWeight: ThemeConstants.bold,
-                fontSize: 15.sp,
+                fontSize: 13.sp,
               ),
             ),
           ),
@@ -254,7 +254,7 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 4.w),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(16.r),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -262,18 +262,18 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
         ),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(16.r),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
             onTap: () => _showQuoteDetails(context, quote),
-            borderRadius: BorderRadius.circular(20.r),
+            borderRadius: BorderRadius.circular(16.r),
             child: Stack(
               children: [
                 _buildSimpleQuoteBackground(),
                 
                 Padding(
-                  padding: EdgeInsets.all(16.r),
+                  padding: EdgeInsets.all(12.r),
                   child: _buildQuoteContent(context, quote),
                 ),
               ],
@@ -291,19 +291,19 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
         Row(
           children: [
             Container(
-              padding: EdgeInsets.all(7.r),
+              padding: EdgeInsets.all(6.r),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(8.r),
               ),
               child: Icon(
                 _getQuoteIcon(quote.type),
                 color: Colors.white,
-                size: 20.sp,
+                size: 16.sp,
               ),
             ),
             
-            SizedBox(width: 10.w),
+            SizedBox(width: 8.w),
             
             Expanded(
               child: Column(
@@ -314,14 +314,14 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
                     style: context.titleMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: ThemeConstants.bold,
-                      fontSize: 14.sp,
+                      fontSize: 12.sp,
                     ),
                   ),
                   if (quote.theme != null) ...[
                     SizedBox(height: 2.h),
                     Container(
                       padding: EdgeInsets.symmetric(
-                        horizontal: 10.w,
+                        horizontal: 8.w,
                         vertical: 2.h,
                       ),
                       decoration: BoxDecoration(
@@ -333,7 +333,7 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
                         style: context.labelSmall?.copyWith(
                           color: Colors.white.withOpacity(0.9),
                           fontWeight: ThemeConstants.medium,
-                          fontSize: 10.sp,
+                          fontSize: 9.sp,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -353,12 +353,12 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
                   icon: Icon(
                     Icons.copy_rounded,
                     color: Colors.white.withOpacity(0.8),
-                    size: 18.sp,
+                    size: 16.sp,
                   ),
-                  padding: EdgeInsets.all(6.r),
+                  padding: EdgeInsets.all(4.r),
                   constraints: BoxConstraints(
-                    minWidth: 34.r,
-                    minHeight: 34.r,
+                    minWidth: 28.r,
+                    minHeight: 28.r,
                   ),
                 ),
                 IconButton(
@@ -366,12 +366,12 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
                   icon: Icon(
                     Icons.share_rounded,
                     color: Colors.white.withOpacity(0.8),
-                    size: 18.sp,
+                    size: 16.sp,
                   ),
-                  padding: EdgeInsets.all(6.r),
+                  padding: EdgeInsets.all(4.r),
                   constraints: BoxConstraints(
-                    minWidth: 34.r,
-                    minHeight: 34.r,
+                    minWidth: 28.r,
+                    minHeight: 28.r,
                   ),
                 ),
               ],
@@ -384,13 +384,13 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
         // النص الرئيسي
         Container(
           width: double.infinity,
-          padding: EdgeInsets.all(14.r),
+          padding: EdgeInsets.all(12.r),
           constraints: BoxConstraints(
-            maxHeight: 120.h,
+            maxHeight: 100.h,
           ),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(16.r),
+            borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
               color: Colors.white.withOpacity(0.3),
               width: 1.w,
@@ -405,7 +405,7 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
                   child: Icon(
                     Icons.format_quote,
                     color: Colors.white.withOpacity(0.6),
-                    size: 18.sp,
+                    size: 14.sp,
                   ),
                 ),
                 
@@ -417,7 +417,7 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
                   style: context.bodyLarge?.copyWith(
                     color: Colors.white,
                     fontSize: _getQuoteFontSize(quote.content.length),
-                    height: 1.6,
+                    height: 1.5,
                     fontWeight: ThemeConstants.medium,
                     fontFamily: quote.type == QuoteType.verse 
                         ? ThemeConstants.fontFamilyQuran 
@@ -436,7 +436,7 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
                     child: Icon(
                       Icons.format_quote,
                       color: Colors.white.withOpacity(0.6),
-                      size: 18.sp,
+                      size: 14.sp,
                     ),
                   ),
                 ),
@@ -452,8 +452,8 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
           alignment: Alignment.centerLeft,
           child: Container(
             padding: EdgeInsets.symmetric(
-              horizontal: 14.w,
-              vertical: 6.h,
+              horizontal: 10.w,
+              vertical: 4.h,
             ),
             decoration: BoxDecoration(
               color: Colors.black.withOpacity(0.2),
@@ -464,7 +464,7 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
               style: context.labelMedium?.copyWith(
                 color: Colors.white,
                 fontWeight: ThemeConstants.semiBold,
-                fontSize: 11.sp,
+                fontSize: 10.sp,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -477,11 +477,11 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
 
   double _getQuoteFontSize(int textLength) {
     if (textLength > 150) {
-      return 12.sp;
+      return 11.sp;
     } else if (textLength > 100) {
-      return 13.sp;
+      return 12.sp;
     } else {
-      return 14.sp;
+      return 13.sp;
     }
   }
 
@@ -490,11 +490,11 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
       child: Stack(
         children: [
           Positioned(
-            top: -50.h,
-            left: -50.w,
+            top: -40.h,
+            left: -40.w,
             child: Container(
-              width: 100.r,
-              height: 100.r,
+              width: 80.r,
+              height: 80.r,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
@@ -513,11 +513,11 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
 
   Widget _buildLoadingCard(BuildContext context) {
     return Container(
-      height: 160.h,
-      padding: EdgeInsets.all(16.r),
+      height: 140.h,
+      padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
           color: context.dividerColor.withOpacity(0.3),
           width: 1.w,
@@ -530,12 +530,12 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
             color: context.primaryColor,
             strokeWidth: 2.w,
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: 10.h),
           Text(
             'جاري تحميل الاقتباسات...',
             style: context.labelMedium?.copyWith(
               color: context.textSecondaryColor,
-              fontSize: 12.sp,
+              fontSize: 11.sp,
             ),
           ),
         ],
@@ -545,11 +545,11 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
 
   Widget _buildErrorCard(BuildContext context) {
     return Container(
-      height: 160.h,
-      padding: EdgeInsets.all(16.r),
+      height: 140.h,
+      padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
           color: context.dividerColor.withOpacity(0.3),
           width: 1.w,
@@ -561,14 +561,14 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
           Icon(
             Icons.error_outline,
             color: context.errorColor,
-            size: 30.sp,
+            size: 26.sp,
           ),
           SizedBox(height: 8.h),
           Text(
             'خطأ في تحميل الاقتباسات',
             style: context.titleMedium?.copyWith(
               color: context.errorColor,
-              fontSize: 14.sp,
+              fontSize: 12.sp,
             ),
             textAlign: TextAlign.center,
           ),
@@ -576,11 +576,11 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
           ElevatedButton(
             onPressed: _loadQuotesData,
             style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 7.h),
             ),
             child: Text(
               'إعادة المحاولة',
-              style: TextStyle(fontSize: 12.sp),
+              style: TextStyle(fontSize: 11.sp),
             ),
           ),
         ],
@@ -590,11 +590,11 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
 
   Widget _buildEmptyCard(BuildContext context) {
     return Container(
-      height: 160.h,
-      padding: EdgeInsets.all(16.r),
+      height: 140.h,
+      padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
           color: context.dividerColor.withOpacity(0.3),
           width: 1.w,
@@ -606,25 +606,25 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
           Icon(
             Icons.book_outlined,
             color: context.textSecondaryColor,
-            size: 30.sp,
+            size: 26.sp,
           ),
           SizedBox(height: 8.h),
           Text(
             'لا توجد اقتباسات متاحة',
             style: context.titleMedium?.copyWith(
               color: context.textSecondaryColor,
-              fontSize: 14.sp,
+              fontSize: 12.sp,
             ),
           ),
           SizedBox(height: 8.h),
           ElevatedButton(
             onPressed: _loadQuotesData,
             style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 7.h),
             ),
             child: Text(
               'إعادة التحميل',
-              style: TextStyle(fontSize: 12.sp),
+              style: TextStyle(fontSize: 11.sp),
             ),
           ),
         ],
@@ -639,13 +639,13 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
         final isActive = index == _currentPage;
         return Container(
           margin: EdgeInsets.symmetric(horizontal: 3.w),
-          width: isActive ? 20.w : 6.r,
-          height: 6.h,
+          width: isActive ? 18.w : 5.r,
+          height: 5.h,
           decoration: BoxDecoration(
             color: isActive 
                 ? context.primaryColor 
                 : context.primaryColor.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(3.r),
+            borderRadius: BorderRadius.circular(2.5.r),
           ),
         );
       }),
@@ -738,7 +738,7 @@ class QuoteDetailsModal extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.cardColor,
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20.r),
+          top: Radius.circular(16.r),
         ),
       ),
       child: Column(
@@ -747,7 +747,7 @@ class QuoteDetailsModal extends StatelessWidget {
           // Handle bar
           Container(
             margin: EdgeInsets.only(top: 8.h),
-            width: 40.w,
+            width: 36.w,
             height: 4.h,
             decoration: BoxDecoration(
               color: context.dividerColor,
@@ -757,26 +757,26 @@ class QuoteDetailsModal extends StatelessWidget {
           
           Flexible(
             child: SingleChildScrollView(
-              padding: EdgeInsets.all(18.r),
+              padding: EdgeInsets.all(16.r),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     _getQuoteTitle(quote.type),
                     style: context.headlineSmall?.semiBold.copyWith(
-                      fontSize: 22.sp,
+                      fontSize: 18.sp,
                     ),
                   ),
                   
-                  SizedBox(height: 14.h),
+                  SizedBox(height: 12.h),
                   
                   // Quote content
                   Container(
                     width: double.infinity,
-                    padding: EdgeInsets.all(18.r),
+                    padding: EdgeInsets.all(14.r),
                     decoration: BoxDecoration(
                       color: context.surfaceColor,
-                      borderRadius: BorderRadius.circular(14.r),
+                      borderRadius: BorderRadius.circular(12.r),
                       border: Border.all(
                         color: context.dividerColor.withOpacity(0.5),
                         width: 1.w,
@@ -785,8 +785,8 @@ class QuoteDetailsModal extends StatelessWidget {
                     child: Text(
                       quote.content,
                       style: context.bodyLarge?.copyWith(
-                        height: 1.8,
-                        fontSize: 16.sp,
+                        height: 1.7,
+                        fontSize: 14.sp,
                         fontFamily: quote.type == QuoteType.verse 
                             ? ThemeConstants.fontFamilyQuran 
                             : ThemeConstants.fontFamily,
@@ -795,7 +795,7 @@ class QuoteDetailsModal extends StatelessWidget {
                     ),
                   ),
                   
-                  SizedBox(height: 14.h),
+                  SizedBox(height: 12.h),
                   
                   // Source and theme
                   Row(
@@ -804,8 +804,8 @@ class QuoteDetailsModal extends StatelessWidget {
                       Flexible(
                         child: Container(
                           padding: EdgeInsets.symmetric(
-                            horizontal: 14.w,
-                            vertical: 7.h,
+                            horizontal: 12.w,
+                            vertical: 6.h,
                           ),
                           decoration: BoxDecoration(
                             color: context.primaryColor.withOpacity(0.1),
@@ -816,7 +816,7 @@ class QuoteDetailsModal extends StatelessWidget {
                             style: context.titleSmall?.copyWith(
                               color: context.primaryColor,
                               fontWeight: ThemeConstants.semiBold,
-                              fontSize: 13.sp,
+                              fontSize: 11.sp,
                             ),
                           ),
                         ),
@@ -827,7 +827,7 @@ class QuoteDetailsModal extends StatelessWidget {
                         Flexible(
                           child: Container(
                             padding: EdgeInsets.symmetric(
-                              horizontal: 10.w,
+                              horizontal: 8.w,
                               vertical: 4.h,
                             ),
                             decoration: BoxDecoration(
@@ -844,7 +844,7 @@ class QuoteDetailsModal extends StatelessWidget {
                                 Icon(
                                   Icons.label_outline,
                                   color: context.textSecondaryColor,
-                                  size: 13.sp,
+                                  size: 11.sp,
                                 ),
                                 SizedBox(width: 4.w),
                                 Flexible(
@@ -853,7 +853,7 @@ class QuoteDetailsModal extends StatelessWidget {
                                     style: context.labelSmall?.copyWith(
                                       color: context.textSecondaryColor,
                                       fontWeight: ThemeConstants.medium,
-                                      fontSize: 11.sp,
+                                      fontSize: 10.sp,
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -866,23 +866,23 @@ class QuoteDetailsModal extends StatelessWidget {
                     ],
                   ),
                   
-                  SizedBox(height: 22.h),
+                  SizedBox(height: 18.h),
                   
                   // Action buttons
                   Row(
                     children: [
                       Expanded(
                         child: SizedBox(
-                          height: 44.h,
+                          height: 40.h,
                           child: ElevatedButton.icon(
                             onPressed: () => _copyQuote(context),
                             icon: Icon(
                               Icons.copy_rounded,
-                              size: 17.sp,
+                              size: 16.sp,
                             ),
                             label: Text(
                               'نسخ النص',
-                              style: TextStyle(fontSize: 13.sp),
+                              style: TextStyle(fontSize: 12.sp),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: context.surfaceColor,
@@ -896,20 +896,20 @@ class QuoteDetailsModal extends StatelessWidget {
                         ),
                       ),
                       
-                      SizedBox(width: 10.w),
+                      SizedBox(width: 8.w),
                       
                       Expanded(
                         child: SizedBox(
-                          height: 44.h,
+                          height: 40.h,
                           child: ElevatedButton.icon(
                             onPressed: () => _shareQuote(context),
                             icon: Icon(
                               Icons.share_rounded,
-                              size: 17.sp,
+                              size: 16.sp,
                             ),
                             label: Text(
                               'مشاركة',
-                              style: TextStyle(fontSize: 13.sp),
+                              style: TextStyle(fontSize: 12.sp),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: context.primaryColor,

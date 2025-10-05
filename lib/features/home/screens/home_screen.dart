@@ -1,4 +1,4 @@
-// lib/features/home/screens/home_screen.dart - محدث بدون التاريخ والساعة
+// lib/features/home/screens/home_screen.dart - محسّن للشاشات الصغيرة
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -189,26 +189,26 @@ class _HomeScreenState extends State<HomeScreen>
                       slivers: [
                         SliverPadding(
                           padding: EdgeInsets.symmetric(
-                            horizontal: 20.w,
-                            vertical: 8.h,
+                            horizontal: 16.w,
+                            vertical: 6.h,
                           ),
                           sliver: SliverList(
                             delegate: SliverChildListDelegate([
-                              SizedBox(height: 12.h),
+                              SizedBox(height: 10.h),
                               
                               const SpecialEventCard(),
                               
                               const PrayerTimesCard(),
                               
-                              SizedBox(height: 20.h),
+                              SizedBox(height: 16.h),
                               
                               const DailyQuotesCard(),
                               
-                              SizedBox(height: 24.h),
+                              SizedBox(height: 20.h),
                               
                               _buildSectionsHeader(context),
                               
-                              SizedBox(height: 16.h),
+                              SizedBox(height: 12.h),
                             ]),
                           ),
                         ),
@@ -216,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen>
                         const CategoryGrid(),
                         
                         SliverToBoxAdapter(
-                          child: SizedBox(height: 48.h),
+                          child: SizedBox(height: 40.h),
                         ),
                       ],
                     ),
@@ -234,7 +234,7 @@ class _HomeScreenState extends State<HomeScreen>
     final messageData = _getMessage();
     
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
       child: Row(
         children: [
           Expanded(
@@ -246,27 +246,27 @@ class _HomeScreenState extends State<HomeScreen>
                     Icon(
                       messageData['icon'] as IconData,
                       color: context.primaryColor,
-                      size: 24.sp,
+                      size: 20.sp,
                     ),
-                    SizedBox(width: 8.w),
+                    SizedBox(width: 6.w),
                     Text(
                       messageData['greeting'] as String,
-                      style: context.titleMedium?.copyWith(
+                      style: TextStyle(
                         fontWeight: ThemeConstants.bold,
                         color: context.textPrimaryColor,
-                        fontSize: 16.sp,
+                        fontSize: 15.sp,
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 4.h),
+                SizedBox(height: 3.h),
                 Padding(
-                  padding: EdgeInsets.only(right: 32.w),
+                  padding: EdgeInsets.only(right: 26.w),
                   child: Text(
                     messageData['message'] as String,
-                    style: context.bodySmall?.copyWith(
+                    style: TextStyle(
                       color: context.textSecondaryColor,
-                      fontSize: 12.sp,
+                      fontSize: 11.sp,
                     ),
                   ),
                 ),
@@ -276,34 +276,34 @@ class _HomeScreenState extends State<HomeScreen>
           
           Material(
             color: Colors.transparent,
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(10.r),
             child: InkWell(
               onTap: () {
                 HapticFeedback.lightImpact();
                 Navigator.pushNamed(context, '/settings');
               },
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(10.r),
               child: Container(
-                padding: EdgeInsets.all(8.w),
+                padding: EdgeInsets.all(6.r),
                 decoration: BoxDecoration(
                   color: context.cardColor,
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: BorderRadius.circular(10.r),
                   border: Border.all(
                     color: context.dividerColor.withValues(alpha: 0.3),
                     width: 1.w,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 4.r,
-                      offset: Offset(0, 2.h),
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 3.r,
+                      offset: Offset(0, 1.5.h),
                     ),
                   ],
                 ),
                 child: Icon(
                   Icons.settings_outlined,
                   color: context.textPrimaryColor,
-                  size: 24.sp,
+                  size: 20.sp,
                 ),
               ),
             ),
@@ -316,12 +316,12 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildSectionsHeader(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: 16.w,
-        vertical: 12.h,
+        horizontal: 12.w,
+        vertical: 10.h,
       ),
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(14.r),
         border: Border.all(
           color: context.dividerColor.withValues(alpha: 0.2),
           width: 1.w,
@@ -330,45 +330,45 @@ class _HomeScreenState extends State<HomeScreen>
       child: Row(
         children: [
           Container(
-            width: 4.w,
-            height: 32.h,
+            width: 3.w,
+            height: 28.h,
             decoration: BoxDecoration(
               gradient: ThemeConstants.primaryGradient,
               borderRadius: BorderRadius.circular(2.r),
             ),
           ),
-          SizedBox(width: 12.w),
+          SizedBox(width: 10.w),
           Container(
-            width: 36.w,
-            height: 36.h,
+            width: 32.r,
+            height: 32.r,
             decoration: BoxDecoration(
               color: context.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(10.r),
             ),
             child: Icon(
               Icons.apps_rounded,
               color: context.primaryColor,
-              size: 20.sp,
+              size: 18.sp,
             ),
           ),
-          SizedBox(width: 12.w),
+          SizedBox(width: 10.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'الأقسام الرئيسية',
-                  style: context.titleMedium?.copyWith(
+                  style: TextStyle(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
-                    fontSize: 16.sp,
+                    fontSize: 14.sp,
                   ),
                 ),
                 Text(
                   'اختر القسم المناسب لك',
-                  style: context.labelSmall?.copyWith(
+                  style: TextStyle(
                     color: context.textSecondaryColor,
-                    fontSize: 11.sp,
+                    fontSize: 10.sp,
                   ),
                 ),
               ],

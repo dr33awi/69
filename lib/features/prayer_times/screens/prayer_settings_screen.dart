@@ -18,10 +18,8 @@ class PrayerSettingsScreen extends StatefulWidget {
 class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
   late final PrayerTimesService _prayerService;
   
-  // إعدادات الحساب
   late PrayerCalculationSettings _calculationSettings;
   
-  // حالة التحميل
   bool _isLoading = true;
   bool _isSaving = false;
   bool _hasChanges = false;
@@ -54,7 +52,6 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
     setState(() => _isSaving = true);
     
     try {
-      // حفظ إعدادات الحساب
       await _prayerService.updateCalculationSettings(_calculationSettings);
       
       if (!mounted) return;
@@ -64,7 +61,6 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
         _hasChanges = false;
       });
       
-      // العودة للشاشة السابقة
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
@@ -84,38 +80,31 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Custom AppBar محسن
             _buildCustomAppBar(context),
             
-            // المحتوى
             Expanded(
               child: _isLoading
                   ? Center(child: AppLoading.circular())
                   : CustomScrollView(
                       slivers: [
-                        // إعدادات طريقة الحساب
                         SliverToBoxAdapter(
                           child: _buildCalculationSection(),
                         ),
                         
-                        // إعدادات المذهب
                         SliverToBoxAdapter(
                           child: _buildJuristicSection(),
                         ),
                         
-                        // تعديلات يدوية
                         SliverToBoxAdapter(
                           child: _buildManualAdjustmentsSection(),
                         ),
                         
-                        // زر الحفظ
                         SliverToBoxAdapter(
                           child: _buildSaveButton(),
                         ),
                         
-                        // مساحة في الأسفل
                         SliverToBoxAdapter(
-                          child: SizedBox(height: 24.h),
+                          child: SizedBox(height: 20.h),
                         ),
                       ],
                     ),
@@ -127,7 +116,6 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
   }
 
   Widget _buildCustomAppBar(BuildContext context) {
-    // استخدام نفس التدرج المستخدم في CategoryGrid لفئة prayer_times
     const gradient = LinearGradient(
       colors: [ThemeConstants.primary, ThemeConstants.primaryLight],
       begin: Alignment.topLeft,
@@ -135,10 +123,9 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
     );
     
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
       child: Row(
         children: [
-          // زر الرجوع
           AppBackButton(
             onPressed: () {
               if (_hasChanges) {
@@ -149,88 +136,85 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
             },
           ),
           
-          SizedBox(width: 12.w),
+          SizedBox(width: 8.w),
           
-          // الأيقونة الجانبية مع نفس التدرج المستخدم في CategoryGrid
           Container(
-            padding: EdgeInsets.all(8.w),
+            padding: EdgeInsets.all(6.r),
             decoration: BoxDecoration(
               gradient: gradient,
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(10.r),
               boxShadow: [
                 BoxShadow(
-                  color: ThemeConstants.primary.withOpacity(0.3),
-                  blurRadius: 8.r,
-                  offset: Offset(0, 4.h),
+                  color: ThemeConstants.primary.withOpacity(0.25),
+                  blurRadius: 6.r,
+                  offset: Offset(0, 3.h),
                 ),
               ],
             ),
             child: Icon(
               Icons.settings,
               color: Colors.white,
-              size: 24.sp,
+              size: 20.sp,
             ),
           ),
           
-          SizedBox(width: 12.w),
+          SizedBox(width: 8.w),
           
-          // العنوان والوصف
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'إعدادات مواقيت الصلاة',
+                  'إعدادات المواقيت',
                   style: TextStyle(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
-                    fontSize: 18.sp,
+                    fontSize: 16.sp,
                   ),
                 ),
                 Text(
-                  'تخصيص طريقة حساب أوقات الصلاة',
+                  'طريقة حساب أوقات الصلاة',
                   style: TextStyle(
                     color: context.textSecondaryColor,
-                    fontSize: 12.sp,
+                    fontSize: 11.sp,
                   ),
                 ),
               ],
             ),
           ),
           
-          // زر الحفظ
           if (_hasChanges && !_isSaving)
             Container(
-              margin: EdgeInsets.only(left: 8.w),
+              margin: EdgeInsets.only(left: 6.w),
               child: Material(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(10.r),
                 child: InkWell(
                   onTap: () {
                     HapticFeedback.lightImpact();
                     _saveSettings();
                   },
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: BorderRadius.circular(10.r),
                   child: Container(
-                    padding: EdgeInsets.all(8.w),
+                    padding: EdgeInsets.all(6.r),
                     decoration: BoxDecoration(
                       color: context.cardColor,
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(10.r),
                       border: Border.all(
                         color: context.dividerColor.withOpacity(0.3),
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4.r,
-                          offset: Offset(0, 2.h),
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 3.r,
+                          offset: Offset(0, 1.5.h),
                         ),
                       ],
                     ),
                     child: Icon(
                       Icons.save,
                       color: ThemeConstants.primary,
-                      size: 24.sp,
+                      size: 20.sp,
                     ),
                   ),
                 ),
@@ -272,21 +256,22 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
   Widget _buildCalculationMethodTile() {
     final methodNames = {
       CalculationMethod.muslimWorldLeague: 'رابطة العالم الإسلامي',
-      CalculationMethod.egyptian: 'الهيئة المصرية العامة للمساحة',
-      CalculationMethod.karachi: 'جامعة العلوم الإسلامية، كراتشي',
+      CalculationMethod.egyptian: 'الهيئة المصرية',
+      CalculationMethod.karachi: 'جامعة كراتشي',
       CalculationMethod.ummAlQura: 'أم القرى',
       CalculationMethod.dubai: 'دبي',
       CalculationMethod.qatar: 'قطر',
       CalculationMethod.kuwait: 'الكويت',
       CalculationMethod.singapore: 'سنغافورة',
-      CalculationMethod.northAmerica: 'الجمعية الإسلامية لأمريكا الشمالية',
+      CalculationMethod.northAmerica: 'أمريكا الشمالية',
       CalculationMethod.other: 'أخرى',
     };
     
     return ListTile(
-      title: const Text('طريقة الحساب'),
-      subtitle: Text(methodNames[_calculationSettings.method] ?? ''),
-      trailing: const Icon(Icons.chevron_right),
+      contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+      title: Text('طريقة الحساب', style: TextStyle(fontSize: 13.sp)),
+      subtitle: Text(methodNames[_calculationSettings.method] ?? '', style: TextStyle(fontSize: 11.sp)),
+      trailing: Icon(Icons.chevron_right, size: 20.sp),
       onTap: () {
         _showCalculationMethodDialog();
       },
@@ -317,8 +302,9 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
       icon: Icons.school,
       children: [
         RadioListTile<AsrJuristic>(
-          title: const Text('الجمهور'),
-          subtitle: const Text('الشافعي، المالكي، الحنبلي'),
+          contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 2.h),
+          title: Text('الجمهور', style: TextStyle(fontSize: 13.sp)),
+          subtitle: Text('الشافعي، المالكي، الحنبلي', style: TextStyle(fontSize: 11.sp)),
           value: AsrJuristic.standard,
           groupValue: _calculationSettings.asrJuristic,
           onChanged: (value) {
@@ -331,11 +317,12 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
               });
             }
           },
-          activeColor: ThemeConstants.success, // استخدام اللون الأخضر
+          activeColor: ThemeConstants.success,
         ),
         RadioListTile<AsrJuristic>(
-          title: const Text('الحنفي'),
-          subtitle: const Text('المذهب الحنفي'),
+          contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 2.h),
+          title: Text('الحنفي', style: TextStyle(fontSize: 13.sp)),
+          subtitle: Text('المذهب الحنفي', style: TextStyle(fontSize: 11.sp)),
           value: AsrJuristic.hanafi,
           groupValue: _calculationSettings.asrJuristic,
           onChanged: (value) {
@@ -348,7 +335,7 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
               });
             }
           },
-          activeColor: ThemeConstants.success, // استخدام اللون الأخضر
+          activeColor: ThemeConstants.success,
         ),
       ],
     );
@@ -374,31 +361,36 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
     final adjustment = _calculationSettings.manualAdjustments[key] ?? 0;
     
     return ListTile(
-      title: Text(name),
+      contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 2.h),
+      title: Text(name, style: TextStyle(fontSize: 13.sp)),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            icon: const Icon(Icons.remove_circle_outline),
-            color: ThemeConstants.success, // استخدام اللون الأخضر
+            icon: Icon(Icons.remove_circle_outline, size: 20.sp),
+            color: ThemeConstants.success,
+            padding: EdgeInsets.all(6.r),
+            constraints: BoxConstraints(minWidth: 32.w, minHeight: 32.h),
             onPressed: () {
               _updateAdjustment(key, adjustment - 1);
             },
           ),
           SizedBox(
-            width: 50.w,
+            width: 42.w,
             child: Text(
               adjustment > 0 ? '+$adjustment' : adjustment.toString(),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontWeight: ThemeConstants.semiBold,
-                fontSize: 16.sp,
+                fontSize: 14.sp,
               ),
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.add_circle_outline),
-            color: ThemeConstants.success, // استخدام اللون الأخضر
+            icon: Icon(Icons.add_circle_outline, size: 20.sp),
+            color: ThemeConstants.success,
+            padding: EdgeInsets.all(6.r),
+            constraints: BoxConstraints(minWidth: 32.w, minHeight: 32.h),
             onPressed: () {
               _updateAdjustment(key, adjustment + 1);
             },
@@ -424,7 +416,7 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
 
   Widget _buildSaveButton() {
     return Padding(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(12.r),
       child: AppButton.primary(
         text: 'حفظ الإعدادات',
         onPressed: _isSaving || !_hasChanges ? null : _saveSettings,
@@ -437,7 +429,6 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
   }
 }
 
-/// قسم في شاشة الإعدادات
 class SettingsSection extends StatelessWidget {
   final String title;
   final String? subtitle;
@@ -458,22 +449,22 @@ class SettingsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.all(16.w),
+          padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 8.h),
           child: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(8.w),
+                padding: EdgeInsets.all(6.r),
                 decoration: BoxDecoration(
                   color: ThemeConstants.success.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: BorderRadius.circular(10.r),
                 ),
                 child: Icon(
                   icon,
                   color: ThemeConstants.success,
-                  size: 24.sp,
+                  size: 20.sp,
                 ),
               ),
-              SizedBox(width: 12.w),
+              SizedBox(width: 10.w),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -482,16 +473,16 @@ class SettingsSection extends StatelessWidget {
                       title,
                       style: TextStyle(
                         fontWeight: ThemeConstants.semiBold,
-                        fontSize: 16.sp,
+                        fontSize: 14.sp,
                       ),
                     ),
                     if (subtitle != null) ...[
-                      SizedBox(height: 4.h),
+                      SizedBox(height: 2.h),
                       Text(
                         subtitle!,
                         style: TextStyle(
                           color: context.textSecondaryColor,
-                          fontSize: 12.sp,
+                          fontSize: 11.sp,
                         ),
                       ),
                     ],
@@ -504,8 +495,8 @@ class SettingsSection extends StatelessWidget {
         
         Card(
           margin: EdgeInsets.symmetric(
-            horizontal: 16.w,
-            vertical: 8.h,
+            horizontal: 12.w,
+            vertical: 6.h,
           ),
           color: context.cardColor,
           child: Column(children: children),
@@ -515,7 +506,6 @@ class SettingsSection extends StatelessWidget {
   }
 }
 
-/// مربع حوار اختيار طريقة الحساب
 class CalculationMethodDialog extends StatelessWidget {
   final CalculationMethod currentMethod;
   final Function(CalculationMethod) onMethodSelected;
@@ -530,47 +520,48 @@ class CalculationMethodDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final methods = [
       (CalculationMethod.muslimWorldLeague, 'رابطة العالم الإسلامي', 'الفجر 18°، العشاء 17°'),
-      (CalculationMethod.egyptian, 'الهيئة المصرية العامة للمساحة', 'الفجر 19.5°، العشاء 17.5°'),
-      (CalculationMethod.karachi, 'جامعة العلوم الإسلامية، كراتشي', 'الفجر 18°، العشاء 18°'),
-      (CalculationMethod.ummAlQura, 'أم القرى', 'الفجر 18.5°، العشاء 90 دقيقة بعد المغرب'),
+      (CalculationMethod.egyptian, 'الهيئة المصرية', 'الفجر 19.5°، العشاء 17.5°'),
+      (CalculationMethod.karachi, 'جامعة كراتشي', 'الفجر 18°، العشاء 18°'),
+      (CalculationMethod.ummAlQura, 'أم القرى', 'الفجر 18.5°، العشاء 90 دقيقة'),
       (CalculationMethod.dubai, 'دبي', 'الفجر 18.2°، العشاء 18.2°'),
-      (CalculationMethod.qatar, 'قطر', 'الفجر 18°، العشاء 90 دقيقة بعد المغرب'),
+      (CalculationMethod.qatar, 'قطر', 'الفجر 18°، العشاء 90 دقيقة'),
       (CalculationMethod.kuwait, 'الكويت', 'الفجر 18°، العشاء 17.5°'),
       (CalculationMethod.singapore, 'سنغافورة', 'الفجر 20°، العشاء 18°'),
-      (CalculationMethod.northAmerica, 'الجمعية الإسلامية لأمريكا الشمالية', 'الفجر 15°، العشاء 15°'),
+      (CalculationMethod.northAmerica, 'أمريكا الشمالية', 'الفجر 15°، العشاء 15°'),
     ];
     
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(16.r),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: EdgeInsets.all(16.w),
+            padding: EdgeInsets.all(14.r),
             child: Text(
               'اختر طريقة الحساب',
               style: TextStyle(
                 fontWeight: ThemeConstants.semiBold,
-                fontSize: 18.sp,
+                fontSize: 16.sp,
               ),
             ),
           ),
           
-          const Divider(),
+          Divider(height: 1.h),
           
           Flexible(
             child: SingleChildScrollView(
               child: Column(
                 children: methods.map((method) {
                   return RadioListTile<CalculationMethod>(
-                    title: Text(method.$2),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 2.h),
+                    title: Text(method.$2, style: TextStyle(fontSize: 13.sp)),
                     subtitle: Text(
                       method.$3,
                       style: TextStyle(
                         color: context.textSecondaryColor,
-                        fontSize: 12.sp,
+                        fontSize: 11.sp,
                       ),
                     ),
                     value: method.$1,
@@ -580,23 +571,23 @@ class CalculationMethodDialog extends StatelessWidget {
                         onMethodSelected(value);
                       }
                     },
-                    activeColor: ThemeConstants.success, // استخدام اللون الأخضر
+                    activeColor: ThemeConstants.success,
                   );
                 }).toList(),
               ),
             ),
           ),
           
-          const Divider(),
+          Divider(height: 1.h),
           
           Padding(
-            padding: EdgeInsets.all(12.w),
+            padding: EdgeInsets.all(10.r),
             child: TextButton(
               onPressed: () => Navigator.pop(context),
               style: TextButton.styleFrom(
-                foregroundColor: ThemeConstants.success, // استخدام اللون الأخضر
+                foregroundColor: ThemeConstants.success,
               ),
-              child: const Text('إلغاء'),
+              child: Text('إلغاء', style: TextStyle(fontSize: 13.sp)),
             ),
           ),
         ],
