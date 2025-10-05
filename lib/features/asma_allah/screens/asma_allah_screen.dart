@@ -1,4 +1,4 @@
-// lib/features/asma_allah/screens/asma_allah_screen.dart - محدث مع flutter_screenutil
+// lib/features/asma_allah/screens/asma_allah_screen.dart - محدث مع عرض واحد فقط
 import 'package:athkar_app/app/di/service_locator.dart';
 import 'package:athkar_app/app/themes/app_theme.dart';
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
@@ -24,9 +24,6 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   final ScrollController _scrollController = ScrollController();
-  
-  // إعدادات العرض
-  bool _showDetailedView = false;
 
   @override
   void initState() {
@@ -142,9 +139,6 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
                   ],
                 ),
               ),
-              
-              // زر تبديل طريقة العرض
-              _buildViewToggleButton(),
             ],
           ),
           
@@ -153,45 +147,6 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
           // شريط البحث المحسن
           _buildSearchBar(),
         ],
-      ),
-    );
-  }
-
-  Widget _buildViewToggleButton() {
-    return Container(
-      decoration: BoxDecoration(
-        color: context.cardColor,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: context.dividerColor.withValues(alpha: 0.3),
-          width: 1.w,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 4.r,
-            offset: Offset(0, 2.h),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12.r),
-        child: InkWell(
-          onTap: () {
-            setState(() => _showDetailedView = !_showDetailedView);
-            HapticFeedback.lightImpact();
-          },
-          borderRadius: BorderRadius.circular(12.r),
-          child: Container(
-            padding: EdgeInsets.all(8.w),
-            child: Icon(
-              _showDetailedView ? Icons.view_agenda_rounded : Icons.view_list_rounded,
-              color: ThemeConstants.tertiary,
-              size: 24.sp,
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -273,9 +228,7 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
           return _buildEmptyState();
         }
         
-        return _showDetailedView 
-            ? _buildDetailedList(list)
-            : _buildCompactList(list);
+        return _buildCompactList(list);
       },
     );
   }
@@ -440,77 +393,6 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
                   onTap: () => _openDetails(item),
                   showExplanationPreview: true,
                 ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDetailedList(List<AsmaAllahModel> list) {
-    return Column(
-      children: [
-        // عداد النتائج مع معلومات إضافية
-        if (_searchQuery.isNotEmpty)
-          Container(
-            margin: EdgeInsets.symmetric(
-              horizontal: 16.w,
-              vertical: 8.h,
-            ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.filter_list_rounded,
-                      size: 16.sp,
-                      color: context.textSecondaryColor,
-                    ),
-                    SizedBox(width: 4.w),
-                    Text(
-                      'عدد النتائج: ${list.length}',
-                      style: context.labelMedium?.copyWith(
-                        color: context.textSecondaryColor,
-                      ),
-                    ),
-                    const Spacer(),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 8.w,
-                        vertical: 4.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: ThemeConstants.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                      child: Text(
-                        'العرض التفصيلي',
-                        style: context.labelSmall?.copyWith(
-                          color: ThemeConstants.primary,
-                          fontWeight: ThemeConstants.medium,
-                          fontSize: 11.sp,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        
-        // القائمة التفصيلية
-        Expanded(
-          child: ListView.builder(
-            controller: _scrollController,
-            padding: EdgeInsets.all(16.w),
-            physics: const BouncingScrollPhysics(),
-            itemCount: list.length,
-            itemBuilder: (context, index) {
-              final item = list[index];
-              return DetailedAsmaAllahCard(
-                item: item,
-                onTap: () => _openDetails(item),
               );
             },
           ),
