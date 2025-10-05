@@ -1,4 +1,4 @@
-// lib/app/di/service_locator.dart - محدث مع Remote Config المبسط
+// lib/app/di/service_locator.dart - محدث مع QuranService
 import 'package:athkar_app/app/themes/core/theme_notifier.dart';
 import 'package:athkar_app/core/error/error_handler.dart';
 import 'package:athkar_app/core/infrastructure/firebase/firebase_messaging_service.dart';
@@ -21,6 +21,7 @@ import 'package:athkar_app/features/athkar/services/athkar_service.dart';
 import 'package:athkar_app/features/dua/services/dua_service.dart';
 import 'package:athkar_app/features/prayer_times/services/prayer_times_service.dart';
 import 'package:athkar_app/features/qibla/services/qibla_service.dart';
+import 'package:athkar_app/features/quran/services/quran_service.dart';
 import 'package:athkar_app/features/settings/services/settings_services_manager.dart';
 import 'package:athkar_app/features/tasbih/services/tasbih_service.dart';
 import 'package:flutter/material.dart';
@@ -367,6 +368,16 @@ class ServiceLocator {
       );
     }
 
+    // ✅ خدمة القرآن - Lazy Singleton
+    if (!getIt.isRegistered<QuranService>()) {
+      getIt.registerLazySingleton<QuranService>(
+        () {
+          debugPrint('🔄 ACTUAL LAZY LOADING: QuranService initialized NOW');
+          return QuranService(storage: getIt<StorageService>());
+        },
+      );
+    }
+
     // خدمة التسبيح - Factory
     if (!getIt.isRegistered<TasbihService>()) {
       getIt.registerFactory<TasbihService>(
@@ -630,6 +641,17 @@ class ServiceLocator {
         }
       }
 
+      // ✅ تنظيف QuranService
+      if (getIt.isRegistered<QuranService>()) {
+        try {
+          if (_isServiceActuallyInitialized<QuranService>()) {
+            getIt<QuranService>().dispose();
+          }
+        } catch (e) {
+          debugPrint('ServiceLocator: QuranService cleanup error: $e');
+        }
+      }
+
       if (getIt.isRegistered<BatteryService>()) {
         await getIt<BatteryService>().dispose();
       }
@@ -742,6 +764,12 @@ extension ServiceLocatorExtensions on BuildContext {
   DuaService get duaService {
     debugPrint('🔄 Accessing DuaService - will initialize if not already done');
     return getIt<DuaService>();
+  }
+  
+  // ✅ خدمة القرآن
+  QuranService get quranService {
+    debugPrint('🔄 Accessing QuranService - will initialize if not already done');
+    return getIt<QuranService>();
   }
   
   TasbihService get tasbihService => getIt<TasbihService>();
