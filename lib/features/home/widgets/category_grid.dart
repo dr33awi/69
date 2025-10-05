@@ -1,4 +1,4 @@
-// lib/features/home/widgets/category_grid.dart - محدث مع القرآن الكريم
+// lib/features/home/widgets/category_grid.dart - محدث مع flutter_screenutil
 
 import 'package:athkar_app/app/themes/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -54,13 +54,6 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
       title: 'أسماء الله الحسنى',  
       icon: Icons.star_purple500_outlined,  
       routeName: '/asma-allah',
-      isInDevelopment: false,
-    ),
-    CategoryItem(
-      id: 'quran',
-      title: 'القرآن الكريم',
-      icon: Icons.book,
-      routeName: '/quran',
       isInDevelopment: false,
     ),
     CategoryItem(
@@ -218,7 +211,7 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
           
           SizedBox(height: 16.h),
           
-          // الصف الثاني: أسماء الله الحسنى (عريض) + القرآن الكريم
+          // الصف الثاني: أسماء الله الحسنى (عريض) + اتجاه القبلة
           Row(
             children: [
               Expanded(
@@ -228,20 +221,15 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
               SizedBox(width: 16.w),
               Expanded(
                 flex: 2,
-                child: _buildStandardCard(context, _categories[3]), // القرآن
+                child: _buildStandardCard(context, _categories[3]), // القبلة
               ),
             ],
           ),
           
           SizedBox(height: 16.h),
           
-          // الصف الثالث: اتجاه القبلة + المسبحة
+          // الصف الثالث: المسبحة + الأدعية
           _buildRow([_categories[4], _categories[5]]),
-          
-          SizedBox(height: 16.h),
-          
-          // الصف الرابع: الأدعية (عريض)
-          _buildWideCard(context, _categories[6]),
         ]),
       ),
     );
@@ -384,7 +372,7 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
     );
   }
 
-  // بطاقة عريضة
+  // بطاقة عريضة (لأسماء الله الحسنى)
   Widget _buildWideCard(BuildContext context, CategoryItem category) {
     final gradient = _getGradient(category.id, category.isInDevelopment);
     
