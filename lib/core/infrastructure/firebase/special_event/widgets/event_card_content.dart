@@ -1,11 +1,11 @@
-// lib/core/infrastructure/firebase/widgets/special_event/widgets/event_card_content.dart
+// lib/core/infrastructure/firebase/special_event/widgets/event_card_content.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:athkar_app/core/infrastructure/firebase/special_event/modals/special_event_model.dart';
 import '../services/event_navigation_handler.dart';
-import 'package:athkar_app/core/infrastructure/firebase/special_event/special_event_card.dart';
+import 'event_widgets.dart';
 
 /// محتوى كارد المناسبة الرئيسي
 class EventCardContent extends StatelessWidget {
@@ -68,8 +68,8 @@ class EventCardContent extends StatelessWidget {
                       
                       SizedBox(height: 12.h),
                       
-                      // الوصف
-                      EventDescription(description: event.description),
+                      // الوصف - تمرير event كاملاً
+                      EventDescription(event: event),
                       
                       // زر الإجراء
                       if (event.actionText.isNotEmpty) ...[

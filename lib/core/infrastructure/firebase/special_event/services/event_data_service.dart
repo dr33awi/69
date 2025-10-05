@@ -1,10 +1,10 @@
-// lib/core/infrastructure/firebase/widgets/special_event/services/event_data_service.dart
+// lib/core/infrastructure/firebase/special_event/services/event_data_service.dart
+
 
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:athkar_app/core/infrastructure/firebase/remote_config_manager.dart';
 import 'package:athkar_app/core/infrastructure/firebase/remote_config_service.dart';
-
 /// خدمة جلب بيانات المناسبة من Firebase Remote Config
 class EventDataService {
   final GetIt _getIt;
@@ -85,9 +85,9 @@ class EventDataService {
       
       // التحقق من تهيئة المدير
       if (!manager.isInitialized) {
-        debugPrint('⚠️ [EventDataService] RemoteConfigManager not initialized');
-        // محاولة تهيئة المدير
-        await manager.initialize();
+        debugPrint('⚠️ [EventDataService] RemoteConfigManager not initialized, skipping...');
+        // لا نحاول التهيئة هنا لأنها تحتاج parameters
+        return null;
       }
       
       // محاولة الحصول على الخدمة من خلال المدير
@@ -120,7 +120,8 @@ class EventDataService {
         final remoteConfig = _getIt<FirebaseRemoteConfigService>();
         
         // محاولة جلب آخر التحديثات من Firebase
-        await remoteConfig.fetchAndActivate();
+        // استخدم refresh() بدلاً من fetchAndActivate()
+        await remoteConfig.refresh();
         
         debugPrint('✅ [EventDataService] Event data refreshed successfully');
         return true;

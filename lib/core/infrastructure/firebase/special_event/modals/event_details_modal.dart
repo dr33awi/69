@@ -1,9 +1,9 @@
-// lib/core/infrastructure/firebase/widgets/special_event/modals/event_details_modal.dart
+// lib/core/infrastructure/firebase/special_event/modals/event_details_modal.dart
 
+import 'package:athkar_app/core/infrastructure/firebase/special_event/modals/special_event_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../app/themes/app_theme.dart';
-import 'package:athkar_app/core/infrastructure/firebase/special_event/modals/special_event_model.dart';
 import '../utils/time_formatter.dart';
 
 /// مودال عرض تفاصيل المناسبة
@@ -30,32 +30,20 @@ class EventDetailsModal extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // المقبض العلوي
           _buildHandle(context),
-          
-          // المحتوى القابل للتمرير
           Flexible(
             child: SingleChildScrollView(
               padding: EdgeInsets.all(20.r),
               child: Column(
                 children: [
-                  // رأس المودال
                   _buildHeader(context),
-                  
                   SizedBox(height: 20.h),
-                  
-                  // الوصف
                   _buildDescriptionSection(context),
-                  
-                  // معلومات التواريخ
                   if (event.startDate != null || event.endDate != null) ...[
                     SizedBox(height: 16.h),
                     _buildDateSection(context),
                   ],
-                  
                   SizedBox(height: 24.h),
-                  
-                  // زر الإغلاق
                   _buildCloseButton(context),
                 ],
               ),
@@ -66,7 +54,6 @@ class EventDetailsModal extends StatelessWidget {
     );
   }
   
-  /// المقبض العلوي
   Widget _buildHandle(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(top: 8.h),
@@ -79,7 +66,6 @@ class EventDetailsModal extends StatelessWidget {
     );
   }
   
-  /// رأس المودال
   Widget _buildHeader(BuildContext context) {
     return Container(
       width: double.infinity,
@@ -94,25 +80,23 @@ class EventDetailsModal extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // الأيقونة
-          Container(
-            width: 64.r,
-            height: 64.r,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                event.icon,
-                style: TextStyle(fontSize: 32.sp),
+          if (event.icon.isNotEmpty) ...[
+            Container(
+              width: 64.r,
+              height: 64.r,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  event.icon,
+                  style: TextStyle(fontSize: 32.sp),
+                ),
               ),
             ),
-          ),
-          
-          SizedBox(height: 12.h),
-          
-          // العنوان
+            SizedBox(height: 12.h),
+          ],
           Text(
             event.title,
             style: context.headlineSmall?.copyWith(
@@ -127,8 +111,9 @@ class EventDetailsModal extends StatelessWidget {
     );
   }
   
-  /// قسم الوصف
   Widget _buildDescriptionSection(BuildContext context) {
+    final lines = event.descriptionLines;
+    
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(16.r),
@@ -140,18 +125,45 @@ class EventDetailsModal extends StatelessWidget {
           width: 1.w,
         ),
       ),
-      child: Text(
-        event.description,
-        style: context.bodyMedium?.copyWith(
-          height: 1.5,
-          fontSize: 14.sp,
-        ),
-        textAlign: TextAlign.center,
-      ),
+      child: lines.length > 1
+        ? Column(
+            children: lines.map((line) => Padding(
+              padding: EdgeInsets.symmetric(vertical: 4.h),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '• ',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.bold,
+                      color: context.textPrimaryColor,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      line.trim(),
+                      style: context.bodyMedium?.copyWith(
+                        height: 1.5,
+                        fontSize: 14.sp,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )).toList(),
+          )
+        : Text(
+            lines.isNotEmpty ? lines.first : '',
+            style: context.bodyMedium?.copyWith(
+              height: 1.5,
+              fontSize: 14.sp,
+            ),
+            textAlign: TextAlign.center,
+          ),
     );
   }
   
-  /// قسم التواريخ
   Widget _buildDateSection(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(14.r),
@@ -165,7 +177,6 @@ class EventDetailsModal extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // عنوان القسم
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -185,10 +196,7 @@ class EventDetailsModal extends StatelessWidget {
               ),
             ],
           ),
-          
           SizedBox(height: 8.h),
-          
-          // تاريخ البداية
           if (event.startDate != null)
             Text(
               'من: ${TimeFormatter.formatDate(event.startDate!)}',
@@ -197,8 +205,6 @@ class EventDetailsModal extends StatelessWidget {
                 fontSize: 12.sp,
               ),
             ),
-          
-          // تاريخ النهاية
           if (event.endDate != null) ...[
             SizedBox(height: 4.h),
             Text(
@@ -209,8 +215,6 @@ class EventDetailsModal extends StatelessWidget {
               ),
             ),
           ],
-          
-          // الوقت المتبقي
           if (event.remainingTime != null) ...[
             SizedBox(height: 8.h),
             _buildRemainingTimeBadge(context),
@@ -220,7 +224,6 @@ class EventDetailsModal extends StatelessWidget {
     );
   }
   
-  /// شارة الوقت المتبقي
   Widget _buildRemainingTimeBadge(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(
@@ -253,7 +256,6 @@ class EventDetailsModal extends StatelessWidget {
     );
   }
   
-  /// زر الإغلاق
   Widget _buildCloseButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,

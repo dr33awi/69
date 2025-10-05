@@ -1,4 +1,4 @@
-// lib/core/infrastructure/firebase/widgets/special_event/models/special_event_model.dart
+// lib/core/infrastructure/firebase/special_event/models/special_event_model.dart
 
 import 'package:flutter/material.dart';
 
@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 class SpecialEventModel {
   final bool isActive;
   final String title;
-  final String description;
+  final dynamic description; // يمكن أن يكون String أو List<String>
   final String icon;
   final String backgroundImage;
   final List<Color> gradientColors;
@@ -33,8 +33,8 @@ class SpecialEventModel {
     return SpecialEventModel(
       isActive: map['is_active'] ?? false,
       title: map['title']?.toString() ?? '',
-      description: map['description']?.toString() ?? '',
-      icon: map['icon']?.toString() ?? '🌙',
+      description: map['description'], // احتفظ بالنوع الأصلي
+      icon: map['icon']?.toString() ?? '',
       backgroundImage: map['background_image']?.toString() ?? '',
       gradientColors: _parseGradientColors(map['gradient_colors']),
       actionText: map['action_text']?.toString() ?? '',
@@ -50,12 +50,39 @@ class SpecialEventModel {
       isActive: false,
       title: '',
       description: '',
-      icon: '🌙',
+      icon: '',
       backgroundImage: '',
       gradientColors: [const Color(0xFF6B46C1), const Color(0xFF9333EA)],
       actionText: '',
       actionUrl: '',
     );
+  }
+
+  /// getter للحصول على قائمة النصوص
+  List<String> get descriptionLines {
+    if (description is List) {
+      return (description as List)
+          .map((e) => e.toString())
+          .where((line) => line.isNotEmpty)
+          .toList();
+    } else if (description is String) {
+      final text = description as String;
+      // التحقق من وجود فواصل
+      if (text.contains('\n')) {
+        return text.split('\n').where((line) => line.trim().isNotEmpty).toList();
+      } else if (text.contains('|')) {
+        return text.split('|').where((line) => line.trim().isNotEmpty).toList();
+      }
+      return [text];
+    }
+    return [];
+  }
+
+  /// الحصول على وصف واحد للتوافق
+  String get descriptionText {
+    final lines = descriptionLines;
+    if (lines.isEmpty) return '';
+    return lines.join(' • ');
   }
 
   /// التحقق من صلاحية المناسبة
@@ -165,7 +192,7 @@ class SpecialEventModel {
   SpecialEventModel copyWith({
     bool? isActive,
     String? title,
-    String? description,
+    dynamic description,
     String? icon,
     String? backgroundImage,
     List<Color>? gradientColors,
@@ -200,7 +227,6 @@ class SpecialEventModel {
     return other is SpecialEventModel &&
         other.isActive == isActive &&
         other.title == title &&
-        other.description == description &&
         other.icon == icon &&
         other.backgroundImage == backgroundImage &&
         other.actionText == actionText &&
@@ -214,7 +240,6 @@ class SpecialEventModel {
     return Object.hash(
       isActive,
       title,
-      description,
       icon,
       backgroundImage,
       actionText,
