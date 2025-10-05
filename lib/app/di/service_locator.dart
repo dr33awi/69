@@ -366,7 +366,7 @@ class ServiceLocator {
         },
       );
     }
-    
+
     // خدمة التسبيح - Factory
     if (!getIt.isRegistered<TasbihService>()) {
       getIt.registerFactory<TasbihService>(

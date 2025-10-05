@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 // Firebase imports
 import 'package:firebase_core/firebase_core.dart';
+import 'package:quran_library/quran.dart';
 import 'firebase_options.dart';
 
 // Service Locator والخدمات
@@ -84,7 +85,11 @@ Future<void> _fastBootstrap() async {
       throw Exception('فشل في تهيئة Firebase');
     }
     debugPrint('✅ Firebase initialized. Apps: ${Firebase.apps.length}');
-    
+        
+    debugPrint('📖 تهيئة مكتبة القرآن الكريم...');
+    await QuranLibrary.init();
+    debugPrint('✅ Quran Library initialized');
+
     await ServiceLocator.initEssential();
     
     if (!getIt.isRegistered<OnboardingService>()) {
