@@ -21,7 +21,6 @@ import 'package:athkar_app/features/athkar/services/athkar_service.dart';
 import 'package:athkar_app/features/dua/services/dua_service.dart';
 import 'package:athkar_app/features/prayer_times/services/prayer_times_service.dart';
 import 'package:athkar_app/features/qibla/services/qibla_service.dart';
-import 'package:athkar_app/features/quran/services/quran_service.dart';
 import 'package:athkar_app/features/settings/services/settings_services_manager.dart';
 import 'package:athkar_app/features/tasbih/services/tasbih_service.dart';
 import 'package:flutter/material.dart';
@@ -368,15 +367,7 @@ class ServiceLocator {
       );
     }
 
-    // ✅ خدمة القرآن - Lazy Singleton
-    if (!getIt.isRegistered<QuranService>()) {
-      getIt.registerLazySingleton<QuranService>(
-        () {
-          debugPrint('🔄 ACTUAL LAZY LOADING: QuranService initialized NOW');
-          return QuranService(storage: getIt<StorageService>());
-        },
-      );
-    }
+
 
     // خدمة التسبيح - Factory
     if (!getIt.isRegistered<TasbihService>()) {
@@ -641,16 +632,7 @@ class ServiceLocator {
         }
       }
 
-      // ✅ تنظيف QuranService
-      if (getIt.isRegistered<QuranService>()) {
-        try {
-          if (_isServiceActuallyInitialized<QuranService>()) {
-            getIt<QuranService>().dispose();
-          }
-        } catch (e) {
-          debugPrint('ServiceLocator: QuranService cleanup error: $e');
-        }
-      }
+
 
       if (getIt.isRegistered<BatteryService>()) {
         await getIt<BatteryService>().dispose();
@@ -766,11 +748,7 @@ extension ServiceLocatorExtensions on BuildContext {
     return getIt<DuaService>();
   }
   
-  // ✅ خدمة القرآن
-  QuranService get quranService {
-    debugPrint('🔄 Accessing QuranService - will initialize if not already done');
-    return getIt<QuranService>();
-  }
+
   
   TasbihService get tasbihService => getIt<TasbihService>();
   QiblaService get qiblaService => getIt<QiblaService>();

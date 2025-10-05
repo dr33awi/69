@@ -320,7 +320,7 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
                           borderRadius: BorderRadius.circular(12.r),
                         ),
                         child: Icon(
-                          _settingsManager.currentTheme == ThemeMode.dark 
+                          _settingsManager.isDarkMode 
                               ? Icons.dark_mode 
                               : Icons.light_mode,
                           color: context.primaryColor,
@@ -340,9 +340,7 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
                               ),
                             ),
                             Text(
-                              _settingsManager.currentTheme == ThemeMode.dark
-                                  ? 'الوضع الليلي مفعل'
-                                  : 'الوضع النهاري مفعل',
+                              _settingsManager.currentThemeName,
                               style: context.bodySmall?.copyWith(
                                 color: context.textSecondaryColor,
                                 fontSize: context.bodySmall?.fontSize?.sp,
@@ -352,11 +350,13 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
                         ),
                       ),
                       Switch.adaptive(
-                        value: _settingsManager.currentTheme == ThemeMode.dark,
-                        onChanged: (value) {
-                          _settingsManager.changeTheme(
+                        value: _settingsManager.isDarkMode,
+                        onChanged: (value) async {
+                          // تغيير الثيم مع الحفظ التلقائي
+                          await _settingsManager.changeTheme(
                             value ? ThemeMode.dark : ThemeMode.light
                           );
+                          // تحديث الواجهة
                           setState(() {});
                         },
                         activeColor: context.primaryColor,
@@ -753,7 +753,7 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
         ),
       ),
     ).then((_) {
-      // تحديث البيانات عند إغلاق النافذة (بعد العودة من الإعدادات مثلاً)
+      // تحديث البيانات عند إغلاق النافذة
       _handleRefresh();
     });
   }
@@ -895,7 +895,7 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
     );
   }
   
-  // دوال مساعدة للحصول على معلومات الأذونات
+  // ==================== دوال مساعدة للأذونات ====================
   IconData _getPermissionIcon(AppPermissionType permission) {
     switch (permission) {
       case AppPermissionType.notification:

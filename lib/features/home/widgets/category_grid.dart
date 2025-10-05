@@ -57,13 +57,6 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
       isInDevelopment: false,
     ),
     CategoryItem(
-      id: 'quran',
-      title: 'القرآن الكريم',
-      icon: Icons.book,
-      routeName: '/quran',
-      isInDevelopment: false,
-    ),
-    CategoryItem(
       id: 'qibla',
       title: 'اتجاه القبلة',
       icon: Icons.explore,

@@ -20,7 +20,7 @@ import '../../features/athkar/screens/notification_settings_screen.dart';
 
 // Dua
 import '../../features/dua/screens/dua_categories_screen.dart';
-import '../../features/quran/screens/quran_screen.dart';
+
 
 // Tasbih
 import '../../features/tasbih/screens/tasbih_screen.dart';
@@ -107,8 +107,6 @@ class AppRouter {
       case dua:
         return _slideRoute(const DuaCategoriesScreen(), settings);
         
-      case quran:
-        return _slideRoute(const QuranScreen(), settings);
       // ==================== Settings ====================
       case '/settings':
         return _slideRoute(const MainSettingsScreen(), settings);
