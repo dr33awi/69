@@ -1,4 +1,4 @@
-// lib/features/home/screens/home_screen.dart - محدث مع SpecialEventCard
+// lib/features/home/screens/home_screen.dart - محدث مع SpecialEventCard في الأعلى
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,7 +12,7 @@ import 'package:athkar_app/features/home/widgets/home_prayer_times_card.dart';
 import 'package:athkar_app/app/di/service_locator.dart';
 import 'package:athkar_app/core/infrastructure/firebase/remote_config_manager.dart';
 // استورد SpecialEventCard
-import 'package:athkar_app/core/infrastructure/firebase/widgets/special_event_card.dart';
+import 'package:athkar_app/core/infrastructure/firebase/special_event/special_event_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -209,15 +209,15 @@ class _HomeScreenState extends State<HomeScreen>
                               // مسافة صغيرة في البداية
                               SizedBox(height: 12.h),
                               
+                              // ========== كارد المناسبة الخاصة - في الأعلى الآن! ==========
+                              // سيظهر فقط إذا كانت هناك مناسبة نشطة في Firebase
+                              const SpecialEventCard(),
+                              // =================================================
+                              
                               // بطاقة مواقيت الصلاة
                               const PrayerTimesCard(),
                               
                               SizedBox(height: 20.h),
-                              
-                              // ========== كارد المناسبة الخاصة - جديد! ==========
-                              // سيظهر فقط إذا كانت هناك مناسبة نشطة في Firebase
-                              const SpecialEventCard(),
-                              // =================================================
                               
                               // بطاقة الاقتباسات اليومية
                               const DailyQuotesCard(),
