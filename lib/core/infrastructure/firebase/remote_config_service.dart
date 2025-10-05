@@ -1,10 +1,12 @@
-// lib/core/infrastructure/firebase/remote_config_service.dart - النسخة الكاملة مع قائمة الميزات
+// lib/core/infrastructure/firebase/remote_config_service.dart
+// النسخة الكاملة مع دعم قائمة الميزات وكارد المناسبات
+
 import 'dart:async';
 import 'dart:convert';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 
-/// خدمة Firebase Remote Config - مبسطة مع دعم قائمة الميزات
+/// خدمة Firebase Remote Config الكاملة
 class FirebaseRemoteConfigService {
   static final FirebaseRemoteConfigService _instance = FirebaseRemoteConfigService._internal();
   factory FirebaseRemoteConfigService() => _instance;
@@ -19,6 +21,7 @@ class FirebaseRemoteConfigService {
   String? _cachedAppVersion;
   String? _cachedUpdateUrl;
   List<String>? _cachedFeaturesList;
+  Map<String, dynamic>? _cachedSpecialEvent;
   
   // مفاتيح الإعدادات
   static const String _keyAppVersion = 'app_version';
@@ -26,6 +29,7 @@ class FirebaseRemoteConfigService {
   static const String _keyMaintenanceMode = 'maintenance_mode';
   static const String _keyUpdateUrlAndroid = 'update_url_android';
   static const String _keyUpdateFeaturesList = 'update_features_list';
+  static const String _keySpecialEvent = 'special_event_data';
 
   /// تهيئة الخدمة
   Future<void> initialize() async {
@@ -71,12 +75,15 @@ class FirebaseRemoteConfigService {
       // تحديث cache قائمة الميزات
       _cachedFeaturesList = _parseFeaturesList();
       
+      // تحديث cache المناسبة الخاصة
+      _cachedSpecialEvent = _parseSpecialEvent();
+      
       debugPrint('✅ Cache updated:');
       debugPrint('  - Force Update: $_cachedForceUpdate');
       debugPrint('  - Maintenance: $_cachedMaintenanceMode');
       debugPrint('  - App Version: $_cachedAppVersion');
-      debugPrint('  - Update URL: ${_cachedUpdateUrl?.substring(0, 30)}...');
       debugPrint('  - Features Count: ${_cachedFeaturesList?.length}');
+      debugPrint('  - Special Event Active: ${_cachedSpecialEvent?['is_active'] ?? false}');
     } catch (e) {
       debugPrint('⚠️ Error updating cache: $e');
     }
@@ -103,6 +110,42 @@ class FirebaseRemoteConfigService {
     }
   }
 
+  /// تحليل بيانات المناسبة الخاصة
+  Map<String, dynamic>? _parseSpecialEvent() {
+    try {
+      final jsonString = _remoteConfig.getString(_keySpecialEvent);
+      if (jsonString.isEmpty) {
+        return null;
+      }
+      
+      final dynamic decoded = jsonDecode(jsonString);
+      if (decoded is Map<String, dynamic>) {
+        // التحقق من التواريخ إذا وجدت
+        if (decoded['start_date'] != null && decoded['end_date'] != null) {
+          try {
+            final startDate = DateTime.parse(decoded['start_date']);
+            final endDate = DateTime.parse(decoded['end_date']);
+            final now = DateTime.now();
+            
+            // تحديث حالة النشاط بناءً على التاريخ
+            decoded['is_active'] = decoded['is_active'] == true && 
+                                  now.isAfter(startDate) && 
+                                  now.isBefore(endDate);
+          } catch (e) {
+            debugPrint('⚠️ Error parsing event dates: $e');
+          }
+        }
+        
+        return decoded;
+      }
+      
+      return null;
+    } catch (e) {
+      debugPrint('⚠️ Error parsing special event data: $e');
+      return null;
+    }
+  }
+
   /// القائمة الافتراضية للميزات
   List<String> _getDefaultFeaturesList() {
     return [
@@ -124,6 +167,18 @@ class FirebaseRemoteConfigService {
         'إصلاح الأخطاء',
         'ميزات جديدة'
       ]),
+      _keySpecialEvent: jsonEncode({
+        'is_active': false,
+        'title': '',
+        'description': '',
+        'icon': '🌙',
+        'gradient_colors': ['#9C27B0', '#673AB7'],
+        'action_text': '',
+        'action_url': '',
+        'start_date': null,
+        'end_date': null,
+        'background_image': '',
+      }),
     });
   }
 
@@ -230,6 +285,15 @@ class FirebaseRemoteConfigService {
     return _parseFeaturesList();
   }
 
+  /// بيانات المناسبة الخاصة
+  Map<String, dynamic>? get specialEventData {
+    if (_cachedSpecialEvent != null) {
+      return _cachedSpecialEvent;
+    }
+    
+    return _parseSpecialEvent();
+  }
+
   // Alias للتوافق
   String get updateUrlAndroid => updateUrl;
 
@@ -249,6 +313,7 @@ class FirebaseRemoteConfigService {
       'maintenance_mode': _cachedMaintenanceMode,
       'app_version': _cachedAppVersion,
       'features_count': _cachedFeaturesList?.length,
+      'special_event_active': _cachedSpecialEvent?['is_active'] ?? false,
     },
   };
 
@@ -264,6 +329,11 @@ class FirebaseRemoteConfigService {
       debugPrint('Maintenance Mode: $_cachedMaintenanceMode');
       debugPrint('App Version: $_cachedAppVersion');
       debugPrint('Features List: $_cachedFeaturesList');
+      if (_cachedSpecialEvent != null) {
+        debugPrint('Special Event:');
+        debugPrint('  - Active: ${_cachedSpecialEvent!['is_active']}');
+        debugPrint('  - Title: ${_cachedSpecialEvent!['title']}');
+      }
       debugPrint('========================================');
     } catch (e) {
       debugPrint('⚠️ Error printing debug info: $e');
@@ -310,6 +380,7 @@ class FirebaseRemoteConfigService {
     _cachedAppVersion = null;
     _cachedUpdateUrl = null;
     _cachedFeaturesList = null;
+    _cachedSpecialEvent = null;
     await initialize();
   }
 
@@ -321,6 +392,7 @@ class FirebaseRemoteConfigService {
     _cachedAppVersion = null;
     _cachedUpdateUrl = null;
     _cachedFeaturesList = null;
+    _cachedSpecialEvent = null;
     debugPrint('FirebaseRemoteConfigService disposed');
   }
 }
