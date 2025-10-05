@@ -6,8 +6,6 @@ import '../../../../../app/themes/app_theme.dart';
 import 'package:athkar_app/core/infrastructure/firebase/special_event/modals/special_event_model.dart';
 import '../utils/time_formatter.dart';
 
-// ==================== رأس كارد المناسبة ====================
-
 /// رأس كارد المناسبة مع الأيقونة والعنوان
 class EventHeader extends StatelessWidget {
   final SpecialEventModel event;
