@@ -5,6 +5,7 @@ import 'package:lottie/lottie.dart';
 import '../../../app/themes/widgets/core/islamic_pattern_painter.dart';
 import '../models/onboarding_item.dart';
 import '../data/onboarding_data.dart';
+import 'onboarding_permissions_page.dart';
 
 class OnboardingPage extends StatefulWidget {
   final OnboardingItem item;
@@ -75,6 +76,16 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   @override
   Widget build(BuildContext context) {
+    // استخدام صفحة خاصة للأذونات
+    if (widget.item.animationType == OnboardingAnimationType.permissions) {
+      return OnboardingPermissionsPage(
+        item: widget.item,
+        onNext: widget.onNext,
+        isProcessing: widget.isProcessing,
+      );
+    }
+    
+    // الصفحات العادية
     return SizedBox(
       width: 1.sw,
       height: 1.sh,

@@ -1,4 +1,5 @@
 // lib/features/onboarding/screens/onboarding_screen.dart
+
 import 'package:athkar_app/core/infrastructure/services/permissions/permission_service.dart';
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
 import 'package:athkar_app/features/onboarding/models/onboarding_item.dart';
@@ -9,7 +10,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:concentric_transition/concentric_transition.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
-import '../../../core/infrastructure/services/permissions/permission_manager.dart';
 import '../../../features/home/screens/home_screen.dart';
 import '../data/onboarding_data.dart';
 import '../widgets/onboarding_page.dart';
@@ -23,7 +23,7 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   late PageController _pageController;
-  late final UnifiedPermissionManager _permissionManager;
+  late final PermissionService _permissionService;
   
   int _currentIndex = 0;
   bool _isLastPage = false;
@@ -34,7 +34,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void initState() {
     super.initState();
     _pageController = PageController();
-    _permissionManager = getIt<UnifiedPermissionManager>();
+    _permissionService = getIt<PermissionService>();
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ServiceLocator.registerFeatureServices();
@@ -73,30 +73,36 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     try {
       HapticFeedback.mediumImpact();
       
-      await _permissionManager.requestMultiplePermissions(
-        context,
-        [
-          AppPermissionType.notification,
-          AppPermissionType.location,
-          AppPermissionType.batteryOptimization,
-        ],
-        showExplanation: false,
-      );
+      // بدلاً من استخدام PermissionManager، سنستخدم الصفحة المخصصة
+      // التي تتعامل مع الأذونات بشكل أفضل
       
+      // ببساطة ننتقل للصفحة الرئيسية
+      // لأن صفحة الأذونات المخصصة تتعامل مع كل شيء
       await _markOnboardingCompleted();
       
       if (mounted) {
-        Navigator.of(context).pushReplacement(
+        // انتقال سلس للصفحة الرئيسية
+        await Navigator.of(context).pushReplacement(
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) => const HomeScreen(),
-            transitionDuration: const Duration(milliseconds: 800),
+            transitionDuration: const Duration(milliseconds: 1000),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              // تأثير Fade مع Scale
               return FadeTransition(
                 opacity: CurvedAnimation(
                   parent: animation,
                   curve: Curves.easeInOut,
                 ),
-                child: child,
+                child: ScaleTransition(
+                  scale: Tween<double>(
+                    begin: 0.95,
+                    end: 1.0,
+                  ).animate(CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOutCubic,
+                  )),
+                  child: child,
+                ),
               );
             },
           ),
@@ -109,6 +115,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessingPermissions = false);
       }
     }
   }
