@@ -18,7 +18,7 @@ class PageIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -35,27 +35,27 @@ class PageIndicator extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
-          margin: EdgeInsets.symmetric(horizontal: 2.5.w),
-          width: currentIndex == index ? 20.w : 7.w,
-          height: 7.h,
+          margin: EdgeInsets.symmetric(horizontal: 3.w),
+          width: currentIndex == index ? 24.w : 8.w,
+          height: 8.h,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(3.5.r),
+            borderRadius: BorderRadius.circular(4.r),
             color: currentIndex == index
                 ? Colors.white
                 : Colors.white.withOpacity(0.4),
             boxShadow: currentIndex == index ? [
               BoxShadow(
                 color: Colors.white.withOpacity(0.4),
-                blurRadius: 5.r,
-                spreadRadius: 0.5.r,
+                blurRadius: 6.r,
+                spreadRadius: 1.r,
               ),
             ] : null,
           ),
           child: currentIndex == index 
               ? Center(
                   child: Container(
-                    width: 3.w,
-                    height: 3.h,
+                    width: 4.w,
+                    height: 4.h,
                     decoration: BoxDecoration(
                       color: items[index].primaryColor.withOpacity(0.8),
                       shape: BoxShape.circle,
