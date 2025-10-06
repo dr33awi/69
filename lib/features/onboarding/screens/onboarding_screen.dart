@@ -1,4 +1,4 @@
-// lib/features/onboarding/screens/onboarding_screen.dart - محسّن للشاشات الصغيرة
+// lib/features/onboarding/screens/onboarding_screen.dart - Updated
 import 'package:athkar_app/core/infrastructure/services/permissions/permission_service.dart';
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
 import 'package:athkar_app/features/onboarding/models/onboarding_item.dart';
@@ -72,16 +72,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     
     try {
       HapticFeedback.mediumImpact();
-      
-      await _permissionManager.requestMultiplePermissions(
-        context,
-        [
-          AppPermissionType.notification,
-          AppPermissionType.location,
-          AppPermissionType.batteryOptimization,
-        ],
-        showExplanation: false,
-      );
       
       await _markOnboardingCompleted();
       
@@ -159,6 +149,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 isLastPage: index == _items.length - 1,
                 onNext: _handleNext,
                 isProcessing: _isProcessingPermissions,
+                permissionManager: _permissionManager,
               );
             },
             onFinish: _handleFinish,

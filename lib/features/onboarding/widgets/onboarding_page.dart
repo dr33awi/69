@@ -1,16 +1,20 @@
-// lib/features/onboarding/widgets/onboarding_page.dart
+// lib/features/onboarding/widgets/onboarding_page.dart - Updated
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lottie/lottie.dart';
 import '../../../app/themes/widgets/core/islamic_pattern_painter.dart';
+import '../../../core/infrastructure/services/permissions/permission_service.dart';
+import '../../../core/infrastructure/services/permissions/permission_manager.dart';
 import '../models/onboarding_item.dart';
 import '../data/onboarding_data.dart';
+import 'onboarding_permission_request.dart';
 
 class OnboardingPage extends StatefulWidget {
   final OnboardingItem item;
   final bool isLastPage;
   final VoidCallback onNext;
   final bool isProcessing;
+  final UnifiedPermissionManager? permissionManager;
 
   const OnboardingPage({
     super.key,
@@ -18,6 +22,7 @@ class OnboardingPage extends StatefulWidget {
     required this.isLastPage,
     required this.onNext,
     this.isProcessing = false,
+    this.permissionManager,
   });
 
   @override
@@ -73,6 +78,9 @@ class _OnboardingPageState extends State<OnboardingPage>
     super.dispose();
   }
 
+  bool get _isPermissionPage => widget.isLastPage && 
+      widget.item.animationType == OnboardingAnimationType.permissions;
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -109,46 +117,23 @@ class _OnboardingPageState extends State<OnboardingPage>
                         children: [
                           SizedBox(height: 30.h),
                           
-                          _buildAnimationWidget(),
-                          
-                          SizedBox(height: 20.h),
-                          
-                          AnimatedBuilder(
-                            animation: _fadeAnimation,
-                            builder: (context, child) {
-                              return Opacity(
-                                opacity: _fadeAnimation.value,
-                                child: Transform.translate(
-                                  offset: Offset(0, 15.h * (1 - _fadeAnimation.value)),
-                                  child: Text(
-                                    widget.item.title,
-                                    style: TextStyle(
-                                      fontSize: 22.sp,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                      height: 1.2,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          
-                          if (widget.item.features != null && widget.item.features!.isNotEmpty) ...[
-                            SizedBox(height: 16.h),
-                            _buildFeaturesList(),
-                          ],
+                          // إذا كانت صفحة الأذونات، نعرض UI مخصص
+                          if (_isPermissionPage)
+                            _buildPermissionContent()
+                          else
+                            _buildNormalContent(),
                         ],
                       ),
                       
-                      Column(
-                        children: [
-                          SizedBox(height: 20.h),
-                          _buildActionButton(),
-                          SizedBox(height: 12.h),
-                        ],
-                      ),
+                      // زر الأكشن للصفحات العادية فقط
+                      if (!_isPermissionPage)
+                        Column(
+                          children: [
+                            SizedBox(height: 20.h),
+                            _buildActionButton(),
+                            SizedBox(height: 12.h),
+                          ],
+                        ),
                     ],
                   ),
                 ),
@@ -157,6 +142,59 @@ class _OnboardingPageState extends State<OnboardingPage>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildNormalContent() {
+    return Column(
+      children: [
+        _buildAnimationWidget(),
+        SizedBox(height: 20.h),
+        
+        AnimatedBuilder(
+          animation: _fadeAnimation,
+          builder: (context, child) {
+            return Opacity(
+              opacity: _fadeAnimation.value,
+              child: Transform.translate(
+                offset: Offset(0, 15.h * (1 - _fadeAnimation.value)),
+                child: Text(
+                  widget.item.title,
+                  style: TextStyle(
+                    fontSize: 22.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    height: 1.2,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
+          },
+        ),
+        
+        if (widget.item.features != null && widget.item.features!.isNotEmpty) ...[
+          SizedBox(height: 16.h),
+          _buildFeaturesList(),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildPermissionContent() {
+    if (widget.permissionManager == null) {
+      return const SizedBox.shrink();
+    }
+    
+    return OnboardingPermissionRequest(
+      permissions: const [
+        AppPermissionType.notification,
+        AppPermissionType.location,
+        AppPermissionType.batteryOptimization,
+      ],
+      onComplete: widget.onNext,
+      primaryColor: widget.item.primaryColor,
+      permissionManager: widget.permissionManager!,
     );
   }
 
@@ -371,7 +409,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                widget.isLastPage ? 'ابدأ الآن' : 'التالي',
+                                'التالي',
                                 style: TextStyle(
                                   fontSize: 14.sp,
                                   fontWeight: FontWeight.w600,
@@ -380,9 +418,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                               ),
                               SizedBox(width: 6.w),
                               Icon(
-                                widget.isLastPage 
-                                    ? Icons.check_rounded 
-                                    : Icons.arrow_forward_rounded,
+                                Icons.arrow_forward_rounded,
                                 color: Colors.white,
                                 size: 16.sp,
                               ),
