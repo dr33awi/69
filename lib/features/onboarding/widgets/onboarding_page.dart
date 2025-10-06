@@ -125,7 +125,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                         ],
                       ),
                       
-                      // زر الأكشن للصفحات العادية فقط
+                      // زر الأكشن للصفحات العادية فقط (ليس للصفحة الأخيرة)
                       if (!_isPermissionPage)
                         Column(
                           children: [

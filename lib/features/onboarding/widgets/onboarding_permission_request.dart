@@ -25,12 +25,9 @@ class OnboardingPermissionRequest extends StatefulWidget {
   State<OnboardingPermissionRequest> createState() => _OnboardingPermissionRequestState();
 }
 
-class _OnboardingPermissionRequestState extends State<OnboardingPermissionRequest>
-    with TickerProviderStateMixin {
+class _OnboardingPermissionRequestState extends State<OnboardingPermissionRequest> {
   
   final Map<AppPermissionType, AppPermissionStatus> _permissionStatuses = {};
-  final Map<AppPermissionType, AnimationController> _controllers = {};
-  final Map<AppPermissionType, Animation<double>> _animations = {};
   
   bool _isProcessing = false;
   int _grantedCount = 0;
@@ -43,38 +40,10 @@ class _OnboardingPermissionRequestState extends State<OnboardingPermissionReques
     // تهيئة حالات الأذونات
     for (final permission in widget.permissions) {
       _permissionStatuses[permission] = AppPermissionStatus.unknown;
-      
-      // إنشاء animation controller لكل إذن
-      final controller = AnimationController(
-        duration: const Duration(milliseconds: 600),
-        vsync: this,
-      );
-      
-      _controllers[permission] = controller;
-      _animations[permission] = Tween<double>(
-        begin: 0.0,
-        end: 1.0,
-      ).animate(CurvedAnimation(
-        parent: controller,
-        curve: Curves.elasticOut,
-      ));
     }
-    
-    // بدء الأنيميشن بشكل متتابع
-    _startStaggeredAnimation();
     
     // فحص الحالات الحالية للأذونات
     _checkCurrentStatuses();
-  }
-
-  void _startStaggeredAnimation() {
-    for (int i = 0; i < widget.permissions.length; i++) {
-      Future.delayed(Duration(milliseconds: i * 100), () {
-        if (mounted) {
-          _controllers[widget.permissions[i]]?.forward();
-        }
-      });
-    }
   }
 
   Future<void> _checkCurrentStatuses() async {
@@ -109,9 +78,6 @@ class _OnboardingPermissionRequestState extends State<OnboardingPermissionReques
 
   @override
   void dispose() {
-    for (final controller in _controllers.values) {
-      controller.dispose();
-    }
     super.dispose();
   }
 
@@ -234,38 +200,26 @@ class _OnboardingPermissionRequestState extends State<OnboardingPermissionReques
     final info = PermissionConstants.getInfo(permission);
     final status = _permissionStatuses[permission] ?? AppPermissionStatus.unknown;
     final isGranted = status == AppPermissionStatus.granted;
-    final animation = _animations[permission];
     
-    return AnimatedBuilder(
-      animation: animation!,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: animation.value,
-          child: Opacity(
-            opacity: animation.value,
-            child: child,
-          ),
-        );
-      },
-      child: Container(
-        margin: EdgeInsets.only(bottom: 12.h),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(isGranted ? 0.12 : 0.08),
-          borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(
-            color: isGranted 
-                ? Colors.white.withOpacity(0.3)
-                : Colors.white.withOpacity(0.15),
-            width: 1.w,
-          ),
-          boxShadow: isGranted ? [
-            BoxShadow(
-              color: widget.primaryColor.withOpacity(0.2),
-              blurRadius: 12.r,
-              spreadRadius: 0,
-            ),
-          ] : null,
+    return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(isGranted ? 0.12 : 0.08),
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(
+          color: isGranted 
+              ? Colors.white.withOpacity(0.3)
+              : Colors.white.withOpacity(0.15),
+          width: 1.w,
         ),
+        boxShadow: isGranted ? [
+          BoxShadow(
+            color: widget.primaryColor.withOpacity(0.2),
+            blurRadius: 12.r,
+            spreadRadius: 0,
+          ),
+        ] : null,
+      ),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
@@ -382,7 +336,6 @@ class _OnboardingPermissionRequestState extends State<OnboardingPermissionReques
             ),
           ),
         ),
-      ),
     );
   }
 
@@ -390,139 +343,96 @@ class _OnboardingPermissionRequestState extends State<OnboardingPermissionReques
     // حساب الـ opacity بشكل صحيح
     final buttonOpacity = _canContinue ? 1.0 : 0.5;
     
-    return Column(
-      children: [
-        // زر المتابعة فقط (بدون خيار التخطي)
-        Opacity(
-          opacity: buttonOpacity,
-          child: Container(
-            width: double.infinity,
-            height: 52.h,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(26.r),
-              gradient: _canContinue ? LinearGradient(
-                colors: [
-                  Colors.white.withOpacity(0.3),
-                  Colors.white.withOpacity(0.2),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ) : null,
-              color: _canContinue ? null : Colors.white.withOpacity(0.1),
-              border: Border.all(
-                color: Colors.white.withOpacity(_canContinue ? 0.35 : 0.2),
-                width: 1.5.w,
-              ),
-              boxShadow: _canContinue ? [
-                BoxShadow(
-                  color: Colors.white.withOpacity(0.15),
-                  blurRadius: 16.r,
-                  spreadRadius: 2.r,
-                ),
-              ] : null,
+    return Opacity(
+      opacity: buttonOpacity,
+      child: Container(
+        width: double.infinity,
+        height: 52.h,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(26.r),
+          gradient: _canContinue ? LinearGradient(
+            colors: [
+              Colors.white.withOpacity(0.3),
+              Colors.white.withOpacity(0.2),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ) : null,
+          color: _canContinue ? null : Colors.white.withOpacity(0.1),
+          border: Border.all(
+            color: Colors.white.withOpacity(_canContinue ? 0.35 : 0.2),
+            width: 1.5.w,
+          ),
+          boxShadow: _canContinue ? [
+            BoxShadow(
+              color: Colors.white.withOpacity(0.15),
+              blurRadius: 16.r,
+              spreadRadius: 2.r,
             ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                // تعطيل الزر تماماً إذا لم تكن جميع الأذونات ممنوحة
-                onTap: _canContinue ? () {
-                  // تحقق مرة أخرى قبل المتابعة
-                  if (_grantedCount == widget.permissions.length) {
-                    widget.onComplete();
-                  } else {
-                    // عرض رسالة تنبيه
-                    HapticFeedback.heavyImpact();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'يجب تفعيل جميع الأذونات أولاً',
-                          style: TextStyle(fontSize: 14.sp),
-                        ),
-                        backgroundColor: Colors.red,
-                        duration: const Duration(seconds: 2),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
-                        margin: EdgeInsets.all(16.w),
-                      ),
-                    );
-                  }
-                } : null, // null = الزر معطل تماماً
-                borderRadius: BorderRadius.circular(26.r),
-                child: Container(
-                  alignment: Alignment.center,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (_canContinue)
-                        Icon(
-                          Icons.check_circle_rounded,
-                          color: Colors.white,
-                          size: 20.sp,
-                        ),
-                      if (_canContinue) SizedBox(width: 8.w),
-                      Text(
-                        _canContinue ? 'ممتاز! ابدأ الآن' : 'فعّل جميع الأذونات للمتابعة',
-                        style: TextStyle(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white.withOpacity(_canContinue ? 1.0 : 0.7),
-                        ),
-                      ),
-                      if (_canContinue) SizedBox(width: 8.w),
-                      if (_canContinue)
-                        Icon(
-                          Icons.arrow_forward_rounded,
-                          color: Colors.white,
-                          size: 18.sp,
-                        ),
-                    ],
+          ] : null,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            // تعطيل الزر تماماً إذا لم تكن جميع الأذونات ممنوحة
+            onTap: _canContinue ? () {
+              // تحقق مرة أخرى قبل المتابعة
+              if (_grantedCount == widget.permissions.length) {
+                widget.onComplete();
+              } else {
+                // عرض رسالة تنبيه
+                HapticFeedback.heavyImpact();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'يجب تفعيل جميع الأذونات أولاً',
+                      style: TextStyle(fontSize: 14.sp),
+                    ),
+                    backgroundColor: Colors.red,
+                    duration: const Duration(seconds: 2),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    margin: EdgeInsets.all(16.w),
                   ),
-                ),
+                );
+              }
+            } : null, // null = الزر معطل تماماً
+            borderRadius: BorderRadius.circular(26.r),
+            child: Container(
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (_canContinue)
+                    Icon(
+                      Icons.check_circle_rounded,
+                      color: Colors.white,
+                      size: 20.sp,
+                    ),
+                  if (_canContinue) SizedBox(width: 8.w),
+                  Text(
+                    _canContinue ? 'ممتاز! ابدأ الآن' : 'فعّل جميع الأذونات للمتابعة',
+                    style: TextStyle(
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withOpacity(_canContinue ? 1.0 : 0.7),
+                    ),
+                  ),
+                  if (_canContinue) SizedBox(width: 8.w),
+                  if (_canContinue)
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      color: Colors.white,
+                      size: 18.sp,
+                    ),
+                ],
               ),
             ),
           ),
         ),
-        
-        SizedBox(height: 12.h),
-        
-        // رسالة إلزامية (بدون زر تخطي)
-        if (!_canContinue)
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-            decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(
-                color: Colors.red.withOpacity(0.3),
-                width: 1.w,
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.warning_amber_rounded,
-                  size: 20.sp,
-                  color: Colors.white,
-                ),
-                SizedBox(width: 10.w),
-                Expanded(
-                  child: Text(
-                    'يجب تفعيل جميع الأذونات لعمل التطبيق بشكل صحيح',
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                      height: 1.4,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
-            ),
-          ),
-      ],
+      ),
     );
   }
 }
