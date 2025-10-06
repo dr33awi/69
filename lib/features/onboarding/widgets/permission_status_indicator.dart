@@ -21,7 +21,7 @@ class PermissionStatusIndicator extends StatefulWidget {
 }
 
 class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
-    with TickerProviderStateMixin {  // ← تغيير من Single إلى Ticker
+    with TickerProviderStateMixin {
   
   late AnimationController _progressController;
   late AnimationController _shimmerController;
@@ -53,7 +53,6 @@ class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
     
     _progressController.forward();
     
-    // Start shimmer if not complete
     if (!_isComplete) {
       _shimmerController.repeat();
     }
@@ -66,7 +65,6 @@ class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
     if (oldWidget.grantedPermissions != widget.grantedPermissions) {
       _animateToNewProgress();
       
-      // Stop shimmer if complete
       if (_isComplete && _shimmerController.isAnimating) {
         _shimmerController.stop();
       } else if (!_isComplete && !_shimmerController.isAnimating) {
@@ -113,7 +111,7 @@ class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
     return GestureDetector(
       onTap: widget.onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -123,16 +121,16 @@ class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(20.r),
+          borderRadius: BorderRadius.circular(16.r),
           border: Border.all(
             color: Colors.white.withOpacity(0.25),
-            width: 1.5.w,
+            width: 1.2.w,
           ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
-              blurRadius: 10.r,
-              offset: Offset(0, 4.h),
+              blurRadius: 8.r,
+              offset: Offset(0, 3.h),
             ),
           ],
         ),
@@ -140,9 +138,9 @@ class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildIcon(),
-            SizedBox(width: 10.w),
+            SizedBox(width: 8.w),
             _buildProgressBar(),
-            SizedBox(width: 10.w),
+            SizedBox(width: 8.w),
             _buildText(),
           ],
         ),
@@ -155,8 +153,8 @@ class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
       animation: _progressAnimation,
       builder: (context, child) {
         return Container(
-          width: 36.w,
-          height: 36.w,
+          width: 30.w,
+          height: 30.w,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: _isComplete
@@ -176,8 +174,8 @@ class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
                 ? [
                     BoxShadow(
                       color: Colors.green.withOpacity(0.3),
-                      blurRadius: 12.r,
-                      spreadRadius: 2.r,
+                      blurRadius: 10.r,
+                      spreadRadius: 1.r,
                     ),
                   ]
                 : null,
@@ -185,7 +183,7 @@ class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
           child: Icon(
             _isComplete ? Icons.check_circle_rounded : Icons.security_rounded,
             color: Colors.white,
-            size: 20.sp,
+            size: 18.sp,
           ),
         );
       },
@@ -197,14 +195,14 @@ class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
       animation: _progressAnimation,
       builder: (context, child) {
         return Container(
-          width: 100.w,
-          height: 6.h,
+          width: 80.w,
+          height: 5.h,
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(3.r),
+            borderRadius: BorderRadius.circular(2.5.r),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(3.r),
+            borderRadius: BorderRadius.circular(2.5.r),
             child: Stack(
               children: [
                 // Progress fill
@@ -229,14 +227,14 @@ class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
                       boxShadow: [
                         BoxShadow(
                           color: Colors.white.withOpacity(0.3),
-                          blurRadius: 4.r,
+                          blurRadius: 3.r,
                         ),
                       ],
                     ),
                   ),
                 ),
                 
-                                  // Shimmer effect
+                // Shimmer effect
                 if (!_isComplete && _progressAnimation.value > 0)
                   Positioned.fill(
                     child: AnimatedBuilder(
@@ -244,11 +242,11 @@ class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
                       builder: (context, child) {
                         return Transform.translate(
                           offset: Offset(
-                            (_shimmerController.value * 3 - 1) * 100.w,
+                            (_shimmerController.value * 3 - 1) * 80.w,
                             0,
                           ),
                           child: Container(
-                            width: 30.w,
+                            width: 25.w,
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
@@ -278,13 +276,13 @@ class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
         return Text(
           '${widget.grantedPermissions}/${widget.totalPermissions}',
           style: TextStyle(
-            fontSize: 14.sp,
+            fontSize: 13.sp,
             fontWeight: FontWeight.bold,
             color: Colors.white,
             shadows: [
               Shadow(
                 color: Colors.black.withOpacity(0.2),
-                blurRadius: 4.r,
+                blurRadius: 3.r,
               ),
             ],
           ),
@@ -304,7 +302,7 @@ class CircularPermissionProgress extends StatefulWidget {
     super.key,
     required this.totalPermissions,
     required this.grantedPermissions,
-    this.size = 60,
+    this.size = 50,
   });
 
   @override
@@ -312,7 +310,7 @@ class CircularPermissionProgress extends StatefulWidget {
 }
 
 class _CircularPermissionProgressState extends State<CircularPermissionProgress>
-    with SingleTickerProviderStateMixin {  // ← هنا يمكن Single لأن لدينا controller واحد فقط
+    with SingleTickerProviderStateMixin {
   
   late AnimationController _rotationController;
   late Animation<double> _rotationAnimation;
@@ -443,7 +441,7 @@ class _CircularProgressPainter extends CustomPainter {
     // Progress arc
     final progressPaint = Paint()
       ..color = isComplete ? Colors.green.shade300 : Colors.white
-      ..strokeWidth = 4.0
+      ..strokeWidth = 3.0
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
     
@@ -471,9 +469,9 @@ class _CircularProgressPainter extends CustomPainter {
     if (isComplete) {
       final glowPaint = Paint()
         ..color = Colors.green.withOpacity(0.3)
-        ..strokeWidth = 8.0
+        ..strokeWidth = 6.0
         ..style = PaintingStyle.stroke
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
       
       canvas.drawCircle(center, radius - 2, glowPaint);
     }

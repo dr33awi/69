@@ -72,7 +72,7 @@ class _SuccessCelebrationWidgetState extends State<SuccessCelebrationWidget>
 
   void _initConfetti() {
     final random = math.Random();
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 40; i++) {
       _confettiList.add(
         Confetti(
           x: random.nextDouble(),
@@ -82,7 +82,7 @@ class _SuccessCelebrationWidgetState extends State<SuccessCelebrationWidget>
           rotation: random.nextDouble() * math.pi * 2,
           rotationSpeed: (random.nextDouble() - 0.5) * 0.2,
           color: _getRandomColor(),
-          size: 6.0 + random.nextDouble() * 6.0,
+          size: 5.0 + random.nextDouble() * 5.0,
         ),
       );
     }
@@ -173,11 +173,11 @@ class _SuccessCelebrationWidgetState extends State<SuccessCelebrationWidget>
             decoration: BoxDecoration(
               color: confetti.color,
               shape: BoxShape.rectangle,
-              borderRadius: BorderRadius.circular(2.r),
+              borderRadius: BorderRadius.circular(1.5.r),
               boxShadow: [
                 BoxShadow(
                   color: confetti.color.withOpacity(0.5),
-                  blurRadius: 4.r,
+                  blurRadius: 3.r,
                 ),
               ],
             ),
@@ -189,8 +189,8 @@ class _SuccessCelebrationWidgetState extends State<SuccessCelebrationWidget>
 
   Widget _buildSuccessCard() {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 40.w),
-      padding: EdgeInsets.all(32.w),
+      margin: EdgeInsets.symmetric(horizontal: 30.w),
+      padding: EdgeInsets.all(24.w),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -200,17 +200,17 @@ class _SuccessCelebrationWidgetState extends State<SuccessCelebrationWidget>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(24.r),
+        borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
             color: Colors.green.withOpacity(0.4),
-            blurRadius: 30.r,
-            spreadRadius: 5.r,
+            blurRadius: 25.r,
+            spreadRadius: 4.r,
           ),
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
-            blurRadius: 20.r,
-            offset: Offset(0, 10.h),
+            blurRadius: 15.r,
+            offset: Offset(0, 8.h),
           ),
         ],
       ),
@@ -221,58 +221,58 @@ class _SuccessCelebrationWidgetState extends State<SuccessCelebrationWidget>
           Transform.rotate(
             angle: _rotationController.value * math.pi * 2,
             child: Container(
-              width: 80.w,
-              height: 80.w,
+              width: 65.w,
+              height: 65.w,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.white.withOpacity(0.2),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.white.withOpacity(0.3),
-                    blurRadius: 20.r,
-                    spreadRadius: 5.r,
+                    blurRadius: 15.r,
+                    spreadRadius: 3.r,
                   ),
                 ],
               ),
               child: Icon(
                 Icons.check_circle_rounded,
                 color: Colors.white,
-                size: 50.sp,
+                size: 40.sp,
               ),
             ),
           ),
           
-          SizedBox(height: 24.h),
+          SizedBox(height: 20.h),
           
           // Success Text
           Text(
             'رائع! 🎉',
             style: TextStyle(
-              fontSize: 28.sp,
+              fontSize: 24.sp,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
             textAlign: TextAlign.center,
           ),
           
-          SizedBox(height: 12.h),
+          SizedBox(height: 10.h),
           
           Text(
             'تم تفعيل جميع الأذونات بنجاح',
             style: TextStyle(
-              fontSize: 16.sp,
+              fontSize: 14.sp,
               color: Colors.white.withOpacity(0.95),
               height: 1.4,
             ),
             textAlign: TextAlign.center,
           ),
           
-          SizedBox(height: 8.h),
+          SizedBox(height: 6.h),
           
           Text(
             'أنت الآن جاهز للاستمتاع بجميع ميزات التطبيق',
             style: TextStyle(
-              fontSize: 14.sp,
+              fontSize: 12.sp,
               color: Colors.white.withOpacity(0.85),
               height: 1.3,
             ),
@@ -385,7 +385,7 @@ class _SimpleSuccessMessageState extends State<SimpleSuccessMessage>
           child: Opacity(
             opacity: _fadeAnimation.value,
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -395,12 +395,12 @@ class _SimpleSuccessMessageState extends State<SimpleSuccessMessage>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(16.r),
+                borderRadius: BorderRadius.circular(12.r),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.green.withOpacity(0.4),
-                    blurRadius: 15.r,
-                    spreadRadius: 2.r,
+                    blurRadius: 12.r,
+                    spreadRadius: 1.r,
                   ),
                 ],
               ),
@@ -410,14 +410,14 @@ class _SimpleSuccessMessageState extends State<SimpleSuccessMessage>
                   Icon(
                     widget.icon,
                     color: Colors.white,
-                    size: 24.sp,
+                    size: 20.sp,
                   ),
-                  SizedBox(width: 12.w),
+                  SizedBox(width: 10.w),
                   Flexible(
                     child: Text(
                       widget.message,
                       style: TextStyle(
-                        fontSize: 14.sp,
+                        fontSize: 12.sp,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),

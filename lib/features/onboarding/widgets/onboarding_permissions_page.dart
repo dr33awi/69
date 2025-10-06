@@ -49,6 +49,8 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
   
   Map<AppPermissionType, bool> _permissionStatuses = {};
   int _grantedCount = 0;
+  bool _showCelebration = false;
+  bool _celebrationShown = false;
 
   @override
   void initState() {
@@ -126,6 +128,11 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
         });
       }
     }
+    
+    // تحقق إذا كانت كل الأذونات ممنوحة مسبقاً
+    if (_grantedCount == _permissions.length && !_celebrationShown) {
+      _triggerCelebration();
+    }
   }
   
   Future<void> _handlePermissionTap(AppPermissionType permission) async {
@@ -143,85 +150,128 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
         if (!wasGranted && status == AppPermissionStatus.granted) {
           _grantedCount++;
           HapticFeedback.mediumImpact();
+          
+          // تحقق إذا تم منح كل الأذونات
+          if (_grantedCount == _permissions.length && !_celebrationShown) {
+            _triggerCelebration();
+          }
         }
       });
     }
   }
+  
+  void _triggerCelebration() {
+    debugPrint('🎉 Triggering celebration!');
+    setState(() {
+      _showCelebration = true;
+      _celebrationShown = true;
+    });
+    
+    HapticFeedback.heavyImpact();
+    
+    // إخفاء الاحتفال بعد 3 ثواني
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() {
+          _showCelebration = false;
+        });
+      }
+    });
+  }
+  
+  bool get _allPermissionsGranted => _grantedCount == _permissions.length;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 1.sw,
-      height: 1.sh,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: CustomPaint(
-              painter: IslamicPatternPainter(
-                rotation: 0,
-                color: Colors.white,
-                opacity: 0.05,
-                patternType: PatternType.standard,
-              ),
-            ),
-          ),
-          
-          SafeArea(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height - 
-                             MediaQuery.of(context).padding.top - 
-                             MediaQuery.of(context).padding.bottom,
-                ),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        children: [
-                          SizedBox(height: 40.h),
-                          
-                          _buildAnimationWidget(),
-                          
-                          SizedBox(height: 24.h),
-                          
-                          _buildTitle(),
-                          
-                          SizedBox(height: 12.h),
-                          
-                          _buildSubtitle(),
-                          
-                          SizedBox(height: 20.h),
-                          
-                          // مؤشر التقدم
-                          _buildProgressIndicator(),
-                          
-                          SizedBox(height: 32.h),
-                          
-                          _buildPermissionsList(),
-                        ],
-                      ),
-                      
-                      Column(
-                        children: [
-                          SizedBox(height: 24.h),
-                          _buildActionButton(),
-                          SizedBox(height: 8.h),
-                          _buildSkipButton(),
-                          SizedBox(height: 16.h),
-                        ],
-                      ),
-                    ],
+    return Stack(
+      children: [
+        SizedBox(
+          width: 1.sw,
+          height: 1.sh,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: IslamicPatternPainter(
+                    rotation: 0,
+                    color: Colors.white,
+                    opacity: 0.05,
+                    patternType: PatternType.standard,
                   ),
                 ),
               ),
+              
+              SafeArea(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: MediaQuery.of(context).size.height - 
+                                 MediaQuery.of(context).padding.top - 
+                                 MediaQuery.of(context).padding.bottom,
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            children: [
+                              SizedBox(height: 40.h),
+                              
+                              _buildAnimationWidget(),
+                              
+                              SizedBox(height: 24.h),
+                              
+                              _buildTitle(),
+                              
+                              SizedBox(height: 12.h),
+                              
+                              _buildSubtitle(),
+                              
+                              SizedBox(height: 20.h),
+                              
+                              // مؤشر التقدم
+                              _buildProgressIndicator(),
+                              
+                              SizedBox(height: 32.h),
+                              
+                              _buildPermissionsList(),
+                            ],
+                          ),
+                          
+                          Column(
+                            children: [
+                              SizedBox(height: 24.h),
+                              _buildActionButton(),
+                              // إزالة زر التخطي
+                              SizedBox(height: 16.h),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        
+        // عرض الاحتفال
+        if (_showCelebration)
+          Positioned.fill(
+            child: SuccessCelebrationWidget(
+              onComplete: () {
+                if (mounted) {
+                  setState(() {
+                    _showCelebration = false;
+                  });
+                }
+              },
             ),
           ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -342,7 +392,7 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
           child: Transform.translate(
             offset: Offset(0, 25.h * (1 - _fadeAnimation.value)),
             child: Text(
-              'لتوفير أفضل تجربة، نحتاج بعض الأذونات',
+              'هذه الأذونات ضرورية لعمل التطبيق بشكل صحيح',
               style: TextStyle(
                 fontSize: 15.sp,
                 color: Colors.white.withOpacity(0.85),
@@ -423,27 +473,46 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
               height: 54.h,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(27.r),
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.white,
-                    Colors.white.withOpacity(0.95),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                gradient: _allPermissionsGranted
+                    ? LinearGradient(
+                        colors: [
+                          Colors.green.shade400,
+                          Colors.green.shade600,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : LinearGradient(
+                        colors: [
+                          Colors.white.withOpacity(0.3),
+                          Colors.white.withOpacity(0.2),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                 boxShadow: [
-                  BoxShadow(
-                    color: Colors.white.withOpacity(0.3),
-                    blurRadius: 20.r,
-                    spreadRadius: 2.r,
-                    offset: Offset(0, 8.h),
-                  ),
+                  if (_allPermissionsGranted)
+                    BoxShadow(
+                      color: Colors.green.withOpacity(0.4),
+                      blurRadius: 20.r,
+                      spreadRadius: 2.r,
+                      offset: Offset(0, 8.h),
+                    )
+                  else
+                    BoxShadow(
+                      color: Colors.white.withOpacity(0.15),
+                      blurRadius: 20.r,
+                      spreadRadius: 2.r,
+                      offset: Offset(0, 8.h),
+                    ),
                 ],
               ),
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: widget.isProcessing ? null : widget.onNext,
+                  onTap: (_allPermissionsGranted && !widget.isProcessing) 
+                      ? widget.onNext 
+                      : null,
                   borderRadius: BorderRadius.circular(27.r),
                   child: Container(
                     alignment: Alignment.center,
@@ -454,7 +523,7 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
                             child: CircularProgressIndicator(
                               strokeWidth: 2.5.w,
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                widget.item.primaryColor,
+                                _allPermissionsGranted ? Colors.white : widget.item.primaryColor,
                               ),
                             ),
                           )
@@ -462,48 +531,27 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                'منح الأذونات والمتابعة',
+                                _allPermissionsGranted 
+                                    ? 'المتابعة إلى التطبيق' 
+                                    : 'يجب منح جميع الأذونات',
                                 style: TextStyle(
                                   fontSize: 16.sp,
                                   fontWeight: FontWeight.bold,
-                                  color: widget.item.primaryColor,
+                                  color: Colors.white,
                                 ),
                               ),
-                              SizedBox(width: 8.w),
-                              Icon(
-                                Icons.arrow_forward_rounded,
-                                color: widget.item.primaryColor,
-                                size: 20.sp,
-                              ),
+                              if (_allPermissionsGranted) ...[
+                                SizedBox(width: 8.w),
+                                Icon(
+                                  Icons.arrow_forward_rounded,
+                                  color: Colors.white,
+                                  size: 20.sp,
+                                ),
+                              ],
                             ],
                           ),
                   ),
                 ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildSkipButton() {
-    return AnimatedBuilder(
-      animation: _fadeAnimation,
-      builder: (context, child) {
-        return Opacity(
-          opacity: _fadeAnimation.value * 0.8,
-          child: TextButton(
-            onPressed: widget.isProcessing ? null : widget.onNext,
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 24.w),
-            ),
-            child: Text(
-              'تخطي الآن',
-              style: TextStyle(
-                fontSize: 14.sp,
-                color: Colors.white.withOpacity(0.7),
-                fontWeight: FontWeight.w500,
               ),
             ),
           ),
@@ -641,7 +689,6 @@ class _PermissionCardState extends State<_PermissionCard>
                       Stack(
                         alignment: Alignment.center,
                         children: [
-                          // Glow effect
                           if (shouldPulse)
                             Container(
                               width: 56.w,
@@ -658,7 +705,6 @@ class _PermissionCardState extends State<_PermissionCard>
                               ),
                             ),
                           
-                          // Icon container
                           AnimatedContainer(
                             duration: const Duration(milliseconds: 400),
                             width: 52.w,
