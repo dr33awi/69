@@ -1,4 +1,6 @@
 // lib/features/onboarding/widgets/page_indicator.dart
+// محدث: بدون أنيميشنات
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../models/onboarding_item.dart';
@@ -67,9 +69,7 @@ class PageIndicator extends StatelessWidget {
       items.length,
       (index) => GestureDetector(
         onTap: onPageTap != null ? () => onPageTap!(index) : null,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
+        child: Container(
           margin: EdgeInsets.symmetric(horizontal: _horizontalMargin),
           width: currentIndex == index ? _activeWidth : _inactiveWidth,
           height: _height,

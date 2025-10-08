@@ -1,4 +1,4 @@
-// lib/app/di/service_locator.dart - محدث مع QuranService
+// lib/app/di/service_locator.dart - محدث ونظيف
 import 'package:athkar_app/app/themes/core/theme_notifier.dart';
 import 'package:athkar_app/core/error/error_handler.dart';
 import 'package:athkar_app/core/infrastructure/firebase/firebase_messaging_service.dart';
@@ -367,8 +367,6 @@ class ServiceLocator {
       );
     }
 
-
-
     // خدمة التسبيح - Factory
     if (!getIt.isRegistered<TasbihService>()) {
       getIt.registerFactory<TasbihService>(
@@ -599,7 +597,6 @@ class ServiceLocator {
       
       if (getIt.isRegistered<SettingsServicesManager>()) {
         try {
-          // فحص إذا كانت مُهيئة فعلياً
           if (_isServiceActuallyInitialized<SettingsServicesManager>()) {
             getIt<SettingsServicesManager>().dispose();
           }
@@ -632,8 +629,6 @@ class ServiceLocator {
         }
       }
 
-
-
       if (getIt.isRegistered<BatteryService>()) {
         await getIt<BatteryService>().dispose();
       }
@@ -661,7 +656,6 @@ class ServiceLocator {
   /// فحص إذا كانت الخدمة مُهيئة فعلياً (وليس مجرد مسجلة)
   bool _isServiceActuallyInitialized<T extends Object>() {
     try {
-      // محاولة الوصول للخدمة بدون إجبار التهيئة
       return getIt.isRegistered<T>() && getIt.isReadySync<T>();
     } catch (e) {
       return false;
@@ -747,8 +741,6 @@ extension ServiceLocatorExtensions on BuildContext {
     debugPrint('🔄 Accessing DuaService - will initialize if not already done');
     return getIt<DuaService>();
   }
-  
-
   
   TasbihService get tasbihService => getIt<TasbihService>();
   QiblaService get qiblaService => getIt<QiblaService>();

@@ -1,4 +1,5 @@
 // lib/features/settings/services/settings_services_manager.dart
+// محدث: حذف reloadSettings غير المستخدمة
 
 import 'package:flutter/material.dart';
 import '../../../core/infrastructure/services/storage/storage_service.dart';
@@ -167,12 +168,6 @@ class SettingsServicesManager {
     } catch (e) {
       debugPrint('[SettingsManager] Error resetting settings: $e');
     }
-  }
-  
-  /// إعادة تحميل الإعدادات من التخزين
-  Future<void> reloadSettings() async {
-    await _loadSettings();
-    debugPrint('[SettingsManager] Settings reloaded');
   }
 
   // ==================== Cleanup ====================

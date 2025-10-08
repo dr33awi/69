@@ -1,4 +1,6 @@
 // lib/features/settings/screens/main_settings_screen.dart
+// محدث: استخدام PermissionConstants.criticalPermissions
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -11,6 +13,7 @@ import '../../../app/themes/app_theme.dart';
 import '../../../app/routes/app_router.dart';
 import '../../../core/infrastructure/services/permissions/permission_service.dart';
 import '../../../core/infrastructure/services/permissions/permission_manager.dart';
+import '../../../core/infrastructure/services/permissions/permission_constants.dart'; // ✅ استيراد مضاف
 import '../../../core/infrastructure/services/permissions/models/permission_state.dart';
 
 import '../widgets/settings_section.dart';
@@ -37,12 +40,9 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
   // للتحكم في المراجعة داخل التطبيق
   final InAppReview _inAppReview = InAppReview.instance;
   
-  // قائمة الأذونات الأساسية فقط
-  final List<AppPermissionType> _criticalPermissions = [
-    AppPermissionType.notification,
-    AppPermissionType.location,
-    AppPermissionType.batteryOptimization,
-  ];
+  // ✅ استخدام PermissionConstants بدلاً من التعريف المحلي
+  List<AppPermissionType> get _criticalPermissions => 
+      PermissionConstants.criticalPermissions;
 
   @override
   void initState() {
@@ -64,21 +64,6 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
       debugPrint('Error loading settings data: $e');
     } finally {
       setState(() => _isLoading = false);
-    }
-  }
-  
-  Future<void> _loadPermissionStatuses() async {
-    try {
-      final statuses = await _permissionService.checkAllPermissions();
-      if (mounted) {
-        setState(() {
-          _permissionStatuses = statuses;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        _showErrorMessage('حدث خطأ في تحميل حالة الأذونات');
-      }
     }
   }
   
@@ -892,36 +877,15 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
   
   // دوال مساعدة للأذونات
   IconData _getPermissionIcon(AppPermissionType permission) {
-    switch (permission) {
-      case AppPermissionType.notification:
-        return Icons.notifications;
-      case AppPermissionType.location:
-        return Icons.location_on;
-      case AppPermissionType.batteryOptimization:
-        return Icons.battery_charging_full;
-    }
+    return PermissionConstants.getIcon(permission);
   }
   
   String _getPermissionTitle(AppPermissionType permission) {
-    switch (permission) {
-      case AppPermissionType.notification:
-        return 'الإشعارات';
-      case AppPermissionType.location:
-        return 'الموقع';
-      case AppPermissionType.batteryOptimization:
-        return 'تحسين البطارية';
-    }
+    return PermissionConstants.getName(permission);
   }
   
   String _getPermissionDescription(AppPermissionType permission) {
-    switch (permission) {
-      case AppPermissionType.notification:
-        return 'لإرسال تنبيهات الصلاة والأذكار';
-      case AppPermissionType.location:
-        return 'لحساب أوقات الصلاة حسب موقعك';
-      case AppPermissionType.batteryOptimization:
-        return 'لضمان عمل الإشعارات في الخلفية';
-    }
+    return PermissionConstants.getDescription(permission);
   }
   
   Future<void> _requestPermission(AppPermissionType permission) async {

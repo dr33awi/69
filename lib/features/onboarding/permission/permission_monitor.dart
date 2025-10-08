@@ -1,4 +1,6 @@
-// lib/core/infrastructure/services/permissions/widgets/permission_monitor.dart
+// lib/features/onboarding/permission/permission_monitor.dart
+// محدث: بدون استيرادات غير مستخدمة
+
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -27,14 +29,10 @@ class PermissionMonitor extends StatefulWidget {
 }
 
 class _PermissionMonitorState extends State<PermissionMonitor> 
-    with WidgetsBindingObserver, TickerProviderStateMixin {
+    with WidgetsBindingObserver {
   
   late final UnifiedPermissionManager _manager;
   late final PermissionService _permissionService;
-  
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
   
   Map<AppPermissionType, AppPermissionStatus> _cachedStatuses = {};
   List<AppPermissionType> _missingPermissions = [];
@@ -58,46 +56,21 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     _manager = getIt<UnifiedPermissionManager>();
     _permissionService = getIt<PermissionService>();
     
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 400),
-      vsync: this,
-    );
-    
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
-    
-    _scaleAnimation = Tween<double>(
-      begin: 0.95,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutCubic,
-    ));
-    
     debugPrint('[PermissionMonitor] Initializing...');
     
-    // الاستماع لتغييرات الأذونات من الـ Manager
     _listenToPermissionChanges();
     
-    // تأخير قصير ثم فحص الأذونات
     Future.delayed(_initialCheckDelay, () {
       _performInitialCheck();
     });
   }
   
   void _listenToPermissionChanges() {
-    // الاستماع لتغييرات حالة الأذونات
     _manager.stateStream.listen((result) {
       debugPrint('[PermissionMonitor] Received state update from manager');
       _processCheckResult(result);
     });
     
-    // الاستماع لأحداث تغيير الأذونات
     _manager.changeStream.listen((event) {
       debugPrint('[PermissionMonitor] Permission change event: ${event.permission}');
       _handlePermissionChangeEvent(event);
@@ -106,13 +79,11 @@ class _PermissionMonitorState extends State<PermissionMonitor>
   
   void _handlePermissionChangeEvent(PermissionChangeEvent event) {
     if (event.wasGranted) {
-      // إذا تم منح الإذن، احذفه من القائمة
       setState(() {
         _missingPermissions.remove(event.permission);
         _cachedStatuses[event.permission] = event.newStatus;
       });
       
-      // إذا كان هو الإذن المعروض حالياً، أخفِ الإشعار
       if (_currentPermission == event.permission) {
         _hideNotification(success: true);
       }
@@ -120,7 +91,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
       _showSuccessMessage(event.permission);
       
     } else if (event.wasRevoked) {
-      // إذا تم سحب الإذن، أضفه للقائمة
       setState(() {
         if (!_missingPermissions.contains(event.permission)) {
           _missingPermissions.add(event.permission);
@@ -128,7 +98,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
         _cachedStatuses[event.permission] = event.newStatus;
       });
       
-      // أظهر إشعار إذا لزم الأمر
       if (!_isShowingNotification && widget.showNotifications) {
         _showNotificationForPermission(event.permission);
       }
@@ -140,7 +109,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     
     debugPrint('[PermissionMonitor] Performing initial check...');
     
-    // أولاً، تحقق من النتيجة الأخيرة في الـ Manager
     if (_manager.lastCheckResult != null) {
       debugPrint('[PermissionMonitor] Using existing manager result');
       _processCheckResult(_manager.lastCheckResult!);
@@ -159,7 +127,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
       
       debugPrint('[PermissionMonitor] Starting fresh permission check...');
       
-      // فحص الأذونات الحرجة
       final result = await _checkCriticalPermissions();
       
       _processCheckResult(result);
@@ -174,7 +141,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     final missing = <AppPermissionType>[];
     final statuses = <AppPermissionType, AppPermissionStatus>{};
     
-    // فحص الأذونات الحرجة بشكل متوازي
     await Future.wait(
       PermissionConstants.criticalPermissions.map((permission) async {
         try {
@@ -224,12 +190,10 @@ class _PermissionMonitorState extends State<PermissionMonitor>
       _cachedStatuses = Map.from(result.statuses);
     });
     
-    // إظهار إشعار للإذن الأول المفقود إذا وُجد
     if (_missingPermissions.isNotEmpty && 
         widget.showNotifications && 
         !_isShowingNotification) {
       
-      // تأخير قصير للسماح بإكمال بناء الواجهة
       Future.delayed(const Duration(milliseconds: 800), () {
         if (mounted && !_isShowingNotification && _missingPermissions.isNotEmpty) {
           _showNotificationForPermission(_missingPermissions.first);
@@ -245,17 +209,13 @@ class _PermissionMonitorState extends State<PermissionMonitor>
         _onAppResumed();
         break;
       case AppLifecycleState.paused:
-        // قد يكون المستخدم ذاهباً للإعدادات
         if (_isShowingNotification || _missingPermissions.isNotEmpty) {
           _userWentToSettings = true;
         }
         break;
       case AppLifecycleState.inactive:
-        // حالة انتقالية
-        break;
       case AppLifecycleState.detached:
       case AppLifecycleState.hidden:
-        // التطبيق في الخلفية أو مخفي
         break;
     }
   }
@@ -266,7 +226,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     _userWentToSettings = false;
     debugPrint('[PermissionMonitor] App resumed from settings - checking permissions...');
     
-    // فحص فوري عند العودة من الإعدادات
     _recheckPermissionsAfterSettings();
   }
   
@@ -281,7 +240,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     try {
       debugPrint('[PermissionMonitor] Rechecking permissions after settings...');
       
-      // فحص كل الأذونات المفقودة
       final changedPermissions = <AppPermissionType>[];
       
       await Future.wait(
@@ -299,23 +257,19 @@ class _PermissionMonitorState extends State<PermissionMonitor>
         eagerError: false,
       );
       
-      // تحديث الواجهة بناءً على التغييرات
       if (changedPermissions.isNotEmpty && mounted) {
         setState(() {
           for (final permission in changedPermissions) {
             _missingPermissions.remove(permission);
             
-            // إذا كان هو الإذن المعروض حالياً
             if (_currentPermission == permission) {
               _hideNotification(success: true);
             }
             
-            // عرض رسالة نجاح
             _showSuccessMessage(permission);
           }
         });
         
-        // إذا بقيت أذونات مفقودة، أظهر التالي
         if (_missingPermissions.isNotEmpty && !_isShowingNotification) {
           Future.delayed(const Duration(seconds: 1), () {
             if (mounted && !_isShowingNotification && _missingPermissions.isNotEmpty) {
@@ -325,7 +279,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
         }
       }
       
-      // إذا لم تتغير الأذونات ولا زالت مفقودة، أعد إظهار الإشعار
       if (changedPermissions.isEmpty && 
           _missingPermissions.isNotEmpty && 
           !_isShowingNotification) {
@@ -342,13 +295,11 @@ class _PermissionMonitorState extends State<PermissionMonitor>
   }
   
   void _showNotificationForPermission(AppPermissionType permission) {
-    // تحقق من الإلغاء المؤقت
     final dismissedAt = _dismissedPermissions[permission];
     if (dismissedAt != null && 
         DateTime.now().difference(dismissedAt) < _dismissalDuration) {
       debugPrint('[PermissionMonitor] Permission notification dismissed temporarily: $permission');
       
-      // ابحث عن إذن آخر لعرضه
       for (final p in _missingPermissions) {
         final otherDismissedAt = _dismissedPermissions[p];
         if (otherDismissedAt == null || 
@@ -367,7 +318,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
       _isShowingNotification = true;
     });
     
-    _animationController.forward();
     HapticFeedback.mediumImpact();
   }
   
@@ -379,31 +329,26 @@ class _PermissionMonitorState extends State<PermissionMonitor>
       debugPrint('[PermissionMonitor] Permission dismissed: $_currentPermission');
     }
     
-    _animationController.reverse().then((_) {
-      if (mounted) {
-        setState(() {
-          _isShowingNotification = false;
-          _currentPermission = null;
-          _isProcessing = false;
-        });
-        
-        // إذا نجح وبقيت أذونات مفقودة، أظهر التالي بعد تأخير
-        if (success && _missingPermissions.isNotEmpty) {
-          Future.delayed(const Duration(seconds: 1), () {
-            if (mounted && !_isShowingNotification) {
-              for (final perm in _missingPermissions) {
-                final dismissedAt = _dismissedPermissions[perm];
-                if (dismissedAt == null || 
-                    DateTime.now().difference(dismissedAt) > _dismissalDuration) {
-                  _showNotificationForPermission(perm);
-                  break;
-                }
-              }
-            }
-          });
-        }
-      }
+    setState(() {
+      _isShowingNotification = false;
+      _currentPermission = null;
+      _isProcessing = false;
     });
+    
+    if (success && _missingPermissions.isNotEmpty) {
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted && !_isShowingNotification) {
+          for (final perm in _missingPermissions) {
+            final dismissedAt = _dismissedPermissions[perm];
+            if (dismissedAt == null || 
+                DateTime.now().difference(dismissedAt) > _dismissalDuration) {
+              _showNotificationForPermission(perm);
+              break;
+            }
+          }
+        }
+      });
+    }
     
     if (success) {
       HapticFeedback.heavyImpact();
@@ -450,13 +395,11 @@ class _PermissionMonitorState extends State<PermissionMonitor>
       final currentStatus = await _permissionService.checkPermissionStatus(_currentPermission!);
       
       if (currentStatus == AppPermissionStatus.permanentlyDenied) {
-        // فتح الإعدادات مباشرة
         await _permissionService.openAppSettings();
         _userWentToSettings = true;
         setState(() => _isProcessing = false);
         
       } else {
-        // طلب الإذن مباشرة
         final newStatus = await _permissionService.requestPermission(_currentPermission!);
         
         if (newStatus == AppPermissionStatus.granted) {
@@ -468,7 +411,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
           setState(() => _isProcessing = false);
           
           if (newStatus == AppPermissionStatus.permanentlyDenied && mounted) {
-            // عرض رسالة للمستخدم
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -515,53 +457,31 @@ class _PermissionMonitorState extends State<PermissionMonitor>
   
   List<Widget> _buildNotificationOverlay() {
     return [
-      // خلفية شفافة مع blur
       GestureDetector(
         onTap: () {
           if (!_isProcessing) {
             _hideNotification(dismissed: true);
           }
         },
-        child: AnimatedBuilder(
-          animation: _fadeAnimation,
-          builder: (context, child) {
-            return Container(
-              color: Colors.black.withOpacity(_fadeAnimation.value * 0.6),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(
-                  sigmaX: 8 * _fadeAnimation.value,
-                  sigmaY: 8 * _fadeAnimation.value,
-                ),
-                child: Container(color: Colors.transparent),
-              ),
-            );
-          },
+        child: Container(
+          color: Colors.black.withOpacity(0.6),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+            child: Container(color: Colors.transparent),
+          ),
         ),
       ),
       
-      // البطاقة
       Center(
-        child: AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            return Transform.scale(
-              scale: _scaleAnimation.value,
-              child: Opacity(
-                opacity: _fadeAnimation.value,
-                child: child,
-              ),
-            );
+        child: _SimplePermissionCard(
+          permission: _currentPermission!,
+          isProcessing: _isProcessing,
+          onActivate: _handlePermissionRequest,
+          onDismiss: () {
+            if (!_isProcessing) {
+              _hideNotification(dismissed: true);
+            }
           },
-          child: _SimplePermissionCard(
-            permission: _currentPermission!,
-            isProcessing: _isProcessing,
-            onActivate: _handlePermissionRequest,
-            onDismiss: () {
-              if (!_isProcessing) {
-                _hideNotification(dismissed: true);
-              }
-            },
-          ),
         ),
       ),
     ];
@@ -570,7 +490,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _animationController.dispose();
     super.dispose();
   }
 }
@@ -611,7 +530,6 @@ class _SimplePermissionCard extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // زر الإغلاق
               Align(
                 alignment: Alignment.topLeft,
                 child: GestureDetector(
@@ -633,7 +551,6 @@ class _SimplePermissionCard extends StatelessWidget {
               
               SizedBox(height: 8.h),
               
-              // الأيقونة
               Container(
                 width: 64.w,
                 height: 64.w,
@@ -657,7 +574,6 @@ class _SimplePermissionCard extends StatelessWidget {
               
               SizedBox(height: 20.h),
               
-              // العنوان
               Text(
                 'إذن ${info.name}',
                 style: TextStyle(
@@ -670,7 +586,6 @@ class _SimplePermissionCard extends StatelessWidget {
               
               SizedBox(height: 10.h),
               
-              // الوصف
               Text(
                 info.description,
                 style: TextStyle(
@@ -683,7 +598,6 @@ class _SimplePermissionCard extends StatelessWidget {
               
               SizedBox(height: 28.h),
               
-              // زر التفعيل
               SizedBox(
                 width: double.infinity,
                 height: 48.h,

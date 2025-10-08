@@ -1,4 +1,5 @@
 // lib/core/infrastructure/services/permissions/permission_manager.dart
+// محدث: حذف performBackgroundCheck وتوحيد criticalPermissions
 
 import 'dart:async';
 import 'package:flutter/foundation.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'permission_service.dart';
+import 'permission_constants.dart'; // ✅ استيراد مضاف
 import 'models/permission_state.dart';
 import '../../../../features/onboarding/permission/permission_dialogs.dart';
 import '../storage/storage_service.dart';
@@ -32,12 +34,9 @@ class UnifiedPermissionManager {
   DateTime? _lastCheckTime;
   static const Duration _minCheckInterval = Duration(seconds: 2);
   
-  // قائمة الأذونات الحرجة
-  static const List<AppPermissionType> criticalPermissions = [
-    AppPermissionType.notification,
-    AppPermissionType.location,
-    AppPermissionType.batteryOptimization,
-  ];
+  // ✅ استخدام PermissionConstants بدلاً من التكرار
+  List<AppPermissionType> get criticalPermissions => 
+      PermissionConstants.criticalPermissions;
   
   // Constructor خاص للـ Singleton
   UnifiedPermissionManager._({
@@ -406,13 +405,6 @@ class UnifiedPermissionManager {
         'missing': result.missingPermissions.map((p) => p.toString()).toList(),
       });
     }
-  }
-  
-  // ==================== دوال إضافية للتوافق ====================
-  
-  /// performBackgroundCheck محذوف - استخدم performQuickCheck بدلاً منه
-  Future<PermissionCheckResult> performBackgroundCheck() async {
-    return performQuickCheck();
   }
 
   // ==================== Simple Logging Methods ====================

@@ -1,4 +1,4 @@
-// lib/features/onboarding/data/onboarding_data.dart - مع دعم Lottie محدث
+// lib/features/onboarding/data/onboarding_data.dart - محدث ونظيف
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import '../models/onboarding_item.dart';
@@ -260,38 +260,6 @@ class OnboardingData {
       Colors.blue.shade100,
     ],
   };
-  
-  /// التحقق من صحة ملف Lottie
-  static bool isValidLottieFile(String? path) {
-    return path != null && 
-           path.isNotEmpty && 
-           path.endsWith('.json') &&
-           path.startsWith('assets/animations/');
-  }
-  
-  /// الحصول على مسار الأنيميشن الاحتياطي
-  static String getFallbackIconPath(OnboardingAnimationType type) {
-    switch (type) {
-      case OnboardingAnimationType.welcome:
-        return 'assets/icons/mosque.svg';
-      case OnboardingAnimationType.dailyAthkar:
-        return 'assets/icons/sun.svg';
-      case OnboardingAnimationType.islamicDuaa:
-        return 'assets/icons/hands.svg';
-      case OnboardingAnimationType.digitalTasbih:
-        return 'assets/icons/beads.svg';
-      case OnboardingAnimationType.qiblaDirection:
-        return 'assets/icons/compass.svg';
-      case OnboardingAnimationType.prayerTimes:
-        return 'assets/icons/clock.svg';
-      case OnboardingAnimationType.asmaAlHusna:
-        return 'assets/icons/star.svg';
-      case OnboardingAnimationType.permissions:
-        return 'assets/icons/shield.svg';
-      default:
-        return 'assets/icons/default.svg';
-    }
-  }
 }
 
 /// فئة إعدادات Lottie محدثة

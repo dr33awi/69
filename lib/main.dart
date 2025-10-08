@@ -1,4 +1,4 @@
-// lib/main.dart - مع flutter_screenutil
+// lib/main.dart - محدث: إزالة استيراد quran_library غير المستخدم
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,7 +7,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 // Firebase imports
 import 'package:firebase_core/firebase_core.dart';
-import 'package:quran_library/quran.dart';
+// ❌ حذف استيراد غير مستخدم
+// import 'package:quran_library/quran.dart';
 import 'firebase_options.dart';
 
 // Service Locator والخدمات
@@ -24,7 +25,6 @@ import 'core/infrastructure/services/preview/device_preview_config.dart';
 // Firebase services
 import 'core/infrastructure/firebase/remote_config_manager.dart';
 import 'core/infrastructure/firebase/remote_config_service.dart';
-// استورد AppStatusMonitor هنا
 import 'core/infrastructure/firebase/widgets/app_status_monitor.dart';
 
 // الثيمات والمسارات
@@ -309,7 +309,6 @@ class _AthkarAppState extends State<AthkarApp> {
                   );
                 }
                 
-                // لا نطبق PermissionMonitor هنا، سنطبقه في _buildInitialScreen
                 return child;
               },
             );
@@ -325,11 +324,9 @@ class _AthkarAppState extends State<AthkarApp> {
     try {
       if (_shouldShowOnboarding) {
         debugPrint('🎯 Starting with onboarding screen');
-        // لا نطبق PermissionMonitor على شاشة الـ Onboarding
         screen = const OnboardingScreen();
       } else {
         debugPrint('🏠 Starting with home screen directly');
-        // نطبق PermissionMonitor على HomeScreen فقط
         screen = const PermissionMonitor(
           showNotifications: true,
           child: HomeScreen(),
@@ -350,7 +347,6 @@ class _AthkarAppState extends State<AthkarApp> {
   Widget _wrapWithAppMonitor(Widget screen) {
     if (_configManagerReady && _configManager != null) {
       debugPrint('✅ Wrapping with AppStatusMonitor (Config Manager ready)');
-      // AppStatusMonitor مستورد في الأعلى، لذا يمكن استخدامه مباشرة
       return AppStatusMonitor(
         configManager: _configManager,
         child: screen,
