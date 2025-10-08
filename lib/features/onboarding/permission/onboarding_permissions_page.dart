@@ -10,7 +10,7 @@ import '../../../core/infrastructure/services/permissions/permission_constants.d
 import '../models/onboarding_item.dart';
 import '../data/onboarding_data.dart';
 import 'permission_status_indicator.dart';
-import 'success_celebration_widget.dart';
+import '../widgets/success_celebration_widget.dart';
 
 class OnboardingPermissionsPage extends StatefulWidget {
   final OnboardingItem item;
@@ -51,6 +51,31 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
   int _grantedCount = 0;
   bool _showCelebration = false;
   bool _celebrationShown = false;
+
+  // حساب الأحجام المتجاوبة
+  double get _animationSize {
+    if (1.sw > 600) return 180.w;
+    if (1.sw > 400) return 160.w;
+    return 140.w;
+  }
+
+  double get _lottieSize {
+    if (1.sw > 600) return 130.w;
+    if (1.sw > 400) return 115.w;
+    return 100.w;
+  }
+
+  double get _titleSize {
+    if (1.sw > 600) return 32.sp;
+    if (1.sw > 400) return 30.sp;
+    return 28.sp;
+  }
+
+  double get _subtitleSize {
+    if (1.sw > 600) return 17.sp;
+    if (1.sw > 400) return 16.sp;
+    return 15.sp;
+  }
 
   @override
   void initState() {
@@ -104,7 +129,6 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
       if (mounted) _slideController.forward();
     });
     
-    // فحص حالة الأذونات
     _checkPermissionsStatus();
   }
 
@@ -129,7 +153,6 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
       }
     }
     
-    // تحقق إذا كانت كل الأذونات ممنوحة مسبقاً
     if (_grantedCount == _permissions.length && !_celebrationShown) {
       _triggerCelebration();
     }
@@ -151,7 +174,6 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
           _grantedCount++;
           HapticFeedback.mediumImpact();
           
-          // تحقق إذا تم منح كل الأذونات
           if (_grantedCount == _permissions.length && !_celebrationShown) {
             _triggerCelebration();
           }
@@ -169,7 +191,6 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
     
     HapticFeedback.heavyImpact();
     
-    // إخفاء الاحتفال بعد 3 ثواني
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
         setState(() {
@@ -183,6 +204,11 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
 
   @override
   Widget build(BuildContext context) {
+    final verticalPadding = 1.sh > 700 ? 20.h : 16.h;
+    final horizontalPadding = 1.sw > 600 ? 36.w : 24.w;
+    final topSpacing = 1.sh > 700 ? 50.h : 35.h;
+    final itemSpacing = 1.sh > 700 ? 28.h : 20.h;
+    
     return Stack(
       children: [
         SizedBox(
@@ -211,30 +237,32 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
                                  MediaQuery.of(context).padding.bottom,
                     ),
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: horizontalPadding,
+                        vertical: verticalPadding,
+                      ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Column(
                             children: [
-                              SizedBox(height: 40.h),
+                              SizedBox(height: topSpacing),
                               
                               _buildAnimationWidget(),
                               
-                              SizedBox(height: 24.h),
+                              SizedBox(height: itemSpacing),
                               
                               _buildTitle(),
                               
-                              SizedBox(height: 12.h),
+                              SizedBox(height: itemSpacing * 0.5),
                               
                               _buildSubtitle(),
                               
-                              SizedBox(height: 20.h),
+                              SizedBox(height: itemSpacing * 0.85),
                               
-                              // مؤشر التقدم
                               _buildProgressIndicator(),
                               
-                              SizedBox(height: 32.h),
+                              SizedBox(height: itemSpacing * 1.3),
                               
                               _buildPermissionsList(),
                             ],
@@ -242,9 +270,8 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
                           
                           Column(
                             children: [
-                              SizedBox(height: 24.h),
+                              SizedBox(height: itemSpacing),
                               _buildActionButton(),
-                              // إزالة زر التخطي
                               SizedBox(height: 16.h),
                             ],
                           ),
@@ -258,7 +285,6 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
           ),
         ),
         
-        // عرض الاحتفال
         if (_showCelebration)
           Positioned.fill(
             child: SuccessCelebrationWidget(
@@ -282,8 +308,8 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
         return Transform.scale(
           scale: _scaleAnimation.value,
           child: Container(
-            width: 140.w,
-            height: 140.w,
+            width: _animationSize,
+            height: _animationSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
@@ -308,8 +334,8 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
             ),
             child: Center(
               child: SizedBox(
-                width: 100.w,
-                height: 100.w,
+                width: _lottieSize,
+                height: _lottieSize,
                 child: widget.item.hasValidLottie
                     ? Lottie.asset(
                         widget.item.lottiePath!,
@@ -319,11 +345,7 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
                         options: LottieOptions(
                           enableMergePaths: true,
                         ),
-                        onLoaded: (composition) {
-                          debugPrint('✅ Lottie loaded: ${widget.item.lottiePath}');
-                        },
                         errorBuilder: (context, error, stackTrace) {
-                          debugPrint('❌ Lottie error: $error');
                           return _buildFallbackIcon();
                         },
                       )
@@ -337,16 +359,18 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
   }
 
   Widget _buildFallbackIcon() {
+    final iconSize = _lottieSize * 0.6;
+    
     return Container(
-      width: 70.w,
-      height: 70.w,
+      width: iconSize,
+      height: iconSize,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: Colors.white.withOpacity(0.2),
       ),
       child: Icon(
         Icons.security_rounded,
-        size: 35.sp,
+        size: iconSize * 0.5,
         color: Colors.white,
       ),
     );
@@ -363,7 +387,7 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
             child: Text(
               'أذونات التطبيق',
               style: TextStyle(
-                fontSize: 28.sp,
+                fontSize: _titleSize,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
                 height: 1.2,
@@ -394,7 +418,7 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
             child: Text(
               'هذه الأذونات ضرورية لعمل التطبيق بشكل صحيح',
               style: TextStyle(
-                fontSize: 15.sp,
+                fontSize: _subtitleSize,
                 color: Colors.white.withOpacity(0.85),
                 height: 1.3,
               ),
@@ -461,6 +485,10 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
   }
 
   Widget _buildActionButton() {
+    final buttonHeight = 1.sh > 700 ? 58.h : 54.h;
+    final buttonFontSize = 1.sw > 600 ? 18.sp : 16.sp;
+    final iconSize = 1.sw > 600 ? 22.sp : 20.sp;
+    
     return AnimatedBuilder(
       animation: _fadeAnimation,
       builder: (context, child) {
@@ -470,9 +498,12 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
             offset: Offset(0, 40.h * (1 - _fadeAnimation.value)),
             child: Container(
               width: double.infinity,
-              height: 54.h,
+              height: buttonHeight,
+              constraints: BoxConstraints(
+                maxWidth: 1.sw > 600 ? 450.w : double.infinity,
+              ),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(27.r),
+                borderRadius: BorderRadius.circular(buttonHeight / 2),
                 gradient: _allPermissionsGranted
                     ? LinearGradient(
                         colors: [
@@ -484,8 +515,8 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
                       )
                     : LinearGradient(
                         colors: [
-                          Colors.white.withOpacity(0.3),
-                          Colors.white.withOpacity(0.2),
+                          Colors.grey.withOpacity(0.3),
+                          Colors.grey.withOpacity(0.2),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -500,10 +531,10 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
                     )
                   else
                     BoxShadow(
-                      color: Colors.white.withOpacity(0.15),
-                      blurRadius: 20.r,
-                      spreadRadius: 2.r,
-                      offset: Offset(0, 8.h),
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 15.r,
+                      spreadRadius: 1.r,
+                      offset: Offset(0, 6.h),
                     ),
                 ],
               ),
@@ -513,7 +544,7 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
                   onTap: (_allPermissionsGranted && !widget.isProcessing) 
                       ? widget.onNext 
                       : null,
-                  borderRadius: BorderRadius.circular(27.r),
+                  borderRadius: BorderRadius.circular(buttonHeight / 2),
                   child: Container(
                     alignment: Alignment.center,
                     child: widget.isProcessing
@@ -522,22 +553,31 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
                             height: 24.w,
                             child: CircularProgressIndicator(
                               strokeWidth: 2.5.w,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                _allPermissionsGranted ? Colors.white : widget.item.primaryColor,
-                              ),
+                              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
                         : Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
+                              if (!_allPermissionsGranted)
+                                Padding(
+                                  padding: EdgeInsets.only(left: 8.w),
+                                  child: Icon(
+                                    Icons.lock_rounded,
+                                    color: Colors.white.withOpacity(0.7),
+                                    size: iconSize,
+                                  ),
+                                ),
                               Text(
                                 _allPermissionsGranted 
                                     ? 'المتابعة إلى التطبيق' 
                                     : 'يجب منح جميع الأذونات',
                                 style: TextStyle(
-                                  fontSize: 16.sp,
+                                  fontSize: buttonFontSize,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: _allPermissionsGranted 
+                                      ? Colors.white 
+                                      : Colors.white.withOpacity(0.7),
                                 ),
                               ),
                               if (_allPermissionsGranted) ...[
@@ -545,7 +585,7 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage>
                                 Icon(
                                   Icons.arrow_forward_rounded,
                                   color: Colors.white,
-                                  size: 20.sp,
+                                  size: iconSize,
                                 ),
                               ],
                             ],
@@ -584,6 +624,38 @@ class _PermissionCardState extends State<_PermissionCard>
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
   late Animation<double> _glowAnimation;
+
+  // حساب الأحجام المتجاوبة
+  double get _cardPadding {
+    if (1.sw > 600) return 20.w;
+    return 16.w;
+  }
+
+  double get _iconSize {
+    if (1.sw > 600) return 58.w;
+    if (1.sw > 400) return 54.w;
+    return 52.w;
+  }
+
+  double get _iconInnerSize {
+    if (1.sw > 600) return 28.sp;
+    return 26.sp;
+  }
+
+  double get _titleSize {
+    if (1.sw > 600) return 17.sp;
+    return 16.sp;
+  }
+
+  double get _descSize {
+    if (1.sw > 600) return 13.sp;
+    return 12.sp;
+  }
+
+  double get _badgeFontSize {
+    if (1.sw > 600) return 11.sp;
+    return 10.sp;
+  }
 
   @override
   void initState() {
@@ -627,6 +699,7 @@ class _PermissionCardState extends State<_PermissionCard>
   Widget build(BuildContext context) {
     final info = PermissionConstants.getInfo(widget.permission);
     final shouldPulse = !widget.isGranted;
+    final cardMargin = 1.sh > 700 ? 14.h : 12.h;
     
     return AnimatedBuilder(
       animation: _pulseController,
@@ -635,7 +708,7 @@ class _PermissionCardState extends State<_PermissionCard>
           scale: shouldPulse ? _pulseAnimation.value : 1.0,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 400),
-            margin: EdgeInsets.only(bottom: 12.h),
+            margin: EdgeInsets.only(bottom: cardMargin),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: widget.isGranted
@@ -683,7 +756,7 @@ class _PermissionCardState extends State<_PermissionCard>
                 onTap: widget.isGranted ? null : widget.onTap,
                 borderRadius: BorderRadius.circular(18.r),
                 child: Padding(
-                  padding: EdgeInsets.all(16.w),
+                  padding: EdgeInsets.all(_cardPadding),
                   child: Row(
                     children: [
                       Stack(
@@ -691,8 +764,8 @@ class _PermissionCardState extends State<_PermissionCard>
                         children: [
                           if (shouldPulse)
                             Container(
-                              width: 56.w,
-                              height: 56.w,
+                              width: _iconSize + 4.w,
+                              height: _iconSize + 4.w,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 boxShadow: [
@@ -707,8 +780,8 @@ class _PermissionCardState extends State<_PermissionCard>
                           
                           AnimatedContainer(
                             duration: const Duration(milliseconds: 400),
-                            width: 52.w,
-                            height: 52.w,
+                            width: _iconSize,
+                            height: _iconSize,
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: widget.isGranted
@@ -737,7 +810,7 @@ class _PermissionCardState extends State<_PermissionCard>
                             child: Icon(
                               widget.isGranted ? Icons.check_circle_rounded : info.icon,
                               color: Colors.white,
-                              size: 26.sp,
+                              size: _iconInnerSize,
                             ),
                           ),
                         ],
@@ -755,7 +828,7 @@ class _PermissionCardState extends State<_PermissionCard>
                                   child: Text(
                                     info.name,
                                     style: TextStyle(
-                                      fontSize: 16.sp,
+                                      fontSize: _titleSize,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
                                       shadows: [
@@ -780,7 +853,7 @@ class _PermissionCardState extends State<_PermissionCard>
                                     child: Text(
                                       'مُفعّل',
                                       style: TextStyle(
-                                        fontSize: 10.sp,
+                                        fontSize: _badgeFontSize,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white,
                                       ),
@@ -792,7 +865,7 @@ class _PermissionCardState extends State<_PermissionCard>
                             Text(
                               info.description,
                               style: TextStyle(
-                                fontSize: 12.sp,
+                                fontSize: _descSize,
                                 color: Colors.white.withOpacity(0.75),
                                 height: 1.3,
                               ),

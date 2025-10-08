@@ -15,10 +15,45 @@ class PageIndicator extends StatelessWidget {
     this.onPageTap,
   });
 
+  // حساب الأحجام المتجاوبة
+  double get _activeWidth {
+    if (1.sw > 600) return 28.w;
+    if (1.sw > 400) return 26.w;
+    return 24.w;
+  }
+
+  double get _inactiveWidth {
+    if (1.sw > 600) return 10.w;
+    return 8.w;
+  }
+
+  double get _height {
+    if (1.sw > 600) return 10.h;
+    return 8.h;
+  }
+
+  double get _horizontalMargin {
+    if (1.sw > 600) return 4.w;
+    return 3.w;
+  }
+
+  double get _containerPadding {
+    if (1.sw > 600) return 18.w;
+    return 16.w;
+  }
+
+  double get _innerDotSize {
+    if (1.sw > 600) return 5.w;
+    return 4.w;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: _containerPadding,
+        vertical: 12.h,
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -35,11 +70,11 @@ class PageIndicator extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
-          margin: EdgeInsets.symmetric(horizontal: 3.w),
-          width: currentIndex == index ? 24.w : 8.w,
-          height: 8.h,
+          margin: EdgeInsets.symmetric(horizontal: _horizontalMargin),
+          width: currentIndex == index ? _activeWidth : _inactiveWidth,
+          height: _height,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4.r),
+            borderRadius: BorderRadius.circular(_height / 2),
             color: currentIndex == index
                 ? Colors.white
                 : Colors.white.withOpacity(0.4),
@@ -54,8 +89,8 @@ class PageIndicator extends StatelessWidget {
           child: currentIndex == index 
               ? Center(
                   child: Container(
-                    width: 4.w,
-                    height: 4.h,
+                    width: _innerDotSize,
+                    height: _innerDotSize,
                     decoration: BoxDecoration(
                       color: items[index].primaryColor.withOpacity(0.8),
                       shape: BoxShape.circle,

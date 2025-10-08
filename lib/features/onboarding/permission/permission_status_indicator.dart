@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-/// مؤشر حالة الأذونات - يظهر عدد الأذونات الممنوحة
 class PermissionStatusIndicator extends StatefulWidget {
   final int totalPermissions;
   final int grantedPermissions;
@@ -28,6 +27,50 @@ class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
   late Animation<double> _progressAnimation;
   
   double _previousProgress = 0.0;
+
+  // حساب الأحجام المتجاوبة
+  double get _containerHorizontalPadding {
+    if (1.sw > 600) return 18.w;
+    return 14.w;
+  }
+
+  double get _containerVerticalPadding {
+    if (1.sw > 600) return 12.h;
+    return 10.h;
+  }
+
+  double get _iconSize {
+    if (1.sw > 600) return 34.w;
+    if (1.sw > 400) return 32.w;
+    return 30.w;
+  }
+
+  double get _iconInnerSize {
+    if (1.sw > 600) return 20.sp;
+    return 18.sp;
+  }
+
+  double get _progressBarWidth {
+    if (1.sw > 600) return 100.w;
+    if (1.sw > 400) return 90.w;
+    return 80.w;
+  }
+
+  double get _progressBarHeight {
+    if (1.sw > 600) return 6.h;
+    return 5.h;
+  }
+
+  double get _textSize {
+    if (1.sw > 600) return 15.sp;
+    if (1.sw > 400) return 14.sp;
+    return 13.sp;
+  }
+
+  double get _spacing {
+    if (1.sw > 600) return 10.w;
+    return 8.w;
+  }
 
   @override
   void initState() {
@@ -111,7 +154,10 @@ class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
     return GestureDetector(
       onTap: widget.onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+        padding: EdgeInsets.symmetric(
+          horizontal: _containerHorizontalPadding,
+          vertical: _containerVerticalPadding,
+        ),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -138,9 +184,9 @@ class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildIcon(),
-            SizedBox(width: 8.w),
+            SizedBox(width: _spacing),
             _buildProgressBar(),
-            SizedBox(width: 8.w),
+            SizedBox(width: _spacing),
             _buildText(),
           ],
         ),
@@ -153,8 +199,8 @@ class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
       animation: _progressAnimation,
       builder: (context, child) {
         return Container(
-          width: 30.w,
-          height: 30.w,
+          width: _iconSize,
+          height: _iconSize,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: _isComplete
@@ -183,7 +229,7 @@ class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
           child: Icon(
             _isComplete ? Icons.check_circle_rounded : Icons.security_rounded,
             color: Colors.white,
-            size: 18.sp,
+            size: _iconInnerSize,
           ),
         );
       },
@@ -195,14 +241,14 @@ class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
       animation: _progressAnimation,
       builder: (context, child) {
         return Container(
-          width: 80.w,
-          height: 5.h,
+          width: _progressBarWidth,
+          height: _progressBarHeight,
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(2.5.r),
+            borderRadius: BorderRadius.circular(_progressBarHeight / 2),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(2.5.r),
+            borderRadius: BorderRadius.circular(_progressBarHeight / 2),
             child: Stack(
               children: [
                 // Progress fill
@@ -242,7 +288,7 @@ class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
                       builder: (context, child) {
                         return Transform.translate(
                           offset: Offset(
-                            (_shimmerController.value * 3 - 1) * 80.w,
+                            (_shimmerController.value * 3 - 1) * _progressBarWidth,
                             0,
                           ),
                           child: Container(
@@ -276,7 +322,7 @@ class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
         return Text(
           '${widget.grantedPermissions}/${widget.totalPermissions}',
           style: TextStyle(
-            fontSize: 13.sp,
+            fontSize: _textSize,
             fontWeight: FontWeight.bold,
             color: Colors.white,
             shadows: [
@@ -296,13 +342,13 @@ class _PermissionStatusIndicatorState extends State<PermissionStatusIndicator>
 class CircularPermissionProgress extends StatefulWidget {
   final int totalPermissions;
   final int grantedPermissions;
-  final double size;
+  final double? size;
 
   const CircularPermissionProgress({
     super.key,
     required this.totalPermissions,
     required this.grantedPermissions,
-    this.size = 50,
+    this.size,
   });
 
   @override
@@ -314,6 +360,14 @@ class _CircularPermissionProgressState extends State<CircularPermissionProgress>
   
   late AnimationController _rotationController;
   late Animation<double> _rotationAnimation;
+
+  // حساب الحجم المتجاوب
+  double get _effectiveSize {
+    if (widget.size != null) return widget.size!;
+    if (1.sw > 600) return 60;
+    if (1.sw > 400) return 55;
+    return 50;
+  }
 
   @override
   void initState() {
@@ -367,15 +421,15 @@ class _CircularPermissionProgressState extends State<CircularPermissionProgress>
       animation: _rotationController,
       builder: (context, child) {
         return SizedBox(
-          width: widget.size.w,
-          height: widget.size.w,
+          width: _effectiveSize.w,
+          height: _effectiveSize.w,
           child: Stack(
             alignment: Alignment.center,
             children: [
               // Background circle
               Container(
-                width: widget.size.w,
-                height: widget.size.w,
+                width: _effectiveSize.w,
+                height: _effectiveSize.w,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white.withOpacity(0.1),
@@ -389,7 +443,7 @@ class _CircularPermissionProgressState extends State<CircularPermissionProgress>
                 curve: Curves.easeOutCubic,
                 builder: (context, value, child) {
                   return CustomPaint(
-                    size: Size(widget.size.w, widget.size.w),
+                    size: Size(_effectiveSize.w, _effectiveSize.w),
                     painter: _CircularProgressPainter(
                       progress: value,
                       isComplete: _isComplete,
@@ -401,8 +455,8 @@ class _CircularPermissionProgressState extends State<CircularPermissionProgress>
               
               // Center icon
               Container(
-                width: (widget.size * 0.6).w,
-                height: (widget.size * 0.6).w,
+                width: (_effectiveSize * 0.6).w,
+                height: (_effectiveSize * 0.6).w,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white.withOpacity(0.15),
@@ -410,7 +464,7 @@ class _CircularPermissionProgressState extends State<CircularPermissionProgress>
                 child: Icon(
                   _isComplete ? Icons.check_rounded : Icons.lock_outline_rounded,
                   color: Colors.white,
-                  size: (widget.size * 0.35).sp,
+                  size: (_effectiveSize * 0.35).sp,
                 ),
               ),
             ],

@@ -5,7 +5,7 @@ import 'package:lottie/lottie.dart';
 import '../../../app/themes/widgets/core/islamic_pattern_painter.dart';
 import '../models/onboarding_item.dart';
 import '../data/onboarding_data.dart';
-import 'onboarding_permissions_page.dart';
+import '../permission/onboarding_permissions_page.dart';
 
 class OnboardingPage extends StatefulWidget {
   final OnboardingItem item;
@@ -32,6 +32,31 @@ class _OnboardingPageState extends State<OnboardingPage>
   late AnimationController _fadeController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
+
+  // حساب الأحجام المتجاوبة بناءً على حجم الشاشة
+  double get _animationSize {
+    if (1.sw > 600) return 180.w; // أجهزة لوحية
+    if (1.sw > 400) return 150.w; // هواتف كبيرة
+    return 130.w; // هواتف صغيرة
+  }
+
+  double get _lottieSize {
+    if (1.sw > 600) return 130.w;
+    if (1.sw > 400) return 105.w;
+    return 90.w;
+  }
+
+  double get _titleSize {
+    if (1.sw > 600) return 28.sp;
+    if (1.sw > 400) return 24.sp;
+    return 22.sp;
+  }
+
+  double get _featureSize {
+    if (1.sw > 600) return 15.sp;
+    if (1.sw > 400) return 13.sp;
+    return 12.sp;
+  }
 
   @override
   void initState() {
@@ -85,7 +110,12 @@ class _OnboardingPageState extends State<OnboardingPage>
       );
     }
     
-    // الصفحات العادية
+    // حساب المسافات بناءً على حجم الشاشة
+    final verticalPadding = 1.sh > 700 ? 16.h : 12.h;
+    final horizontalPadding = 1.sw > 600 ? 32.w : 20.w;
+    final topSpacing = 1.sh > 700 ? 40.h : 25.h;
+    final itemSpacing = 1.sh > 700 ? 24.h : 18.h;
+    
     return SizedBox(
       width: 1.sw,
       height: 1.sh,
@@ -112,42 +142,26 @@ class _OnboardingPageState extends State<OnboardingPage>
                              MediaQuery.of(context).padding.bottom,
                 ),
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: horizontalPadding,
+                    vertical: verticalPadding,
+                  ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Column(
                         children: [
-                          SizedBox(height: 30.h),
+                          SizedBox(height: topSpacing),
                           
                           _buildAnimationWidget(),
                           
-                          SizedBox(height: 20.h),
+                          SizedBox(height: itemSpacing),
                           
-                          AnimatedBuilder(
-                            animation: _fadeAnimation,
-                            builder: (context, child) {
-                              return Opacity(
-                                opacity: _fadeAnimation.value,
-                                child: Transform.translate(
-                                  offset: Offset(0, 15.h * (1 - _fadeAnimation.value)),
-                                  child: Text(
-                                    widget.item.title,
-                                    style: TextStyle(
-                                      fontSize: 22.sp,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                      height: 1.2,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
+                          _buildTitle(),
                           
-                          if (widget.item.features != null && widget.item.features!.isNotEmpty) ...[
-                            SizedBox(height: 16.h),
+                          if (widget.item.features != null && 
+                              widget.item.features!.isNotEmpty) ...[
+                            SizedBox(height: itemSpacing * 0.75),
                             _buildFeaturesList(),
                           ],
                         ],
@@ -155,7 +169,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                       
                       Column(
                         children: [
-                          SizedBox(height: 20.h),
+                          SizedBox(height: itemSpacing),
                           _buildActionButton(),
                           SizedBox(height: 12.h),
                         ],
@@ -178,8 +192,8 @@ class _OnboardingPageState extends State<OnboardingPage>
         return Transform.scale(
           scale: _scaleAnimation.value,
           child: Container(
-            width: 130.w,
-            height: 130.w,
+            width: _animationSize,
+            height: _animationSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.white.withOpacity(0.1),
@@ -197,8 +211,8 @@ class _OnboardingPageState extends State<OnboardingPage>
             ),
             child: Center(
               child: SizedBox(
-                width: 90.w,
-                height: 90.w,
+                width: _lottieSize,
+                height: _lottieSize,
                 child: widget.item.hasValidLottie
                     ? _buildLottieAnimation()
                     : _buildFallbackIcon(),
@@ -216,8 +230,8 @@ class _OnboardingPageState extends State<OnboardingPage>
     
     return Lottie.asset(
       widget.item.lottiePath!,
-      width: 90.w,
-      height: 90.w,
+      width: _lottieSize,
+      height: _lottieSize,
       fit: BoxFit.contain,
       repeat: config.repeat,
       animate: config.autoStart,
@@ -235,9 +249,11 @@ class _OnboardingPageState extends State<OnboardingPage>
   }
 
   Widget _buildFallbackIcon() {
+    final iconSize = _lottieSize * 0.55;
+    
     return Container(
-      width: 65.w,
-      height: 65.w,
+      width: iconSize,
+      height: iconSize,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: Colors.white.withOpacity(0.15),
@@ -248,13 +264,40 @@ class _OnboardingPageState extends State<OnboardingPage>
       ),
       child: Icon(
         widget.item.iconData,
-        size: 35.sp,
+        size: iconSize * 0.5,
         color: Colors.white,
       ),
     );
   }
 
+  Widget _buildTitle() {
+    return AnimatedBuilder(
+      animation: _fadeAnimation,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _fadeAnimation.value,
+          child: Transform.translate(
+            offset: Offset(0, 15.h * (1 - _fadeAnimation.value)),
+            child: Text(
+              widget.item.title,
+              style: TextStyle(
+                fontSize: _titleSize,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                height: 1.2,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildFeaturesList() {
+    final containerPadding = 1.sw > 600 ? 16.w : 12.w;
+    final itemVerticalPadding = 1.sh > 700 ? 5.h : 4.h;
+    
     return AnimatedBuilder(
       animation: _fadeAnimation,
       builder: (context, child) {
@@ -263,7 +306,7 @@ class _OnboardingPageState extends State<OnboardingPage>
           child: Transform.translate(
             offset: Offset(0, 25.h * (1 - _fadeAnimation.value)),
             child: Container(
-              padding: EdgeInsets.all(12.w),
+              padding: EdgeInsets.all(containerPadding),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(12.r),
@@ -281,7 +324,10 @@ class _OnboardingPageState extends State<OnboardingPage>
               ),
               child: Column(
                 children: widget.item.features!
-                    .map((feature) => _buildFeatureItem(feature))
+                    .map((feature) => _buildFeatureItem(
+                      feature, 
+                      itemVerticalPadding,
+                    ))
                     .toList(),
               ),
             ),
@@ -291,35 +337,42 @@ class _OnboardingPageState extends State<OnboardingPage>
     );
   }
 
-  Widget _buildFeatureItem(String feature) {
+  Widget _buildFeatureItem(String feature, double verticalPadding) {
+    final bulletSize = 1.sw > 600 ? 5.w : 4.w;
+    final spacing = 1.sw > 600 ? 10.w : 8.w;
+    
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4.h),
+      padding: EdgeInsets.symmetric(vertical: verticalPadding),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 4.w,
-            height: 4.w,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.8),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.white.withOpacity(0.3),
-                  blurRadius: 3.r,
-                  spreadRadius: 1.r,
-                ),
-              ],
+          Padding(
+            padding: EdgeInsets.only(top: 6.h),
+            child: Container(
+              width: bulletSize,
+              height: bulletSize,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.8),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.white.withOpacity(0.3),
+                    blurRadius: 3.r,
+                    spreadRadius: 1.r,
+                  ),
+                ],
+              ),
             ),
           ),
-          SizedBox(width: 8.w),
+          SizedBox(width: spacing),
           Expanded(
             child: Text(
               feature,
               style: TextStyle(
-                fontSize: 12.sp,
+                fontSize: _featureSize,
                 color: Colors.white.withOpacity(0.9),
                 fontWeight: FontWeight.w400,
-                height: 1.3,
+                height: 1.4,
               ),
             ),
           ),
@@ -329,6 +382,10 @@ class _OnboardingPageState extends State<OnboardingPage>
   }
 
   Widget _buildActionButton() {
+    final buttonHeight = 1.sh > 700 ? 52.h : 48.h;
+    final buttonFontSize = 1.sw > 600 ? 16.sp : 14.sp;
+    final iconSize = 1.sw > 600 ? 18.sp : 16.sp;
+    
     return AnimatedBuilder(
       animation: _fadeAnimation,
       builder: (context, child) {
@@ -338,9 +395,12 @@ class _OnboardingPageState extends State<OnboardingPage>
             offset: Offset(0, 30.h * (1 - _fadeAnimation.value)),
             child: Container(
               width: double.infinity,
-              height: 48.h,
+              height: buttonHeight,
+              constraints: BoxConstraints(
+                maxWidth: 1.sw > 600 ? 400.w : double.infinity,
+              ),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24.r),
+                borderRadius: BorderRadius.circular(buttonHeight / 2),
                 gradient: LinearGradient(
                   colors: [
                     Colors.white.withOpacity(0.25),
@@ -366,16 +426,18 @@ class _OnboardingPageState extends State<OnboardingPage>
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: widget.isProcessing ? null : widget.onNext,
-                  borderRadius: BorderRadius.circular(24.r),
+                  borderRadius: BorderRadius.circular(buttonHeight / 2),
                   child: Container(
                     alignment: Alignment.center,
                     child: widget.isProcessing
                         ? SizedBox(
-                            width: 20.w,
-                            height: 20.w,
+                            width: 22.w,
+                            height: 22.w,
                             child: CircularProgressIndicator(
                               strokeWidth: 2.w,
-                              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
                             ),
                           )
                         : Row(
@@ -384,7 +446,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                               Text(
                                 widget.isLastPage ? 'ابدأ الآن' : 'التالي',
                                 style: TextStyle(
-                                  fontSize: 14.sp,
+                                  fontSize: buttonFontSize,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.white,
                                 ),
@@ -395,7 +457,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                                     ? Icons.check_rounded 
                                     : Icons.arrow_forward_rounded,
                                 color: Colors.white,
-                                size: 16.sp,
+                                size: iconSize,
                               ),
                             ],
                           ),
