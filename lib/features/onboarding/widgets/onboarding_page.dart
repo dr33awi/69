@@ -1,7 +1,8 @@
 // lib/features/onboarding/widgets/onboarding_page.dart
-// محدث: بدون أنيميشنات
+// محدث: منع السلوك غير المرغوب
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lottie/lottie.dart';
 import '../../../app/themes/widgets/core/islamic_pattern_painter.dart';
@@ -46,6 +47,19 @@ class OnboardingPage extends StatelessWidget {
     if (1.sw > 600) return 15.sp;
     if (1.sw > 400) return 13.sp;
     return 12.sp;
+  }
+
+  void _handleButtonPress() {
+    if (!isProcessing) {
+      debugPrint('🔘 Onboarding page button pressed');
+      debugPrint('   Is last page: $isLastPage');
+      debugPrint('   Is processing: $isProcessing');
+      
+      HapticFeedback.lightImpact();
+      onNext();
+    } else {
+      debugPrint('⚠️ Onboarding page: Button press ignored (processing)');
+    }
   }
 
   @override
@@ -305,42 +319,41 @@ class OnboardingPage extends StatelessWidget {
     final buttonFontSize = 1.sw > 600 ? 16.sp : 14.sp;
     final iconSize = 1.sw > 600 ? 18.sp : 16.sp;
     
-    return Container(
-      width: double.infinity,
-      height: buttonHeight,
-      constraints: BoxConstraints(
-        maxWidth: 1.sw > 600 ? 400.w : double.infinity,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(buttonHeight / 2),
-        gradient: LinearGradient(
-          colors: [
-            Colors.white.withOpacity(0.25),
-            Colors.white.withOpacity(0.15),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.3),
-          width: 1.2.w,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.white.withOpacity(0.1),
-            blurRadius: 12.r,
-            spreadRadius: 1.r,
-            offset: Offset(0, 4.h),
+    return AbsorbPointer(
+      absorbing: isProcessing,
+      child: GestureDetector(
+        onTap: _handleButtonPress,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          width: double.infinity,
+          height: buttonHeight,
+          constraints: BoxConstraints(
+            maxWidth: 1.sw > 600 ? 400.w : double.infinity,
           ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: isProcessing ? null : onNext,
-          borderRadius: BorderRadius.circular(buttonHeight / 2),
-          child: Container(
-            alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(buttonHeight / 2),
+            gradient: LinearGradient(
+              colors: [
+                Colors.white.withOpacity(isProcessing ? 0.15 : 0.25),
+                Colors.white.withOpacity(isProcessing ? 0.10 : 0.15),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1.2.w,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.white.withOpacity(0.1),
+                blurRadius: 12.r,
+                spreadRadius: 1.r,
+                offset: Offset(0, 4.h),
+              ),
+            ],
+          ),
+          child: Center(
             child: isProcessing
                 ? SizedBox(
                     width: 22.w,

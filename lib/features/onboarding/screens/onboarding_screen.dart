@@ -1,4 +1,5 @@
 // lib/features/onboarding/screens/onboarding_screen.dart
+// بدون تأثير الانتقال التلقائي - PageView عادي
 
 import 'package:athkar_app/core/infrastructure/services/permissions/permission_service.dart';
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
@@ -8,7 +9,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:concentric_transition/concentric_transition.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../../../features/home/screens/home_screen.dart';
@@ -30,30 +30,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _currentIndex = 0;
   bool _isLastPage = false;
   bool _isProcessingPermissions = false;
+  bool _hasNavigated = false;
   final List<OnboardingItem> _items = OnboardingData.items;
-
-  // الأحجام المتجاوبة
-  double get _concentricRadius {
-    if (OnboardingResponsiveConfig.isTablet) return 1.sw * 0.90;
-    if (OnboardingResponsiveConfig.isLargePhone) return 1.sw * 0.87;
-    return 1.sw * 0.85;
-  }
-
-  double get _verticalPosition {
-    if (OnboardingResponsiveConfig.isTablet) return 0.80;
-    if (OnboardingResponsiveConfig.isTallScreen) return 0.82;
-    return 0.85;
-  }
-
-  double get _scaleFactor {
-    if (OnboardingResponsiveConfig.isTablet) return 0.25;
-    return 0.3;
-  }
-
-  double get _opacityFactor {
-    if (OnboardingResponsiveConfig.isTablet) return 2.2;
-    return 2.5;
-  }
 
   double get _indicatorTopPosition {
     if (OnboardingResponsiveConfig.isTablet) {
@@ -74,7 +52,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ServiceLocator.registerFeatureServices();
       
-      // طباعة معلومات الجهاز في وضع Debug
       if (kDebugMode) {
         OnboardingResponsiveConfig.printDeviceInfo();
       }
@@ -88,6 +65,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _onPageChanged(int index) {
+    if (_hasNavigated) return;
+    
     setState(() {
       _currentIndex = index;
       _isLastPage = index == _items.length - 1;
@@ -97,48 +76,69 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _handleNext() async {
+    if (_hasNavigated || _isProcessingPermissions) {
+      debugPrint('⚠️ Already processing, ignoring tap');
+      return;
+    }
+    
+    debugPrint('🔘 Button pressed - Current page: $_currentIndex, Is last: $_isLastPage');
+    
     if (_isLastPage) {
+      debugPrint('✅ Last page detected, starting finish process');
       await _handleFinish();
     } else {
-      _pageController.nextPage(
-        duration: ThemeConstants.durationNormal,
-        curve: Curves.easeInOut,
-      );
+      debugPrint('➡️ Moving to next page');
+      if (_pageController.hasClients && mounted) {
+        _pageController.nextPage(
+          duration: ThemeConstants.durationNormal,
+          curve: Curves.easeInOutCubic,
+        );
+      }
     }
   }
 
   Future<void> _handleFinish() async {
-    setState(() => _isProcessingPermissions = true);
+    if (_hasNavigated || _isProcessingPermissions) {
+      debugPrint('⚠️ Already processing finish, returning');
+      return;
+    }
+    
+    debugPrint('🚀 Starting finish process...');
+    
+    setState(() {
+      _isProcessingPermissions = true;
+      _hasNavigated = true;
+    });
     
     try {
       HapticFeedback.mediumImpact();
       
-      // تسجيل اكتمال الـ Onboarding
       await _markOnboardingCompleted();
       
+      debugPrint('✅ Onboarding completed, navigating to home...');
+      
       if (mounted) {
-        // انتقال سلس للصفحة الرئيسية
-        await Navigator.of(context).pushReplacement(
-          _buildTransition(),
-        );
+        await Future.delayed(const Duration(milliseconds: 300));
+        
+        if (mounted) {
+          await Navigator.of(context).pushReplacement(
+            _buildTransition(),
+          );
+          debugPrint('✅ Navigation completed');
+        }
       }
       
     } catch (e) {
-      debugPrint('Error in onboarding finish: $e');
+      debugPrint('❌ Error in onboarding finish: $e');
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
       }
-    } finally {
-      if (mounted) {
-        setState(() => _isProcessingPermissions = false);
-      }
     }
   }
 
   PageRouteBuilder _buildTransition() {
-    // مدة الانتقال بناءً على حجم الشاشة
     final transitionDuration = OnboardingResponsiveConfig.isTablet
         ? const Duration(milliseconds: 1200)
         : const Duration(milliseconds: 1000);
@@ -146,8 +146,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => const HomeScreen(),
       transitionDuration: transitionDuration,
+      reverseTransitionDuration: const Duration(milliseconds: 500),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        // تأثير Fade مع Scale متجاوب
         final scaleTween = OnboardingResponsiveConfig.isTablet
             ? Tween<double>(begin: 0.92, end: 1.0)
             : Tween<double>(begin: 0.95, end: 1.0);
@@ -178,7 +178,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         DateTime.now().toIso8601String(),
       );
       
-      // حفظ معلومات الجهاز للإحصائيات
       await _saveDeviceInfo(storage);
       
       debugPrint('✅ Onboarding marked as completed');
@@ -195,7 +194,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         deviceInfo.toString(),
       );
       
-      // حفظ نوع الجهاز
       if (OnboardingResponsiveConfig.isTablet) {
         await storage.setString('device_type', 'tablet');
       } else if (OnboardingResponsiveConfig.isLargePhone) {
@@ -211,76 +209,106 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _goToPage(int index) {
-    _pageController.animateToPage(
-      index,
-      duration: ThemeConstants.durationNormal,
-      curve: Curves.easeInOut,
-    );
+    if (_hasNavigated || _isProcessingPermissions || _isLastPage) return;
+    
+    if (_pageController.hasClients && mounted) {
+      _pageController.animateToPage(
+        index,
+        duration: ThemeConstants.durationNormal,
+        curve: Curves.easeInOutCubic,
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _items[_currentIndex].primaryColor,
-      body: Stack(
-        children: [
-          // الخلفية المتدرجة
-          _buildGradientBackground(),
-          
-          // ConcentricPageView مع إعدادات متجاوبة
-          ConcentricPageView(
-            colors: _items.map((item) => item.primaryColor).toList(),
-            radius: _concentricRadius,
-            curve: Curves.easeInOutCubic,
-            duration: ThemeConstants.durationSlow,
-            opacityFactor: _opacityFactor,
-            scaleFactor: _scaleFactor,
-            verticalPosition: _verticalPosition,
-            direction: Axis.vertical,
-            itemCount: _items.length,
-            physics: const BouncingScrollPhysics(),
-            onChange: _onPageChanged,
-            itemBuilder: (index) {
-              return OnboardingPage(
-                item: _items[index],
-                isLastPage: index == _items.length - 1,
-                onNext: _handleNext,
-                isProcessing: _isProcessingPermissions,
-              );
-            },
-            // إزالة onFinish لمنع التنفيذ التلقائي
-            // سيتم التحكم في الانتقال من خلال زر "المتابعة" فقط
-          ),
-          
-          // مؤشر الصفحات
-          Positioned(
-            top: _indicatorTopPosition,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: PageIndicator(
-                currentIndex: _currentIndex,
-                items: _items,
-                onPageTap: _goToPage,
+    return WillPopScope(
+      onWillPop: () async => !_isProcessingPermissions && !_hasNavigated,
+      child: Scaffold(
+        body: Stack(
+          children: [
+            // الخلفية المتدرجة
+            AnimatedContainer(
+              duration: ThemeConstants.durationNormal,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    _items[_currentIndex].primaryColor,
+                    _items[_currentIndex].secondaryColor,
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGradientBackground() {
-    return AnimatedContainer(
-      duration: ThemeConstants.durationNormal,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            _items[_currentIndex].primaryColor,
-            _items[_currentIndex].secondaryColor,
+            
+            // PageView بسيط بدون تأثيرات
+            IgnorePointer(
+              ignoring: _hasNavigated || _isProcessingPermissions,
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: _onPageChanged,
+                // منع التمرير في الصفحة الأخيرة
+                physics: (_hasNavigated || _isProcessingPermissions || _isLastPage)
+                    ? const NeverScrollableScrollPhysics()
+                    : const BouncingScrollPhysics(),
+                itemCount: _items.length,
+                scrollDirection: Axis.vertical,
+                itemBuilder: (context, index) {
+                  return OnboardingPage(
+                    item: _items[index],
+                    isLastPage: index == _items.length - 1,
+                    onNext: _handleNext,
+                    isProcessing: _isProcessingPermissions,
+                  );
+                },
+              ),
+            ),
+            
+            // مؤشر الصفحات
+            if (!_hasNavigated)
+              Positioned(
+                top: _indicatorTopPosition,
+                left: 0,
+                right: 0,
+                child: IgnorePointer(
+                  ignoring: _isProcessingPermissions || _isLastPage,
+                  child: Center(
+                    child: PageIndicator(
+                      currentIndex: _currentIndex,
+                      items: _items,
+                      onPageTap: _goToPage,
+                    ),
+                  ),
+                ),
+              ),
+            
+            // Overlay المعالجة
+            if (_isProcessingPermissions)
+              Container(
+                color: Colors.black.withOpacity(0.6),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                        strokeWidth: 3.w,
+                      ),
+                      SizedBox(height: 16.h),
+                      Text(
+                        'جاري التحضير...',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
         ),
       ),
     );

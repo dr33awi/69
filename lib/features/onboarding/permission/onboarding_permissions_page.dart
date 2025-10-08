@@ -1,5 +1,5 @@
 // lib/features/onboarding/permission/onboarding_permissions_page.dart
-// محدث: بدون رسالة التهنئة وبدون شريط التقدم
+// محدث: منع الانتقال غير المرغوب
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -39,6 +39,7 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage> {
   
   Map<AppPermissionType, bool> _permissionStatuses = {};
   int _grantedCount = 0;
+  bool _isRequestingPermission = false; // حالة طلب الإذن
 
   // حساب الأحجام المتجاوبة
   double get _animationSize {
@@ -89,25 +90,52 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage> {
   
   Future<void> _handlePermissionTap(AppPermissionType permission) async {
     if (_permissionStatuses[permission] == true) return;
+    if (_isRequestingPermission) return; // منع الطلبات المتعددة
+    
+    setState(() => _isRequestingPermission = true);
     
     HapticFeedback.lightImpact();
     
-    final status = await _permissionService.requestPermission(permission);
-    
-    if (mounted) {
-      setState(() {
-        final wasGranted = _permissionStatuses[permission] == true;
-        _permissionStatuses[permission] = status == AppPermissionStatus.granted;
-        
-        if (!wasGranted && status == AppPermissionStatus.granted) {
-          _grantedCount++;
-          HapticFeedback.mediumImpact();
-        }
-      });
+    try {
+      final status = await _permissionService.requestPermission(permission);
+      
+      if (mounted) {
+        setState(() {
+          final wasGranted = _permissionStatuses[permission] == true;
+          _permissionStatuses[permission] = status == AppPermissionStatus.granted;
+          
+          if (!wasGranted && status == AppPermissionStatus.granted) {
+            _grantedCount++;
+            HapticFeedback.mediumImpact();
+          }
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isRequestingPermission = false);
+      }
     }
   }
   
   bool get _allPermissionsGranted => _grantedCount == _permissions.length;
+
+  // منع الانتقال غير المرغوب
+  void _handleNextPress() {
+    if (_allPermissionsGranted && !widget.isProcessing && !_isRequestingPermission) {
+      debugPrint('🔘 Permissions page: Next button pressed');
+      debugPrint('   All permissions granted: $_allPermissionsGranted');
+      debugPrint('   Is processing: ${widget.isProcessing}');
+      debugPrint('   Is requesting: $_isRequestingPermission');
+      
+      // استدعاء callback فقط إذا كانت جميع الأذونات مفعلة
+      widget.onNext();
+    } else {
+      debugPrint('⚠️ Permissions page: Button press ignored');
+      debugPrint('   All granted: $_allPermissionsGranted');
+      debugPrint('   Processing: ${widget.isProcessing}');
+      debugPrint('   Requesting: $_isRequestingPermission');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -297,6 +325,7 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage> {
             index: index,
             isGranted: _permissionStatuses[_permissions[index]] ?? false,
             onTap: () => _handlePermissionTap(_permissions[index]),
+            isDisabled: _isRequestingPermission,
           ),
         ),
       ),
@@ -308,58 +337,59 @@ class _OnboardingPermissionsPageState extends State<OnboardingPermissionsPage> {
     final buttonFontSize = 1.sw > 600 ? 18.sp : 16.sp;
     final iconSize = 1.sw > 600 ? 22.sp : 20.sp;
     
-    return Container(
-      width: double.infinity,
-      height: buttonHeight,
-      constraints: BoxConstraints(
-        maxWidth: 1.sw > 600 ? 450.w : double.infinity,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(buttonHeight / 2),
-        gradient: _allPermissionsGranted
-            ? LinearGradient(
-                colors: [
-                  Colors.green.shade400,
-                  Colors.green.shade600,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : LinearGradient(
-                colors: [
-                  Colors.grey.withOpacity(0.3),
-                  Colors.grey.withOpacity(0.2),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-        boxShadow: [
-          if (_allPermissionsGranted)
-            BoxShadow(
-              color: Colors.green.withOpacity(0.4),
-              blurRadius: 20.r,
-              spreadRadius: 2.r,
-              offset: Offset(0, 8.h),
-            )
-          else
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 15.r,
-              spreadRadius: 1.r,
-              offset: Offset(0, 6.h),
-            ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: (_allPermissionsGranted && !widget.isProcessing) 
-              ? widget.onNext 
-              : null,
-          borderRadius: BorderRadius.circular(buttonHeight / 2),
-          child: Container(
-            alignment: Alignment.center,
-            child: widget.isProcessing
+    final isButtonDisabled = !_allPermissionsGranted || 
+                            widget.isProcessing || 
+                            _isRequestingPermission;
+    
+    return AbsorbPointer(
+      absorbing: isButtonDisabled,
+      child: GestureDetector(
+        onTap: _handleNextPress,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          width: double.infinity,
+          height: buttonHeight,
+          constraints: BoxConstraints(
+            maxWidth: 1.sw > 600 ? 450.w : double.infinity,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(buttonHeight / 2),
+            gradient: _allPermissionsGranted && !isButtonDisabled
+                ? LinearGradient(
+                    colors: [
+                      Colors.green.shade400,
+                      Colors.green.shade600,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : LinearGradient(
+                    colors: [
+                      Colors.grey.withOpacity(0.3),
+                      Colors.grey.withOpacity(0.2),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+            boxShadow: [
+              if (_allPermissionsGranted && !isButtonDisabled)
+                BoxShadow(
+                  color: Colors.green.withOpacity(0.4),
+                  blurRadius: 20.r,
+                  spreadRadius: 2.r,
+                  offset: Offset(0, 8.h),
+                )
+              else
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 15.r,
+                  spreadRadius: 1.r,
+                  offset: Offset(0, 6.h),
+                ),
+            ],
+          ),
+          child: Center(
+            child: (widget.isProcessing || _isRequestingPermission)
                 ? SizedBox(
                     width: 24.w,
                     height: 24.w,
@@ -414,12 +444,14 @@ class _PermissionCard extends StatelessWidget {
   final int index;
   final bool isGranted;
   final VoidCallback onTap;
+  final bool isDisabled;
 
   const _PermissionCard({
     required this.permission,
     required this.index,
     required this.isGranted,
     required this.onTap,
+    this.isDisabled = false,
   });
 
   // حساب الأحجام المتجاوبة
@@ -499,7 +531,7 @@ class _PermissionCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: isGranted ? null : onTap,
+          onTap: (isGranted || isDisabled) ? null : onTap,
           borderRadius: BorderRadius.circular(18.r),
           child: Padding(
             padding: EdgeInsets.all(_cardPadding),
