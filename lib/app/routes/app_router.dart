@@ -29,8 +29,11 @@ import '../../features/tasbih/screens/tasbih_screen.dart';
 import '../../features/settings/screens/main_settings_screen.dart';
 
 class AppRouter {
+
   // Main Routes
   static const String initialRoute = '/';
+  static const String onboarding = '/onboarding';
+  static const String permissionsSetup = '/permissions-setup';
   static const String home = '/';
   
   // Feature Routes

@@ -1,4 +1,4 @@
-// lib/main.dart - محدث: إزالة onboarding
+// lib/main.dart - محدث مع Onboarding
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -31,6 +31,8 @@ import 'app/routes/app_router.dart';
 
 // الشاشات
 import 'features/home/screens/home_screen.dart';
+import 'features/onboarding/screens/onboarding_screen.dart';
+import 'features/onboarding/screens/permissions_setup_screen.dart';
 
 /// نقطة دخول التطبيق
 Future<void> main() async {
@@ -204,7 +206,7 @@ class _AthkarAppState extends State<AthkarApp> {
     
     _initializeConfigManager();
     
-    // فحص أولي للأذونات
+    // فحص أولي للأذونات (فقط إذا تم تجاوز Onboarding)
     _scheduleInitialPermissionCheck();
   }
 
@@ -238,11 +240,24 @@ class _AthkarAppState extends State<AthkarApp> {
   }
 
   void _scheduleInitialPermissionCheck() {
-    // تأخير قصير للسماح بإكمال بناء الواجهة
+    // فحص إذا كان المستخدم تجاوز Onboarding و Permissions Setup
     Future.delayed(const Duration(milliseconds: 1500), () async {
-      if (mounted && !_permissionManager.hasCheckedThisSession) {
-        debugPrint('[AthkarApp] Performing initial permission check');
-        await _permissionManager.performInitialCheck();
+      if (!mounted) return;
+      
+      try {
+        final storage = getIt<StorageService>();
+        final onboardingCompleted = storage.getBool('onboarding_completed') ?? false;
+        final permissionsSetupCompleted = storage.getBool('permissions_setup_completed') ?? false;
+        
+        // فحص الأذونات فقط إذا تم إكمال الإعداد
+        if (onboardingCompleted && permissionsSetupCompleted) {
+          if (!_permissionManager.hasCheckedThisSession) {
+            debugPrint('[AthkarApp] Performing initial permission check');
+            await _permissionManager.performInitialCheck();
+          }
+        }
+      } catch (e) {
+        debugPrint('[AthkarApp] Error checking onboarding status: $e');
       }
     });
   }
@@ -306,13 +321,32 @@ class _AthkarAppState extends State<AthkarApp> {
     Widget screen;
     
     try {
-      debugPrint('🏠 Starting with home screen');
-      screen = const PermissionMonitor(
-        showNotifications: true,
-        child: HomeScreen(),
-      );
+      // فحص إذا اكتمل Onboarding
+      final storage = getIt<StorageService>();
+      final onboardingCompleted = storage.getBool('onboarding_completed') ?? false;
+      final permissionsSetupCompleted = storage.getBool('permissions_setup_completed') ?? false;
+      
+      if (!onboardingCompleted) {
+        // المستخدم الجديد - عرض Onboarding
+        debugPrint('🎬 Starting with onboarding');
+        return const OnboardingScreen();
+        
+      } else if (!permissionsSetupCompleted) {
+        // Onboarding مكتمل لكن لم يتم إعداد الأذونات
+        debugPrint('🔐 Starting with permissions setup');
+        return const PermissionsSetupScreen();
+        
+      } else {
+        // كل شيء مكتمل - عرض الشاشة الرئيسية
+        debugPrint('🏠 Starting with home screen');
+        screen = const PermissionMonitor(
+          showNotifications: true,
+          child: HomeScreen(),
+        );
+      }
     } catch (e) {
       debugPrint('❌ Error determining initial screen: $e');
+      // في حالة الخطأ، عرض الشاشة الرئيسية
       screen = const PermissionMonitor(
         showNotifications: true,
         child: HomeScreen(),
