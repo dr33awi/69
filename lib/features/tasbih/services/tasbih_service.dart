@@ -1,10 +1,9 @@
-// lib/features/tasbih/services/tasbih_service.dart
+// lib/features/tasbih/services/tasbih_service.dart - مُحسّن ومُصلح
 import 'package:flutter/material.dart';
 import '../../../app/themes/constants/app_constants.dart';
 import '../../../core/infrastructure/services/storage/storage_service.dart';
 import '../models/dhikr_model.dart';
 
-/// خدمة إدارة المسبحة الرقمية
 class TasbihService extends ChangeNotifier {
   final StorageService _storage;
 
@@ -13,28 +12,24 @@ class TasbihService extends ChangeNotifier {
   int _totalCount = 0;
   DateTime _lastUsedDate = DateTime.now();
   
-  // إحصائيات متقدمة
   Map<String, int> _dhikrStats = {};
   List<DailyRecord> _history = [];
-  
-  // الأذكار المخصصة
   List<DhikrItem> _customAdhkar = [];
   
-  // للتتبع الجلسة
   DateTime? _sessionStartTime;
   String? _currentDhikrType;
   
-  // Cache للأذكار
   List<DhikrItem>? _cachedAllAdhkar;
   bool _adhkarCacheDirty = true;
+  
+  // ✅ إضافة: متغير لتتبع حالة التحميل
+  bool _isLoading = true;
+  bool get isLoading => _isLoading;
 
-  TasbihService({
-    required StorageService storage, 
-  }) : _storage = storage {
+  TasbihService({required StorageService storage}) : _storage = storage {
     _loadData();
   }
 
-  // Getters
   int get count => _count;
   int get todayCount => _todayCount;
   int get totalCount => _totalCount;
@@ -42,7 +37,6 @@ class TasbihService extends ChangeNotifier {
   List<DailyRecord> get history => List.unmodifiable(_history);
   List<DhikrItem> get customAdhkar => List.unmodifiable(_customAdhkar);
   
-  // الحصول على جميع الأذكار (الافتراضية + المخصصة) مع caching
   List<DhikrItem> getAllAdhkar() {
     if (_adhkarCacheDirty || _cachedAllAdhkar == null) {
       _cachedAllAdhkar = [...DefaultAdhkar.getAll(), ..._customAdhkar];
@@ -52,13 +46,37 @@ class TasbihService extends ChangeNotifier {
     return _cachedAllAdhkar!;
   }
 
+  // ✅ تحسين: تحميل البيانات بشكل تدريجي
   Future<void> _loadData() async {
+    _isLoading = true;
+    notifyListeners(); // ✅ إعلام الواجهة بأننا في حالة التحميل
+    
     try {
-      // تحميل البيانات الأساسية
+      // 1. تحميل البيانات الأساسية أولاً (الأهم)
+      await _loadBasicData();
+      notifyListeners(); // ✅ تحديث الواجهة بالبيانات الأساسية
+      
+      // 2. تحميل البيانات الإضافية (يمكن أن تتأخر)
+      await Future.wait([
+        _loadDhikrStats(),
+        _loadHistory(),
+        _loadCustomAdhkar(),
+      ]);
+      
+    } catch (e) {
+      debugPrint('[TasbihService] Error loading data: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners(); // ✅ تحديث نهائي
+    }
+  }
+
+  // ✅ جديد: تحميل البيانات الأساسية بشكل منفصل
+  Future<void> _loadBasicData() async {
+    try {
       _count = _storage.getInt(AppConstants.tasbihCounterKey) ?? 0;
       _totalCount = _storage.getInt('${AppConstants.tasbihCounterKey}_total') ?? 0;
       
-      // تحميل تاريخ آخر استخدام
       final lastDateString = _storage.getString('${AppConstants.tasbihCounterKey}_last_date');
       if (lastDateString != null) {
         try {
@@ -69,7 +87,6 @@ class TasbihService extends ChangeNotifier {
         }
       }
       
-      // تحقق من تغيير اليوم
       final today = DateTime.now();
       if (!_isSameDay(_lastUsedDate, today)) {
         await _resetDailyCount();
@@ -89,13 +106,6 @@ class TasbihService extends ChangeNotifier {
       _todayCount = 0;
       _totalCount = 0;
     }
-    
-    // تحميل البيانات الإضافية بشكل منفصل
-    await _loadDhikrStats();
-    await _loadHistory();
-    await _loadCustomAdhkar();
-    
-    notifyListeners();
   }
 
   Future<void> _loadDhikrStats() async {
@@ -164,10 +174,8 @@ class TasbihService extends ChangeNotifier {
     }
   }
 
-  // إضافة ذكر مخصص
   Future<void> addCustomDhikr(DhikrItem dhikr) async {
     try {
-      // التحقق من عدم وجود ذكر بنفس المعرف
       if (_customAdhkar.any((d) => d.id == dhikr.id)) {
         throw Exception('Dhikr with id ${dhikr.id} already exists');
       }
@@ -178,14 +186,13 @@ class TasbihService extends ChangeNotifier {
       await _saveCustomAdhkar();
       notifyListeners();
       
-      debugPrint('[TasbihService] Custom dhikr added - id: ${dhikr.id}, text: ${dhikr.text}');
+      debugPrint('[TasbihService] Custom dhikr added - id: ${dhikr.id}');
     } catch (e) {
       debugPrint('[TasbihService] Error adding custom dhikr: $e');
       rethrow;
     }
   }
 
-  // تعديل ذكر مخصص
   Future<void> updateCustomDhikr(String id, DhikrItem updatedDhikr) async {
     try {
       final index = _customAdhkar.indexWhere((d) => d.id == id);
@@ -206,7 +213,6 @@ class TasbihService extends ChangeNotifier {
     }
   }
 
-  // حذف ذكر مخصص
   Future<void> deleteCustomDhikr(String id) async {
     try {
       final removedCount = _customAdhkar.length;
@@ -228,15 +234,13 @@ class TasbihService extends ChangeNotifier {
     }
   }
 
-  // بدء جلسة تسبيح جديدة
   void startSession(String dhikrType) {
     _sessionStartTime = DateTime.now();
     _currentDhikrType = dhikrType;
-    
     debugPrint('[TasbihService] Session started - dhikrType: $dhikrType');
   }
 
-  // إنهاء جلسة التسبيح
+  // ✅ تحسين: حفظ بيانات الجلسة عند الإنهاء
   Future<void> endSession() async {
     if (_sessionStartTime == null || _currentDhikrType == null) {
       return;
@@ -247,13 +251,17 @@ class TasbihService extends ChangeNotifier {
     
     debugPrint('[TasbihService] Session ended - dhikrType: $_currentDhikrType, count: $sessionCount, duration: ${duration}s');
     
+    // ✅ حفظ البيانات قبل إنهاء الجلسة
+    if (sessionCount > 0) {
+      await _saveDailyRecord();
+    }
+    
     _sessionStartTime = null;
     _currentDhikrType = null;
   }
 
   Future<void> increment({String dhikrType = 'default'}) async {
     try {
-      // بدء جلسة جديدة إذا لم تكن موجودة
       if (_sessionStartTime == null) {
         startSession(dhikrType);
       }
@@ -262,28 +270,35 @@ class TasbihService extends ChangeNotifier {
       _todayCount++;
       _totalCount++;
       
-      // تحديث إحصائيات نوع الذكر
       _dhikrStats[dhikrType] = (_dhikrStats[dhikrType] ?? 0) + 1;
       
       notifyListeners();
       
-      // حفظ البيانات
+      // ✅ تحسين: حفظ غير متزامن لتحسين الأداء
+      unawaited(_saveCountData());
+      
+      debugPrint('[TasbihService] Incremented - count: $_count');
+    } catch (e) {
+      debugPrint('[TasbihService] Error incrementing: $e');
+    }
+  }
+
+  // ✅ جديد: دالة منفصلة للحفظ
+  Future<void> _saveCountData() async {
+    try {
       await Future.wait([
         _storage.setInt(AppConstants.tasbihCounterKey, _count),
         _storage.setInt('${AppConstants.tasbihCounterKey}_today', _todayCount),
         _storage.setInt('${AppConstants.tasbihCounterKey}_total', _totalCount),
         _storage.setMap('${AppConstants.tasbihCounterKey}_stats', _dhikrStats),
       ]);
-      
-      debugPrint('[TasbihService] Incremented - count: $_count, todayCount: $_todayCount');
     } catch (e) {
-      debugPrint('[TasbihService] Error incrementing: $e');
+      debugPrint('[TasbihService] Error saving count data: $e');
     }
   }
 
   Future<void> reset() async {
     try {
-      // إنهاء الجلسة الحالية قبل التصفير
       await endSession();
       
       final previousCount = _count;
@@ -300,10 +315,7 @@ class TasbihService extends ChangeNotifier {
 
   Future<void> resetDaily() async {
     try {
-      // حفظ سجل اليوم قبل التصفير
       await _saveDailyRecord();
-      
-      // إنهاء الجلسة الحالية
       await endSession();
       
       _todayCount = 0;
@@ -319,7 +331,6 @@ class TasbihService extends ChangeNotifier {
 
   Future<void> resetAll() async {
     try {
-      // إنهاء الجلسة الحالية
       await endSession();
       
       _count = 0;
@@ -361,7 +372,6 @@ class TasbihService extends ChangeNotifier {
       
       _history.insert(0, record);
       
-      // الاحتفاظ بآخر 30 يوم فقط
       if (_history.length > 30) {
         _history = _history.take(30).toList();
       }
@@ -423,7 +433,6 @@ class TasbihService extends ChangeNotifier {
            date1.day == date2.day;
   }
 
-  // إحصائيات متقدمة
   int getWeeklyCount() {
     final weekAgo = DateTime.now().subtract(const Duration(days: 7));
     return _history
@@ -485,7 +494,13 @@ class TasbihService extends ChangeNotifier {
   }
 }
 
-/// نموذج سجل يومي
+// ✅ دالة مساعدة لتجاهل Future
+void unawaited(Future<void> future) {
+  future.catchError((error) {
+    debugPrint('[TasbihService] Unawaited error: $error');
+  });
+}
+
 class DailyRecord {
   final DateTime date;
   final int count;

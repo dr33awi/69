@@ -26,12 +26,31 @@ class DhikrItem {
     this.createdAt,
   });
 
+  // ✅ تحسين fromMap للتأكد من قراءة recommendedCount بشكل صحيح
   factory DhikrItem.fromMap(Map<String, dynamic> map) {
+    // قراءة recommendedCount بعناية
+    int count = 33; // القيمة الافتراضية
+    
+    if (map['recommendedCount'] != null) {
+      if (map['recommendedCount'] is int) {
+        count = map['recommendedCount'] as int;
+      } else if (map['recommendedCount'] is double) {
+        count = (map['recommendedCount'] as double).toInt();
+      } else if (map['recommendedCount'] is String) {
+        count = int.tryParse(map['recommendedCount'] as String) ?? 33;
+      }
+    }
+    
+    // التأكد من أن العدد ضمن النطاق المسموح
+    count = count.clamp(1, 1000);
+    
+    debugPrint('[DhikrItem.fromMap] Loaded dhikr: ${map['text']}, count: $count (original: ${map['recommendedCount']})');
+    
     return DhikrItem(
       id: map['id'] ?? '',
       text: map['text'] ?? '',
       virtue: map['virtue'],
-      recommendedCount: ((map['recommendedCount'] as int?) ?? 33).clamp(1, 1000),
+      recommendedCount: count,
       category: DhikrCategory.values.firstWhere(
         (cat) => cat.name == map['category'],
         orElse: () => DhikrCategory.tasbih,
@@ -45,18 +64,23 @@ class DhikrItem {
     );
   }
 
+  // ✅ تحسين toMap للتأكد من حفظ recommendedCount بشكل صحيح
   Map<String, dynamic> toMap() {
-    return {
+    final map = {
       'id': id,
       'text': text,
       'virtue': virtue,
-      'recommendedCount': recommendedCount,
+      'recommendedCount': recommendedCount, // ✅ التأكد من حفظه كـ int
       'category': category.name,
       'gradient': gradient.map((c) => c.value).toList(),
       'primaryColor': primaryColor.value,
       'isCustom': isCustom,
       'createdAt': createdAt?.toIso8601String(),
     };
+    
+    debugPrint('[DhikrItem.toMap] Saving dhikr: $text, count: $recommendedCount');
+    
+    return map;
   }
 
   static List<Color> _parseGradient(dynamic gradientData) {
@@ -70,6 +94,7 @@ class DhikrItem {
     return [ThemeConstants.primary, ThemeConstants.primaryLight];
   }
 
+  // ✅ تحسين copyWith للتأكد من نسخ recommendedCount بشكل صحيح
   DhikrItem copyWith({
     String? id,
     String? text,
@@ -81,11 +106,15 @@ class DhikrItem {
     bool? isCustom,
     DateTime? createdAt,
   }) {
+    final newCount = (recommendedCount ?? this.recommendedCount).clamp(1, 1000);
+    
+    debugPrint('[DhikrItem.copyWith] Creating copy with count: $newCount (requested: $recommendedCount, original: ${this.recommendedCount})');
+    
     return DhikrItem(
       id: id ?? this.id,
       text: text ?? this.text,
       virtue: virtue ?? this.virtue,
-      recommendedCount: (recommendedCount ?? this.recommendedCount).clamp(1, 1000),
+      recommendedCount: newCount,
       category: category ?? this.category,
       gradient: gradient ?? this.gradient,
       primaryColor: primaryColor ?? this.primaryColor,
@@ -103,6 +132,12 @@ class DhikrItem {
 
   @override
   int get hashCode => id.hashCode;
+  
+  // ✅ إضافة toString للتسهيل في الـ debugging
+  @override
+  String toString() {
+    return 'DhikrItem(id: $id, text: $text, recommendedCount: $recommendedCount, isCustom: $isCustom)';
+  }
 }
 
 /// تصنيفات الأذكار
