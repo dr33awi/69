@@ -1,4 +1,4 @@
-// lib/features/tasbih/screens/tasbih_screen.dart - محسّن للشاشات الصغيرة
+// lib/features/tasbih/screens/tasbih_screen.dart - محسّن مع دعم الأذكار المخصصة
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -606,10 +606,515 @@ class _TasbihScreenState extends State<TasbihScreen>
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       enableDrag: true,
-      builder: (context) => Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.75,
+      builder: (context) => ChangeNotifierProvider.value(
+        value: _service,
+        child: DhikrSelectionModal(
+          currentDhikr: _currentDhikr,
+          service: _service,
+          onDhikrSelected: (dhikr) {
+            setState(() {
+              _service.endSession();
+              _currentDhikr = dhikr;
+              _service.startSession(dhikr.text);
+            });
+            Navigator.pop(context);
+            HapticFeedback.mediumImpact();
+            context.showSuccessSnackBar(
+              'تم تغيير الذكر إلى: ${dhikr.text}',
+            );
+          },
         ),
+      ),
+    );
+  }
+}
+
+// نافذة اختيار الذكر المنفصلة
+class DhikrSelectionModal extends StatefulWidget {
+  final DhikrItem currentDhikr;
+  final TasbihService service;
+  final Function(DhikrItem) onDhikrSelected;
+
+  const DhikrSelectionModal({
+    super.key,
+    required this.currentDhikr,
+    required this.service,
+    required this.onDhikrSelected,
+  });
+
+  @override
+  State<DhikrSelectionModal> createState() => _DhikrSelectionModalState();
+}
+
+class _DhikrSelectionModalState extends State<DhikrSelectionModal> {
+  late DhikrItem _currentDhikr;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentDhikr = widget.currentDhikr;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
+      ),
+      decoration: BoxDecoration(
+        color: context.backgroundColor,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(20.r),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildHandle(context),
+          _buildHeader(context),
+          Flexible(
+            child: _buildDhikrCategoriesList(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHandle(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(top: 10.h),
+      width: 36.w,
+      height: 4.h,
+      decoration: BoxDecoration(
+        color: context.dividerColor,
+        borderRadius: BorderRadius.circular(2.r),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(16.r),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(6.r),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [ThemeConstants.primary, ThemeConstants.primaryLight],
+              ),
+              borderRadius: BorderRadius.circular(10.r),
+            ),
+            child: Icon(
+              Icons.list_alt_rounded,
+              color: Colors.white,
+              size: 20.sp,
+            ),
+          ),
+          SizedBox(width: 10.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'اختر الذكر',
+                  style: TextStyle(
+                    fontWeight: ThemeConstants.bold,
+                    fontSize: 16.sp,
+                  ),
+                ),
+                Text(
+                  'اختر الذكر الذي تريد تسبيحه',
+                  style: TextStyle(
+                    color: context.textSecondaryColor,
+                    fontSize: 12.sp,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: Icon(
+              Icons.close,
+              color: context.textSecondaryColor,
+              size: 22.sp,
+            ),
+            padding: EdgeInsets.all(6.r),
+            constraints: BoxConstraints(minWidth: 32.w, minHeight: 32.h),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDhikrCategoriesList(BuildContext context) {
+    final allAdhkar = widget.service.getAllAdhkar();
+    final Map<DhikrCategory, List<DhikrItem>> categorizedAdhkar = {};
+    
+    for (final dhikr in allAdhkar) {
+      if (!categorizedAdhkar.containsKey(dhikr.category)) {
+        categorizedAdhkar[dhikr.category] = [];
+      }
+      categorizedAdhkar[dhikr.category]!.add(dhikr);
+    }
+
+    return Consumer<TasbihService>(
+      builder: (context, service, _) {
+        return ListView.builder(
+          padding: EdgeInsets.symmetric(horizontal: 16.r),
+          itemCount: categorizedAdhkar.keys.length + 1,
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              return Padding(
+                padding: EdgeInsets.only(bottom: 16.h),
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(12.r),
+                  child: InkWell(
+                    onTap: () => _showAddCustomDhikrDialog(context),
+                    borderRadius: BorderRadius.circular(12.r),
+                    child: Container(
+                      padding: EdgeInsets.all(16.r),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            ThemeConstants.primary,
+                            ThemeConstants.primaryLight,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: ThemeConstants.primary.withOpacity(0.3),
+                            blurRadius: 8.r,
+                            offset: Offset(0, 4.h),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: EdgeInsets.all(10.r),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(10.r),
+                            ),
+                            child: Icon(
+                              Icons.add_circle_outline,
+                              color: Colors.white,
+                              size: 24.sp,
+                            ),
+                          ),
+                          SizedBox(width: 12.w),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'إضافة ذكر مخصص',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: ThemeConstants.bold,
+                                    fontSize: 15.sp,
+                                  ),
+                                ),
+                                SizedBox(height: 2.h),
+                                Text(
+                                  'أضف ذكرك الخاص وحدد عدد التسبيح',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.9),
+                                    fontSize: 11.sp,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            color: Colors.white,
+                            size: 18.sp,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }
+            
+            final categoryIndex = index - 1;
+            final category = categorizedAdhkar.keys.elementAt(categoryIndex);
+            final adhkar = categorizedAdhkar[category]!;
+            
+            return Padding(
+              padding: EdgeInsets.only(bottom: 16.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          ThemeConstants.primary.withOpacity(0.1),
+                          ThemeConstants.primaryLight.withOpacity(0.05),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(10.r),
+                      border: Border.all(
+                        color: ThemeConstants.primary.withOpacity(0.2),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          category.icon,
+                          color: ThemeConstants.primary,
+                          size: 18.sp,
+                        ),
+                        SizedBox(width: 6.w),
+                        Text(
+                          category.title,
+                          style: TextStyle(
+                            color: ThemeConstants.primary,
+                            fontWeight: ThemeConstants.semiBold,
+                            fontSize: 14.sp,
+                          ),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                          decoration: BoxDecoration(
+                            color: ThemeConstants.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(6.r),
+                          ),
+                          child: Text(
+                            '${adhkar.length}',
+                            style: TextStyle(
+                              color: ThemeConstants.primary,
+                              fontWeight: ThemeConstants.bold,
+                              fontSize: 10.sp,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  SizedBox(height: 10.h),
+                  
+                  ...adhkar.map((dhikr) => _buildDhikrItem(context, dhikr)),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildDhikrItem(BuildContext context, DhikrItem dhikr) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8.h),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(10.r),
+        child: InkWell(
+          onTap: () {
+            widget.onDhikrSelected(dhikr);
+            Navigator.pop(context);
+          },
+          onLongPress: dhikr.isCustom 
+              ? () => _showCustomDhikrOptions(context, dhikr) 
+              : null,
+          borderRadius: BorderRadius.circular(10.r),
+          child: Container(
+            padding: EdgeInsets.all(12.r),
+            decoration: BoxDecoration(
+              color: _currentDhikr.id == dhikr.id 
+                  ? dhikr.primaryColor.withOpacity(0.1)
+                  : context.cardColor,
+              borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(
+                color: _currentDhikr.id == dhikr.id 
+                    ? dhikr.primaryColor.withOpacity(0.3)
+                    : context.dividerColor.withOpacity(0.2),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(6.r),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: dhikr.gradient),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Icon(
+                    dhikr.category.icon,
+                    color: Colors.white,
+                    size: 14.sp,
+                  ),
+                ),
+                
+                SizedBox(width: 10.w),
+                
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              dhikr.text,
+                              style: TextStyle(
+                                fontWeight: _currentDhikr.id == dhikr.id 
+                                    ? ThemeConstants.semiBold 
+                                    : ThemeConstants.regular,
+                                color: _currentDhikr.id == dhikr.id 
+                                    ? dhikr.primaryColor
+                                    : context.textPrimaryColor,
+                                fontSize: 12.sp,
+                                height: 1.4,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (dhikr.isCustom) ...[
+                            SizedBox(width: 6.w),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 6.w,
+                                vertical: 2.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: ThemeConstants.accent.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(4.r),
+                              ),
+                              child: Text(
+                                'مخصص',
+                                style: TextStyle(
+                                  color: ThemeConstants.accent,
+                                  fontSize: 9.sp,
+                                  fontWeight: ThemeConstants.semiBold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      
+                      if (dhikr.virtue != null) ...[
+                        SizedBox(height: 6.h),
+                        GestureDetector(
+                          onTap: () => _showFullVirtueDialog(context, dhikr),
+                          child: Container(
+                            padding: EdgeInsets.all(6.r),
+                            decoration: BoxDecoration(
+                              color: _currentDhikr.id == dhikr.id 
+                                  ? dhikr.primaryColor.withOpacity(0.1)
+                                  : ThemeConstants.accent.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(6.r),
+                              border: Border.all(
+                                color: _currentDhikr.id == dhikr.id 
+                                    ? dhikr.primaryColor.withOpacity(0.2)
+                                    : ThemeConstants.accent.withOpacity(0.1),
+                              ),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.star_rounded,
+                                  size: 11.sp,
+                                  color: _currentDhikr.id == dhikr.id 
+                                      ? dhikr.primaryColor
+                                      : ThemeConstants.accent,
+                                ),
+                                SizedBox(width: 5.w),
+                                Expanded(
+                                  child: Text(
+                                    dhikr.virtue!,
+                                    style: TextStyle(
+                                      color: context.textSecondaryColor,
+                                      fontSize: 10.sp,
+                                      height: 1.3,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.more_horiz,
+                                  size: 14.sp,
+                                  color: context.textSecondaryColor.withOpacity(0.5),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                
+                SizedBox(width: 10.w),
+                
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 3.h),
+                  decoration: BoxDecoration(
+                    color: dhikr.primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6.r),
+                  ),
+                  child: Text(
+                    '${dhikr.recommendedCount}×',
+                    style: TextStyle(
+                      color: dhikr.primaryColor,
+                      fontWeight: ThemeConstants.semiBold,
+                      fontSize: 10.sp,
+                    ),
+                  ),
+                ),
+                
+                SizedBox(width: 6.w),
+                
+                Icon(
+                  _currentDhikr.id == dhikr.id 
+                      ? Icons.check_circle
+                      : Icons.radio_button_unchecked,
+                  color: _currentDhikr.id == dhikr.id 
+                      ? dhikr.primaryColor
+                      : context.textSecondaryColor.withOpacity(0.3),
+                  size: 18.sp,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showFullVirtueDialog(BuildContext context, DhikrItem dhikr) {
+    if (dhikr.virtue == null) return;
+    
+    AppInfoDialog.show(
+      context: context,
+      title: 'فضل الذكر',
+      content: dhikr.virtue!,
+      icon: Icons.star_rounded,
+      closeButtonText: 'حسناً',
+    );
+  }
+
+  void _showCustomDhikrOptions(BuildContext context, DhikrItem dhikr) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (modalContext) => Container(
+        padding: EdgeInsets.all(16.r),
         decoration: BoxDecoration(
           color: context.backgroundColor,
           borderRadius: BorderRadius.vertical(
@@ -620,71 +1125,305 @@ class _TasbihScreenState extends State<TasbihScreen>
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              margin: EdgeInsets.only(top: 10.h),
               width: 36.w,
               height: 4.h,
+              margin: EdgeInsets.only(bottom: 16.h),
               decoration: BoxDecoration(
                 color: context.dividerColor,
                 borderRadius: BorderRadius.circular(2.r),
               ),
             ),
             
-            Container(
-              padding: EdgeInsets.all(16.r),
-              child: Row(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(6.r),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [ThemeConstants.primary, ThemeConstants.primaryLight],
-                      ),
-                      borderRadius: BorderRadius.circular(10.r),
-                    ),
-                    child: Icon(
-                      Icons.list_alt_rounded,
-                      color: Colors.white,
-                      size: 20.sp,
-                    ),
-                  ),
-                  SizedBox(width: 10.w),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'اختر الذكر',
-                          style: TextStyle(
-                            fontWeight: ThemeConstants.bold,
-                            fontSize: 16.sp,
-                          ),
-                        ),
-                        Text(
-                          'اختر الذكر الذي تريد تسبيحه',
-                          style: TextStyle(
-                            color: context.textSecondaryColor,
-                            fontSize: 12.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: Icon(
-                      Icons.close,
-                      color: context.textSecondaryColor,
-                      size: 22.sp,
-                    ),
-                    padding: EdgeInsets.all(6.r),
-                    constraints: BoxConstraints(minWidth: 32.w, minHeight: 32.h),
-                  ),
-                ],
+            ListTile(
+              leading: Icon(
+                Icons.edit,
+                color: ThemeConstants.primary,
               ),
+              title: Text(
+                'تعديل الذكر',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: ThemeConstants.medium,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(modalContext);
+                _showEditCustomDhikrDialog(context, dhikr);
+              },
             ),
             
-            Flexible(
-              child: _buildDhikrCategoriesList(),
+            ListTile(
+              leading: Icon(
+                Icons.delete,
+                color: ThemeConstants.error,
+              ),
+              title: Text(
+                'حذف الذكر',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: ThemeConstants.medium,
+                  color: ThemeConstants.error,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(modalContext);
+                _confirmDeleteCustomDhikr(context, dhikr);
+              },
+            ),
+            
+            SizedBox(height: 16.h),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAddCustomDhikrDialog(BuildContext context) {
+    final textController = TextEditingController();
+    final virtueController = TextEditingController();
+    final countController = TextEditingController(text: '33');
+    DhikrCategory selectedCategory = DhikrCategory.custom;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setState) => AlertDialog(
+          backgroundColor: context.backgroundColor,
+          title: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(8.r),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [
+                      ThemeConstants.primary,
+                      ThemeConstants.primaryLight,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Icon(
+                  Icons.add_circle_outline,
+                  color: Colors.white,
+                  size: 20.sp,
+                ),
+              ),
+              SizedBox(width: 10.w),
+              Text(
+                'إضافة ذكر مخصص',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: ThemeConstants.bold,
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'نص الذكر',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: ThemeConstants.semiBold,
+                    color: context.textSecondaryColor,
+                  ),
+                ),
+                SizedBox(height: 6.h),
+                TextField(
+                  controller: textController,
+                  maxLines: 2,
+                  decoration: InputDecoration(
+                    hintText: 'أدخل نص الذكر...',
+                    hintStyle: TextStyle(
+                      fontSize: 13.sp,
+                      color: context.textSecondaryColor.withOpacity(0.5),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                    contentPadding: EdgeInsets.all(12.r),
+                  ),
+                  style: TextStyle(fontSize: 13.sp),
+                ),
+                
+                SizedBox(height: 16.h),
+                
+                Text(
+                  'الفضل (اختياري)',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: ThemeConstants.semiBold,
+                    color: context.textSecondaryColor,
+                  ),
+                ),
+                SizedBox(height: 6.h),
+                TextField(
+                  controller: virtueController,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText: 'أدخل فضل الذكر...',
+                    hintStyle: TextStyle(
+                      fontSize: 13.sp,
+                      color: context.textSecondaryColor.withOpacity(0.5),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                    contentPadding: EdgeInsets.all(12.r),
+                  ),
+                  style: TextStyle(fontSize: 13.sp),
+                ),
+                
+                SizedBox(height: 16.h),
+                
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'عدد التسبيح',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: ThemeConstants.semiBold,
+                              color: context.textSecondaryColor,
+                            ),
+                          ),
+                          SizedBox(height: 6.h),
+                          TextField(
+                            controller: countController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              hintText: '33',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10.r),
+                              ),
+                              contentPadding: EdgeInsets.all(12.r),
+                            ),
+                            style: TextStyle(fontSize: 13.sp),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    SizedBox(width: 12.w),
+                    
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'التصنيف',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: ThemeConstants.semiBold,
+                              color: context.textSecondaryColor,
+                            ),
+                          ),
+                          SizedBox(height: 6.h),
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 10.w),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: context.dividerColor,
+                              ),
+                              borderRadius: BorderRadius.circular(10.r),
+                            ),
+                            child: DropdownButton<DhikrCategory>(
+                              value: selectedCategory,
+                              isExpanded: true,
+                              underline: const SizedBox(),
+                              items: DhikrCategory.values.map((category) {
+                                return DropdownMenuItem(
+                                  value: category,
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        category.icon,
+                                        size: 16.sp,
+                                      ),
+                                      SizedBox(width: 6.w),
+                                      Text(
+                                        category.title,
+                                        style: TextStyle(fontSize: 12.sp),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setState(() => selectedCategory = value);
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(
+                'إلغاء',
+                style: TextStyle(
+                  color: context.textSecondaryColor,
+                  fontSize: 13.sp,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (textController.text.trim().isEmpty) {
+                  context.showErrorSnackBar('الرجاء إدخال نص الذكر');
+                  return;
+                }
+                
+                final count = int.tryParse(countController.text) ?? 33;
+                
+                final newDhikr = DhikrItem(
+                  id: 'custom_${DateTime.now().millisecondsSinceEpoch}',
+                  text: textController.text.trim(),
+                  virtue: virtueController.text.trim().isEmpty 
+                      ? null 
+                      : virtueController.text.trim(),
+                  recommendedCount: count,
+                  category: selectedCategory,
+                  gradient: _getGradientForCategory(selectedCategory),
+                  primaryColor: _getColorForCategory(selectedCategory),
+                  isCustom: true,
+                  createdAt: DateTime.now(),
+                );
+                
+                widget.service.addCustomDhikr(newDhikr);
+                Navigator.pop(dialogContext);
+                
+                // اختيار الذكر الجديد واغلاق modal الاختيار
+                setState(() {
+                  _currentDhikr = newDhikr;
+                });
+                widget.onDhikrSelected(newDhikr);
+                Navigator.pop(context);
+                
+                context.showSuccessSnackBar('تم إضافة الذكر بنجاح');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ThemeConstants.primary,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(
+                'إضافة',
+                style: TextStyle(fontSize: 13.sp),
+              ),
             ),
           ],
         ),
@@ -692,238 +1431,312 @@ class _TasbihScreenState extends State<TasbihScreen>
     );
   }
 
-  Widget _buildDhikrCategoriesList() {
-    final Map<DhikrCategory, List<DhikrItem>> categorizedAdhkar = {};
-    
-    for (final dhikr in DefaultAdhkar.getAll()) {
-      if (!categorizedAdhkar.containsKey(dhikr.category)) {
-        categorizedAdhkar[dhikr.category] = [];
-      }
-      categorizedAdhkar[dhikr.category]!.add(dhikr);
-    }
+  void _showEditCustomDhikrDialog(BuildContext context, DhikrItem dhikr) {
+    final textController = TextEditingController(text: dhikr.text);
+    final virtueController = TextEditingController(text: dhikr.virtue ?? '');
+    final countController = TextEditingController(
+      text: dhikr.recommendedCount.toString(),
+    );
+    DhikrCategory selectedCategory = dhikr.category;
 
-    return ListView.builder(
-      padding: EdgeInsets.symmetric(horizontal: 16.r),
-      itemCount: categorizedAdhkar.keys.length,
-      itemBuilder: (context, index) {
-        final category = categorizedAdhkar.keys.elementAt(index);
-        final adhkar = categorizedAdhkar[category]!;
-        
-        return Padding(
-          padding: EdgeInsets.only(bottom: 16.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setState) => AlertDialog(
+          backgroundColor: context.backgroundColor,
+          title: Row(
             children: [
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                padding: EdgeInsets.all(8.r),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
+                  gradient: const LinearGradient(
                     colors: [
-                      ThemeConstants.primary.withOpacity(0.1),
-                      ThemeConstants.primaryLight.withOpacity(0.05),
+                      ThemeConstants.primary,
+                      ThemeConstants.primaryLight,
                     ],
                   ),
                   borderRadius: BorderRadius.circular(10.r),
-                  border: Border.all(
-                    color: ThemeConstants.primary.withOpacity(0.2),
+                ),
+                child: Icon(
+                  Icons.edit,
+                  color: Colors.white,
+                  size: 20.sp,
+                ),
+              ),
+              SizedBox(width: 10.w),
+              Text(
+                'تعديل الذكر',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: ThemeConstants.bold,
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'نص الذكر',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: ThemeConstants.semiBold,
+                    color: context.textSecondaryColor,
                   ),
                 ),
-                child: Row(
+                SizedBox(height: 6.h),
+                TextField(
+                  controller: textController,
+                  maxLines: 2,
+                  decoration: InputDecoration(
+                    hintText: 'أدخل نص الذكر...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                    contentPadding: EdgeInsets.all(12.r),
+                  ),
+                  style: TextStyle(fontSize: 13.sp),
+                ),
+                
+                SizedBox(height: 16.h),
+                
+                Text(
+                  'الفضل (اختياري)',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: ThemeConstants.semiBold,
+                    color: context.textSecondaryColor,
+                  ),
+                ),
+                SizedBox(height: 6.h),
+                TextField(
+                  controller: virtueController,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText: 'أدخل فضل الذكر...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                    contentPadding: EdgeInsets.all(12.r),
+                  ),
+                  style: TextStyle(fontSize: 13.sp),
+                ),
+                
+                SizedBox(height: 16.h),
+                
+                Row(
                   children: [
-                    Icon(
-                      category.icon,
-                      color: ThemeConstants.primary,
-                      size: 18.sp,
-                    ),
-                    SizedBox(width: 6.w),
-                    Text(
-                      category.title,
-                      style: TextStyle(
-                        color: ThemeConstants.primary,
-                        fontWeight: ThemeConstants.semiBold,
-                        fontSize: 14.sp,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'عدد التسبيح',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: ThemeConstants.semiBold,
+                              color: context.textSecondaryColor,
+                            ),
+                          ),
+                          SizedBox(height: 6.h),
+                          TextField(
+                            controller: countController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10.r),
+                              ),
+                              contentPadding: EdgeInsets.all(12.r),
+                            ),
+                            style: TextStyle(fontSize: 13.sp),
+                          ),
+                        ],
                       ),
                     ),
-                    const Spacer(),
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                      decoration: BoxDecoration(
-                        color: ThemeConstants.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6.r),
-                      ),
-                      child: Text(
-                        '${adhkar.length}',
-                        style: TextStyle(
-                          color: ThemeConstants.primary,
-                          fontWeight: ThemeConstants.bold,
-                          fontSize: 10.sp,
-                        ),
+                    
+                    SizedBox(width: 12.w),
+                    
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'التصنيف',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: ThemeConstants.semiBold,
+                              color: context.textSecondaryColor,
+                            ),
+                          ),
+                          SizedBox(height: 6.h),
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 10.w),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: context.dividerColor,
+                              ),
+                              borderRadius: BorderRadius.circular(10.r),
+                            ),
+                            child: DropdownButton<DhikrCategory>(
+                              value: selectedCategory,
+                              isExpanded: true,
+                              underline: const SizedBox(),
+                              items: DhikrCategory.values.map((category) {
+                                return DropdownMenuItem(
+                                  value: category,
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        category.icon,
+                                        size: 16.sp,
+                                      ),
+                                      SizedBox(width: 6.w),
+                                      Text(
+                                        category.title,
+                                        style: TextStyle(fontSize: 12.sp),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setState(() => selectedCategory = value);
+                                }
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-              
-              SizedBox(height: 10.h),
-              
-              ...adhkar.map((dhikr) => Padding(
-                padding: EdgeInsets.only(bottom: 8.h),
-                child: Material(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(10.r),
-                  child: InkWell(
-                    onTap: () {
-                      setState(() {
-                        _service.endSession();
-                        _currentDhikr = dhikr;
-                        _service.startSession(dhikr.text);
-                      });
-                      Navigator.pop(context);
-                      HapticFeedback.mediumImpact();
-                      context.showSuccessSnackBar(
-                        'تم تغيير الذكر إلى: ${dhikr.text}',
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(10.r),
-                    child: Container(
-                      padding: EdgeInsets.all(12.r),
-                      decoration: BoxDecoration(
-                        color: _currentDhikr.id == dhikr.id 
-                            ? dhikr.primaryColor.withOpacity(0.1)
-                            : context.cardColor,
-                        borderRadius: BorderRadius.circular(10.r),
-                        border: Border.all(
-                          color: _currentDhikr.id == dhikr.id 
-                              ? dhikr.primaryColor.withOpacity(0.3)
-                              : context.dividerColor.withOpacity(0.2),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: EdgeInsets.all(6.r),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(colors: dhikr.gradient),
-                              borderRadius: BorderRadius.circular(8.r),
-                            ),
-                            child: Icon(
-                              dhikr.category.icon,
-                              color: Colors.white,
-                              size: 14.sp,
-                            ),
-                          ),
-                          
-                          SizedBox(width: 10.w),
-                          
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  dhikr.text,
-                                  style: TextStyle(
-                                    fontWeight: _currentDhikr.id == dhikr.id 
-                                        ? ThemeConstants.semiBold 
-                                        : ThemeConstants.regular,
-                                    color: _currentDhikr.id == dhikr.id 
-                                        ? dhikr.primaryColor
-                                        : context.textPrimaryColor,
-                                    fontSize: 12.sp,
-                                    height: 1.4,
-                                  ),
-                                  maxLines: null,
-                                  overflow: TextOverflow.visible,
-                                ),
-                                
-                                if (dhikr.virtue != null) ...[
-                                  SizedBox(height: 6.h),
-                                  Container(
-                                    padding: EdgeInsets.all(6.r),
-                                    decoration: BoxDecoration(
-                                      color: _currentDhikr.id == dhikr.id 
-                                          ? dhikr.primaryColor.withOpacity(0.1)
-                                          : ThemeConstants.accent.withOpacity(0.05),
-                                      borderRadius: BorderRadius.circular(6.r),
-                                      border: Border.all(
-                                        color: _currentDhikr.id == dhikr.id 
-                                            ? dhikr.primaryColor.withOpacity(0.2)
-                                            : ThemeConstants.accent.withOpacity(0.1),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Icon(
-                                          Icons.star_rounded,
-                                          size: 11.sp,
-                                          color: _currentDhikr.id == dhikr.id 
-                                              ? dhikr.primaryColor
-                                              : ThemeConstants.accent,
-                                        ),
-                                        SizedBox(width: 5.w),
-                                        Expanded(
-                                          child: Text(
-                                            dhikr.virtue!,
-                                            style: TextStyle(
-                                              color: context.textSecondaryColor,
-                                              fontSize: 10.sp,
-                                              height: 1.3,
-                                            ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          
-                          SizedBox(width: 10.w),
-                          
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 3.h),
-                            decoration: BoxDecoration(
-                              color: dhikr.primaryColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(6.r),
-                            ),
-                            child: Text(
-                              '${dhikr.recommendedCount}×',
-                              style: TextStyle(
-                                color: dhikr.primaryColor,
-                                fontWeight: ThemeConstants.semiBold,
-                                fontSize: 10.sp,
-                              ),
-                            ),
-                          ),
-                          
-                          if (_currentDhikr.id == dhikr.id) ...[
-                            SizedBox(width: 6.w),
-                            Icon(
-                              Icons.check_circle,
-                              color: dhikr.primaryColor,
-                              size: 18.sp,
-                            ),
-                          ] else ...[
-                            SizedBox(width: 6.w),
-                            Icon(
-                              Icons.radio_button_unchecked,
-                              color: context.textSecondaryColor.withOpacity(0.3),
-                              size: 18.sp,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              )),
-            ],
+              ],
+            ),
           ),
-        );
-      },
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(
+                'إلغاء',
+                style: TextStyle(
+                  color: context.textSecondaryColor,
+                  fontSize: 13.sp,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (textController.text.trim().isEmpty) {
+                  context.showErrorSnackBar('الرجاء إدخال نص الذكر');
+                  return;
+                }
+                
+                final count = int.tryParse(countController.text) ?? 33;
+                
+                final updatedDhikr = dhikr.copyWith(
+                  text: textController.text.trim(),
+                  virtue: virtueController.text.trim().isEmpty 
+                      ? null 
+                      : virtueController.text.trim(),
+                  recommendedCount: count,
+                  category: selectedCategory,
+                  gradient: _getGradientForCategory(selectedCategory),
+                  primaryColor: _getColorForCategory(selectedCategory),
+                );
+                
+                widget.service.updateCustomDhikr(dhikr.id, updatedDhikr);
+                
+                // إذا كان الذكر المعدّل هو الذكر الحالي، نحدثه
+                if (_currentDhikr.id == dhikr.id) {
+                  setState(() {
+                    _currentDhikr = updatedDhikr;
+                  });
+                  widget.onDhikrSelected(updatedDhikr);
+                }
+                
+                Navigator.pop(dialogContext);
+                context.showSuccessSnackBar('تم تحديث الذكر بنجاح');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ThemeConstants.primary,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(
+                'حفظ',
+                style: TextStyle(fontSize: 13.sp),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
+  }
+
+  void _confirmDeleteCustomDhikr(BuildContext context, DhikrItem dhikr) {
+    AppInfoDialog.showConfirmation(
+      context: context,
+      title: 'حذف الذكر',
+      content: 'هل أنت متأكد من حذف هذا الذكر؟',
+      confirmText: 'حذف',
+      cancelText: 'إلغاء',
+      icon: Icons.delete,
+      destructive: true,
+    ).then((confirmed) {
+      if (confirmed == true) {
+        widget.service.deleteCustomDhikr(dhikr.id);
+        
+        // إذا كان الذكر المحذوف هو الذكر الحالي، نرجع للذكر الافتراضي
+        if (_currentDhikr.id == dhikr.id) {
+          final defaultDhikr = DefaultAdhkar.getAll().first;
+          setState(() {
+            _currentDhikr = defaultDhikr;
+          });
+          widget.onDhikrSelected(defaultDhikr);
+        }
+        
+        context.showSuccessSnackBar('تم حذف الذكر بنجاح');
+      }
+    });
+  }
+
+  List<Color> _getGradientForCategory(DhikrCategory category) {
+    switch (category) {
+      case DhikrCategory.tasbih:
+        return [ThemeConstants.primary, ThemeConstants.primaryLight];
+      case DhikrCategory.tahmid:
+        return [ThemeConstants.accent, ThemeConstants.accentLight];
+      case DhikrCategory.takbir:
+        return [ThemeConstants.tertiary, ThemeConstants.tertiaryLight];
+      case DhikrCategory.tahlil:
+        return [ThemeConstants.success, ThemeConstants.success.lighten(0.2)];
+      case DhikrCategory.istighfar:
+        return [ThemeConstants.primaryDark, ThemeConstants.primary];
+      case DhikrCategory.salawat:
+        return [ThemeConstants.accentDark, ThemeConstants.accent];
+      case DhikrCategory.custom:
+        return [ThemeConstants.primary, ThemeConstants.primaryLight];
+    }
+  }
+
+  Color _getColorForCategory(DhikrCategory category) {
+    switch (category) {
+      case DhikrCategory.tasbih:
+        return ThemeConstants.primary;
+      case DhikrCategory.tahmid:
+        return ThemeConstants.accent;
+      case DhikrCategory.takbir:
+        return ThemeConstants.tertiary;
+      case DhikrCategory.tahlil:
+        return ThemeConstants.success;
+      case DhikrCategory.istighfar:
+        return ThemeConstants.primaryDark;
+      case DhikrCategory.salawat:
+        return ThemeConstants.accentDark;
+      case DhikrCategory.custom:
+        return ThemeConstants.primary;
+    }
   }
 }

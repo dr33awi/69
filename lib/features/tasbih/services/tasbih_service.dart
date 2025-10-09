@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../../../app/themes/constants/app_constants.dart';
 import '../../../core/infrastructure/services/storage/storage_service.dart';
+import '../models/dhikr_model.dart';
 
 /// خدمة إدارة المسبحة الرقمية
 class TasbihService extends ChangeNotifier {
@@ -15,6 +16,9 @@ class TasbihService extends ChangeNotifier {
   // إحصائيات متقدمة
   Map<String, int> _dhikrStats = {};
   List<DailyRecord> _history = [];
+  
+  // الأذكار المخصصة
+  List<DhikrItem> _customAdhkar = [];
   
   // للتتبع الجلسة
   DateTime? _sessionStartTime;
@@ -32,6 +36,12 @@ class TasbihService extends ChangeNotifier {
   int get totalCount => _totalCount;
   Map<String, int> get dhikrStats => Map.unmodifiable(_dhikrStats);
   List<DailyRecord> get history => List.unmodifiable(_history);
+  List<DhikrItem> get customAdhkar => List.unmodifiable(_customAdhkar);
+  
+  // الحصول على جميع الأذكار (الافتراضية + المخصصة)
+  List<DhikrItem> getAllAdhkar() {
+    return [...DefaultAdhkar.getAll(), ..._customAdhkar];
+  }
 
   Future<void> _loadData() async {
     try {
@@ -72,7 +82,10 @@ class TasbihService extends ChangeNotifier {
       // تحميل التاريخ
       await _loadHistory();
       
-      debugPrint('[TasbihService] Data loaded successfully - count: $_count, todayCount: $_todayCount, totalCount: $_totalCount');
+      // تحميل الأذكار المخصصة
+      await _loadCustomAdhkar();
+      
+      debugPrint('[TasbihService] Data loaded successfully - count: $_count, todayCount: $_todayCount, totalCount: $_totalCount, customAdhkar: ${_customAdhkar.length}');
       
       notifyListeners();
     } catch (e) {
@@ -83,6 +96,7 @@ class TasbihService extends ChangeNotifier {
       _totalCount = 0;
       _dhikrStats = {};
       _history = [];
+      _customAdhkar = [];
       notifyListeners();
     }
   }
@@ -103,6 +117,86 @@ class TasbihService extends ChangeNotifier {
     } catch (e) {
       debugPrint('[TasbihService] Error loading dhikr stats: $e');
       _dhikrStats = {};
+    }
+  }
+
+  Future<void> _loadCustomAdhkar() async {
+    try {
+      final customAdhkarData = _storage.getMap('${AppConstants.tasbihCounterKey}_custom_adhkar');
+      if (customAdhkarData != null) {
+        _customAdhkar = [];
+        
+        final sortedKeys = customAdhkarData.keys
+            .where((key) => int.tryParse(key) != null)
+            .map((key) => int.parse(key))
+            .toList()
+          ..sort();
+        
+        for (final key in sortedKeys) {
+          final dhikrData = customAdhkarData[key.toString()];
+          if (dhikrData is Map<String, dynamic>) {
+            try {
+              _customAdhkar.add(DhikrItem.fromMap(dhikrData));
+            } catch (e) {
+              debugPrint('[TasbihService] Invalid custom dhikr format');
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('[TasbihService] Error loading custom adhkar: $e');
+      _customAdhkar = [];
+    }
+  }
+
+  Future<void> _saveCustomAdhkar() async {
+    try {
+      final customAdhkarData = <String, dynamic>{};
+      for (int i = 0; i < _customAdhkar.length; i++) {
+        customAdhkarData[i.toString()] = _customAdhkar[i].toMap();
+      }
+      await _storage.setMap('${AppConstants.tasbihCounterKey}_custom_adhkar', customAdhkarData);
+    } catch (e) {
+      debugPrint('[TasbihService] Error saving custom adhkar: $e');
+    }
+  }
+
+  // إضافة ذكر مخصص
+  Future<void> addCustomDhikr(DhikrItem dhikr) async {
+    try {
+      _customAdhkar.add(dhikr);
+      await _saveCustomAdhkar();
+      notifyListeners();
+      debugPrint('[TasbihService] Custom dhikr added - text: ${dhikr.text}');
+    } catch (e) {
+      debugPrint('[TasbihService] Error adding custom dhikr: $e');
+    }
+  }
+
+  // تعديل ذكر مخصص
+  Future<void> updateCustomDhikr(String id, DhikrItem updatedDhikr) async {
+    try {
+      final index = _customAdhkar.indexWhere((d) => d.id == id);
+      if (index != -1) {
+        _customAdhkar[index] = updatedDhikr;
+        await _saveCustomAdhkar();
+        notifyListeners();
+        debugPrint('[TasbihService] Custom dhikr updated - id: $id');
+      }
+    } catch (e) {
+      debugPrint('[TasbihService] Error updating custom dhikr: $e');
+    }
+  }
+
+  // حذف ذكر مخصص
+  Future<void> deleteCustomDhikr(String id) async {
+    try {
+      _customAdhkar.removeWhere((d) => d.id == id);
+      await _saveCustomAdhkar();
+      notifyListeners();
+      debugPrint('[TasbihService] Custom dhikr deleted - id: $id');
+    } catch (e) {
+      debugPrint('[TasbihService] Error deleting custom dhikr: $e');
     }
   }
 

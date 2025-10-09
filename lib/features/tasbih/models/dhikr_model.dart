@@ -12,6 +12,7 @@ class DhikrItem {
   final List<Color> gradient;
   final Color primaryColor;
   final bool isCustom;
+  final DateTime? createdAt; // للأذكار المخصصة
 
   const DhikrItem({
     required this.id,
@@ -22,6 +23,7 @@ class DhikrItem {
     required this.gradient,
     required this.primaryColor,
     this.isCustom = false,
+    this.createdAt,
   });
 
   factory DhikrItem.fromMap(Map<String, dynamic> map) {
@@ -37,6 +39,9 @@ class DhikrItem {
       gradient: _parseGradient(map['gradient']),
       primaryColor: Color(map['primaryColor'] ?? 0xFF4CAF50),
       isCustom: map['isCustom'] ?? false,
+      createdAt: map['createdAt'] != null 
+          ? DateTime.tryParse(map['createdAt']) 
+          : null,
     );
   }
 
@@ -50,6 +55,7 @@ class DhikrItem {
       'gradient': gradient.map((c) => c.value).toList(),
       'primaryColor': primaryColor.value,
       'isCustom': isCustom,
+      'createdAt': createdAt?.toIso8601String(),
     };
   }
 
@@ -69,6 +75,7 @@ class DhikrItem {
     List<Color>? gradient,
     Color? primaryColor,
     bool? isCustom,
+    DateTime? createdAt,
   }) {
     return DhikrItem(
       id: id ?? this.id,
@@ -79,6 +86,7 @@ class DhikrItem {
       gradient: gradient ?? this.gradient,
       primaryColor: primaryColor ?? this.primaryColor,
       isCustom: isCustom ?? this.isCustom,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }
@@ -90,7 +98,8 @@ enum DhikrCategory {
   takbir('التكبير', Icons.star),
   tahlil('التهليل', Icons.brightness_high),
   istighfar('الاستغفار', Icons.healing),
-  salawat('الصلاة على النبي', Icons.mosque);
+  salawat('الصلاة على النبي', Icons.mosque),
+  custom('مخصص', Icons.edit); // تصنيف جديد للأذكار المخصصة
 
   const DhikrCategory(this.title, this.icon);
   
