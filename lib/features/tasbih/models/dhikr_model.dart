@@ -31,7 +31,7 @@ class DhikrItem {
       id: map['id'] ?? '',
       text: map['text'] ?? '',
       virtue: map['virtue'],
-      recommendedCount: map['recommendedCount'] ?? 33,
+      recommendedCount: ((map['recommendedCount'] as int?) ?? 33).clamp(1, 1000),
       category: DhikrCategory.values.firstWhere(
         (cat) => cat.name == map['category'],
         orElse: () => DhikrCategory.tasbih,
@@ -61,7 +61,11 @@ class DhikrItem {
 
   static List<Color> _parseGradient(dynamic gradientData) {
     if (gradientData is List) {
-      return gradientData.map((color) => Color(color as int)).toList();
+      try {
+        return gradientData.map((color) => Color(color as int)).toList();
+      } catch (e) {
+        debugPrint('[DhikrItem] Error parsing gradient: $e');
+      }
     }
     return [ThemeConstants.primary, ThemeConstants.primaryLight];
   }
@@ -81,7 +85,7 @@ class DhikrItem {
       id: id ?? this.id,
       text: text ?? this.text,
       virtue: virtue ?? this.virtue,
-      recommendedCount: recommendedCount ?? this.recommendedCount,
+      recommendedCount: (recommendedCount ?? this.recommendedCount).clamp(1, 1000),
       category: category ?? this.category,
       gradient: gradient ?? this.gradient,
       primaryColor: primaryColor ?? this.primaryColor,
@@ -89,6 +93,16 @@ class DhikrItem {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DhikrItem &&
+          runtimeType == other.runtimeType &&
+          id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
 
 /// تصنيفات الأذكار
@@ -99,7 +113,7 @@ enum DhikrCategory {
   tahlil('التهليل', Icons.brightness_high),
   istighfar('الاستغفار', Icons.healing),
   salawat('الصلاة على النبي', Icons.mosque),
-  custom('مخصص', Icons.edit); // تصنيف جديد للأذكار المخصصة
+  custom('مخصص', Icons.edit);
 
   const DhikrCategory(this.title, this.icon);
   

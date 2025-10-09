@@ -1,4 +1,4 @@
-// lib/features/tasbih/screens/tasbih_screen.dart - محسّن مع دعم الأذكار المخصصة
+// lib/features/tasbih/screens/tasbih_screen.dart - محسّن بالكامل
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -600,6 +600,28 @@ class _TasbihScreenState extends State<TasbihScreen>
     });
   }
   
+  // دالة محسّنة لتغيير الذكر
+  void _changeDhikr(DhikrItem newDhikr) {
+    // إنهاء الجلسة الحالية فقط إذا كان هناك عد
+    if (_service.count > 0) {
+      _service.endSession();
+    }
+    
+    setState(() {
+      _currentDhikr = newDhikr;
+    });
+    
+    // بدء جلسة جديدة
+    _service.startSession(newDhikr.text);
+    
+    HapticFeedback.mediumImpact();
+    context.showSuccessSnackBar(
+      'تم تغيير الذكر إلى: ${newDhikr.text}',
+    );
+    
+    debugPrint('[TasbihScreen] Dhikr changed to: ${newDhikr.id}');
+  }
+  
   void _showDhikrSelectionModal() {
     showModalBottomSheet(
       context: context,
@@ -611,18 +633,7 @@ class _TasbihScreenState extends State<TasbihScreen>
         child: DhikrSelectionModal(
           currentDhikr: _currentDhikr,
           service: _service,
-          onDhikrSelected: (dhikr) {
-            setState(() {
-              _service.endSession();
-              _currentDhikr = dhikr;
-              _service.startSession(dhikr.text);
-            });
-            Navigator.pop(context);
-            HapticFeedback.mediumImpact();
-            context.showSuccessSnackBar(
-              'تم تغيير الذكر إلى: ${dhikr.text}',
-            );
-          },
+          onDhikrSelected: _changeDhikr,
         ),
       ),
     );
@@ -647,12 +658,12 @@ class DhikrSelectionModal extends StatefulWidget {
 }
 
 class _DhikrSelectionModalState extends State<DhikrSelectionModal> {
-  late DhikrItem _currentDhikr;
+  late DhikrItem _selectedDhikr;
 
   @override
   void initState() {
     super.initState();
-    _currentDhikr = widget.currentDhikr;
+    _selectedDhikr = widget.currentDhikr;
   }
 
   @override
@@ -915,6 +926,8 @@ class _DhikrSelectionModalState extends State<DhikrSelectionModal> {
   }
 
   Widget _buildDhikrItem(BuildContext context, DhikrItem dhikr) {
+    final isSelected = _selectedDhikr.id == dhikr.id;
+    
     return Padding(
       padding: EdgeInsets.only(bottom: 8.h),
       child: Material(
@@ -932,12 +945,12 @@ class _DhikrSelectionModalState extends State<DhikrSelectionModal> {
           child: Container(
             padding: EdgeInsets.all(12.r),
             decoration: BoxDecoration(
-              color: _currentDhikr.id == dhikr.id 
+              color: isSelected 
                   ? dhikr.primaryColor.withOpacity(0.1)
                   : context.cardColor,
               borderRadius: BorderRadius.circular(10.r),
               border: Border.all(
-                color: _currentDhikr.id == dhikr.id 
+                color: isSelected 
                     ? dhikr.primaryColor.withOpacity(0.3)
                     : context.dividerColor.withOpacity(0.2),
               ),
@@ -969,10 +982,10 @@ class _DhikrSelectionModalState extends State<DhikrSelectionModal> {
                             child: Text(
                               dhikr.text,
                               style: TextStyle(
-                                fontWeight: _currentDhikr.id == dhikr.id 
+                                fontWeight: isSelected 
                                     ? ThemeConstants.semiBold 
                                     : ThemeConstants.regular,
-                                color: _currentDhikr.id == dhikr.id 
+                                color: isSelected 
                                     ? dhikr.primaryColor
                                     : context.textPrimaryColor,
                                 fontSize: 12.sp,
@@ -1013,12 +1026,12 @@ class _DhikrSelectionModalState extends State<DhikrSelectionModal> {
                           child: Container(
                             padding: EdgeInsets.all(6.r),
                             decoration: BoxDecoration(
-                              color: _currentDhikr.id == dhikr.id 
+                              color: isSelected 
                                   ? dhikr.primaryColor.withOpacity(0.1)
                                   : ThemeConstants.accent.withOpacity(0.05),
                               borderRadius: BorderRadius.circular(6.r),
                               border: Border.all(
-                                color: _currentDhikr.id == dhikr.id 
+                                color: isSelected 
                                     ? dhikr.primaryColor.withOpacity(0.2)
                                     : ThemeConstants.accent.withOpacity(0.1),
                               ),
@@ -1029,7 +1042,7 @@ class _DhikrSelectionModalState extends State<DhikrSelectionModal> {
                                 Icon(
                                   Icons.star_rounded,
                                   size: 11.sp,
-                                  color: _currentDhikr.id == dhikr.id 
+                                  color: isSelected 
                                       ? dhikr.primaryColor
                                       : ThemeConstants.accent,
                                 ),
@@ -1081,10 +1094,10 @@ class _DhikrSelectionModalState extends State<DhikrSelectionModal> {
                 SizedBox(width: 6.w),
                 
                 Icon(
-                  _currentDhikr.id == dhikr.id 
+                  isSelected 
                       ? Icons.check_circle
                       : Icons.radio_button_unchecked,
-                  color: _currentDhikr.id == dhikr.id 
+                  color: isSelected 
                       ? dhikr.primaryColor
                       : context.textSecondaryColor.withOpacity(0.3),
                   size: 18.sp,
@@ -1187,7 +1200,7 @@ class _DhikrSelectionModalState extends State<DhikrSelectionModal> {
     showDialog(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setState) => AlertDialog(
+        builder: (dialogContext, setDialogState) => AlertDialog(
           backgroundColor: context.backgroundColor,
           title: Row(
             children: [
@@ -1279,93 +1292,78 @@ class _DhikrSelectionModalState extends State<DhikrSelectionModal> {
                 
                 SizedBox(height: 16.h),
                 
-                Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'عدد التسبيح',
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              fontWeight: ThemeConstants.semiBold,
-                              color: context.textSecondaryColor,
-                            ),
-                          ),
-                          SizedBox(height: 6.h),
-                          TextField(
-                            controller: countController,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              hintText: '33',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10.r),
-                              ),
-                              contentPadding: EdgeInsets.all(12.r),
-                            ),
-                            style: TextStyle(fontSize: 13.sp),
-                          ),
-                        ],
+                    Text(
+                      'التصنيف',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: ThemeConstants.semiBold,
+                        color: context.textSecondaryColor,
                       ),
                     ),
-                    
-                    SizedBox(width: 12.w),
-                    
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'التصنيف',
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              fontWeight: ThemeConstants.semiBold,
-                              color: context.textSecondaryColor,
-                            ),
-                          ),
-                          SizedBox(height: 6.h),
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: 10.w),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: context.dividerColor,
-                              ),
-                              borderRadius: BorderRadius.circular(10.r),
-                            ),
-                            child: DropdownButton<DhikrCategory>(
-                              value: selectedCategory,
-                              isExpanded: true,
-                              underline: const SizedBox(),
-                              items: DhikrCategory.values.map((category) {
-                                return DropdownMenuItem(
-                                  value: category,
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        category.icon,
-                                        size: 16.sp,
-                                      ),
-                                      SizedBox(width: 6.w),
-                                      Text(
-                                        category.title,
-                                        style: TextStyle(fontSize: 12.sp),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                if (value != null) {
-                                  setState(() => selectedCategory = value);
-                                }
-                              },
-                            ),
-                          ),
-                        ],
+                    SizedBox(height: 6.h),
+                    DropdownButtonFormField<DhikrCategory>(
+                      value: selectedCategory,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.r),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 12.h,
+                        ),
                       ),
+                      items: DhikrCategory.values.map((category) {
+                        return DropdownMenuItem(
+                          value: category,
+                          child: Row(
+                            children: [
+                              Icon(
+                                category.icon,
+                                size: 16.sp,
+                              ),
+                              SizedBox(width: 6.w),
+                              Text(
+                                category.title,
+                                style: TextStyle(fontSize: 12.sp),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setDialogState(() => selectedCategory = value);
+                        }
+                      },
                     ),
                   ],
+                ),
+                
+                SizedBox(height: 16.h),
+                
+                Text(
+                  'عدد التسبيح',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: ThemeConstants.semiBold,
+                    color: context.textSecondaryColor,
+                  ),
+                ),
+                SizedBox(height: 6.h),
+                TextField(
+                  controller: countController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    hintText: '33',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                    contentPadding: EdgeInsets.all(12.r),
+                  ),
+                  style: TextStyle(fontSize: 13.sp),
                 ),
               ],
             ),
@@ -1382,39 +1380,60 @@ class _DhikrSelectionModalState extends State<DhikrSelectionModal> {
               ),
             ),
             ElevatedButton(
-              onPressed: () {
-                if (textController.text.trim().isEmpty) {
+              onPressed: () async {
+                final text = textController.text.trim();
+                
+                // Validation
+                if (text.isEmpty) {
                   context.showErrorSnackBar('الرجاء إدخال نص الذكر');
+                  return;
+                }
+                
+                if (text.length < 3) {
+                  context.showErrorSnackBar('نص الذكر قصير جداً (3 أحرف على الأقل)');
                   return;
                 }
                 
                 final count = int.tryParse(countController.text) ?? 33;
                 
-                final newDhikr = DhikrItem(
-                  id: 'custom_${DateTime.now().millisecondsSinceEpoch}',
-                  text: textController.text.trim(),
-                  virtue: virtueController.text.trim().isEmpty 
-                      ? null 
-                      : virtueController.text.trim(),
-                  recommendedCount: count,
-                  category: selectedCategory,
-                  gradient: _getGradientForCategory(selectedCategory),
-                  primaryColor: _getColorForCategory(selectedCategory),
-                  isCustom: true,
-                  createdAt: DateTime.now(),
-                );
+                if (count < 1 || count > 1000) {
+                  context.showErrorSnackBar('عدد التسبيح يجب أن يكون بين 1 و 1000');
+                  return;
+                }
                 
-                widget.service.addCustomDhikr(newDhikr);
-                Navigator.pop(dialogContext);
-                
-                // اختيار الذكر الجديد واغلاق modal الاختيار
-                setState(() {
-                  _currentDhikr = newDhikr;
-                });
-                widget.onDhikrSelected(newDhikr);
-                Navigator.pop(context);
-                
-                context.showSuccessSnackBar('تم إضافة الذكر بنجاح');
+                try {
+                  final newDhikr = DhikrItem(
+                    id: 'custom_${DateTime.now().millisecondsSinceEpoch}',
+                    text: text,
+                    virtue: virtueController.text.trim().isEmpty 
+                        ? null 
+                        : virtueController.text.trim(),
+                    recommendedCount: count,
+                    category: selectedCategory,
+                    gradient: _getGradientForCategory(selectedCategory),
+                    primaryColor: _getColorForCategory(selectedCategory),
+                    isCustom: true,
+                    createdAt: DateTime.now(),
+                  );
+                  
+                  await widget.service.addCustomDhikr(newDhikr);
+                  
+                  // تحديث الذكر المحدد وإغلاق النوافذ
+                  setState(() {
+                    _selectedDhikr = newDhikr;
+                  });
+                  
+                  Navigator.pop(dialogContext); // إغلاق dialog الإضافة
+                  Navigator.pop(context); // إغلاق modal الاختيار
+                  
+                  // تطبيق الذكر الجديد
+                  widget.onDhikrSelected(newDhikr);
+                  
+                  context.showSuccessSnackBar('تم إضافة الذكر بنجاح');
+                } catch (e) {
+                  context.showErrorSnackBar('حدث خطأ أثناء إضافة الذكر');
+                  debugPrint('[DhikrSelectionModal] Error adding custom dhikr: $e');
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: ThemeConstants.primary,
@@ -1442,7 +1461,7 @@ class _DhikrSelectionModalState extends State<DhikrSelectionModal> {
     showDialog(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setState) => AlertDialog(
+        builder: (dialogContext, setDialogState) => AlertDialog(
           backgroundColor: context.backgroundColor,
           title: Row(
             children: [
@@ -1526,92 +1545,77 @@ class _DhikrSelectionModalState extends State<DhikrSelectionModal> {
                 
                 SizedBox(height: 16.h),
                 
-                Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'عدد التسبيح',
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              fontWeight: ThemeConstants.semiBold,
-                              color: context.textSecondaryColor,
-                            ),
-                          ),
-                          SizedBox(height: 6.h),
-                          TextField(
-                            controller: countController,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10.r),
-                              ),
-                              contentPadding: EdgeInsets.all(12.r),
-                            ),
-                            style: TextStyle(fontSize: 13.sp),
-                          ),
-                        ],
+                    Text(
+                      'التصنيف',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: ThemeConstants.semiBold,
+                        color: context.textSecondaryColor,
                       ),
                     ),
-                    
-                    SizedBox(width: 12.w),
-                    
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'التصنيف',
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              fontWeight: ThemeConstants.semiBold,
-                              color: context.textSecondaryColor,
-                            ),
-                          ),
-                          SizedBox(height: 6.h),
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: 10.w),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: context.dividerColor,
-                              ),
-                              borderRadius: BorderRadius.circular(10.r),
-                            ),
-                            child: DropdownButton<DhikrCategory>(
-                              value: selectedCategory,
-                              isExpanded: true,
-                              underline: const SizedBox(),
-                              items: DhikrCategory.values.map((category) {
-                                return DropdownMenuItem(
-                                  value: category,
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        category.icon,
-                                        size: 16.sp,
-                                      ),
-                                      SizedBox(width: 6.w),
-                                      Text(
-                                        category.title,
-                                        style: TextStyle(fontSize: 12.sp),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                if (value != null) {
-                                  setState(() => selectedCategory = value);
-                                }
-                              },
-                            ),
-                          ),
-                        ],
+                    SizedBox(height: 6.h),
+                    DropdownButtonFormField<DhikrCategory>(
+                      value: selectedCategory,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.r),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 12.h,
+                        ),
                       ),
+                      items: DhikrCategory.values.map((category) {
+                        return DropdownMenuItem(
+                          value: category,
+                          child: Row(
+                            children: [
+                              Icon(
+                                category.icon,
+                                size: 16.sp,
+                              ),
+                              SizedBox(width: 6.w),
+                              Text(
+                                category.title,
+                                style: TextStyle(fontSize: 12.sp),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setDialogState(() => selectedCategory = value);
+                        }
+                      },
                     ),
                   ],
+                ),
+                
+                SizedBox(height: 16.h),
+                
+                Text(
+                  'عدد التسبيح',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: ThemeConstants.semiBold,
+                    color: context.textSecondaryColor,
+                  ),
+                ),
+                SizedBox(height: 6.h),
+                TextField(
+                  controller: countController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                    contentPadding: EdgeInsets.all(12.r),
+                  ),
+                  style: TextStyle(fontSize: 13.sp),
                 ),
               ],
             ),
@@ -1628,37 +1632,55 @@ class _DhikrSelectionModalState extends State<DhikrSelectionModal> {
               ),
             ),
             ElevatedButton(
-              onPressed: () {
-                if (textController.text.trim().isEmpty) {
+              onPressed: () async {
+                final text = textController.text.trim();
+                
+                // Validation
+                if (text.isEmpty) {
                   context.showErrorSnackBar('الرجاء إدخال نص الذكر');
+                  return;
+                }
+                
+                if (text.length < 3) {
+                  context.showErrorSnackBar('نص الذكر قصير جداً (3 أحرف على الأقل)');
                   return;
                 }
                 
                 final count = int.tryParse(countController.text) ?? 33;
                 
-                final updatedDhikr = dhikr.copyWith(
-                  text: textController.text.trim(),
-                  virtue: virtueController.text.trim().isEmpty 
-                      ? null 
-                      : virtueController.text.trim(),
-                  recommendedCount: count,
-                  category: selectedCategory,
-                  gradient: _getGradientForCategory(selectedCategory),
-                  primaryColor: _getColorForCategory(selectedCategory),
-                );
-                
-                widget.service.updateCustomDhikr(dhikr.id, updatedDhikr);
-                
-                // إذا كان الذكر المعدّل هو الذكر الحالي، نحدثه
-                if (_currentDhikr.id == dhikr.id) {
-                  setState(() {
-                    _currentDhikr = updatedDhikr;
-                  });
-                  widget.onDhikrSelected(updatedDhikr);
+                if (count < 1 || count > 1000) {
+                  context.showErrorSnackBar('عدد التسبيح يجب أن يكون بين 1 و 1000');
+                  return;
                 }
                 
-                Navigator.pop(dialogContext);
-                context.showSuccessSnackBar('تم تحديث الذكر بنجاح');
+                try {
+                  final updatedDhikr = dhikr.copyWith(
+                    text: text,
+                    virtue: virtueController.text.trim().isEmpty 
+                        ? null 
+                        : virtueController.text.trim(),
+                    recommendedCount: count,
+                    category: selectedCategory,
+                    gradient: _getGradientForCategory(selectedCategory),
+                    primaryColor: _getColorForCategory(selectedCategory),
+                  );
+                  
+                  await widget.service.updateCustomDhikr(dhikr.id, updatedDhikr);
+                  
+                  // إذا كان الذكر المعدّل هو الذكر الحالي، نحدثه
+                  if (_selectedDhikr.id == dhikr.id) {
+                    setState(() {
+                      _selectedDhikr = updatedDhikr;
+                    });
+                    widget.onDhikrSelected(updatedDhikr);
+                  }
+                  
+                  Navigator.pop(dialogContext);
+                  context.showSuccessSnackBar('تم تحديث الذكر بنجاح');
+                } catch (e) {
+                  context.showErrorSnackBar('حدث خطأ أثناء تحديث الذكر');
+                  debugPrint('[DhikrSelectionModal] Error updating custom dhikr: $e');
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: ThemeConstants.primary,
@@ -1679,25 +1701,30 @@ class _DhikrSelectionModalState extends State<DhikrSelectionModal> {
     AppInfoDialog.showConfirmation(
       context: context,
       title: 'حذف الذكر',
-      content: 'هل أنت متأكد من حذف هذا الذكر؟',
+      content: 'هل أنت متأكد من حذف هذا الذكر؟ لا يمكن التراجع عن هذا الإجراء.',
       confirmText: 'حذف',
       cancelText: 'إلغاء',
       icon: Icons.delete,
       destructive: true,
-    ).then((confirmed) {
+    ).then((confirmed) async {
       if (confirmed == true) {
-        widget.service.deleteCustomDhikr(dhikr.id);
-        
-        // إذا كان الذكر المحذوف هو الذكر الحالي، نرجع للذكر الافتراضي
-        if (_currentDhikr.id == dhikr.id) {
-          final defaultDhikr = DefaultAdhkar.getAll().first;
-          setState(() {
-            _currentDhikr = defaultDhikr;
-          });
-          widget.onDhikrSelected(defaultDhikr);
+        try {
+          await widget.service.deleteCustomDhikr(dhikr.id);
+          
+          // إذا كان الذكر المحذوف هو الذكر الحالي، نرجع للذكر الافتراضي
+          if (_selectedDhikr.id == dhikr.id) {
+            final defaultDhikr = DefaultAdhkar.getAll().first;
+            setState(() {
+              _selectedDhikr = defaultDhikr;
+            });
+            widget.onDhikrSelected(defaultDhikr);
+          }
+          
+          context.showSuccessSnackBar('تم حذف الذكر بنجاح');
+        } catch (e) {
+          context.showErrorSnackBar('حدث خطأ أثناء حذف الذكر');
+          debugPrint('[DhikrSelectionModal] Error deleting custom dhikr: $e');
         }
-        
-        context.showSuccessSnackBar('تم حذف الذكر بنجاح');
       }
     });
   }

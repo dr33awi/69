@@ -23,6 +23,10 @@ class TasbihService extends ChangeNotifier {
   // للتتبع الجلسة
   DateTime? _sessionStartTime;
   String? _currentDhikrType;
+  
+  // Cache للأذكار
+  List<DhikrItem>? _cachedAllAdhkar;
+  bool _adhkarCacheDirty = true;
 
   TasbihService({
     required StorageService storage, 
@@ -38,17 +42,20 @@ class TasbihService extends ChangeNotifier {
   List<DailyRecord> get history => List.unmodifiable(_history);
   List<DhikrItem> get customAdhkar => List.unmodifiable(_customAdhkar);
   
-  // الحصول على جميع الأذكار (الافتراضية + المخصصة)
+  // الحصول على جميع الأذكار (الافتراضية + المخصصة) مع caching
   List<DhikrItem> getAllAdhkar() {
-    return [...DefaultAdhkar.getAll(), ..._customAdhkar];
+    if (_adhkarCacheDirty || _cachedAllAdhkar == null) {
+      _cachedAllAdhkar = [...DefaultAdhkar.getAll(), ..._customAdhkar];
+      _adhkarCacheDirty = false;
+      debugPrint('[TasbihService] Adhkar cache updated - total: ${_cachedAllAdhkar!.length}');
+    }
+    return _cachedAllAdhkar!;
   }
 
   Future<void> _loadData() async {
     try {
-      // تحميل العداد الأساسي
+      // تحميل البيانات الأساسية
       _count = _storage.getInt(AppConstants.tasbihCounterKey) ?? 0;
-      
-      // تحميل العداد الإجمالي
       _totalCount = _storage.getInt('${AppConstants.tasbihCounterKey}_total') ?? 0;
       
       // تحميل تاريخ آخر استخدام
@@ -57,7 +64,7 @@ class TasbihService extends ChangeNotifier {
         try {
           _lastUsedDate = DateTime.parse(lastDateString);
         } catch (e) {
-          debugPrint('[TasbihService] Invalid date format, using current date - dateString: $lastDateString');
+          debugPrint('[TasbihService] Invalid date format: $lastDateString');
           _lastUsedDate = DateTime.now();
         }
       }
@@ -72,33 +79,23 @@ class TasbihService extends ChangeNotifier {
           today.toIso8601String(),
         );
       } else {
-        // تحميل عداد اليوم
         _todayCount = _storage.getInt('${AppConstants.tasbihCounterKey}_today') ?? 0;
       }
       
-      // تحميل إحصائيات الأذكار
-      await _loadDhikrStats();
-      
-      // تحميل التاريخ
-      await _loadHistory();
-      
-      // تحميل الأذكار المخصصة
-      await _loadCustomAdhkar();
-      
-      debugPrint('[TasbihService] Data loaded successfully - count: $_count, todayCount: $_todayCount, totalCount: $_totalCount, customAdhkar: ${_customAdhkar.length}');
-      
-      notifyListeners();
+      debugPrint('[TasbihService] Basic data loaded - count: $_count, todayCount: $_todayCount');
     } catch (e) {
-      debugPrint('[TasbihService] Error loading data: $e');
-      // في حالة الخطأ، نبدأ بقيم افتراضية
+      debugPrint('[TasbihService] Error loading basic data: $e');
       _count = 0;
       _todayCount = 0;
       _totalCount = 0;
-      _dhikrStats = {};
-      _history = [];
-      _customAdhkar = [];
-      notifyListeners();
     }
+    
+    // تحميل البيانات الإضافية بشكل منفصل
+    await _loadDhikrStats();
+    await _loadHistory();
+    await _loadCustomAdhkar();
+    
+    notifyListeners();
   }
 
   Future<void> _loadDhikrStats() async {
@@ -113,6 +110,7 @@ class TasbihService extends ChangeNotifier {
             _dhikrStats[key] = value.toInt();
           }
         });
+        debugPrint('[TasbihService] Dhikr stats loaded - count: ${_dhikrStats.length}');
       }
     } catch (e) {
       debugPrint('[TasbihService] Error loading dhikr stats: $e');
@@ -138,10 +136,13 @@ class TasbihService extends ChangeNotifier {
             try {
               _customAdhkar.add(DhikrItem.fromMap(dhikrData));
             } catch (e) {
-              debugPrint('[TasbihService] Invalid custom dhikr format');
+              debugPrint('[TasbihService] Invalid custom dhikr at index $key: $e');
             }
           }
         }
+        
+        _adhkarCacheDirty = true;
+        debugPrint('[TasbihService] Custom adhkar loaded - count: ${_customAdhkar.length}');
       }
     } catch (e) {
       debugPrint('[TasbihService] Error loading custom adhkar: $e');
@@ -156,20 +157,31 @@ class TasbihService extends ChangeNotifier {
         customAdhkarData[i.toString()] = _customAdhkar[i].toMap();
       }
       await _storage.setMap('${AppConstants.tasbihCounterKey}_custom_adhkar', customAdhkarData);
+      debugPrint('[TasbihService] Custom adhkar saved - count: ${_customAdhkar.length}');
     } catch (e) {
       debugPrint('[TasbihService] Error saving custom adhkar: $e');
+      rethrow;
     }
   }
 
   // إضافة ذكر مخصص
   Future<void> addCustomDhikr(DhikrItem dhikr) async {
     try {
+      // التحقق من عدم وجود ذكر بنفس المعرف
+      if (_customAdhkar.any((d) => d.id == dhikr.id)) {
+        throw Exception('Dhikr with id ${dhikr.id} already exists');
+      }
+      
       _customAdhkar.add(dhikr);
+      _adhkarCacheDirty = true;
+      
       await _saveCustomAdhkar();
       notifyListeners();
-      debugPrint('[TasbihService] Custom dhikr added - text: ${dhikr.text}');
+      
+      debugPrint('[TasbihService] Custom dhikr added - id: ${dhikr.id}, text: ${dhikr.text}');
     } catch (e) {
       debugPrint('[TasbihService] Error adding custom dhikr: $e');
+      rethrow;
     }
   }
 
@@ -177,26 +189,42 @@ class TasbihService extends ChangeNotifier {
   Future<void> updateCustomDhikr(String id, DhikrItem updatedDhikr) async {
     try {
       final index = _customAdhkar.indexWhere((d) => d.id == id);
-      if (index != -1) {
-        _customAdhkar[index] = updatedDhikr;
-        await _saveCustomAdhkar();
-        notifyListeners();
-        debugPrint('[TasbihService] Custom dhikr updated - id: $id');
+      if (index == -1) {
+        throw Exception('Dhikr with id $id not found');
       }
+      
+      _customAdhkar[index] = updatedDhikr;
+      _adhkarCacheDirty = true;
+      
+      await _saveCustomAdhkar();
+      notifyListeners();
+      
+      debugPrint('[TasbihService] Custom dhikr updated - id: $id');
     } catch (e) {
       debugPrint('[TasbihService] Error updating custom dhikr: $e');
+      rethrow;
     }
   }
 
   // حذف ذكر مخصص
   Future<void> deleteCustomDhikr(String id) async {
     try {
+      final removedCount = _customAdhkar.length;
       _customAdhkar.removeWhere((d) => d.id == id);
+      
+      if (_customAdhkar.length == removedCount) {
+        throw Exception('Dhikr with id $id not found');
+      }
+      
+      _adhkarCacheDirty = true;
+      
       await _saveCustomAdhkar();
       notifyListeners();
+      
       debugPrint('[TasbihService] Custom dhikr deleted - id: $id');
     } catch (e) {
       debugPrint('[TasbihService] Error deleting custom dhikr: $e');
+      rethrow;
     }
   }
 
@@ -210,12 +238,14 @@ class TasbihService extends ChangeNotifier {
 
   // إنهاء جلسة التسبيح
   Future<void> endSession() async {
-    if (_sessionStartTime == null || _currentDhikrType == null) return;
+    if (_sessionStartTime == null || _currentDhikrType == null) {
+      return;
+    }
     
     final sessionCount = _count;
     final duration = DateTime.now().difference(_sessionStartTime!).inSeconds;
     
-    debugPrint('[TasbihService] Session ended - dhikrType: $_currentDhikrType, count: $sessionCount, duration: $duration');
+    debugPrint('[TasbihService] Session ended - dhikrType: $_currentDhikrType, count: $sessionCount, duration: ${duration}s');
     
     _sessionStartTime = null;
     _currentDhikrType = null;
@@ -245,7 +275,7 @@ class TasbihService extends ChangeNotifier {
         _storage.setMap('${AppConstants.tasbihCounterKey}_stats', _dhikrStats),
       ]);
       
-      debugPrint('[TasbihService] Incremented - count: $_count, dhikrType: $dhikrType, todayCount: $_todayCount');
+      debugPrint('[TasbihService] Incremented - count: $_count, todayCount: $_todayCount');
     } catch (e) {
       debugPrint('[TasbihService] Error incrementing: $e');
     }
@@ -348,24 +378,24 @@ class TasbihService extends ChangeNotifier {
       if (historyMap != null) {
         _history = [];
         
-        // ترتيب المفاتيح بترتيب عددي
         final sortedKeys = historyMap.keys
             .where((key) => int.tryParse(key) != null)
             .map((key) => int.parse(key))
             .toList()
           ..sort();
         
-        // تحويل البيانات إلى قائمة السجلات
         for (final key in sortedKeys) {
           final recordData = historyMap[key.toString()];
           if (recordData is Map<String, dynamic>) {
             try {
               _history.add(DailyRecord.fromMap(recordData));
             } catch (e) {
-              debugPrint('[TasbihService] Invalid history record format');
+              debugPrint('[TasbihService] Invalid history record at index $key: $e');
             }
           }
         }
+        
+        debugPrint('[TasbihService] History loaded - count: ${_history.length}');
       }
     } catch (e) {
       debugPrint('[TasbihService] Error loading history: $e');
@@ -380,8 +410,10 @@ class TasbihService extends ChangeNotifier {
         historyData[i.toString()] = _history[i].toMap();
       }
       await _storage.setMap('${AppConstants.tasbihCounterKey}_history', historyData);
+      debugPrint('[TasbihService] History saved - count: ${_history.length}');
     } catch (e) {
       debugPrint('[TasbihService] Error saving history: $e');
+      rethrow;
     }
   }
 
@@ -448,7 +480,6 @@ class TasbihService extends ChangeNotifier {
 
   @override
   void dispose() {
-    // إنهاء الجلسة عند التخلص من الخدمة
     endSession();
     super.dispose();
   }
