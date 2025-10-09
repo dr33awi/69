@@ -1,4 +1,5 @@
 // lib/features/tasbih/services/tasbih_service.dart
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../app/themes/constants/app_constants.dart';
 import '../../../core/infrastructure/services/storage/storage_service.dart';
@@ -24,6 +25,9 @@ class TasbihService extends ChangeNotifier {
   
   bool _isLoading = true;
   bool get isLoading => _isLoading;
+
+  // ✅ إضافة: Timer للحفظ المُؤجل (debouncing)
+  Timer? _saveTimer;
 
   TasbihService({required StorageService storage}) : _storage = storage {
     _loadData();
@@ -271,6 +275,7 @@ class TasbihService extends ChangeNotifier {
       
       _customAdhkar.removeWhere((d) => d.id == id);
       
+      // ✅ إصلاح: التحقق الصحيح من الحذف
       if (_customAdhkar.length == removedCount) {
         throw Exception('Dhikr with id $id not found');
       }
@@ -311,6 +316,7 @@ class TasbihService extends ChangeNotifier {
     _currentDhikrType = null;
   }
 
+  // ✅ إصلاح: استخدام debouncing للحفظ
   Future<void> increment({String dhikrType = 'default'}) async {
     try {
       if (_sessionStartTime == null) {
@@ -325,7 +331,11 @@ class TasbihService extends ChangeNotifier {
       
       notifyListeners();
       
-      unawaited(_saveCountData());
+      // ✅ حفظ مُؤجل بـ 500ms لتجنب الكتابة المتكررة
+      _saveTimer?.cancel();
+      _saveTimer = Timer(const Duration(milliseconds: 500), () {
+        _saveCountData();
+      });
       
       debugPrint('[TasbihService] Incremented - count: $_count, dhikrType: $dhikrType');
     } catch (e) {
@@ -341,6 +351,7 @@ class TasbihService extends ChangeNotifier {
         _storage.setInt('${AppConstants.tasbihCounterKey}_total', _totalCount),
         _storage.setMap('${AppConstants.tasbihCounterKey}_stats', _dhikrStats),
       ]);
+      debugPrint('[TasbihService] Count data saved successfully');
     } catch (e) {
       debugPrint('[TasbihService] Error saving count data: $e');
     }
@@ -348,6 +359,9 @@ class TasbihService extends ChangeNotifier {
 
   Future<void> reset() async {
     try {
+      // ✅ إلغاء أي حفظ مُؤجل
+      _saveTimer?.cancel();
+      
       await endSession();
       
       final previousCount = _count;
@@ -364,6 +378,8 @@ class TasbihService extends ChangeNotifier {
 
   Future<void> resetDaily() async {
     try {
+      _saveTimer?.cancel();
+      
       await _saveDailyRecord();
       await endSession();
       
@@ -380,6 +396,8 @@ class TasbihService extends ChangeNotifier {
 
   Future<void> resetAll() async {
     try {
+      _saveTimer?.cancel();
+      
       await endSession();
       
       _count = 0;
@@ -538,15 +556,10 @@ class TasbihService extends ChangeNotifier {
 
   @override
   void dispose() {
+    _saveTimer?.cancel();
     endSession();
     super.dispose();
   }
-}
-
-void unawaited(Future<void> future) {
-  future.catchError((error) {
-    debugPrint('[TasbihService] Unawaited error: $error');
-  });
 }
 
 class DailyRecord {

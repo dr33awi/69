@@ -1,4 +1,4 @@
-// lib/features/tasbih/widgets/tasbih_screen/dhikr_selection_modal.dart
+// lib/features/tasbih/widgets/dhikr_selection_modal.dart
 import 'package:athkar_app/features/tasbih/models/dhikr_model.dart';
 import 'package:athkar_app/features/tasbih/services/tasbih_service.dart';
 import 'package:flutter/material.dart';

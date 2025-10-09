@@ -1,4 +1,4 @@
-// lib/features/tasbih/widgets/tasbih_screen/custom_dhikr_dialogs.dart
+// lib/features/tasbih/widgets/custom_dhikr_dialogs.dart
 import 'package:athkar_app/features/tasbih/models/dhikr_model.dart';
 import 'package:athkar_app/features/tasbih/services/tasbih_service.dart';
 import 'package:flutter/material.dart';
@@ -89,19 +89,25 @@ class CustomDhikrDialogs {
                 final text = textController.text.trim();
                 
                 if (text.isEmpty) {
-                  context.showErrorSnackBar('الرجاء إدخال نص الذكر');
+                  if (context.mounted) {
+                    context.showErrorSnackBar('الرجاء إدخال نص الذكر');
+                  }
                   return;
                 }
                 
                 if (text.length < 3) {
-                  context.showErrorSnackBar('نص الذكر قصير جداً (3 أحرف على الأقل)');
+                  if (context.mounted) {
+                    context.showErrorSnackBar('نص الذكر قصير جداً (3 أحرف على الأقل)');
+                  }
                   return;
                 }
                 
                 final count = int.tryParse(countController.text) ?? 33;
                 
                 if (count < 1 || count > 1000) {
-                  context.showErrorSnackBar('عدد التسبيح يجب أن يكون بين 1 و 1000');
+                  if (context.mounted) {
+                    context.showErrorSnackBar('عدد التسبيح يجب أن يكون بين 1 و 1000');
+                  }
                   return;
                 }
                 
@@ -122,12 +128,20 @@ class CustomDhikrDialogs {
                   
                   await service.addCustomDhikr(newDhikr);
                   
-                  Navigator.pop(dialogContext);
+                  // ✅ إصلاح: التحقق من mounted قبل Navigation
+                  if (dialogContext.mounted) {
+                    Navigator.pop(dialogContext);
+                  }
+                  
                   onAdded(newDhikr);
                   
-                  context.showSuccessSnackBar('تم إضافة الذكر بنجاح');
+                  if (context.mounted) {
+                    context.showSuccessSnackBar('تم إضافة الذكر بنجاح');
+                  }
                 } catch (e) {
-                  context.showErrorSnackBar('حدث خطأ أثناء إضافة الذكر');
+                  if (context.mounted) {
+                    context.showErrorSnackBar('حدث خطأ أثناء إضافة الذكر');
+                  }
                   debugPrint('[CustomDhikrDialogs] Error adding: $e');
                 }
               },
@@ -204,23 +218,27 @@ class CustomDhikrDialogs {
                 final text = textController.text.trim();
                 
                 if (text.isEmpty) {
-                  context.showErrorSnackBar('الرجاء إدخال نص الذكر');
+                  if (context.mounted) {
+                    context.showErrorSnackBar('الرجاء إدخال نص الذكر');
+                  }
                   return;
                 }
                 
                 if (text.length < 3) {
-                  context.showErrorSnackBar('نص الذكر قصير جداً (3 أحرف على الأقل)');
+                  if (context.mounted) {
+                    context.showErrorSnackBar('نص الذكر قصير جداً (3 أحرف على الأقل)');
+                  }
                   return;
                 }
                 
                 final count = int.tryParse(countController.text) ?? 33;
                 
                 if (count < 1 || count > 1000) {
-                  context.showErrorSnackBar('عدد التسبيح يجب أن يكون بين 1 و 1000');
+                  if (context.mounted) {
+                    context.showErrorSnackBar('عدد التسبيح يجب أن يكون بين 1 و 1000');
+                  }
                   return;
-                }
-                
-                try {
+                }try {
                   final updatedDhikr = dhikr.copyWith(
                     text: text,
                     virtue: virtueController.text.trim().isEmpty ? null : virtueController.text.trim(),
@@ -232,12 +250,20 @@ class CustomDhikrDialogs {
                   
                   await service.updateCustomDhikr(dhikr.id, updatedDhikr);
                   
-                  Navigator.pop(dialogContext);
+                  // ✅ إصلاح: التحقق من mounted قبل Navigation
+                  if (dialogContext.mounted) {
+                    Navigator.pop(dialogContext);
+                  }
+                  
                   onEdited(updatedDhikr);
                   
-                  context.showSuccessSnackBar('تم تحديث الذكر بنجاح');
+                  if (context.mounted) {
+                    context.showSuccessSnackBar('تم تحديث الذكر بنجاح');
+                  }
                 } catch (e) {
-                  context.showErrorSnackBar('حدث خطأ أثناء تحديث الذكر');
+                  if (context.mounted) {
+                    context.showErrorSnackBar('حدث خطأ أثناء تحديث الذكر');
+                  }
                   debugPrint('[CustomDhikrDialogs] Error updating: $e');
                 }
               },
@@ -272,9 +298,15 @@ class CustomDhikrDialogs {
         try {
           await service.deleteCustomDhikr(dhikr.id);
           onDeleted();
-          context.showSuccessSnackBar('تم حذف الذكر بنجاح');
+          
+          // ✅ إصلاح: التحقق من mounted قبل استخدام context
+          if (context.mounted) {
+            context.showSuccessSnackBar('تم حذف الذكر بنجاح');
+          }
         } catch (e) {
-          context.showErrorSnackBar('حدث خطأ أثناء حذف الذكر');
+          if (context.mounted) {
+            context.showErrorSnackBar('حدث خطأ أثناء حذف الذكر');
+          }
           debugPrint('[CustomDhikrDialogs] Error deleting: $e');
         }
       }

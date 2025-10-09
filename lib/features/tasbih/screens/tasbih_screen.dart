@@ -166,10 +166,13 @@ class _TasbihScreenState extends State<TasbihScreen> {
     }
   }
 
+  // ✅ إصلاح: التحقق من mounted قبل استخدام context
   void _showCompletionMessage() {
-    context.showSuccessSnackBar(
-      'تم إكمال جولة ${_currentDhikr.category.title} 🎉',
-    );
+    if (mounted) {
+      context.showSuccessSnackBar(
+        'تم إكمال جولة ${_currentDhikr.category.title} 🎉',
+      );
+    }
   }
 
   void _showResetDialog() {
@@ -182,7 +185,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
       icon: Icons.refresh_rounded,
       destructive: true,
     ).then((confirmed) {
-      if (confirmed == true) {
+      if (confirmed == true && mounted) {
         _service.reset();
         HapticFeedback.mediumImpact();
         context.showSuccessSnackBar('تم تصفير العداد');
@@ -201,7 +204,11 @@ class _TasbihScreenState extends State<TasbihScreen> {
     
     _service.startSession(newDhikr.text);
     HapticFeedback.mediumImpact();
-    context.showSuccessSnackBar('تم تغيير الذكر إلى: ${newDhikr.text}');
+    
+    // ✅ إصلاح: التحقق من mounted قبل استخدام context
+    if (mounted) {
+      context.showSuccessSnackBar('تم تغيير الذكر إلى: ${newDhikr.text}');
+    }
   }
 
   void _showDhikrSelectionModal() {

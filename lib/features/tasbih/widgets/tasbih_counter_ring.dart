@@ -1,4 +1,4 @@
-// lib/features/tasbih/widgets/tasbih_counter_ring.dart - محسّن ومُصلح
+// lib/features/tasbih/widgets/tasbih_counter_ring.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:math' as math;
@@ -31,7 +31,7 @@ class _TasbihCounterRingState extends State<TasbihCounterRing>
     super.initState();
     
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 400), // أسرع قليلاً
+      duration: const Duration(milliseconds: 400),
       vsync: this,
     );
     
@@ -51,9 +51,12 @@ class _TasbihCounterRingState extends State<TasbihCounterRing>
   void didUpdateWidget(TasbihCounterRing oldWidget) {
     super.didUpdateWidget(oldWidget);
     
-    // ✅ تحديث محسّن: يسمح بالتحديثات المتتالية
-    if ((widget.progress - oldWidget.progress).abs() > 0.001) { // تجاهل التغييرات الصغيرة جداً
-      // إذا كان الأنيميشن قيد التشغيل، نأخذ القيمة الحالية كنقطة بداية
+    // ✅ إصلاح: إيقاف الأنيميشن السابق قبل بدء جديد
+    if ((widget.progress - oldWidget.progress).abs() > 0.001) {
+      // إيقاف الأنيميشن الحالي
+      _controller.stop();
+      
+      // استخدام القيمة الحالية كنقطة بداية
       final beginValue = _controller.isAnimating 
           ? _animation.value 
           : _currentProgress;
@@ -68,10 +71,8 @@ class _TasbihCounterRingState extends State<TasbihCounterRing>
       
       _currentProgress = widget.progress;
       
-      // إعادة تشغيل الأنيميشن
-      _controller
-        ..reset()
-        ..forward();
+      // بدء الأنيميشن من الصفر
+      _controller.forward(from: 0.0);
     }
   }
 
@@ -120,11 +121,11 @@ class _CounterRingPainter extends CustomPainter {
     _drawBackgroundRing(canvas, center, radius);
 
     // 2. رسم حلقة التقدم
-    if (progress > 0.001) { // ✅ تجاهل القيم الصغيرة جداً
+    if (progress > 0.001) {
       _drawProgressRing(canvas, center, radius);
       
       // 3. رسم النقطة في نهاية الحلقة
-      if (progress < 0.999) { // ✅ تحسين الشرط
+      if (progress < 0.999) {
         _drawEndDot(canvas, center, radius);
       }
     }

@@ -14,7 +14,8 @@ class DhikrItem {
   final bool isCustom;
   final DateTime? createdAt; // للأذكار المخصصة
 
-  const DhikrItem({
+  // ✅ إزالة const لتجنب مشاكل immutability
+  DhikrItem({
     required this.id,
     required this.text,
     this.virtue,
@@ -24,7 +25,8 @@ class DhikrItem {
     required this.primaryColor,
     this.isCustom = false,
     this.createdAt,
-  });
+  }) : assert(recommendedCount >= 1 && recommendedCount <= 1000, 
+             'recommendedCount must be between 1 and 1000');
 
   // ✅ تحسين fromMap للتأكد من قراءة recommendedCount بشكل صحيح
   factory DhikrItem.fromMap(Map<String, dynamic> map) {
@@ -161,13 +163,13 @@ class DefaultAdhkar {
   static List<DhikrItem> getAll() {
     return [
       // التسبيح
-      const DhikrItem(
+      DhikrItem(
         id: 'subhan_allah',
         text: 'سُبْحَانَ اللهِ',
         virtue: 'من قال سبحان الله مائة مرة حطت خطاياه وإن كانت مثل زبد البحر',
         recommendedCount: 33,
         category: DhikrCategory.tasbih,
-        gradient: [ThemeConstants.primary, ThemeConstants.primaryLight],
+        gradient: const [ThemeConstants.primary, ThemeConstants.primaryLight],
         primaryColor: ThemeConstants.primary,
       ),
       
@@ -202,13 +204,13 @@ class DefaultAdhkar {
       ),
 
       // التحميد
-      const DhikrItem(
+      DhikrItem(
         id: 'alhamdulillah',
         text: 'الْحَمْدُ لِلّهِ',
         virtue: 'الحمد لله تملأ الميزان، والتسبيح والتكبير تملآن أو تملأ ما بين السماء والأرض',
         recommendedCount: 33,
         category: DhikrCategory.tahmid,
-        gradient: [ThemeConstants.accent, ThemeConstants.accentLight],
+        gradient: const [ThemeConstants.accent, ThemeConstants.accentLight],
         primaryColor: ThemeConstants.accent,
       ),
       
@@ -233,13 +235,13 @@ class DefaultAdhkar {
       ),
 
       // التكبير
-      const DhikrItem(
+      DhikrItem(
         id: 'allahu_akbar',
         text: 'اللهُ أَكْبَرُ',
         virtue: 'التكبير يملأ ما بين السماء والأرض، وهو من أحب الكلام إلى الله',
         recommendedCount: 34,
         category: DhikrCategory.takbir,
-        gradient: [ThemeConstants.tertiary, ThemeConstants.tertiaryLight],
+        gradient: const [ThemeConstants.tertiary, ThemeConstants.tertiaryLight],
         primaryColor: ThemeConstants.tertiary,
       ),
       
@@ -295,13 +297,13 @@ class DefaultAdhkar {
       ),
 
       // الاستغفار
-      const DhikrItem(
+      DhikrItem(
         id: 'astaghfirullah',
         text: 'أَسْتَغْفِرُ اللهَ',
         virtue: 'الاستغفار يمحو الذنوب ويجلب الرزق والفرج، ومن لزمه فتحت له أبواب الرحمة',
         recommendedCount: 100,
         category: DhikrCategory.istighfar,
-        gradient: [ThemeConstants.primaryDark, ThemeConstants.primary],
+        gradient: const [ThemeConstants.primaryDark, ThemeConstants.primary],
         primaryColor: ThemeConstants.primaryDark,
       ),
       
@@ -326,13 +328,13 @@ class DefaultAdhkar {
       ),
 
       // الصلاة على النبي
-      const DhikrItem(
+      DhikrItem(
         id: 'salallahu_alayhi_wasallam',
         text: 'اللَّهُمَّ صَلِّ وَسَلِّمْ عَلَى نَبِيِّنَا مُحَمَّدٍ',
         virtue: 'من صلى علي صلاة صلى الله عليه بها عشراً، وحطت عنه عشر خطايا، ورفعت له عشر درجات',
         recommendedCount: 10,
         category: DhikrCategory.salawat,
-        gradient: [ThemeConstants.accentDark, ThemeConstants.accent],
+        gradient: const [ThemeConstants.accentDark, ThemeConstants.accent],
         primaryColor: ThemeConstants.accentDark,
       ),
 

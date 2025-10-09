@@ -1,4 +1,4 @@
-// lib/features/tasbih/widgets/dhikr_card.dart - محسّن بالكامل
+// lib/features/tasbih/widgets/dhikr_card.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';

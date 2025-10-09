@@ -1,4 +1,4 @@
-// lib/features/tasbih/widgets/tasbih_screen/tasbih_main_area.dart
+// lib/features/tasbih/widgets/tasbih_main_area.dart
 import 'package:athkar_app/features/tasbih/models/dhikr_model.dart';
 import 'package:athkar_app/features/tasbih/services/tasbih_service.dart';
 import 'package:athkar_app/features/tasbih/widgets/tasbih_bead_widget.dart';
