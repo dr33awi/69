@@ -35,8 +35,8 @@ class OnboardingPages {
   static final List<OnboardingPageModel> pages = [
     // الصفحة الأولى - الترحيب
     OnboardingPageModel(
-      title: 'مرحباً بك في حصن المسلم',
-      description: 'رفيقك اليومي للأذكار والأدعية ومواقيت الصلاة',
+      title: 'مرحباً بك في ذكرني',
+      description: '',
       animationPath: 'assets/animations/welcome.json',
       icon: Icons.mosque_rounded,
       primaryColor: primaryGreen,
@@ -50,8 +50,8 @@ class OnboardingPages {
     
     // الصفحة الثانية - الأذكار
     OnboardingPageModel(
-      title: 'أذكار الصباح والمساء',
-      description: 'أذكار صحيحة من القرآن والسنة مع تذكيرات ذكية',
+      title: 'أذكار المسلم',
+      description: '',
       animationPath: 'assets/animations/athkar.json',
       icon: Icons.menu_book_rounded,
       primaryColor: accentGold,
@@ -65,8 +65,8 @@ class OnboardingPages {
     
     // الصفحة الثالثة - مواقيت الصلاة
     OnboardingPageModel(
-      title: 'مواقيت الصلاة الدقيقة',
-      description: 'أوقات دقيقة للصلاة مع تنبيهات مخصصة لكل صلاة',
+      title: 'مواقيت الصلاة ',
+      description: '',
       animationPath: 'assets/animations/prayer.json',
       icon: Icons.access_time_rounded,
       primaryColor: infoBlue,
@@ -81,7 +81,7 @@ class OnboardingPages {
     // الصفحة الرابعة - القبلة
     OnboardingPageModel(
       title: 'اتجاه القبلة',
-      description: 'بوصلة دقيقة لتحديد اتجاه القبلة في أي مكان',
+      description: '',
       animationPath: 'assets/animations/qibla.json',
       icon: Icons.explore_rounded,
       primaryColor: tertiaryBrown,
@@ -96,7 +96,7 @@ class OnboardingPages {
     // الصفحة الخامسة - التسبيح
     OnboardingPageModel(
       title: 'المسبحة الرقمية',
-      description: 'عداد تسبيح ذكي مع إحصائيات وأهداف يومية',
+      description: '',
       animationPath: 'assets/animations/tasbih.json',
       icon: Icons.touch_app_rounded,
       primaryColor: primaryGreen,
@@ -111,7 +111,7 @@ class OnboardingPages {
     // الصفحة السادسة - أسماء الله الحسنى
     OnboardingPageModel(
       title: 'أسماء الله الحسنى',
-      description: 'الأسماء الـ99 مع شرح معانيها وفضلها',
+      description: '',
       animationPath: 'assets/animations/names.json',
       icon: Icons.auto_awesome_rounded,
       primaryColor: accentGold,

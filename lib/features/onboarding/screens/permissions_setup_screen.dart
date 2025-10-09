@@ -12,7 +12,7 @@ import '../../../core/infrastructure/services/permissions/permission_manager.dar
 import '../../../core/infrastructure/services/permissions/permission_constants.dart';
 import '../../../core/infrastructure/services/storage/storage_service.dart';
 
-/// شاشة إعداد الأذونات بتصميم احترافي محسّن - بدون Progress Bar
+/// شاشة إعداد الأذونات بتصميم مشابه لـ Onboarding
 class PermissionsSetupScreen extends StatefulWidget {
   const PermissionsSetupScreen({super.key});
 
@@ -20,21 +20,14 @@ class PermissionsSetupScreen extends StatefulWidget {
   State<PermissionsSetupScreen> createState() => _PermissionsSetupScreenState();
 }
 
-class _PermissionsSetupScreenState extends State<PermissionsSetupScreen>
-    with TickerProviderStateMixin {
+class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
   late final UnifiedPermissionManager _permissionManager;
   late final PermissionService _permissionService;
-  
-  late AnimationController _headerAnimationController;
-  late AnimationController _successAnimationController;
-  late Animation<double> _headerFadeAnimation;
-  late Animation<double> _headerSlideAnimation;
 
   final Map<AppPermissionType, AppPermissionStatus> _permissionStatuses = {};
   final Map<AppPermissionType, bool> _isProcessingMap = {};
   
   bool _isCompletingSetup = false;
-  int _animatingPermissionIndex = -1;
 
   final List<AppPermissionType> _criticalPermissions = 
       PermissionConstants.criticalPermissions;
@@ -44,37 +37,7 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen>
     super.initState();
     _permissionManager = getIt<UnifiedPermissionManager>();
     _permissionService = getIt<PermissionService>();
-
-    _setupAnimations();
     _checkInitialPermissions();
-  }
-
-  void _setupAnimations() {
-    _headerAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-
-    _successAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-
-    _headerFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _headerAnimationController,
-        curve: Curves.easeOut,
-      ),
-    );
-
-    _headerSlideAnimation = Tween<double>(begin: 50.0, end: 0.0).animate(
-      CurvedAnimation(
-        parent: _headerAnimationController,
-        curve: Curves.easeOutCubic,
-      ),
-    );
-
-    _headerAnimationController.forward();
   }
 
   Future<void> _checkInitialPermissions() async {
@@ -88,19 +51,11 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen>
     }
   }
 
-  @override
-  void dispose() {
-    _headerAnimationController.dispose();
-    _successAnimationController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _requestPermission(AppPermissionType permission, int index) async {
+  Future<void> _requestPermission(AppPermissionType permission) async {
     if (_isProcessingMap[permission] == true) return;
 
     setState(() {
       _isProcessingMap[permission] = true;
-      _animatingPermissionIndex = index;
     });
     
     HapticFeedback.lightImpact();
@@ -122,12 +77,6 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen>
 
         if (granted) {
           HapticFeedback.mediumImpact();
-          _playSuccessAnimation();
-          
-          await Future.delayed(const Duration(milliseconds: 500));
-          setState(() => _animatingPermissionIndex = -1);
-        } else {
-          setState(() => _animatingPermissionIndex = -1);
         }
       }
     } catch (e) {
@@ -135,16 +84,9 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen>
       if (mounted) {
         setState(() {
           _isProcessingMap[permission] = false;
-          _animatingPermissionIndex = -1;
         });
       }
     }
-  }
-
-  void _playSuccessAnimation() {
-    _successAnimationController.forward().then((_) {
-      _successAnimationController.reverse();
-    });
   }
 
   Future<void> _completeSetup() async {
@@ -173,12 +115,6 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen>
         _permissionStatuses[permission] == AppPermissionStatus.granted);
   }
 
-  int get _grantedCount {
-    return _criticalPermissions
-        .where((p) => _permissionStatuses[p] == AppPermissionStatus.granted)
-        .length;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -197,30 +133,55 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen>
         child: SafeArea(
           child: Column(
             children: [
-              _buildAnimatedHeader(),
+              // مساحة علوية صغيرة
+              SizedBox(height: 30.h),
               
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: EdgeInsets.symmetric(horizontal: 20.w),
-                  child: Column(
-                    children: [
-                      SizedBox(height: 12.h),
-                      
-                      // Permissions Cards
-                      ...List.generate(
-                        _criticalPermissions.length,
-                        (index) => _buildPermissionCard(index),
+              // Icon Badge
+              _buildIconBadge(),
+
+              // Spacer للمحاذاة الوسطية
+              const Spacer(),
+
+              // المحتوى في المنتصف
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12.w),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Title
+                    Text(
+                      'الأذونات المطلوبة',
+                      style: TextStyle(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        height: 1.2,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withOpacity(0.15),
+                            offset: const Offset(0, 2),
+                            blurRadius: 8,
+                          ),
+                        ],
                       ),
-                      
-                      SizedBox(height: 16.h),
-                    ],
-                  ),
+                      textAlign: TextAlign.center,
+                    ),
+
+                    SizedBox(height: 16.h),
+
+                    // Permissions List
+                    _buildPermissionsList(),
+                  ],
                 ),
               ),
 
+              // Spacer للمحاذاة الوسطية
+              const Spacer(),
+
+              // Action Buttons
               _buildActionButtons(),
-              SizedBox(height: 20.h),
+
+              SizedBox(height: 24.h),
             ],
           ),
         ),
@@ -228,256 +189,174 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen>
     );
   }
 
-  Widget _buildAnimatedHeader() {
-    return FadeTransition(
-      opacity: _headerFadeAnimation,
-      child: AnimatedBuilder(
-        animation: _headerSlideAnimation,
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(0, _headerSlideAnimation.value),
-            child: child,
-          );
-        },
-        child: Padding(
-          padding: EdgeInsets.all(24.w),
-          child: Column(
-            children: [
-              // Animated Icon
-              ScaleTransition(
-                scale: Tween<double>(begin: 0.8, end: 1.0).animate(
-                  CurvedAnimation(
-                    parent: _headerAnimationController,
-                    curve: const Interval(0.3, 1.0, curve: Curves.elasticOut),
-                  ),
-                ),
-                child: Container(
-                  width: 100.w,
-                  height: 100.w,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 20,
-                        spreadRadius: 5,
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.verified_user_rounded,
-                    size: 50.sp,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-
-              SizedBox(height: 20.h),
-
-              Text(
-                'الأذونات المطلوبة',
-                style: TextStyle(
-                  fontSize: 26.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-
-              SizedBox(height: 8.h),
-
-              Text(
-                'نحتاج بعض الأذونات لتقديم أفضل تجربة',
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: Colors.white.withOpacity(0.85),
-                  height: 1.4,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+  Widget _buildIconBadge() {
+    return Container(
+      width: 85.w,
+      height: 85.w,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [
+            Colors.white.withOpacity(0.25),
+            Colors.white.withOpacity(0.15),
+            Colors.white.withOpacity(0.05),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 30,
+            spreadRadius: 5,
+          ),
+        ],
+      ),
+      child: Center(
+        child: Container(
+          width: 65.w,
+          height: 65.w,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.25),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Colors.white.withOpacity(0.35),
+              width: 2.w,
+            ),
+          ),
+          child: Icon(
+            Icons.verified_user_rounded,
+            size: 32.sp,
+            color: Colors.white,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildPermissionCard(int index) {
+  Widget _buildPermissionsList() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(
+        _criticalPermissions.length,
+        (index) => _buildPermissionItem(index),
+      ),
+    );
+  }
+
+  Widget _buildPermissionItem(int index) {
     final permission = _criticalPermissions[index];
     final status = _permissionStatuses[permission] ?? AppPermissionStatus.unknown;
     final isGranted = status == AppPermissionStatus.granted;
     final isProcessing = _isProcessingMap[permission] == true;
-    final isAnimating = _animatingPermissionIndex == index;
     final info = PermissionConstants.getInfo(permission);
 
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: Duration(milliseconds: 400 + (index * 100)),
-      curve: Curves.easeOutBack,
-      builder: (context, value, child) {
-        return Transform.scale(
-          scale: 0.9 + (value * 0.1),
-          child: Opacity(
-            opacity: value,
-            child: child,
-          ),
-        );
-      },
-      child: Container(
-        margin: EdgeInsets.only(bottom: 12.h),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(isGranted ? 0.18 : 0.12),
-          borderRadius: BorderRadius.circular(20.r),
-          border: Border.all(
-            color: isGranted
-                ? Colors.white.withOpacity(0.4)
-                : Colors.white.withOpacity(0.2),
-            width: isGranted ? 2.w : 1.5.w,
-          ),
-          boxShadow: isGranted
-              ? [
-                  BoxShadow(
-                    color: ThemeConstants.success.withOpacity(0.3),
-                    blurRadius: 12,
-                    spreadRadius: 2,
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 3.h),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: isGranted || isProcessing 
+              ? null 
+              : () => _requestPermission(permission),
+          borderRadius: BorderRadius.circular(10.r),
+          child: Container(
+            padding: EdgeInsets.all(10.r),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(isGranted ? 0.2 : 0.12),
+              borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(
+                color: Colors.white.withOpacity(isGranted ? 0.35 : 0.25),
+                width: 1.w,
+              ),
+            ),
+            child: Row(
+              children: [
+                // Icon
+                Container(
+                  padding: EdgeInsets.all(5.r),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.25),
+                    borderRadius: BorderRadius.circular(8.r),
                   ),
-                ]
-              : null,
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: isGranted || isProcessing 
-                ? null 
-                : () => _requestPermission(permission, index),
-            borderRadius: BorderRadius.circular(20.r),
-            child: Padding(
-              padding: EdgeInsets.all(18.w),
-              child: Row(
-                children: [
-                  // Icon with animation
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    width: 56.w,
-                    height: 56.w,
-                    decoration: BoxDecoration(
-                      color: isGranted
-                          ? ThemeConstants.success.withOpacity(0.2)
-                          : info.color.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(16.r),
-                    ),
-                    child: isAnimating
-                        ? const Center(
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
+                  child: isProcessing
+                      ? SizedBox(
+                          width: 12.w,
+                          height: 12.w,
+                          child: const CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
                             ),
-                          )
-                        : Icon(
-                            isGranted ? Icons.check_circle_rounded : info.icon,
-                            color: isGranted 
-                                ? ThemeConstants.success 
-                                : Colors.white,
-                            size: 28.sp,
                           ),
+                        )
+                      : Icon(
+                          isGranted ? Icons.check : info.icon,
+                          size: 16.sp,
+                          color: Colors.white,
+                        ),
+                ),
+
+                SizedBox(width: 8.w),
+
+                // Content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        info.name,
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          height: 1.2,
+                        ),
+                      ),
+                      SizedBox(height: 1.h),
+                      Text(
+                        info.description,
+                        style: TextStyle(
+                          fontSize: 9.sp,
+                          color: Colors.white.withOpacity(0.85),
+                          height: 1.2,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
+                ),
 
-                  SizedBox(width: 16.w),
+                SizedBox(width: 6.w),
 
-                  // Content
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          info.name,
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        SizedBox(height: 4.h),
-                        Text(
-                          info.description,
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            color: Colors.white.withOpacity(0.8),
-                            height: 1.3,
-                          ),
-                        ),
-                      ],
+                // Status Badge
+                if (isGranted)
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 6.w,
+                      vertical: 2.h,
                     ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.25),
+                      borderRadius: BorderRadius.circular(6.r),
+                    ),
+                    child: Text(
+                      'مفعل',
+                      style: TextStyle(
+                        fontSize: 8.sp,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  )
+                else if (!isProcessing)
+                  Icon(
+                    Icons.arrow_back_ios_rounded,
+                    size: 10.sp,
+                    color: Colors.white.withOpacity(0.7),
                   ),
-
-                  SizedBox(width: 12.w),
-
-                  // Status Badge
-                  _buildStatusBadge(isGranted, isProcessing),
-                ],
-              ),
+              ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusBadge(bool isGranted, bool isProcessing) {
-    if (isProcessing) {
-      return SizedBox(
-        width: 24.w,
-        height: 24.w,
-        child: CircularProgressIndicator(
-          strokeWidth: 2.5.w,
-          valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-        ),
-      );
-    }
-
-    if (isGranted) {
-      return Container(
-        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
-        decoration: BoxDecoration(
-          color: ThemeConstants.success.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(20.r),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.check,
-              color: ThemeConstants.success,
-              size: 14.sp,
-            ),
-            SizedBox(width: 4.w),
-            Text(
-              'مفعل',
-              style: TextStyle(
-                fontSize: 11.sp,
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20.r),
-      ),
-      child: Text(
-        'تفعيل',
-        style: TextStyle(
-          fontSize: 12.sp,
-          color: ThemeConstants.primary,
-          fontWeight: FontWeight.bold,
         ),
       ),
     );
@@ -485,32 +364,30 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen>
 
   Widget _buildActionButtons() {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.w),
       child: Column(
         children: [
           // Main Button
           SizedBox(
             width: double.infinity,
-            height: 54.h,
+            height: 46.h,
             child: ElevatedButton(
-              onPressed: _allPermissionsGranted && !_isCompletingSetup
-                  ? _completeSetup
-                  : null,
+              onPressed: !_isCompletingSetup ? _completeSetup : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: ThemeConstants.primary,
-                disabledBackgroundColor: Colors.white.withOpacity(0.3),
-                disabledForegroundColor: Colors.white.withOpacity(0.6),
-                elevation: _allPermissionsGranted ? 8 : 0,
+                disabledBackgroundColor: Colors.white.withOpacity(0.5),
+                disabledForegroundColor: ThemeConstants.primary.withOpacity(0.7),
+                elevation: 8,
                 shadowColor: Colors.black.withOpacity(0.3),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16.r),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
               ),
               child: _isCompletingSetup
                   ? SizedBox(
-                      width: 24.w,
-                      height: 24.w,
+                      width: 18.w,
+                      height: 18.w,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.5.w,
                         valueColor: AlwaysStoppedAnimation<Color>(
@@ -522,17 +399,17 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'ابدأ الآن',
+                          _allPermissionsGranted ? 'ابدأ الآن' : 'تخطي في الوقت الحالي',
                           style: TextStyle(
-                            fontSize: 17.sp,
+                            fontSize: 13.sp,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         if (_allPermissionsGranted) ...[
-                          SizedBox(width: 8.w),
+                          SizedBox(width: 5.w),
                           Icon(
                             Icons.arrow_back,
-                            size: 20.sp,
+                            size: 15.sp,
                           ),
                         ],
                       ],
@@ -540,46 +417,39 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen>
             ),
           ),
 
-          SizedBox(height: 10.h),
+          SizedBox(height: 8.h),
 
           // Status Text
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            child: _allPermissionsGranted
-                ? Row(
-                    key: const ValueKey('completed'),
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.check_circle,
-                        color: ThemeConstants.success,
-                        size: 18.sp,
-                      ),
-                      SizedBox(width: 8.w),
-                      Text(
-                        'جميع الأذونات مفعلة',
-                        style: TextStyle(
-                          fontSize: 13.sp,
-                          color: Colors.white.withOpacity(0.9),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  )
-                : TextButton(
-                    key: const ValueKey('skip'),
-                    onPressed: _isCompletingSetup ? null : _completeSetup,
-                    child: Text(
-                      'تخطي في الوقت الحالي',
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        color: Colors.white.withOpacity(0.8),
-                        decoration: TextDecoration.underline,
-                        decorationColor: Colors.white.withOpacity(0.8),
-                      ),
-                    ),
+          if (_allPermissionsGranted)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.check_circle,
+                  color: Colors.white,
+                  size: 13.sp,
+                ),
+                SizedBox(width: 5.w),
+                Text(
+                  'جميع الأذونات مفعلة',
+                  style: TextStyle(
+                    fontSize: 10.sp,
+                    color: Colors.white.withOpacity(0.9),
+                    fontWeight: FontWeight.w600,
                   ),
-          ),
+                ),
+              ],
+            )
+          else
+            Text(
+              'يمكنك تفعيل الأذونات لاحقاً من الإعدادات',
+              style: TextStyle(
+                fontSize: 9.sp,
+                color: Colors.white.withOpacity(0.75),
+                height: 1.3,
+              ),
+              textAlign: TextAlign.center,
+            ),
         ],
       ),
     );
