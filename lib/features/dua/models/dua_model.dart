@@ -16,9 +16,6 @@ class Dua extends Equatable {
   final bool isFavorite;
   final int readCount;
   final DateTime? lastRead;
-  final String? audioUrl;
-  final String? benefits;
-  final String? occasion;
   final DuaType type;
 
   const Dua({
@@ -35,9 +32,6 @@ class Dua extends Equatable {
     this.isFavorite = false,
     this.readCount = 0,
     this.lastRead,
-    this.audioUrl,
-    this.benefits,
-    this.occasion,
     this.type = DuaType.general,
   });
 
@@ -56,9 +50,6 @@ class Dua extends Equatable {
         isFavorite,
         readCount,
         lastRead,
-        audioUrl,
-        benefits,
-        occasion,
         type,
       ];
 
@@ -76,9 +67,6 @@ class Dua extends Equatable {
     bool? isFavorite,
     int? readCount,
     DateTime? lastRead,
-    String? audioUrl,
-    String? benefits,
-    String? occasion,
     DuaType? type,
   }) {
     return Dua(
@@ -95,9 +83,6 @@ class Dua extends Equatable {
       isFavorite: isFavorite ?? this.isFavorite,
       readCount: readCount ?? this.readCount,
       lastRead: lastRead ?? this.lastRead,
-      audioUrl: audioUrl ?? this.audioUrl,
-      benefits: benefits ?? this.benefits,
-      occasion: occasion ?? this.occasion,
       type: type ?? this.type,
     );
   }
@@ -117,9 +102,6 @@ class Dua extends Equatable {
       'isFavorite': isFavorite ? 1 : 0,
       'readCount': readCount,
       'lastRead': lastRead?.millisecondsSinceEpoch,
-      'audioUrl': audioUrl,
-      'benefits': benefits,
-      'occasion': occasion,
       'type': type.index,
     };
   }
@@ -141,9 +123,6 @@ class Dua extends Equatable {
       lastRead: map['lastRead'] != null
           ? DateTime.fromMillisecondsSinceEpoch(map['lastRead'])
           : null,
-      audioUrl: map['audioUrl'],
-      benefits: map['benefits'],
-      occasion: map['occasion'],
       type: DuaType.values[map['type'] ?? 0],
     );
   }
@@ -233,6 +212,11 @@ extension DuaTypeExtension on DuaType {
         return 'أدعية طلب العلم والحكمة';
     }
   }
+  
+  /// الحصول على معرف الفئة من النوع
+  String get categoryId {
+    return name; // يستخدم اسم enum كمعرف (general, morning, etc.)
+  }
 }
 
 /// نموذج فئة الأدعية
@@ -240,19 +224,15 @@ class DuaCategory extends Equatable {
   final String id;
   final String name;
   final String description;
-  final String icon;
   final DuaType type;
   final int duaCount;
-  final String? backgroundImage;
 
   const DuaCategory({
     required this.id,
     required this.name,
     required this.description,
-    required this.icon,
     required this.type,
     this.duaCount = 0,
-    this.backgroundImage,
   });
 
   @override
@@ -260,29 +240,23 @@ class DuaCategory extends Equatable {
         id,
         name,
         description,
-        icon,
         type,
         duaCount,
-        backgroundImage,
       ];
 
   DuaCategory copyWith({
     String? id,
     String? name,
     String? description,
-    String? icon,
     DuaType? type,
     int? duaCount,
-    String? backgroundImage,
   }) {
     return DuaCategory(
       id: id ?? this.id,
       name: name ?? this.name,
       description: description ?? this.description,
-      icon: icon ?? this.icon,
       type: type ?? this.type,
       duaCount: duaCount ?? this.duaCount,
-      backgroundImage: backgroundImage ?? this.backgroundImage,
     );
   }
 }

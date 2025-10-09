@@ -130,7 +130,7 @@ class StorageServiceImpl implements StorageService {
     }
   }
 
-  // ==================== NEW: Generic List Operations ====================
+  // ==================== Generic List Operations ====================
   
   @override
   Future<bool> setList(String key, List<dynamic> value) async {
@@ -238,6 +238,144 @@ class StorageServiceImpl implements StorageService {
     } catch (e) {
       _logError('Failed to get keys', e);
       return {};
+    }
+  }
+
+  // ==================== NEW: Prefix Operations ====================
+  
+  @override
+  Future<ClearPrefixResult> clearPrefix(String prefix) async {
+    try {
+      if (prefix.isEmpty) {
+        _logWarning('clearPrefix called with empty prefix');
+        return const ClearPrefixResult(
+          success: false,
+          deletedCount: 0,
+          errorMessage: 'البادئة لا يمكن أن تكون فارغة',
+        );
+      }
+
+      // الحصول على جميع المفاتيح
+      final allKeys = _prefs.getKeys();
+      
+      // تصفية المفاتيح التي تبدأ بالـ prefix
+      final keysToDelete = allKeys.where((key) => key.startsWith(prefix)).toList();
+      
+      if (keysToDelete.isEmpty) {
+        _log('No keys found with prefix', {'prefix': prefix});
+        return ClearPrefixResult(
+          success: true,
+          deletedCount: 0,
+          totalFound: 0,
+          message: 'لم يتم العثور على مفاتيح للحذف',
+        );
+      }
+
+      // حذف المفاتيح
+      int deletedCount = 0;
+      final List<String> failedKeys = [];
+
+      for (final key in keysToDelete) {
+        try {
+          final removed = await _prefs.remove(key);
+          if (removed) {
+            deletedCount++;
+          } else {
+            failedKeys.add(key);
+          }
+        } catch (e) {
+          _logError('Failed to remove key during clearPrefix', e);
+          failedKeys.add(key);
+        }
+      }
+
+      final isFullSuccess = failedKeys.isEmpty;
+      
+      if (isFullSuccess) {
+        _log('Successfully cleared prefix', {
+          'prefix': prefix,
+          'deleted': deletedCount,
+        });
+      } else {
+        _logWarning(
+          'Partially cleared prefix: $prefix. '
+          'Deleted: $deletedCount, Failed: ${failedKeys.length}'
+        );
+      }
+
+      return ClearPrefixResult(
+        success: isFullSuccess,
+        deletedCount: deletedCount,
+        totalFound: keysToDelete.length,
+        failedKeys: failedKeys,
+        message: isFullSuccess
+            ? 'تم مسح $deletedCount مفتاح بنجاح'
+            : 'تم مسح $deletedCount من ${keysToDelete.length} مفتاح',
+      );
+    } catch (e) {
+      _logError('Failed to clear prefix', e);
+      return ClearPrefixResult(
+        success: false,
+        deletedCount: 0,
+        errorMessage: 'حدث خطأ: $e',
+      );
+    }
+  }
+
+  @override
+  Future<Map<String, ClearPrefixResult>> clearMultiplePrefixes(
+    List<String> prefixes,
+  ) async {
+    final results = <String, ClearPrefixResult>{};
+
+    for (final prefix in prefixes) {
+      results[prefix] = await clearPrefix(prefix);
+    }
+
+    final totalDeleted = results.values.fold<int>(
+      0,
+      (sum, result) => sum + result.deletedCount,
+    );
+
+    _log('Cleared multiple prefixes', {
+      'prefixes': prefixes.length,
+      'totalDeleted': totalDeleted,
+    });
+
+    return results;
+  }
+
+  @override
+  int countKeysWithPrefix(String prefix) {
+    try {
+      if (prefix.isEmpty) {
+        _logWarning('countKeysWithPrefix called with empty prefix');
+        return 0;
+      }
+      
+      final allKeys = _prefs.getKeys();
+      final count = allKeys.where((key) => key.startsWith(prefix)).length;
+      
+      return count;
+    } catch (e) {
+      _logError('Failed to count keys with prefix', e);
+      return 0;
+    }
+  }
+
+  @override
+  List<String> getKeysWithPrefix(String prefix) {
+    try {
+      if (prefix.isEmpty) {
+        _logWarning('getKeysWithPrefix called with empty prefix');
+        return [];
+      }
+      
+      final allKeys = _prefs.getKeys();
+      return allKeys.where((key) => key.startsWith(prefix)).toList();
+    } catch (e) {
+      _logError('Failed to get keys with prefix', e);
+      return [];
     }
   }
 

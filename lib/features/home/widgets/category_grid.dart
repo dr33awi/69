@@ -72,7 +72,7 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
     ),
     CategoryItem(
       id: 'dua',
-      title: 'الأدعية المأثورة',
+      title:  'الأدعية الإسلامية',
       icon: Icons.pan_tool_rounded,
       routeName: '/dua',
       isInDevelopment: false,

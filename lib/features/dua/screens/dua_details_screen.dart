@@ -1,4 +1,4 @@
-// lib/features/dua/screens/dua_details_screen.dart - محسّن للشاشات الصغيرة
+// lib/features/dua/screens/dua_details_screen.dart - محسّن
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -29,6 +29,7 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
   bool _isLoading = true;
   double _fontSize = 16.0;
   final ScrollController _scrollController = ScrollController();
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -45,14 +46,30 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
 
   Future<void> _loadDuas() async {
     try {
-      setState(() => _isLoading = true);
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
       
-      _duas = await _duaService.getDuasByCategory(widget.categoryId);
-      _fontSize = await _duaService.getSavedFontSize();
+      final results = await Future.wait([
+        _duaService.getDuasByCategory(widget.categoryId),
+        _duaService.getSavedFontSize(),
+      ]);
+      
+      _duas = results[0] as List<Dua>;
+      _fontSize = results[1] as double;
       
       setState(() => _isLoading = false);
+      
+      debugPrint('✅ تم تحميل ${_duas.length} دعاء من ${widget.categoryName}');
     } catch (e) {
-      setState(() => _isLoading = false);
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'حدث خطأ في تحميل الأدعية';
+      });
+      
+      debugPrint('❌ خطأ في تحميل الأدعية: $e');
+      
       if (mounted) {
         context.showErrorSnackBar('حدث خطأ في تحميل الأدعية');
       }
@@ -68,12 +85,28 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
           children: [
             _buildEnhancedAppBar(),
             Expanded(
-              child: _isLoading ? _buildLoading() : _buildContent(),
+              child: _buildBody(),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return _buildLoading();
+    }
+    
+    if (_errorMessage != null) {
+      return _buildErrorState();
+    }
+    
+    if (_duas.isEmpty) {
+      return _buildEmptyState();
+    }
+    
+    return _buildContent();
   }
 
   Widget _buildEnhancedAppBar() {
@@ -127,13 +160,14 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  '${_duas.length} دعاء',
-                  style: TextStyle(
-                    color: context.textSecondaryColor,
-                    fontSize: 11.sp,
+                if (!_isLoading)
+                  Text(
+                    '${_duas.length} دعاء',
+                    style: TextStyle(
+                      color: context.textSecondaryColor,
+                      fontSize: 11.sp,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -225,11 +259,118 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
     );
   }
 
-  Widget _buildContent() {
-    if (_duas.isEmpty) {
-      return _buildEmptyState();
-    }
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: EdgeInsets.all(20.r),
+            decoration: BoxDecoration(
+              color: Colors.red.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.error_outline_rounded,
+              size: 50.sp,
+              color: Colors.red,
+            ),
+          ),
+          SizedBox(height: 14.h),
+          Text(
+            'حدث خطأ',
+            style: TextStyle(
+              color: context.textSecondaryColor,
+              fontWeight: ThemeConstants.bold,
+              fontSize: 18.sp,
+            ),
+          ),
+          SizedBox(height: 6.h),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 30.w),
+            child: Text(
+              _errorMessage ?? 'حدث خطأ غير متوقع',
+              style: TextStyle(
+                color: context.textSecondaryColor.withValues(alpha: 0.7),
+                fontSize: 13.sp,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          SizedBox(height: 20.h),
+          ElevatedButton.icon(
+            onPressed: _loadDuas,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ThemeConstants.primary,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.r),
+              ),
+            ),
+            icon: Icon(Icons.refresh_rounded, size: 18.sp),
+            label: Text('إعادة المحاولة', style: TextStyle(fontSize: 13.sp)),
+          ),
+        ],
+      ),
+    );
+  }
 
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: EdgeInsets.all(20.r),
+            decoration: BoxDecoration(
+              color: context.textSecondaryColor.withValues(alpha: 0.05),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.menu_book_outlined,
+              size: 50.sp,
+              color: context.textSecondaryColor.withValues(alpha: 0.5),
+            ),
+          ),
+          SizedBox(height: 14.h),
+          Text(
+            'لا توجد أدعية',
+            style: TextStyle(
+              color: context.textSecondaryColor,
+              fontWeight: ThemeConstants.bold,
+              fontSize: 18.sp,
+            ),
+          ),
+          SizedBox(height: 6.h),
+          Text(
+            'لا توجد أدعية في هذه الفئة حالياً',
+            style: TextStyle(
+              color: context.textSecondaryColor.withValues(alpha: 0.7),
+              fontSize: 13.sp,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 20.h),
+          ElevatedButton.icon(
+            onPressed: _loadDuas,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ThemeConstants.primary,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.r),
+              ),
+            ),
+            icon: Icon(Icons.refresh_rounded, size: 18.sp),
+            label: Text('إعادة المحاولة', style: TextStyle(fontSize: 13.sp)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent() {
     return Column(
       children: [
         Container(
@@ -286,7 +427,7 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
                   dua: dua,
                   index: index,
                   fontSize: _fontSize,
-                  onTap: () => _onDuaTap(dua),
+                  onTap: () => _onDuaTap(dua, index),
                   onShare: () => _shareDua(dua),
                   onCopy: () => _copyDua(dua),
                 ),
@@ -295,60 +436,6 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: EdgeInsets.all(20.r),
-            decoration: BoxDecoration(
-              color: context.textSecondaryColor.withValues(alpha: 0.05),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.menu_book_outlined,
-              size: 50.sp,
-              color: context.textSecondaryColor.withValues(alpha: 0.5),
-            ),
-          ),
-          SizedBox(height: 14.h),
-          Text(
-            'لا توجد أدعية',
-            style: TextStyle(
-              color: context.textSecondaryColor,
-              fontWeight: ThemeConstants.bold,
-              fontSize: 18.sp,
-            ),
-          ),
-          SizedBox(height: 6.h),
-          Text(
-            'لا توجد أدعية في هذه الفئة حالياً',
-            style: TextStyle(
-              color: context.textSecondaryColor.withValues(alpha: 0.7),
-              fontSize: 13.sp,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 20.h),
-          ElevatedButton.icon(
-            onPressed: _loadDuas,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: ThemeConstants.primary,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.r),
-              ),
-            ),
-            icon: Icon(Icons.refresh_rounded, size: 18.sp),
-            label: Text('إعادة المحاولة', style: TextStyle(fontSize: 13.sp)),
-          ),
-        ],
-      ),
     );
   }
 
@@ -407,7 +494,9 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
             
             await _duaService.saveFontSize(size);
             
-            Navigator.pop(context);
+            if (mounted) {
+              Navigator.pop(context);
+            }
           },
           borderRadius: BorderRadius.circular(10.r),
           child: Container(
@@ -479,19 +568,27 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
     );
   }
 
-  void _onDuaTap(Dua dua) {
+  Future<void> _onDuaTap(Dua dua, int index) async {
     HapticFeedback.lightImpact();
-    _duaService.markDuaAsRead(dua.id);
     
-    setState(() {
-      final index = _duas.indexWhere((d) => d.id == dua.id);
-      if (index != -1) {
-        _duas[index] = dua.copyWith(
-          readCount: dua.readCount + 1,
-          lastRead: DateTime.now(),
-        );
+    try {
+      await _duaService.markDuaAsRead(dua.id);
+      
+      if (mounted) {
+        setState(() {
+          _duas[index] = dua.copyWith(
+            readCount: dua.readCount + 1,
+            lastRead: DateTime.now(),
+          );
+        });
       }
-    });
+    } catch (e) {
+      debugPrint('❌ خطأ في تسجيل قراءة الدعاء: $e');
+      
+      if (mounted) {
+        context.showErrorSnackBar('فشل تسجيل قراءة الدعاء');
+      }
+    }
   }
 
   void _shareDua(Dua dua) {

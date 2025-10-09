@@ -166,7 +166,6 @@ class _TasbihScreenState extends State<TasbihScreen> {
     }
   }
 
-  // ✅ إصلاح: التحقق من mounted قبل استخدام context
   void _showCompletionMessage() {
     if (mounted) {
       context.showSuccessSnackBar(
@@ -193,19 +192,23 @@ class _TasbihScreenState extends State<TasbihScreen> {
     });
   }
 
-  void _changeDhikr(DhikrItem newDhikr) {
-    if (_service.count > 0) {
-      _service.endSession();
-    }
+  // ✅ الإصلاح: تصفير العداد عند تغيير الذكر
+  void _changeDhikr(DhikrItem newDhikr) async {
+    // حفظ الجلسة الحالية
+    await _service.endSession();
     
+    // تصفير العداد الحالي
+    await _service.reset();
+    
+    // تحديث الذكر
     setState(() {
       _currentDhikr = newDhikr;
     });
     
+    // بدء جلسة جديدة
     _service.startSession(newDhikr.text);
     HapticFeedback.mediumImpact();
     
-    // ✅ إصلاح: التحقق من mounted قبل استخدام context
     if (mounted) {
       context.showSuccessSnackBar('تم تغيير الذكر إلى: ${newDhikr.text}');
     }

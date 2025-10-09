@@ -1,4 +1,4 @@
-// lib/features/dua/widgets/dua_card_widget.dart - محسّن للشاشات الصغيرة
+// lib/features/dua/widgets/dua_card_widget.dart - محسّن
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -174,32 +174,30 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
               
               if (widget.dua.tags.isNotEmpty) ...[
                 SizedBox(height: 3.h),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: widget.dua.tags.take(2).map((tag) => 
-                      Container(
-                        margin: EdgeInsets.only(right: 5.w),
-                        padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                        decoration: BoxDecoration(
-                          color: cardColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(999.r),
-                          border: Border.all(
-                            color: cardColor.withValues(alpha: 0.2),
-                            width: 1.w,
-                          ),
-                        ),
-                        child: Text(
-                          tag,
-                          style: TextStyle(
-                            color: cardColor,
-                            fontWeight: ThemeConstants.medium,
-                            fontSize: 10.sp,
-                          ),
+                Wrap(
+                  spacing: 5.w,
+                  runSpacing: 3.h,
+                  children: widget.dua.tags.take(2).map((tag) => 
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                      decoration: BoxDecoration(
+                        color: cardColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(999.r),
+                        border: Border.all(
+                          color: cardColor.withValues(alpha: 0.2),
+                          width: 1.w,
                         ),
                       ),
-                    ).toList(),
-                  ),
+                      child: Text(
+                        tag,
+                        style: TextStyle(
+                          color: cardColor,
+                          fontWeight: ThemeConstants.medium,
+                          fontSize: 10.sp,
+                        ),
+                      ),
+                    ),
+                  ).toList(),
                 ),
               ],
             ],

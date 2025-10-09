@@ -1,5 +1,6 @@
 // lib/features/dua/services/dua_service.dart
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 import '../../../core/infrastructure/services/storage/storage_service.dart';
 import '../models/dua_model.dart';
@@ -12,8 +13,10 @@ class DuaService {
   // مفاتيح التخزين
   static const String _favoriteDuasKey = 'favorite_duas';
   static const String _duaReadCountPrefix = 'dua_read_count_';
+  static const String _duaLastReadPrefix = 'last_read_';
   static const String _lastReadDuaKey = 'last_read_dua';
   static const String _fontSizeKey = 'dua_font_size';
+  static const double _defaultFontSize = 18.0;
 
   DuaService({
     required StorageService storage,
@@ -24,7 +27,7 @@ class DuaService {
     try {
       return await DuaData.getCategories();
     } catch (e) {
-      debugPrint('خطأ في الحصول على فئات الأدعية: $e');
+      debugPrint('❌ خطأ في الحصول على فئات الأدعية: $e');
       return [];
     }
   }
@@ -33,9 +36,29 @@ class DuaService {
   Future<List<Dua>> getDuasByCategory(String categoryId) async {
     try {
       final duas = await DuaData.getDuasByCategory(categoryId);
+      return _enrichDuasWithLocalData(duas);
+    } catch (e) {
+      debugPrint('❌ خطأ في الحصول على الأدعية للفئة $categoryId: $e');
+      return [];
+    }
+  }
+
+  /// الحصول على جميع الأدعية
+  Future<List<Dua>> getAllDuas() async {
+    try {
+      final allDuas = await DuaData.getAllDuas();
+      return _enrichDuasWithLocalData(allDuas);
+    } catch (e) {
+      debugPrint('❌ خطأ في الحصول على جميع الأدعية: $e');
+      return [];
+    }
+  }
+
+  /// إثراء الأدعية ببيانات محلية (المفضلة، عدد القراءات، إلخ)
+  List<Dua> _enrichDuasWithLocalData(List<Dua> duas) {
+    try {
       final favoriteDuas = getFavoriteDuas();
       
-      // إضافة حالة المفضلة وعدد القراءات
       return duas.map((dua) {
         final isFavorite = favoriteDuas.contains(dua.id);
         final readCount = getDuaReadCount(dua.id);
@@ -48,31 +71,8 @@ class DuaService {
         );
       }).toList();
     } catch (e) {
-      debugPrint('خطأ في الحصول على الأدعية للفئة $categoryId: $e');
-      return [];
-    }
-  }
-
-  /// الحصول على جميع الأدعية
-  Future<List<Dua>> getAllDuas() async {
-    try {
-      final allDuas = await DuaData.getAllDuas();
-      final favoriteDuas = getFavoriteDuas();
-      
-      return allDuas.map((dua) {
-        final isFavorite = favoriteDuas.contains(dua.id);
-        final readCount = getDuaReadCount(dua.id);
-        final lastRead = getLastReadDate(dua.id);
-        
-        return dua.copyWith(
-          isFavorite: isFavorite,
-          readCount: readCount,
-          lastRead: lastRead,
-        );
-      }).toList();
-    } catch (e) {
-      debugPrint('خطأ في الحصول على جميع الأدعية: $e');
-      return [];
+      debugPrint('⚠️ خطأ في إثراء البيانات المحلية: $e');
+      return duas;
     }
   }
 
@@ -82,7 +82,7 @@ class DuaService {
       if (query.trim().isEmpty) return [];
       
       final allDuas = await getAllDuas();
-      final lowerQuery = query.toLowerCase();
+      final lowerQuery = query.toLowerCase().trim();
       
       return allDuas.where((dua) {
         return dua.title.toLowerCase().contains(lowerQuery) ||
@@ -91,7 +91,7 @@ class DuaService {
                dua.tags.any((tag) => tag.toLowerCase().contains(lowerQuery));
       }).toList();
     } catch (e) {
-      debugPrint('خطأ في البحث عن الأدعية: $e');
+      debugPrint('❌ خطأ في البحث عن الأدعية: $e');
       return [];
     }
   }
@@ -101,7 +101,7 @@ class DuaService {
     try {
       return _storage.getStringList(_favoriteDuasKey) ?? [];
     } catch (e) {
-      debugPrint('خطأ في الحصول على الأدعية المفضلة: $e');
+      debugPrint('❌ خطأ في الحصول على الأدعية المفضلة: $e');
       return [];
     }
   }
@@ -119,10 +119,10 @@ class DuaService {
       }
       
       await _storage.setStringList(_favoriteDuasKey, favorites);
-      debugPrint('تم تحديث حالة المفضلة للدعاء: $duaId');
+      debugPrint('✅ تم تحديث حالة المفضلة للدعاء: $duaId');
       return !isFavorite;
     } catch (e) {
-      debugPrint('خطأ في تحديث المفضلة للدعاء $duaId: $e');
+      debugPrint('❌ خطأ في تحديث المفضلة للدعاء $duaId: $e');
       return false;
     }
   }
@@ -131,11 +131,15 @@ class DuaService {
   Future<List<Dua>> getFavoriteDuasWithDetails() async {
     try {
       final favoriteIds = getFavoriteDuas();
+      if (favoriteIds.isEmpty) return [];
+      
       final allDuas = await getAllDuas();
       
-      return allDuas.where((dua) => favoriteIds.contains(dua.id)).toList();
+      return allDuas
+          .where((dua) => favoriteIds.contains(dua.id))
+          .toList();
     } catch (e) {
-      debugPrint('خطأ في الحصول على تفاصيل الأدعية المفضلة: $e');
+      debugPrint('❌ خطأ في الحصول على تفاصيل الأدعية المفضلة: $e');
       return [];
     }
   }
@@ -145,26 +149,30 @@ class DuaService {
     try {
       // زيادة عدد القراءات
       final currentCount = getDuaReadCount(duaId);
-      await _storage.setInt('${_duaReadCountPrefix}$duaId', currentCount + 1);
+      await _storage.setInt('$_duaReadCountPrefix$duaId', currentCount + 1);
       
       // تحديث تاريخ آخر قراءة
-      await _storage.setString('last_read_$duaId', DateTime.now().toIso8601String());
+      await _storage.setString(
+        '$_duaLastReadPrefix$duaId',
+        DateTime.now().toIso8601String(),
+      );
       
       // تحديث آخر دعاء مقروء
       await _storage.setString(_lastReadDuaKey, duaId);
       
-      debugPrint('تم تسجيل قراءة الدعاء: $duaId');
+      debugPrint('✅ تم تسجيل قراءة الدعاء: $duaId');
     } catch (e) {
-      debugPrint('خطأ في تسجيل قراءة الدعاء $duaId: $e');
+      debugPrint('❌ خطأ في تسجيل قراءة الدعاء $duaId: $e');
+      rethrow;
     }
   }
 
   /// الحصول على عدد قراءات دعاء
   int getDuaReadCount(String duaId) {
     try {
-      return _storage.getInt('${_duaReadCountPrefix}$duaId') ?? 0;
+      return _storage.getInt('$_duaReadCountPrefix$duaId') ?? 0;
     } catch (e) {
-      debugPrint('خطأ في الحصول على عدد قراءات الدعاء $duaId: $e');
+      debugPrint('❌ خطأ في الحصول على عدد قراءات الدعاء $duaId: $e');
       return 0;
     }
   }
@@ -172,10 +180,10 @@ class DuaService {
   /// الحصول على تاريخ آخر قراءة لدعاء
   DateTime? getLastReadDate(String duaId) {
     try {
-      final dateString = _storage.getString('last_read_$duaId');
+      final dateString = _storage.getString('$_duaLastReadPrefix$duaId');
       return dateString != null ? DateTime.parse(dateString) : null;
     } catch (e) {
-      debugPrint('خطأ في الحصول على تاريخ آخر قراءة للدعاء $duaId: $e');
+      debugPrint('❌ خطأ في الحصول على تاريخ آخر قراءة للدعاء $duaId: $e');
       return null;
     }
   }
@@ -183,15 +191,12 @@ class DuaService {
   /// تصفير عداد قراءة دعاء معين
   Future<void> resetDuaReadCount(String duaId) async {
     try {
-      // تصفير عدد القراءات
-      await _storage.remove('${_duaReadCountPrefix}$duaId');
+      await _storage.remove('$_duaReadCountPrefix$duaId');
+      await _storage.remove('$_duaLastReadPrefix$duaId');
       
-      // تصفير تاريخ آخر قراءة
-      await _storage.remove('last_read_$duaId');
-      
-      debugPrint('تم تصفير عداد الدعاء: $duaId');
+      debugPrint('✅ تم تصفير عداد الدعاء: $duaId');
     } catch (e) {
-      debugPrint('خطأ في تصفير عداد الدعاء $duaId: $e');
+      debugPrint('❌ خطأ في تصفير عداد الدعاء $duaId: $e');
     }
   }
 
@@ -199,13 +204,14 @@ class DuaService {
   Future<void> resetCategoryReadCount(String categoryId) async {
     try {
       final duas = await getDuasByCategory(categoryId);
+      
       for (final dua in duas) {
         await resetDuaReadCount(dua.id);
       }
       
-      debugPrint('تم تصفير عداد الفئة: $categoryId');
+      debugPrint('✅ تم تصفير عداد الفئة: $categoryId');
     } catch (e) {
-      debugPrint('خطأ في تصفير عداد الفئة $categoryId: $e');
+      debugPrint('❌ خطأ في تصفير عداد الفئة $categoryId: $e');
     }
   }
 
@@ -213,19 +219,19 @@ class DuaService {
   Future<void> saveFontSize(double fontSize) async {
     try {
       await _storage.setDouble(_fontSizeKey, fontSize);
-      debugPrint('تم حفظ حجم الخط: $fontSize');
+      debugPrint('✅ تم حفظ حجم الخط: $fontSize');
     } catch (e) {
-      debugPrint('خطأ في حفظ حجم الخط: $e');
+      debugPrint('❌ خطأ في حفظ حجم الخط: $e');
     }
   }
 
   /// الحصول على حجم الخط المحفوظ
   Future<double> getSavedFontSize() async {
     try {
-      return _storage.getDouble(_fontSizeKey) ?? 18.0; // الافتراضي متوسط
+      return _storage.getDouble(_fontSizeKey) ?? _defaultFontSize;
     } catch (e) {
-      debugPrint('خطأ في الحصول على حجم الخط المحفوظ: $e');
-      return 18.0; // الافتراضي متوسط
+      debugPrint('❌ خطأ في الحصول على حجم الخط المحفوظ: $e');
+      return _defaultFontSize;
     }
   }
 
@@ -238,10 +244,12 @@ class DuaService {
       
       if (allDuas.isEmpty) return null;
       
-      final random = DateTime.now().millisecondsSinceEpoch % allDuas.length;
-      return allDuas[random];
+      final random = math.Random();
+      final randomIndex = random.nextInt(allDuas.length);
+      
+      return allDuas[randomIndex];
     } catch (e) {
-      debugPrint('خطأ في الحصول على دعاء عشوائي: $e');
+      debugPrint('❌ خطأ في الحصول على دعاء عشوائي: $e');
       return null;
     }
   }
@@ -250,61 +258,93 @@ class DuaService {
   Future<Dua?> getDuaById(String duaId) async {
     try {
       final allDuas = await getAllDuas();
+      
       return allDuas.firstWhere(
         (dua) => dua.id == duaId,
         orElse: () => throw Exception('الدعاء غير موجود'),
       );
     } catch (e) {
-      debugPrint('خطأ في الحصول على الدعاء $duaId: $e');
+      debugPrint('❌ خطأ في الحصول على الدعاء $duaId: $e');
       return null;
     }
   }
 
-  /// الحصول على التوصيات الذكية
+  /// الحصول على التوصيات الذكية (مُصلح)
   Future<List<Dua>> getRecommendations() async {
     try {
       final now = DateTime.now();
       final hour = now.hour;
       
-      // توصيات حسب الوقت
+      // تحديد النوع المناسب حسب الوقت
+      DuaType targetType;
       if (hour >= 6 && hour < 12) {
-        // الصباح
-        return (await getDuasByCategory('morning')).take(3).toList();
+        targetType = DuaType.morning;
       } else if (hour >= 12 && hour < 18) {
-        // الظهيرة
-        return (await getDuasByCategory('general')).take(3).toList();
+        targetType = DuaType.general;
       } else if (hour >= 18 && hour < 22) {
-        // المساء
-        return (await getDuasByCategory('evening')).take(3).toList();
+        targetType = DuaType.evening;
       } else {
-        // الليل
-        return (await getDuasByCategory('sleep')).take(3).toList();
+        targetType = DuaType.sleep;
       }
+      
+      // الحصول على الأدعية من النوع المحدد
+      final allDuas = await getAllDuas();
+      final filteredDuas = allDuas
+          .where((dua) => dua.type == targetType)
+          .toList();
+      
+      // إرجاع أول 3 أدعية أو كل ما هو متاح
+      return filteredDuas.take(3).toList();
     } catch (e) {
-      debugPrint('خطأ في الحصول على التوصيات: $e');
+      debugPrint('❌ خطأ في الحصول على التوصيات: $e');
       return [];
+    }
+  }
+
+  /// الحصول على إحصائيات الأدعية
+  Future<DuaStats> getStats() async {
+    try {
+      final allDuas = await getAllDuas();
+      final favorites = getFavoriteDuas();
+      
+      final readDuas = allDuas.where((dua) => dua.readCount > 0).length;
+      
+      final Map<DuaType, int> duasByType = {};
+      for (final dua in allDuas) {
+        duasByType[dua.type] = (duasByType[dua.type] ?? 0) + 1;
+      }
+      
+      return DuaStats(
+        totalDuas: allDuas.length,
+        favoriteDuas: favorites.length,
+        readDuas: readDuas,
+        duasByType: duasByType,
+      );
+    } catch (e) {
+      debugPrint('❌ خطأ في الحصول على الإحصائيات: $e');
+      return const DuaStats();
     }
   }
 
   /// مسح جميع البيانات
   Future<void> clearAllData() async {
     try {
+      // مسح المفاتيح الرئيسية
       await _storage.remove(_favoriteDuasKey);
       await _storage.remove(_lastReadDuaKey);
       await _storage.remove(_fontSizeKey);
       
-      // مسح عدادات القراءة
+      // مسح عدادات القراءة لجميع الأدعية
       final allDuas = await DuaData.getAllDuas();
       for (final dua in allDuas) {
-        await _storage.remove('${_duaReadCountPrefix}${dua.id}');
-        await _storage.remove('last_read_${dua.id}');
+        await _storage.remove('$_duaReadCountPrefix${dua.id}');
+        await _storage.remove('$_duaLastReadPrefix${dua.id}');
       }
       
-      debugPrint('تم مسح جميع بيانات الأدعية');
+      debugPrint('✅ تم مسح جميع بيانات الأدعية');
     } catch (e) {
-      debugPrint('خطأ في مسح بيانات الأدعية: $e');
+      debugPrint('❌ خطأ في مسح بيانات الأدعية: $e');
+      rethrow;
     }
   }
-
-
 }
