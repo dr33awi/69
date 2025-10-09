@@ -58,7 +58,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // حساب ارتفاع الشاشة لتحديد التخطيط المناسب
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 600;
     final isMediumScreen = screenHeight >= 600 && screenHeight < 800;
@@ -66,7 +65,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Concentric Transition Pages
           ConcentricPageView(
             colors: _pages.map((page) => page.primaryColor).toList(),
             itemCount: _pages.length,
@@ -93,7 +91,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             physics: const BouncingScrollPhysics(),
           ),
 
-          // Navigation Hint - موقع ديناميكي حسب حجم الشاشة
           Positioned(
             bottom: isSmallScreen ? 24.h : 40.h,
             left: 0,
@@ -134,7 +131,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 }
 
-/// عرض محسّن ومتجاوب لصفحة Onboarding
 class _ResponsivePageView extends StatelessWidget {
   final OnboardingPageModel page;
   final int pageIndex;
@@ -152,7 +148,6 @@ class _ResponsivePageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // حساب المساحات بناءً على حجم الشاشة
     final double topSpace = isSmallScreen ? 30.h : (isMediumScreen ? 45.h : 60.h);
     final double bottomSpace = isSmallScreen ? 80.h : (isMediumScreen ? 110.h : 140.h);
     final double horizontalPadding = isSmallScreen ? 24.w : 32.w;
@@ -163,7 +158,6 @@ class _ResponsivePageView extends StatelessWidget {
       child: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            // استخدام LayoutBuilder لضمان عدم حدوث overflow
             return SingleChildScrollView(
               physics: const ClampingScrollPhysics(),
               child: ConstrainedBox(
@@ -173,28 +167,20 @@ class _ResponsivePageView extends StatelessWidget {
                 child: IntrinsicHeight(
                   child: Column(
                     children: [
-                      // مساحة علوية ديناميكية
                       SizedBox(height: topSpace),
-                      
-                      // Icon Badge بحجم متجاوب
-                      _buildResponsiveIconBadge(),
 
-                      // Spacer مرن
                       Expanded(
                         flex: isSmallScreen ? 1 : 2,
                         child: Container(),
                       ),
 
-                      // المحتوى الرئيسي
                       _buildMainContent(),
 
-                      // Spacer مرن
                       Expanded(
                         flex: isSmallScreen ? 1 : 2,
                         child: Container(),
                       ),
 
-                      // مساحة سفلية ديناميكية
                       SizedBox(height: bottomSpace),
                     ],
                   ),
@@ -207,59 +193,10 @@ class _ResponsivePageView extends StatelessWidget {
     );
   }
 
-  Widget _buildResponsiveIconBadge() {
-    // أحجام متجاوبة للأيقونة
-    final double outerSize = isSmallScreen ? 90.w : (isMediumScreen ? 110.w : 130.w);
-    final double innerSize = isSmallScreen ? 65.w : (isMediumScreen ? 80.w : 95.w);
-    final double iconSize = isSmallScreen ? 32.sp : (isMediumScreen ? 40.sp : 48.sp);
-    
-    return Container(
-      width: outerSize,
-      height: outerSize,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            Colors.white.withOpacity(0.25),
-            Colors.white.withOpacity(0.15),
-            Colors.white.withOpacity(0.05),
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 30,
-            spreadRadius: 5,
-          ),
-        ],
-      ),
-      child: Center(
-        child: Container(
-          width: innerSize,
-          height: innerSize,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.25),
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: Colors.white.withOpacity(0.35),
-              width: 2.w,
-            ),
-          ),
-          child: Icon(
-            page.icon,
-            size: iconSize,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildMainContent() {
-    // أحجام خطوط متجاوبة
-    final double titleSize = isSmallScreen ? 20.sp : (isMediumScreen ? 23.sp : 26.sp);
-    final double descSize = isSmallScreen ? 13.sp : (isMediumScreen ? 14.sp : 15.sp);
-    final double featureSize = isSmallScreen ? 9.sp : 10.sp;
+    final double titleSize = isSmallScreen ? 22.sp : (isMediumScreen ? 25.sp : 28.sp);
+    final double descSize = isSmallScreen ? 14.sp : (isMediumScreen ? 15.sp : 16.sp);
+    final double featureSize = isSmallScreen ? 12.sp : (isMediumScreen ? 13.sp : 14.sp);
     
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -304,7 +241,7 @@ class _ResponsivePageView extends StatelessWidget {
 
         SizedBox(height: isSmallScreen ? 20.h : 32.h),
 
-        // Features بتخطيط متجاوب
+        // Features
         if (page.features != null && page.features!.isNotEmpty)
           _buildResponsiveFeaturesList(featureSize),
       ],
@@ -312,9 +249,10 @@ class _ResponsivePageView extends StatelessWidget {
   }
 
   Widget _buildResponsiveFeaturesList(double fontSize) {
-    final double padding = isSmallScreen ? 12.w : 16.w;
-    final double borderRadius = isSmallScreen ? 12.r : 16.r;
-    final double verticalPadding = isSmallScreen ? 4.h : 6.h;
+    final double padding = isSmallScreen ? 14.w : 18.w;
+    final double borderRadius = isSmallScreen ? 14.r : 18.r;
+    final double verticalPadding = isSmallScreen ? 8.h : 10.h;
+    final double bulletSize = isSmallScreen ? 7.w : 8.w;
     
     return Container(
       padding: EdgeInsets.all(padding),
@@ -336,6 +274,7 @@ class _ResponsivePageView extends StatelessWidget {
               child: _ResponsiveFeatureItem(
                 text: page.features![index],
                 fontSize: fontSize,
+                bulletSize: bulletSize,
               ),
             );
           },
@@ -345,37 +284,57 @@ class _ResponsivePageView extends StatelessWidget {
   }
 }
 
-/// عنصر ميزة متجاوب
 class _ResponsiveFeatureItem extends StatelessWidget {
   final String text;
   final double fontSize;
+  final double bulletSize;
 
   const _ResponsiveFeatureItem({
     required this.text,
     required this.fontSize,
+    required this.bulletSize,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 5.w,
-          height: 5.w,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.9),
-            shape: BoxShape.circle,
+        Padding(
+          padding: EdgeInsets.only(top: 4.h),
+          child: Container(
+            width: bulletSize,
+            height: bulletSize,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.95),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 2,
+                  spreadRadius: 0.5,
+                ),
+              ],
+            ),
           ),
         ),
-        SizedBox(width: 8.w),
+        SizedBox(width: 10.w),
         Expanded(
           child: Text(
             text,
             style: TextStyle(
               fontSize: fontSize,
-              color: Colors.white.withOpacity(0.92),
-              height: 1.3,
-              fontWeight: FontWeight.w500,
+              color: Colors.white.withOpacity(0.95),
+              height: 1.5,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.2,
+              shadows: [
+                Shadow(
+                  color: Colors.black.withOpacity(0.15),
+                  offset: const Offset(0, 1),
+                  blurRadius: 2,
+                ),
+              ],
             ),
           ),
         ),

@@ -117,7 +117,6 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // حساب حجم الشاشة
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 600;
     final isMediumScreen = screenHeight >= 600 && screenHeight < 800;
@@ -163,100 +162,35 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
     required bool isSmallScreen,
     required bool isMediumScreen,
   }) {
-    // المساحات الديناميكية
     final double topSpace = isSmallScreen ? 20.h : (isMediumScreen ? 25.h : 30.h);
     final double horizontalPadding = isSmallScreen ? 16.w : 20.w;
     final double bottomSpace = isSmallScreen ? 16.h : 24.h;
+    final double middleSpace = isSmallScreen ? 24.h : 32.h;
     
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
       child: Column(
         children: [
-          // مساحة علوية
           SizedBox(height: topSpace),
-          
-          // Icon Badge
-          _buildResponsiveIconBadge(
-            isSmallScreen: isSmallScreen,
-            isMediumScreen: isMediumScreen,
-          ),
 
-          // Spacer مرن
-          Expanded(
-            flex: isSmallScreen ? 1 : 2,
-            child: Container(),
-          ),
+          Spacer(flex: 1),
 
-          // المحتوى الرئيسي
           _buildMainContent(
             isSmallScreen: isSmallScreen,
             isMediumScreen: isMediumScreen,
           ),
 
-          // Spacer مرن
-          Expanded(
-            flex: isSmallScreen ? 1 : 2,
-            child: Container(),
-          ),
+          SizedBox(height: middleSpace),
 
-          // Action Buttons
           _buildResponsiveActionButtons(
             isSmallScreen: isSmallScreen,
             isMediumScreen: isMediumScreen,
           ),
 
           SizedBox(height: bottomSpace),
+          
+          Spacer(flex: 1),
         ],
-      ),
-    );
-  }
-
-  Widget _buildResponsiveIconBadge({
-    required bool isSmallScreen,
-    required bool isMediumScreen,
-  }) {
-    final double outerSize = isSmallScreen ? 70.w : (isMediumScreen ? 77.w : 85.w);
-    final double innerSize = isSmallScreen ? 55.w : (isMediumScreen ? 60.w : 65.w);
-    final double iconSize = isSmallScreen ? 28.sp : (isMediumScreen ? 30.sp : 32.sp);
-    
-    return Container(
-      width: outerSize,
-      height: outerSize,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            Colors.white.withOpacity(0.25),
-            Colors.white.withOpacity(0.15),
-            Colors.white.withOpacity(0.05),
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 30,
-            spreadRadius: 5,
-          ),
-        ],
-      ),
-      child: Center(
-        child: Container(
-          width: innerSize,
-          height: innerSize,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.25),
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: Colors.white.withOpacity(0.35),
-              width: 2.w,
-            ),
-          ),
-          child: Icon(
-            Icons.verified_user_rounded,
-            size: iconSize,
-            color: Colors.white,
-          ),
-        ),
       ),
     );
   }
@@ -265,13 +199,12 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
     required bool isSmallScreen,
     required bool isMediumScreen,
   }) {
-    final double titleSize = isSmallScreen ? 16.sp : (isMediumScreen ? 17.sp : 18.sp);
-    final double spacing = isSmallScreen ? 12.h : 16.h;
+    final double titleSize = isSmallScreen ? 18.sp : (isMediumScreen ? 20.sp : 22.sp);
+    final double spacing = isSmallScreen ? 14.h : 18.h;
     
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Title
         Text(
           'الأذونات المطلوبة',
           style: TextStyle(
@@ -292,7 +225,6 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
 
         SizedBox(height: spacing),
 
-        // Permissions List
         _buildResponsivePermissionsList(
           isSmallScreen: isSmallScreen,
           isMediumScreen: isMediumScreen,
@@ -329,15 +261,14 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
     final isProcessing = _isProcessingMap[permission] == true;
     final info = PermissionConstants.getInfo(permission);
 
-    // أحجام متجاوبة
-    final double verticalMargin = isSmallScreen ? 2.h : 3.h;
-    final double padding = isSmallScreen ? 8.r : 10.r;
-    final double borderRadius = isSmallScreen ? 8.r : 10.r;
-    final double iconContainerSize = isSmallScreen ? 32.r : 36.r;
-    final double iconSize = isSmallScreen ? 14.sp : 16.sp;
-    final double titleSize = isSmallScreen ? 10.sp : 11.sp;
-    final double descSize = isSmallScreen ? 8.sp : 9.sp;
-    final double badgeSize = isSmallScreen ? 7.sp : 8.sp;
+    final double verticalMargin = isSmallScreen ? 4.h : 5.h;
+    final double padding = isSmallScreen ? 12.r : 14.r;
+    final double borderRadius = isSmallScreen ? 10.r : 12.r;
+    final double iconContainerSize = isSmallScreen ? 38.r : 42.r;
+    final double iconSize = isSmallScreen ? 18.sp : 20.sp;
+    final double titleSize = isSmallScreen ? 12.sp : 13.sp;
+    final double descSize = isSmallScreen ? 10.sp : 11.sp;
+    final double badgeSize = isSmallScreen ? 9.sp : 10.sp;
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: verticalMargin),
@@ -355,7 +286,7 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
               borderRadius: BorderRadius.circular(borderRadius),
               border: Border.all(
                 color: Colors.white.withOpacity(isGranted ? 0.35 : 0.25),
-                width: 1.w,
+                width: 1.5.w,
               ),
             ),
             child: Row(
@@ -366,11 +297,11 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
                   height: iconContainerSize,
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.25),
-                    borderRadius: BorderRadius.circular(6.r),
+                    borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: isProcessing
                       ? Padding(
-                          padding: EdgeInsets.all(6.r),
+                          padding: EdgeInsets.all(8.r),
                           child: const CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(
@@ -385,7 +316,7 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
                         ),
                 ),
 
-                SizedBox(width: 8.w),
+                SizedBox(width: 10.w),
 
                 // Content
                 Expanded(
@@ -396,38 +327,55 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
                         info.name,
                         style: TextStyle(
                           fontSize: titleSize,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                           color: Colors.white,
-                          height: 1.2,
+                          height: 1.3,
+                          letterSpacing: 0.2,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withOpacity(0.15),
+                              offset: const Offset(0, 1),
+                              blurRadius: 2,
+                            ),
+                          ],
                         ),
                       ),
-                      SizedBox(height: 1.h),
+                      SizedBox(height: 2.h),
                       Text(
                         info.description,
                         style: TextStyle(
                           fontSize: descSize,
-                          color: Colors.white.withOpacity(0.85),
-                          height: 1.2,
+                          color: Colors.white.withOpacity(0.9),
+                          height: 1.4,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.1,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withOpacity(0.1),
+                              offset: const Offset(0, 1),
+                              blurRadius: 1,
+                            ),
+                          ],
                         ),
-                        maxLines: isSmallScreen ? 1 : 2,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
 
-                SizedBox(width: 6.w),
+                SizedBox(width: 8.w),
 
                 // Status Badge
                 if (isGranted)
                   Container(
                     padding: EdgeInsets.symmetric(
-                      horizontal: 6.w,
-                      vertical: 2.h,
+                      horizontal: 8.w,
+                      vertical: 4.h,
                     ),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.25),
-                      borderRadius: BorderRadius.circular(6.r),
+                      borderRadius: BorderRadius.circular(8.r),
                     ),
                     child: Text(
                       'مفعل',
@@ -441,7 +389,7 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
                 else if (!isProcessing)
                   Icon(
                     Icons.arrow_back_ios_rounded,
-                    size: 10.sp,
+                    size: 12.sp,
                     color: Colors.white.withOpacity(0.7),
                   ),
               ],
@@ -456,17 +404,18 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
     required bool isSmallScreen,
     required bool isMediumScreen,
   }) {
-    final double buttonHeight = isSmallScreen ? 44.h : 46.h;
-    final double buttonRadius = isSmallScreen ? 10.r : 12.r;
-    final double buttonTextSize = isSmallScreen ? 12.sp : 13.sp;
-    final double iconSize = isSmallScreen ? 14.sp : 15.sp;
-    final double statusTextSize = isSmallScreen ? 9.sp : 10.sp;
-    final double statusIconSize = isSmallScreen ? 12.sp : 13.sp;
-    final double spacing = isSmallScreen ? 6.h : 8.h;
+    final double buttonHeight = isSmallScreen ? 46.h : 48.h;
+    final double buttonRadius = isSmallScreen ? 12.r : 14.r;
+    final double buttonTextSize = isSmallScreen ? 13.sp : 14.sp;
+    final double iconSize = isSmallScreen ? 16.sp : 17.sp;
+    final double statusTextSize = isSmallScreen ? 10.sp : 11.sp;
+    final double statusIconSize = isSmallScreen ? 13.sp : 14.sp;
+    final double spacing = isSmallScreen ? 8.h : 10.h;
+    final double skipButtonTextSize = isSmallScreen ? 11.sp : 12.sp;
     
     return Column(
       children: [
-        // Main Button
+        // Main Button - ابدأ الآن
         SizedBox(
           width: double.infinity,
           height: buttonHeight,
@@ -485,8 +434,8 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
             ),
             child: _isCompletingSetup
                 ? SizedBox(
-                    width: 18.w,
-                    height: 18.w,
+                    width: 20.w,
+                    height: 20.w,
                     child: CircularProgressIndicator(
                       strokeWidth: 2.5.w,
                       valueColor: AlwaysStoppedAnimation<Color>(
@@ -496,25 +445,54 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
                   )
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        _allPermissionsGranted ? 'ابدأ الآن' : 'تخطي في الوقت الحالي',
-                        style: TextStyle(
-                          fontSize: buttonTextSize,
-                          fontWeight: FontWeight.bold,
+                      Flexible(
+                        child: Text(
+                          'ابدأ الآن',
+                          style: TextStyle(
+                            fontSize: buttonTextSize,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.3,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ),
-                      if (_allPermissionsGranted) ...[
-                        SizedBox(width: 5.w),
-                        Icon(
-                          Icons.arrow_back,
-                          size: iconSize,
-                        ),
-                      ],
+                      SizedBox(width: 6.w),
+                      Icon(
+                        Icons.arrow_back,
+                        size: iconSize,
+                      ),
                     ],
                   ),
           ),
         ),
+
+        SizedBox(height: spacing),
+
+        // Skip Button - يظهر فقط عند عدم اكتمال الأذونات
+        if (!_allPermissionsGranted && !_isCompletingSetup)
+          TextButton(
+            onPressed: _completeSetup,
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(
+                horizontal: 16.w,
+                vertical: 8.h,
+              ),
+            ),
+            child: Text(
+              'تخطي الآن',
+              style: TextStyle(
+                fontSize: skipButtonTextSize,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.2,
+                decoration: TextDecoration.underline,
+                decorationColor: Colors.white.withOpacity(0.7),
+              ),
+            ),
+          ),
 
         SizedBox(height: spacing),
 
@@ -528,24 +506,41 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
                 color: Colors.white,
                 size: statusIconSize,
               ),
-              SizedBox(width: 5.w),
+              SizedBox(width: 6.w),
               Text(
                 'جميع الأذونات مفعلة',
                 style: TextStyle(
                   fontSize: statusTextSize,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withOpacity(0.95),
                   fontWeight: FontWeight.w600,
+                  letterSpacing: 0.2,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black.withOpacity(0.15),
+                      offset: const Offset(0, 1),
+                      blurRadius: 2,
+                    ),
+                  ],
                 ),
               ),
             ],
           )
         else
           Text(
-            'يمكنك تفعيل الأذونات لاحقاً من الإعدادات',
+            'يمكنك تفعيلها لاحقاً من الإعدادات',
             style: TextStyle(
               fontSize: statusTextSize,
-              color: Colors.white.withOpacity(0.75),
-              height: 1.3,
+              color: Colors.white.withOpacity(0.85),
+              height: 1.4,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.1,
+              shadows: [
+                Shadow(
+                  color: Colors.black.withOpacity(0.1),
+                  offset: const Offset(0, 1),
+                  blurRadius: 1,
+                ),
+              ],
             ),
             textAlign: TextAlign.center,
           ),

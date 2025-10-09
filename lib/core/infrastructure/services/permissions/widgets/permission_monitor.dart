@@ -1,6 +1,5 @@
 // lib/features/onboarding/permission/permission_monitor.dart
 
-
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -369,7 +368,11 @@ class _PermissionMonitorState extends State<PermissionMonitor>
             Expanded(
               child: Text(
                 'تم تفعيل إذن ${PermissionConstants.getName(permission)} بنجاح',
-                style: TextStyle(fontSize: 14.sp),
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.2,
+                ),
               ),
             ),
           ],
@@ -378,7 +381,7 @@ class _PermissionMonitorState extends State<PermissionMonitor>
         duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.r),
+          borderRadius: BorderRadius.circular(12.r),
         ),
         margin: EdgeInsets.all(16.w),
       ),
@@ -415,11 +418,14 @@ class _PermissionMonitorState extends State<PermissionMonitor>
               SnackBar(
                 content: Text(
                   'يرجى تفعيل الإذن من إعدادات النظام',
-                  style: TextStyle(fontSize: 14.sp),
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 backgroundColor: Colors.orange,
                 action: SnackBarAction(
-                  label: 'فتح الإعدادات',
+                  label: 'الإعدادات',
                   textColor: Colors.white,
                   onPressed: () {
                     _permissionService.openAppSettings();
@@ -428,7 +434,7 @@ class _PermissionMonitorState extends State<PermissionMonitor>
                 ),
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.r),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
                 margin: EdgeInsets.all(16.w),
               ),
@@ -517,7 +523,7 @@ class _SimplePermissionCard extends StatelessWidget {
       width: 0.85.sw,
       constraints: BoxConstraints(
         maxWidth: 380.w,
-        minHeight: 260.h,
+        minHeight: 280.h,
       ),
       child: Card(
         elevation: 0,
@@ -530,20 +536,25 @@ class _SimplePermissionCard extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // زر الإغلاق
               Align(
                 alignment: Alignment.topLeft,
-                child: GestureDetector(
-                  onTap: isProcessing ? null : onDismiss,
-                  child: Container(
-                    padding: EdgeInsets.all(8.w),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.close,
-                      size: 18.sp,
-                      color: Colors.grey[600],
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: isProcessing ? null : onDismiss,
+                    borderRadius: BorderRadius.circular(20.r),
+                    child: Container(
+                      padding: EdgeInsets.all(8.w),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.close,
+                        size: 20.sp,
+                        color: Colors.grey[600],
+                      ),
                     ),
                   ),
                 ),
@@ -551,56 +562,73 @@ class _SimplePermissionCard extends StatelessWidget {
               
               SizedBox(height: 8.h),
               
+              // الأيقونة
               Container(
-                width: 64.w,
-                height: 64.w,
+                width: 72.w,
+                height: 72.w,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      info.color.withOpacity(0.15),
-                      info.color.withOpacity(0.05),
+                      info.color.withOpacity(0.2),
+                      info.color.withOpacity(0.08),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: info.color.withOpacity(0.15),
+                      blurRadius: 12,
+                      spreadRadius: 2,
+                    ),
+                  ],
                 ),
                 child: Icon(
                   info.icon,
                   color: info.color,
-                  size: 32.sp,
+                  size: 36.sp,
                 ),
               ),
               
               SizedBox(height: 20.h),
               
+              // العنوان
               Text(
                 'إذن ${info.name}',
                 style: TextStyle(
-                  fontSize: 22.sp,
+                  fontSize: 20.sp,
                   fontWeight: FontWeight.bold,
                   color: isDark ? Colors.white : Colors.grey[900],
+                  letterSpacing: 0.2,
                 ),
                 textAlign: TextAlign.center,
               ),
               
               SizedBox(height: 10.h),
               
-              Text(
-                info.description,
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  height: 1.4,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+              // الوصف
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.w),
+                child: Text(
+                  info.description,
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    height: 1.5,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.1,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
               ),
               
               SizedBox(height: 28.h),
               
+              // زر التفعيل
               SizedBox(
                 width: double.infinity,
-                height: 48.h,
+                height: 50.h,
                 child: ElevatedButton(
                   onPressed: isProcessing ? null : onActivate,
                   style: ElevatedButton.styleFrom(
@@ -608,6 +636,7 @@ class _SimplePermissionCard extends StatelessWidget {
                     foregroundColor: Colors.white,
                     disabledBackgroundColor: info.color.withOpacity(0.5),
                     elevation: 0,
+                    shadowColor: info.color.withOpacity(0.3),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14.r),
                     ),
@@ -621,12 +650,28 @@ class _SimplePermissionCard extends StatelessWidget {
                             valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
-                      : Text(
-                          'تفعيل الآن',
-                          style: TextStyle(
-                            fontSize: 15.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                'تفعيل الآن',
+                                style: TextStyle(
+                                  fontSize: 15.sp,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.3,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
+                            SizedBox(width: 6.w),
+                            Icon(
+                              Icons.arrow_back,
+                              size: 18.sp,
+                            ),
+                          ],
                         ),
                 ),
               ),
