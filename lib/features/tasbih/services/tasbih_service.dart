@@ -1,4 +1,4 @@
-// lib/features/tasbih/services/tasbih_service.dart - مُحسّن ومُصلح
+// lib/features/tasbih/services/tasbih_service.dart
 import 'package:flutter/material.dart';
 import '../../../app/themes/constants/app_constants.dart';
 import '../../../core/infrastructure/services/storage/storage_service.dart';
@@ -22,7 +22,6 @@ class TasbihService extends ChangeNotifier {
   List<DhikrItem>? _cachedAllAdhkar;
   bool _adhkarCacheDirty = true;
   
-  // ✅ إضافة: متغير لتتبع حالة التحميل
   bool _isLoading = true;
   bool get isLoading => _isLoading;
 
@@ -46,17 +45,14 @@ class TasbihService extends ChangeNotifier {
     return _cachedAllAdhkar!;
   }
 
-  // ✅ تحسين: تحميل البيانات بشكل تدريجي
   Future<void> _loadData() async {
     _isLoading = true;
-    notifyListeners(); // ✅ إعلام الواجهة بأننا في حالة التحميل
+    notifyListeners();
     
     try {
-      // 1. تحميل البيانات الأساسية أولاً (الأهم)
       await _loadBasicData();
-      notifyListeners(); // ✅ تحديث الواجهة بالبيانات الأساسية
+      notifyListeners();
       
-      // 2. تحميل البيانات الإضافية (يمكن أن تتأخر)
       await Future.wait([
         _loadDhikrStats(),
         _loadHistory(),
@@ -67,11 +63,10 @@ class TasbihService extends ChangeNotifier {
       debugPrint('[TasbihService] Error loading data: $e');
     } finally {
       _isLoading = false;
-      notifyListeners(); // ✅ تحديث نهائي
+      notifyListeners();
     }
   }
 
-  // ✅ جديد: تحميل البيانات الأساسية بشكل منفصل
   Future<void> _loadBasicData() async {
     try {
       _count = _storage.getInt(AppConstants.tasbihCounterKey) ?? 0;
@@ -140,19 +135,26 @@ class TasbihService extends ChangeNotifier {
             .toList()
           ..sort();
         
+        debugPrint('[TasbihService] Loading ${sortedKeys.length} custom adhkar...');
+        
         for (final key in sortedKeys) {
           final dhikrData = customAdhkarData[key.toString()];
           if (dhikrData is Map<String, dynamic>) {
             try {
-              _customAdhkar.add(DhikrItem.fromMap(dhikrData));
+              final dhikr = DhikrItem.fromMap(dhikrData);
+              _customAdhkar.add(dhikr);
+              debugPrint('[TasbihService] [$key] Loaded: ${dhikr.text}, count: ${dhikr.recommendedCount}');
             } catch (e) {
-              debugPrint('[TasbihService] Invalid custom dhikr at index $key: $e');
+              debugPrint('[TasbihService] [$key] Invalid custom dhikr: $e');
+              debugPrint('[TasbihService] [$key] Data: $dhikrData');
             }
           }
         }
         
         _adhkarCacheDirty = true;
-        debugPrint('[TasbihService] Custom adhkar loaded - count: ${_customAdhkar.length}');
+        debugPrint('[TasbihService] Custom adhkar loaded successfully - total: ${_customAdhkar.length}');
+      } else {
+        debugPrint('[TasbihService] No custom adhkar found in storage');
       }
     } catch (e) {
       debugPrint('[TasbihService] Error loading custom adhkar: $e');
@@ -163,11 +165,31 @@ class TasbihService extends ChangeNotifier {
   Future<void> _saveCustomAdhkar() async {
     try {
       final customAdhkarData = <String, dynamic>{};
+      
+      debugPrint('[TasbihService] Saving ${_customAdhkar.length} custom adhkar...');
+      
       for (int i = 0; i < _customAdhkar.length; i++) {
-        customAdhkarData[i.toString()] = _customAdhkar[i].toMap();
+        final dhikrMap = _customAdhkar[i].toMap();
+        customAdhkarData[i.toString()] = dhikrMap;
+        
+        debugPrint('[TasbihService] [$i] Saving: ${_customAdhkar[i].text}, count: ${_customAdhkar[i].recommendedCount}');
+        debugPrint('[TasbihService] [$i] Map recommendedCount: ${dhikrMap['recommendedCount']} (${dhikrMap['recommendedCount'].runtimeType})');
       }
+      
       await _storage.setMap('${AppConstants.tasbihCounterKey}_custom_adhkar', customAdhkarData);
-      debugPrint('[TasbihService] Custom adhkar saved - count: ${_customAdhkar.length}');
+      debugPrint('[TasbihService] Custom adhkar saved successfully');
+      
+      // التحقق من الحفظ
+      final saved = _storage.getMap('${AppConstants.tasbihCounterKey}_custom_adhkar');
+      if (saved != null) {
+        debugPrint('[TasbihService] Verification - saved keys: ${saved.keys.toList()}');
+        for (final key in saved.keys.take(3)) {
+          final item = saved[key];
+          if (item is Map) {
+            debugPrint('[TasbihService] Verification [$key]: ${item['text']}, count: ${item['recommendedCount']}');
+          }
+        }
+      }
     } catch (e) {
       debugPrint('[TasbihService] Error saving custom adhkar: $e');
       rethrow;
@@ -180,13 +202,27 @@ class TasbihService extends ChangeNotifier {
         throw Exception('Dhikr with id ${dhikr.id} already exists');
       }
       
+      debugPrint('[TasbihService] Adding custom dhikr:');
+      debugPrint('  - Text: ${dhikr.text}');
+      debugPrint('  - Count: ${dhikr.recommendedCount}');
+      debugPrint('  - Category: ${dhikr.category.name}');
+      debugPrint('  - ID: ${dhikr.id}');
+      
       _customAdhkar.add(dhikr);
       _adhkarCacheDirty = true;
       
       await _saveCustomAdhkar();
+      
+      // التحقق من الإضافة
+      final addedDhikr = _customAdhkar.firstWhere((d) => d.id == dhikr.id);
+      debugPrint('[TasbihService] Verification after add:');
+      debugPrint('  - Text: ${addedDhikr.text}');
+      debugPrint('  - Count: ${addedDhikr.recommendedCount}');
+      debugPrint('  - Match: ${addedDhikr.recommendedCount == dhikr.recommendedCount}');
+      
       notifyListeners();
       
-      debugPrint('[TasbihService] Custom dhikr added - id: ${dhikr.id}');
+      debugPrint('[TasbihService] Custom dhikr added successfully');
     } catch (e) {
       debugPrint('[TasbihService] Error adding custom dhikr: $e');
       rethrow;
@@ -200,13 +236,26 @@ class TasbihService extends ChangeNotifier {
         throw Exception('Dhikr with id $id not found');
       }
       
+      final oldDhikr = _customAdhkar[index];
+      debugPrint('[TasbihService] Updating custom dhikr:');
+      debugPrint('  - Old: ${oldDhikr.text}, count: ${oldDhikr.recommendedCount}');
+      debugPrint('  - New: ${updatedDhikr.text}, count: ${updatedDhikr.recommendedCount}');
+      
       _customAdhkar[index] = updatedDhikr;
       _adhkarCacheDirty = true;
       
       await _saveCustomAdhkar();
+      
+      // التحقق من التحديث
+      final updated = _customAdhkar[index];
+      debugPrint('[TasbihService] Verification after update:');
+      debugPrint('  - Text: ${updated.text}');
+      debugPrint('  - Count: ${updated.recommendedCount}');
+      debugPrint('  - Match: ${updated.recommendedCount == updatedDhikr.recommendedCount}');
+      
       notifyListeners();
       
-      debugPrint('[TasbihService] Custom dhikr updated - id: $id');
+      debugPrint('[TasbihService] Custom dhikr updated successfully');
     } catch (e) {
       debugPrint('[TasbihService] Error updating custom dhikr: $e');
       rethrow;
@@ -216,6 +265,10 @@ class TasbihService extends ChangeNotifier {
   Future<void> deleteCustomDhikr(String id) async {
     try {
       final removedCount = _customAdhkar.length;
+      final dhikrToDelete = _customAdhkar.firstWhere((d) => d.id == id);
+      
+      debugPrint('[TasbihService] Deleting custom dhikr: ${dhikrToDelete.text}');
+      
       _customAdhkar.removeWhere((d) => d.id == id);
       
       if (_customAdhkar.length == removedCount) {
@@ -227,7 +280,7 @@ class TasbihService extends ChangeNotifier {
       await _saveCustomAdhkar();
       notifyListeners();
       
-      debugPrint('[TasbihService] Custom dhikr deleted - id: $id');
+      debugPrint('[TasbihService] Custom dhikr deleted successfully');
     } catch (e) {
       debugPrint('[TasbihService] Error deleting custom dhikr: $e');
       rethrow;
@@ -240,7 +293,6 @@ class TasbihService extends ChangeNotifier {
     debugPrint('[TasbihService] Session started - dhikrType: $dhikrType');
   }
 
-  // ✅ تحسين: حفظ بيانات الجلسة عند الإنهاء
   Future<void> endSession() async {
     if (_sessionStartTime == null || _currentDhikrType == null) {
       return;
@@ -251,7 +303,6 @@ class TasbihService extends ChangeNotifier {
     
     debugPrint('[TasbihService] Session ended - dhikrType: $_currentDhikrType, count: $sessionCount, duration: ${duration}s');
     
-    // ✅ حفظ البيانات قبل إنهاء الجلسة
     if (sessionCount > 0) {
       await _saveDailyRecord();
     }
@@ -274,16 +325,14 @@ class TasbihService extends ChangeNotifier {
       
       notifyListeners();
       
-      // ✅ تحسين: حفظ غير متزامن لتحسين الأداء
       unawaited(_saveCountData());
       
-      debugPrint('[TasbihService] Incremented - count: $_count');
+      debugPrint('[TasbihService] Incremented - count: $_count, dhikrType: $dhikrType');
     } catch (e) {
       debugPrint('[TasbihService] Error incrementing: $e');
     }
   }
 
-  // ✅ جديد: دالة منفصلة للحفظ
   Future<void> _saveCountData() async {
     try {
       await Future.wait([
@@ -494,7 +543,6 @@ class TasbihService extends ChangeNotifier {
   }
 }
 
-// ✅ دالة مساعدة لتجاهل Future
 void unawaited(Future<void> future) {
   future.catchError((error) {
     debugPrint('[TasbihService] Unawaited error: $error');
