@@ -1,4 +1,4 @@
-// lib/main.dart - محدث: إزالة استيراد quran_library غير المستخدم
+// lib/main.dart - محدث: إزالة onboarding
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,15 +7,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 // Firebase imports
 import 'package:firebase_core/firebase_core.dart';
-// ❌ حذف استيراد غير مستخدم
-// import 'package:quran_library/quran.dart';
 import 'firebase_options.dart';
 
 // Service Locator والخدمات
 import 'app/di/service_locator.dart';
 import 'app/themes/core/theme_notifier.dart';
 import 'core/infrastructure/services/permissions/permission_manager.dart';
-import 'features/onboarding/permission/permission_monitor.dart';
+import 'core/infrastructure/services/permissions/widgets/permission_monitor.dart';
 import 'core/infrastructure/services/storage/storage_service.dart';
 
 // خدمات التطوير والمراقبة
@@ -33,8 +31,6 @@ import 'app/routes/app_router.dart';
 
 // الشاشات
 import 'features/home/screens/home_screen.dart';
-import 'features/onboarding/screens/onboarding_screen.dart';
-import 'features/onboarding/services/onboarding_service.dart';
 
 /// نقطة دخول التطبيق
 Future<void> main() async {
@@ -87,12 +83,6 @@ Future<void> _fastBootstrap() async {
     debugPrint('✅ Firebase initialized. Apps: ${Firebase.apps.length}');
         
     await ServiceLocator.initEssential();
-    
-    if (!getIt.isRegistered<OnboardingService>()) {
-      getIt.registerLazySingleton<OnboardingService>(
-        () => OnboardingService(getIt<StorageService>()),
-      );
-    }
     
     await _initializeRemoteConfigEarly();
     
@@ -203,25 +193,19 @@ class AthkarApp extends StatefulWidget {
 
 class _AthkarAppState extends State<AthkarApp> {
   late final UnifiedPermissionManager _permissionManager;
-  late final OnboardingService _onboardingService;
   RemoteConfigManager? _configManager;
   bool _configManagerReady = false;
-  bool _shouldShowOnboarding = false;
 
   @override
   void initState() {
     super.initState();
     
     _permissionManager = getIt<UnifiedPermissionManager>();
-    _onboardingService = getIt<OnboardingService>();
-    _shouldShowOnboarding = _onboardingService.shouldShowOnboarding;
     
     _initializeConfigManager();
     
-    // إذا كان المستخدم قد أكمل الـ onboarding، قم بفحص أولي للأذونات
-    if (!_shouldShowOnboarding) {
-      _scheduleInitialPermissionCheck();
-    }
+    // فحص أولي للأذونات
+    _scheduleInitialPermissionCheck();
   }
 
   void _initializeConfigManager() {
@@ -322,16 +306,11 @@ class _AthkarAppState extends State<AthkarApp> {
     Widget screen;
     
     try {
-      if (_shouldShowOnboarding) {
-        debugPrint('🎯 Starting with onboarding screen');
-        screen = const OnboardingScreen();
-      } else {
-        debugPrint('🏠 Starting with home screen directly');
-        screen = const PermissionMonitor(
-          showNotifications: true,
-          child: HomeScreen(),
-        );
-      }
+      debugPrint('🏠 Starting with home screen');
+      screen = const PermissionMonitor(
+        showNotifications: true,
+        child: HomeScreen(),
+      );
     } catch (e) {
       debugPrint('❌ Error determining initial screen: $e');
       screen = const PermissionMonitor(

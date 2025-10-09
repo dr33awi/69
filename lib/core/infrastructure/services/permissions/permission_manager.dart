@@ -9,7 +9,7 @@ import 'package:flutter/services.dart';
 import 'permission_service.dart';
 import 'permission_constants.dart'; // ✅ استيراد مضاف
 import 'models/permission_state.dart';
-import '../../../../features/onboarding/permission/permission_dialogs.dart';
+import 'widgets/permission_dialogs.dart';
 import '../storage/storage_service.dart';
 
 /// مدير الأذونات الموحد المحسن - بدون onboarding

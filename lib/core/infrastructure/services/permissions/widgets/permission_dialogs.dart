@@ -1,8 +1,8 @@
 // lib/core/infrastructure/services/permissions/widgets/permission_dialogs.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../core/infrastructure/services/permissions/permission_service.dart';
-import '../../../core/infrastructure/services/permissions/permission_constants.dart';
+import '../permission_service.dart';
+import '../permission_constants.dart';
 
 /// Dialog بسيط وموحد لشرح الأذونات
 class PermissionDialogs {

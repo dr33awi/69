@@ -1,5 +1,5 @@
 // lib/features/onboarding/permission/permission_monitor.dart
-// محدث: بدون استيرادات غير مستخدمة
+
 
 import 'dart:async';
 import 'dart:ui';
@@ -8,10 +8,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:athkar_app/app/di/service_locator.dart';
 import 'package:athkar_app/app/themes/app_theme.dart';
-import '../../../core/infrastructure/services/permissions/permission_manager.dart';
-import '../../../core/infrastructure/services/permissions/permission_service.dart';
-import '../../../core/infrastructure/services/permissions/permission_constants.dart';
-import '../../../core/infrastructure/services/permissions/models/permission_state.dart';
+import '../permission_manager.dart';
+import '../permission_service.dart';
+import '../permission_constants.dart';
+import '../models/permission_state.dart';
 
 /// مراقب الأذونات بنمط أنيق وبسيط
 class PermissionMonitor extends StatefulWidget {
