@@ -1,8 +1,15 @@
-// lib/app/routes/app_router.dart - محدث بدون Onboarding
-import 'package:athkar_app/features/asma_allah/screens/asma_allah_screen.dart';
+// lib/app/routes/app_router.dart - محدث مع routes كاملة
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../app/themes/app_theme.dart';
+
+// Splash & Onboarding
+import '../../features/splash/screens/splash_screen.dart';
+import '../../features/onboarding/screens/onboarding_screen.dart';
+import '../../features/onboarding/screens/permissions_setup_screen.dart';
+
+// Main
 import '../../features/home/screens/home_screen.dart';
 
 // Prayer Times
@@ -21,6 +28,8 @@ import '../../features/athkar/screens/notification_settings_screen.dart';
 // Dua
 import '../../features/dua/screens/dua_categories_screen.dart';
 
+// Asma Allah
+import '../../features/asma_allah/screens/asma_allah_screen.dart';
 
 // Tasbih
 import '../../features/tasbih/screens/tasbih_screen.dart';
@@ -29,12 +38,11 @@ import '../../features/tasbih/screens/tasbih_screen.dart';
 import '../../features/settings/screens/main_settings_screen.dart';
 
 class AppRouter {
-
   // Main Routes
-  static const String initialRoute = '/';
+  static const String splash = '/';
   static const String onboarding = '/onboarding';
   static const String permissionsSetup = '/permissions-setup';
-  static const String home = '/';
+  static const String home = '/home';
   
   // Feature Routes
   static const String prayerTimes = '/prayer-times';
@@ -63,16 +71,26 @@ class AppRouter {
   // Athkar Settings Routes
   static const String athkarNotificationsSettings = '/athkar-notifications-settings';
 
-  // Navigator key for global navigation
+  // Navigator key
   static final GlobalKey<NavigatorState> _navigatorKey = 
       GlobalKey<NavigatorState>();
   
   static GlobalKey<NavigatorState> get navigatorKey => _navigatorKey;
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
-    debugPrint('AppRouter: Generating route for ${settings.name}');
+    debugPrint('🧭 AppRouter: Generating route for ${settings.name}');
     
     switch (settings.name) {
+      // ==================== Splash & Onboarding ====================
+      case splash:
+        return _fadeRoute(const SplashScreen(), settings);
+        
+      case onboarding:
+        return _fadeRoute(const OnboardingScreen(), settings);
+        
+      case permissionsSetup:
+        return _fadeRoute(const PermissionsSetupScreen(), settings);
+      
       // ==================== Main Screen ====================
       case home:
         return _fadeRoute(const HomeScreen(), settings);
@@ -97,7 +115,6 @@ class AppRouter {
           settings
         );
         
-      // ==================== أسماء الله الحسنى ====================
       case asmaAllah:
         return _slideRoute(const AsmaAllahScreen(), settings);
         
@@ -111,10 +128,10 @@ class AppRouter {
         return _slideRoute(const DuaCategoriesScreen(), settings);
         
       // ==================== Settings ====================
-      case '/settings':
+      case AppRouter.settings:
         return _slideRoute(const MainSettingsScreen(), settings);
         
-      // ==================== Feature Routes ====================
+      // ==================== Coming Soon Features ====================
       case favorites:
         return _slideRoute(_buildComingSoonScreen('المفضلة'), settings);
         
@@ -123,6 +140,9 @@ class AppRouter {
         
       case achievements:
         return _slideRoute(_buildComingSoonScreen('الإنجازات'), settings);
+        
+      case quran:
+        return _slideRoute(_buildComingSoonScreen('القرآن الكريم'), settings);
         
       // ==================== Prayer Settings ====================
       case prayerSettings:
@@ -198,7 +218,7 @@ class AppRouter {
               width: 120.w,
               height: 120.h,
               decoration: BoxDecoration(
-                color: ThemeConstants.primary.withValues(alpha: 0.1),
+                color: ThemeConstants.primary.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -269,7 +289,7 @@ class AppRouter {
               width: 120.w,
               height: 120.h,
               decoration: BoxDecoration(
-                color: ThemeConstants.error.withValues(alpha: 0.1),
+                color: ThemeConstants.error.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -308,7 +328,7 @@ class AppRouter {
                   vertical: 4.h,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.1),
+                  color: Colors.grey.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(999.r),
                 ),
                 child: Text(
@@ -386,7 +406,7 @@ class AppRouter {
               width: 100.w,
               height: 100.h,
               decoration: BoxDecoration(
-                color: ThemeConstants.error.withValues(alpha: 0.1),
+                color: ThemeConstants.error.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
