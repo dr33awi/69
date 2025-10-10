@@ -27,6 +27,16 @@ class AthkarItem {
       source: json['source'],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'text': text,
+      'count': count,
+      if (fadl != null) 'fadl': fadl,
+      if (source != null) 'source': source,
+    };
+  }
 }
 
 /// فئة الأذكار
@@ -50,36 +60,148 @@ class AthkarCategory {
   });
 
   factory AthkarCategory.fromJson(Map<String, dynamic> json) {
+    // استخراج قائمة الأذكار
     final List<dynamic> items = json['athkar'] ?? [];
+    
+    // استخراج معرف الفئة
+    final categoryId = json['id'] ?? '';
+    
+    // استخراج الوقت إذا وجد
+    TimeOfDay? notifyTime;
+    if (json['notify_time'] != null) {
+      notifyTime = _timeOfDayFromString(json['notify_time']);
+    }
+    
     return AthkarCategory(
-      id: json['id'] ?? '',
+      id: categoryId,
       title: json['title'] ?? '',
       description: json['description'],
-      icon: _iconFromString(json['icon'] ?? '', json['id'] ?? ''),
-      color: _colorFromHex(json['color'] ?? '#ffffff'),
-      notifyTime: _timeOfDayFromString(json['notify_time']),
-      athkar: items.map((e) => AthkarItem.fromJson(e)).toList(),
+      icon: CategoryUtils.getCategoryIcon(categoryId),
+      color: CategoryUtils.getCategoryThemeColor(categoryId),
+      notifyTime: notifyTime,
+      athkar: items.map((e) => AthkarItem.fromJson(e as Map<String, dynamic>)).toList(),
     );
   }
 
-  static IconData _iconFromString(String data, String categoryId) {
-    return CategoryUtils.getCategoryIcon(categoryId);
-  }
-
-  static Color _colorFromHex(String hex) {
-    final buffer = StringBuffer();
-    if (hex.length == 6 || hex.length == 7) buffer.write('ff');
-    buffer.write(hex.replaceFirst('#', ''));
-    return Color(int.parse(buffer.toString(), radix: 16));
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      if (description != null) 'description': description,
+      if (notifyTime != null) 'notify_time': '${notifyTime!.hour.toString().padLeft(2, '0')}:${notifyTime!.minute.toString().padLeft(2, '0')}',
+      'athkar': athkar.map((e) => e.toJson()).toList(),
+    };
   }
 
   static TimeOfDay? _timeOfDayFromString(String? time) {
-    if (time == null) return null;
-    final parts = time.split(':');
-    if (parts.length != 2) return null;
-    final hour = int.tryParse(parts[0]);
-    final minute = int.tryParse(parts[1]);
-    if (hour == null || minute == null) return null;
-    return TimeOfDay(hour: hour, minute: minute);
+    if (time == null || time.isEmpty) return null;
+    
+    try {
+      final parts = time.split(':');
+      if (parts.length != 2) return null;
+      
+      final hour = int.tryParse(parts[0]);
+      final minute = int.tryParse(parts[1]);
+      
+      if (hour == null || minute == null) return null;
+      if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+      
+      return TimeOfDay(hour: hour, minute: minute);
+    } catch (e) {
+      debugPrint('Error parsing time: $e');
+      return null;
+    }
+  }
+
+  /// نسخة محدثة من الفئة مع أذكار جديدة
+  AthkarCategory copyWith({
+    String? id,
+    String? title,
+    String? description,
+    IconData? icon,
+    Color? color,
+    TimeOfDay? notifyTime,
+    List<AthkarItem>? athkar,
+  }) {
+    return AthkarCategory(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      icon: icon ?? this.icon,
+      color: color ?? this.color,
+      notifyTime: notifyTime ?? this.notifyTime,
+      athkar: athkar ?? this.athkar,
+    );
+  }
+
+  /// عدد الأذكار في الفئة
+  int get itemCount => athkar.length;
+
+  /// إجمالي عدد المرات المطلوبة لإكمال الفئة
+  int get totalCount => athkar.fold(0, (sum, item) => sum + item.count);
+
+  /// التحقق من اكتمال فئة بناءً على التقدم
+  bool isCompleted(Map<int, int> progress) {
+    for (final item in athkar) {
+      final currentCount = progress[item.id] ?? 0;
+      if (currentCount < item.count) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// حساب نسبة التقدم
+  double getProgressPercentage(Map<int, int> progress) {
+    if (athkar.isEmpty) return 0.0;
+    
+    int completed = 0;
+    int total = 0;
+    
+    for (final item in athkar) {
+      final currentCount = progress[item.id] ?? 0;
+      completed += currentCount.clamp(0, item.count);
+      total += item.count;
+    }
+    
+    if (total == 0) return 0.0;
+    return (completed / total).clamp(0.0, 1.0);
+  }
+}
+
+/// كلاس لتحليل البيانات من JSON
+class AthkarData {
+  final String version;
+  final String source;
+  final String lastUpdated;
+  final List<AthkarCategory> categories;
+
+  const AthkarData({
+    required this.version,
+    required this.source,
+    required this.lastUpdated,
+    required this.categories,
+  });
+
+  factory AthkarData.fromJson(Map<String, dynamic> json) {
+    final List<dynamic> categoriesJson = json['categories'] ?? [];
+    
+    return AthkarData(
+      version: json['version'] ?? '1.0.0',
+      source: json['source'] ?? '',
+      lastUpdated: json['last_updated'] ?? '',
+      categories: categoriesJson
+          .map((e) => AthkarCategory.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'version': version,
+      'source': source,
+      'last_updated': lastUpdated,
+      'categories': categories.map((e) => e.toJson()).toList(),
+    };
   }
 }
