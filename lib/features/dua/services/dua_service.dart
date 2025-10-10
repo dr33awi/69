@@ -1,5 +1,6 @@
-// lib/features/dua/services/dua_service.dart
+// lib/features/dua/services/dua_service.dart - محسّن
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'dart:math' as math;
 
 import '../../../core/infrastructure/services/storage/storage_service.dart';
@@ -9,12 +10,12 @@ import '../data/dua_data.dart';
 /// خدمة إدارة الأدعية
 class DuaService {
   final StorageService _storage;
+  Timer? _debounceTimer;
 
   // مفاتيح التخزين
   static const String _favoriteDuasKey = 'favorite_duas';
   static const String _duaReadCountPrefix = 'dua_read_count_';
   static const String _duaLastReadPrefix = 'last_read_';
-  static const String _lastReadDuaKey = 'last_read_dua';
   static const String _fontSizeKey = 'dua_font_size';
   static const double _defaultFontSize = 18.0;
 
@@ -76,24 +77,43 @@ class DuaService {
     }
   }
 
-  /// البحث في الأدعية
-  Future<List<Dua>> searchDuas(String query) async {
-    try {
-      if (query.trim().isEmpty) return [];
-      
-      final allDuas = await getAllDuas();
-      final lowerQuery = query.toLowerCase().trim();
-      
-      return allDuas.where((dua) {
-        return dua.title.toLowerCase().contains(lowerQuery) ||
-               dua.arabicText.contains(query) ||
-               (dua.translation?.toLowerCase().contains(lowerQuery) ?? false) ||
-               dua.tags.any((tag) => tag.toLowerCase().contains(lowerQuery));
-      }).toList();
-    } catch (e) {
-      debugPrint('❌ خطأ في البحث عن الأدعية: $e');
-      return [];
-    }
+  /// ✅ البحث في الأدعية مع Debouncing
+  Future<List<Dua>> searchDuas(
+    String query, {
+    Duration debounce = const Duration(milliseconds: 300),
+  }) async {
+    final completer = Completer<List<Dua>>();
+    
+    // إلغاء المؤقت السابق
+    _debounceTimer?.cancel();
+    
+    // إنشاء مؤقت جديد
+    _debounceTimer = Timer(debounce, () async {
+      try {
+        if (query.trim().isEmpty) {
+          completer.complete([]);
+          return;
+        }
+        
+        final allDuas = await getAllDuas();
+        final lowerQuery = query.toLowerCase().trim();
+        
+        final results = allDuas.where((dua) {
+          return dua.title.toLowerCase().contains(lowerQuery) ||
+                 dua.arabicText.contains(query) ||
+                 (dua.translation?.toLowerCase().contains(lowerQuery) ?? false) ||
+                 dua.tags.any((tag) => tag.toLowerCase().contains(lowerQuery));
+        }).toList();
+        
+        debugPrint('🔍 نتائج البحث عن "$query": ${results.length} دعاء');
+        completer.complete(results);
+      } catch (e) {
+        debugPrint('❌ خطأ في البحث عن الأدعية: $e');
+        completer.complete([]);
+      }
+    });
+    
+    return completer.future;
   }
 
   /// الحصول على الأدعية المفضلة
@@ -157,10 +177,7 @@ class DuaService {
         DateTime.now().toIso8601String(),
       );
       
-      // تحديث آخر دعاء مقروء
-      await _storage.setString(_lastReadDuaKey, duaId);
-      
-      debugPrint('✅ تم تسجيل قراءة الدعاء: $duaId');
+      debugPrint('✅ تم تسجيل قراءة الدعاء: $duaId (العدد: ${currentCount + 1})');
     } catch (e) {
       debugPrint('❌ خطأ في تسجيل قراءة الدعاء $duaId: $e');
       rethrow;
@@ -209,7 +226,7 @@ class DuaService {
         await resetDuaReadCount(dua.id);
       }
       
-      debugPrint('✅ تم تصفير عداد الفئة: $categoryId');
+      debugPrint('✅ تم تصفير عداد الفئة: $categoryId (${duas.length} دعاء)');
     } catch (e) {
       debugPrint('❌ خطأ في تصفير عداد الفئة $categoryId: $e');
     }
@@ -269,7 +286,7 @@ class DuaService {
     }
   }
 
-  /// الحصول على التوصيات الذكية (مُصلح)
+  /// ✅ الحصول على التوصيات الذكية (محسّن)
   Future<List<Dua>> getRecommendations() async {
     try {
       final now = DateTime.now();
@@ -277,24 +294,49 @@ class DuaService {
       
       // تحديد النوع المناسب حسب الوقت
       DuaType targetType;
+      String timeLabel;
+      
       if (hour >= 6 && hour < 12) {
         targetType = DuaType.morning;
+        timeLabel = 'الصباح';
       } else if (hour >= 12 && hour < 18) {
         targetType = DuaType.general;
+        timeLabel = 'النهار';
       } else if (hour >= 18 && hour < 22) {
         targetType = DuaType.evening;
+        timeLabel = 'المساء';
       } else {
         targetType = DuaType.sleep;
+        timeLabel = 'الليل';
       }
       
       // الحصول على الأدعية من النوع المحدد
       final allDuas = await getAllDuas();
-      final filteredDuas = allDuas
+      var filteredDuas = allDuas
           .where((dua) => dua.type == targetType)
           .toList();
       
-      // إرجاع أول 3 أدعية أو كل ما هو متاح
-      return filteredDuas.take(3).toList();
+      // ✅ إذا لم توجد أدعية من النوع المحدد، استخدم أدعية عامة
+      if (filteredDuas.isEmpty) {
+        debugPrint('⚠️ لا توجد أدعية من نوع $timeLabel، استخدام الأدعية العامة');
+        filteredDuas = allDuas
+            .where((dua) => dua.type == DuaType.general)
+            .toList();
+      }
+      
+      // ✅ إذا لم توجد أدعية عامة أيضاً، إرجاع أول 3 أدعية
+      if (filteredDuas.isEmpty) {
+        debugPrint('⚠️ لا توجد أدعية عامة، إرجاع أول 3 أدعية');
+        return allDuas.take(3).toList();
+      }
+      
+      // ✅ ترتيب عشوائي للتنويع
+      filteredDuas.shuffle();
+      
+      final recommendations = filteredDuas.take(3).toList();
+      debugPrint('✅ تم الحصول على ${recommendations.length} توصية لوقت $timeLabel');
+      
+      return recommendations;
     } catch (e) {
       debugPrint('❌ خطأ في الحصول على التوصيات: $e');
       return [];
@@ -331,7 +373,6 @@ class DuaService {
     try {
       // مسح المفاتيح الرئيسية
       await _storage.remove(_favoriteDuasKey);
-      await _storage.remove(_lastReadDuaKey);
       await _storage.remove(_fontSizeKey);
       
       // مسح عدادات القراءة لجميع الأدعية
@@ -341,10 +382,16 @@ class DuaService {
         await _storage.remove('$_duaLastReadPrefix${dua.id}');
       }
       
-      debugPrint('✅ تم مسح جميع بيانات الأدعية');
+      debugPrint('✅ تم مسح جميع بيانات الأدعية (${allDuas.length} دعاء)');
     } catch (e) {
       debugPrint('❌ خطأ في مسح بيانات الأدعية: $e');
       rethrow;
     }
+  }
+  
+  /// ✅ تنظيف الموارد
+  void dispose() {
+    _debounceTimer?.cancel();
+    debugPrint('🗑️ تم تنظيف موارد DuaService');
   }
 }

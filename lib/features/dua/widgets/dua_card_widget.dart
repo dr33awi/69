@@ -32,10 +32,17 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   bool _isPressed = false;
+  
+  // ✅ حفظ القيم المحسوبة لتجنب إعادة الحساب
+  late bool _isRead;
+  late Color _cardColor;
 
   @override
   void initState() {
     super.initState();
+    
+    _updateComputedValues();
+    
     _controller = AnimationController(
       duration: const Duration(milliseconds: 150),
       vsync: this,
@@ -49,6 +56,22 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
       curve: Curves.easeInOut,
     ));
   }
+  
+  /// ✅ تحديث القيم المحسوبة
+  void _updateComputedValues() {
+    _isRead = widget.dua.readCount > 0;
+    _cardColor = _isRead ? ThemeConstants.accent : ThemeConstants.primary;
+  }
+
+  @override
+  void didUpdateWidget(DuaCardWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // ✅ تحديث القيم عند تغيير readCount
+    if (oldWidget.dua.readCount != widget.dua.readCount) {
+      _updateComputedValues();
+    }
+  }
 
   @override
   void dispose() {
@@ -58,9 +81,6 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
 
   @override
   Widget build(BuildContext context) {
-    final isRead = widget.dua.readCount > 0;
-    final cardColor = isRead ? ThemeConstants.accent : ThemeConstants.primary;
-    
     return AnimatedBuilder(
       animation: _scaleAnimation,
       builder: (context, child) {
@@ -91,15 +111,15 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
                   borderRadius: BorderRadius.circular(16.r),
                   border: Border.all(
                     color: _isPressed 
-                        ? cardColor.withOpacity(0.4)
-                        : cardColor.withOpacity(0.2),
+                        ? _cardColor.withOpacity(0.4)
+                        : _cardColor.withOpacity(0.2),
                     width: _isPressed ? 1.5.w : 1.w,
                   ),
                   boxShadow: [
                     BoxShadow(
                       color: _isPressed 
-                          ? cardColor.withValues(alpha: 0.1)
-                          : Colors.black.withValues(alpha: 0.05),
+                          ? _cardColor.withOpacity(0.1)
+                          : Colors.black.withOpacity(0.05),
                       blurRadius: _isPressed ? 10.r : 6.r,
                       offset: Offset(0, _isPressed ? 3.h : 2.h),
                     ),
@@ -109,7 +129,7 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildHeader(cardColor),
+                    _buildHeader(),
                     SizedBox(height: 12.h),
                     _buildArabicText(),
                     SizedBox(height: 12.h),
@@ -124,7 +144,7 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
     );
   }
 
-  Widget _buildHeader(Color cardColor) {
+  Widget _buildHeader() {
     return Row(
       children: [
         Container(
@@ -132,12 +152,12 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
           height: 34.r,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [cardColor, cardColor.withOpacity(0.8)],
+              colors: [_cardColor, _cardColor.withOpacity(0.8)],
             ),
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: cardColor.withValues(alpha: 0.25),
+                color: _cardColor.withOpacity(0.25),
                 blurRadius: 4.r,
                 offset: Offset(0, 2.h),
               ),
@@ -165,7 +185,7 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
                 widget.dua.title,
                 style: TextStyle(
                   fontWeight: ThemeConstants.bold,
-                  color: cardColor,
+                  color: _cardColor,
                   fontSize: 14.sp,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -181,17 +201,17 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                       decoration: BoxDecoration(
-                        color: cardColor.withValues(alpha: 0.1),
+                        color: _cardColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(999.r),
                         border: Border.all(
-                          color: cardColor.withValues(alpha: 0.2),
+                          color: _cardColor.withOpacity(0.2),
                           width: 1.w,
                         ),
                       ),
                       child: Text(
                         tag,
                         style: TextStyle(
-                          color: cardColor,
+                          color: _cardColor,
                           fontWeight: ThemeConstants.medium,
                           fontSize: 10.sp,
                         ),
@@ -204,14 +224,14 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
           ),
         ),
         
-        if (widget.dua.readCount > 0)
+        if (_isRead)
           Container(
             padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 3.h),
             decoration: BoxDecoration(
-              color: ThemeConstants.accent.withValues(alpha: 0.1),
+              color: ThemeConstants.accent.withOpacity(0.1),
               borderRadius: BorderRadius.circular(999.r),
               border: Border.all(
-                color: ThemeConstants.accent.withValues(alpha: 0.3),
+                color: ThemeConstants.accent.withOpacity(0.3),
                 width: 1.w,
               ),
             ),
@@ -247,7 +267,7 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
         color: context.surfaceColor,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
-          color: context.dividerColor.withValues(alpha: 0.2),
+          color: context.dividerColor.withOpacity(0.2),
           width: 1.w,
         ),
       ),
@@ -256,7 +276,7 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
           Container(
             padding: EdgeInsets.all(5.r),
             decoration: BoxDecoration(
-              color: ThemeConstants.primary.withValues(alpha: 0.1),
+              color: ThemeConstants.primary.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -290,7 +310,7 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
               gradient: LinearGradient(
                 colors: [
                   Colors.transparent,
-                  ThemeConstants.primary.withValues(alpha: 0.5),
+                  ThemeConstants.primary.withOpacity(0.5),
                   Colors.transparent,
                 ],
               ),
@@ -310,10 +330,10 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
               decoration: BoxDecoration(
-                color: ThemeConstants.tertiary.withValues(alpha: 0.1),
+                color: ThemeConstants.tertiary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(999.r),
                 border: Border.all(
-                  color: ThemeConstants.tertiary.withValues(alpha: 0.2),
+                  color: ThemeConstants.tertiary.withOpacity(0.2),
                   width: 1.w,
                 ),
               ),
@@ -373,7 +393,7 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
         color: context.surfaceColor,
         borderRadius: BorderRadius.circular(10.r),
         border: Border.all(
-          color: context.dividerColor.withValues(alpha: 0.3),
+          color: context.dividerColor.withOpacity(0.3),
           width: 1.w,
         ),
       ),
@@ -383,16 +403,17 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
         child: InkWell(
           onTap: onPressed,
           borderRadius: BorderRadius.circular(10.r),
-          child: Padding(
-            padding: EdgeInsets.all(6.r),
-            child: Icon(
-              icon,
-              color: context.textSecondaryColor,
-              size: 14.sp,
+            child: Padding(
+              padding: EdgeInsets.all(6.r),
+              child: Icon(
+                icon,
+                color: context.textSecondaryColor,
+                size: 14.sp,
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    }
+  
   }
-}

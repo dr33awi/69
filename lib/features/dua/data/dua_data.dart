@@ -1,4 +1,4 @@
-// lib/features/dua/data/dua_data.dart
+// lib/features/dua/data/dua_data.dart - محسّن
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,12 +7,21 @@ import '../models/dua_model.dart';
 /// بيانات الأدعية من ملف JSON
 class DuaData {
   static Map<String, dynamic>? _cachedData;
+  static DateTime? _cacheTimestamp;
   static const Duration _loadTimeout = Duration(seconds: 10);
+  static const Duration _cacheExpiry = Duration(hours: 1);
   
-  /// تحميل البيانات من ملف JSON مع timeout
+  /// تحميل البيانات من ملف JSON مع timeout وcache expiry
   static Future<Map<String, dynamic>> _loadData() async {
-    if (_cachedData != null) {
-      return _cachedData!;
+    // ✅ التحقق من صلاحية الكاش
+    if (_cachedData != null && _cacheTimestamp != null) {
+      final cacheAge = DateTime.now().difference(_cacheTimestamp!);
+      if (cacheAge < _cacheExpiry) {
+        debugPrint('✅ استخدام البيانات من الكاش (عمر الكاش: ${cacheAge.inMinutes} دقيقة)');
+        return _cachedData!;
+      } else {
+        debugPrint('⚠️ انتهت صلاحية الكاش، إعادة التحميل...');
+      }
     }
     
     try {
@@ -32,6 +41,7 @@ class DuaData {
       }
       
       _cachedData = decoded;
+      _cacheTimestamp = DateTime.now();
       
       // التحقق من البنية الأساسية
       _validateDataStructure(_cachedData!);
@@ -107,7 +117,15 @@ class DuaData {
           if (typeIndex == null || 
               typeIndex < 0 || 
               typeIndex >= DuaType.values.length) {
-            debugPrint('⚠️ نوع فئة غير صحيح للفئة: $categoryId');
+            debugPrint('⚠️ نوع فئة غير صحيح للفئة: $categoryId (استخدام النوع الافتراضي)');
+            // ✅ استخدام النوع الافتراضي بدلاً من تخطي الفئة
+            categories.add(DuaCategory(
+              id: categoryData['id']?.toString() ?? '',
+              name: categoryData['name']?.toString() ?? 'بدون اسم',
+              description: categoryData['description']?.toString() ?? '',
+              type: DuaType.general,
+              duaCount: duasData is List ? duasData.length : 0,
+            ));
             continue;
           }
           
@@ -240,11 +258,15 @@ class DuaData {
     }
     
     final typeIndex = duaData['type'];
-    final type = (typeIndex != null && 
-                  typeIndex >= 0 && 
-                  typeIndex < DuaType.values.length)
-        ? DuaType.values[typeIndex]
-        : DuaType.general;
+    DuaType type = DuaType.general;
+    
+    if (typeIndex != null && 
+        typeIndex >= 0 && 
+        typeIndex < DuaType.values.length) {
+      type = DuaType.values[typeIndex];
+    } else {
+      debugPrint('⚠️ نوع دعاء غير صحيح للدعاء: $id (استخدام النوع الافتراضي)');
+    }
     
     return Dua(
       id: id,
@@ -279,7 +301,20 @@ class DuaData {
   /// مسح الذاكرة المؤقتة (للاختبار أو إعادة التحميل)
   static void clearCache() {
     _cachedData = null;
+    _cacheTimestamp = null;
     debugPrint('🗑️ تم مسح ذاكرة التخزين المؤقت');
+  }
+  
+  /// ✅ الحصول على معلومات الكاش
+  static Map<String, dynamic> getCacheInfo() {
+    return {
+      'isCached': _cachedData != null,
+      'cacheTimestamp': _cacheTimestamp?.toIso8601String(),
+      'cacheAge': _cacheTimestamp != null 
+          ? DateTime.now().difference(_cacheTimestamp!).inMinutes 
+          : null,
+      'cacheExpiry': _cacheExpiry.inMinutes,
+    };
   }
 }
 

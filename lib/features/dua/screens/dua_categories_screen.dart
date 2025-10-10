@@ -1,4 +1,4 @@
-// lib/features/dua/screens/dua_categories_screen.dart - محسّن للشاشات الصغيرة
+// lib/features/dua/screens/dua_categories_screen.dart - محسّن
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -82,7 +82,7 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
               borderRadius: BorderRadius.circular(10.r),
               boxShadow: [
                 BoxShadow(
-                  color: ThemeConstants.primary.withValues(alpha: 0.25),
+                  color: ThemeConstants.primary.withOpacity(0.25),
                   blurRadius: 6.r,
                   offset: Offset(0, 3.h),
                 ),
@@ -132,7 +132,7 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
           Container(
             padding: EdgeInsets.all(14.r),
             decoration: BoxDecoration(
-              color: ThemeConstants.primary.withValues(alpha: 0.1),
+              color: ThemeConstants.primary.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: CircularProgressIndicator(
@@ -216,13 +216,13 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
           Container(
             padding: EdgeInsets.all(20.r),
             decoration: BoxDecoration(
-              color: context.textSecondaryColor.withValues(alpha: 0.05),
+              color: context.textSecondaryColor.withOpacity(0.05),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.menu_book_outlined,
               size: 50.sp,
-              color: context.textSecondaryColor.withValues(alpha: 0.5),
+              color: context.textSecondaryColor.withOpacity(0.5),
             ),
           ),
           SizedBox(height: 14.h),
@@ -238,7 +238,7 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
           Text(
             'لم يتم العثور على فئات الأدعية',
             style: TextStyle(
-              color: context.textSecondaryColor.withValues(alpha: 0.7),
+              color: context.textSecondaryColor.withOpacity(0.7),
               fontSize: 13.sp,
             ),
             textAlign: TextAlign.center,
@@ -282,7 +282,7 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
+                color: Colors.black.withOpacity(0.04),
                 blurRadius: 6.r,
                 offset: Offset(0, 2.h),
               ),
@@ -300,7 +300,7 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
                   borderRadius: BorderRadius.circular(10.r),
                   boxShadow: [
                     BoxShadow(
-                      color: color.withValues(alpha: 0.25),
+                      color: color.withOpacity(0.25),
                       blurRadius: 4.r,
                       offset: Offset(0, 2.h),
                     ),
@@ -369,7 +369,7 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
               Container(
                 padding: EdgeInsets.all(5.r),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
+                  color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8.r),
                 ),
                 child: Icon(

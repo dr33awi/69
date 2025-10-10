@@ -26,15 +26,21 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
   late final DuaService _duaService;
   
   List<Dua> _duas = [];
+  List<Dua> _displayedDuas = [];
   bool _isLoading = true;
   double _fontSize = 16.0;
   final ScrollController _scrollController = ScrollController();
   String? _errorMessage;
+  
+  // ✅ للـ Pagination
+  static const int _itemsPerPage = 10;
+  bool _isLoadingMore = false;
 
   @override
   void initState() {
     super.initState();
     _duaService = getService<DuaService>();
+    _scrollController.addListener(_onScroll);
     _loadDuas();
   }
 
@@ -44,35 +50,84 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
     super.dispose();
   }
 
-  Future<void> _loadDuas() async {
-    try {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
+  /// ✅ معالج التمرير للـ Pagination
+  void _onScroll() {
+    if (_scrollController.position.pixels >= 
+        _scrollController.position.maxScrollExtent * 0.8) {
+      _loadMoreDuas();
+    }
+  }
+
+  /// ✅ تحميل المزيد من الأدعية
+  void _loadMoreDuas() {
+    if (_isLoadingMore || _displayedDuas.length >= _duas.length) return;
+    
+    setState(() => _isLoadingMore = true);
+    
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
       
+      setState(() {
+        final nextItems = _duas
+            .skip(_displayedDuas.length)
+            .take(_itemsPerPage)
+            .toList();
+        _displayedDuas.addAll(nextItems);
+        _isLoadingMore = false;
+        
+        debugPrint('📄 تم تحميل ${nextItems.length} دعاء إضافي (المجموع: ${_displayedDuas.length}/${_duas.length})');
+      });
+    });
+  }
+
+  /// ✅ تحميل الأدعية مع معالجة أفضل للأخطاء
+  Future<void> _loadDuas() async {
+    if (!mounted) return;
+    
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    
+    try {
       final results = await Future.wait([
         _duaService.getDuasByCategory(widget.categoryId),
         _duaService.getSavedFontSize(),
-      ]);
+      ]).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () => throw TimeoutException('انتهت مهلة التحميل'),
+      );
       
-      _duas = results[0] as List<Dua>;
-      _fontSize = results[1] as double;
+      if (!mounted) return;
       
-      setState(() => _isLoading = false);
+      setState(() {
+        _duas = results[0] as List<Dua>;
+        _fontSize = results[1] as double;
+        
+        // ✅ تحميل أول دفعة
+        _displayedDuas = _duas.take(_itemsPerPage).toList();
+        
+        _isLoading = false;
+      });
       
       debugPrint('✅ تم تحميل ${_duas.length} دعاء من ${widget.categoryName}');
+      debugPrint('📄 عرض ${_displayedDuas.length} دعاء في البداية');
+    } on TimeoutException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'انتهت مهلة التحميل. يرجى المحاولة مرة أخرى';
+      });
+      context.showErrorSnackBar(_errorMessage!);
+      debugPrint('❌ Timeout: $e');
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
         _errorMessage = 'حدث خطأ في تحميل الأدعية';
       });
-      
       debugPrint('❌ خطأ في تحميل الأدعية: $e');
-      
-      if (mounted) {
-        context.showErrorSnackBar('حدث خطأ في تحميل الأدعية');
-      }
+      context.showErrorSnackBar(_errorMessage!);
     }
   }
 
@@ -131,7 +186,7 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
               borderRadius: BorderRadius.circular(10.r),
               boxShadow: [
                 BoxShadow(
-                  color: ThemeConstants.primary.withValues(alpha: 0.25),
+                  color: ThemeConstants.primary.withOpacity(0.25),
                   blurRadius: 6.r,
                   offset: Offset(0, 3.h),
                 ),
@@ -200,12 +255,12 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
               color: context.cardColor,
               borderRadius: BorderRadius.circular(10.r),
               border: Border.all(
-                color: context.dividerColor.withValues(alpha: 0.3),
+                color: context.dividerColor.withOpacity(0.3),
                 width: 1.w,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
+                  color: Colors.black.withOpacity(0.08),
                   blurRadius: 3.r,
                   offset: Offset(0, 1.5.h),
                 ),
@@ -230,7 +285,7 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
           Container(
             padding: EdgeInsets.all(14.r),
             decoration: BoxDecoration(
-              color: ThemeConstants.primary.withValues(alpha: 0.1),
+              color: ThemeConstants.primary.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: CircularProgressIndicator(
@@ -267,7 +322,7 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
           Container(
             padding: EdgeInsets.all(20.r),
             decoration: BoxDecoration(
-              color: Colors.red.withValues(alpha: 0.1),
+              color: Colors.red.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -291,7 +346,7 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
             child: Text(
               _errorMessage ?? 'حدث خطأ غير متوقع',
               style: TextStyle(
-                color: context.textSecondaryColor.withValues(alpha: 0.7),
+                color: context.textSecondaryColor.withOpacity(0.7),
                 fontSize: 13.sp,
               ),
               textAlign: TextAlign.center,
@@ -324,13 +379,13 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
           Container(
             padding: EdgeInsets.all(20.r),
             decoration: BoxDecoration(
-              color: context.textSecondaryColor.withValues(alpha: 0.05),
+              color: context.textSecondaryColor.withOpacity(0.05),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.menu_book_outlined,
               size: 50.sp,
-              color: context.textSecondaryColor.withValues(alpha: 0.5),
+              color: context.textSecondaryColor.withOpacity(0.5),
             ),
           ),
           SizedBox(height: 14.h),
@@ -346,7 +401,7 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
           Text(
             'لا توجد أدعية في هذه الفئة حالياً',
             style: TextStyle(
-              color: context.textSecondaryColor.withValues(alpha: 0.7),
+              color: context.textSecondaryColor.withOpacity(0.7),
               fontSize: 13.sp,
             ),
             textAlign: TextAlign.center,
@@ -417,9 +472,21 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
             controller: _scrollController,
             padding: EdgeInsets.all(12.r),
             physics: const BouncingScrollPhysics(),
-            itemCount: _duas.length,
+            itemCount: _displayedDuas.length + (_isLoadingMore ? 1 : 0),
             itemBuilder: (context, index) {
-              final dua = _duas[index];
+              // ✅ عرض مؤشر التحميل في الأسفل
+              if (index == _displayedDuas.length) {
+                return Container(
+                  padding: EdgeInsets.all(20.r),
+                  alignment: Alignment.center,
+                  child: CircularProgressIndicator(
+                    color: ThemeConstants.primary,
+                    strokeWidth: 2.w,
+                  ),
+                );
+              }
+              
+              final dua = _displayedDuas[index];
               
               return Container(
                 margin: EdgeInsets.only(bottom: 10.h),
@@ -453,7 +520,7 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
             Container(
               padding: EdgeInsets.all(6.r),
               decoration: BoxDecoration(
-                color: ThemeConstants.primary.withValues(alpha: 0.1),
+                color: ThemeConstants.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10.r),
               ),
               child: Icon(
@@ -503,13 +570,13 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
             padding: EdgeInsets.all(10.r),
             decoration: BoxDecoration(
               color: isSelected 
-                  ? ThemeConstants.primary.withValues(alpha: 0.1)
+                  ? ThemeConstants.primary.withOpacity(0.1)
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(10.r),
               border: Border.all(
                 color: isSelected 
-                    ? ThemeConstants.primary.withValues(alpha: 0.3)
-                    : context.dividerColor.withValues(alpha: 0.2),
+                    ? ThemeConstants.primary.withOpacity(0.3)
+                    : context.dividerColor.withOpacity(0.2),
                 width: 1.w,
               ),
             ),
@@ -548,7 +615,7 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 3.h),
                   decoration: BoxDecoration(
-                    color: context.textSecondaryColor.withValues(alpha: 0.1),
+                    color: context.textSecondaryColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(999.r),
                   ),
                   child: Text(
@@ -576,10 +643,21 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
       
       if (mounted) {
         setState(() {
-          _duas[index] = dua.copyWith(
+          final updatedDua = dua.copyWith(
             readCount: dua.readCount + 1,
             lastRead: DateTime.now(),
           );
+          
+          // ✅ تحديث في القائمتين
+          final duaIndex = _duas.indexWhere((d) => d.id == dua.id);
+          if (duaIndex != -1) {
+            _duas[duaIndex] = updatedDua;
+          }
+          
+          final displayIndex = _displayedDuas.indexWhere((d) => d.id == dua.id);
+          if (displayIndex != -1) {
+            _displayedDuas[displayIndex] = updatedDua;
+          }
         });
       }
     } catch (e) {
@@ -613,4 +691,13 @@ ${dua.reference != null ? 'المرجع: ${dua.reference}' : ''}
     Clipboard.setData(ClipboardData(text: dua.arabicText));
     context.showSuccessSnackBar('تم نسخ الدعاء');
   }
+}
+
+/// ✅ استثناء Timeout
+class TimeoutException implements Exception {
+  final String message;
+  TimeoutException(this.message);
+  
+  @override
+  String toString() => 'TimeoutException: $message';
 }
