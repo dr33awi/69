@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../app/themes/app_theme.dart';
 
-/// أدوات مساعدة لفئات الأذكار
+/// أدوات مساعدة لفئات الأذكار - نمط ألوان موحد
 class CategoryUtils {
   /// الحصول على أيقونة مناسبة لكل فئة
   static IconData getCategoryIcon(String categoryId) {
@@ -10,282 +10,357 @@ class CategoryUtils {
       case 'morning':
       case 'الصباح':
       case 'صباح':
-        return Icons.wb_sunny_rounded; // شمس للصباح
+        return Icons.wb_sunny_rounded;
       case 'evening':
       case 'المساء':
       case 'مساء':
-        return Icons.wb_twilight_rounded; // غروب للمساء
+        return Icons.wb_twilight_rounded;
       case 'sleep':
       case 'النوم':
       case 'نوم':
-        return Icons.bedtime_rounded; // سرير للنوم
+        return Icons.bedtime_rounded;
       case 'wakeup':
       case 'wake_up':
       case 'الاستيقاظ':
       case 'استيقاظ':
       case 'wake':
-        return Icons.alarm_rounded; // منبه للاستيقاظ
+        return Icons.wb_sunny;
       
-      // أذكار العبادة والأماكن
+      // أذكار المنزل
+      case 'leaving_home':
+      case 'خروج':
+      case 'الخروج':
+      case 'خروج المنزل':
+      case 'الخروج من المنزل':
+        return Icons.logout_rounded;
+      case 'entering_home':
+      case 'دخول':
+      case 'الدخول':
+      case 'دخول المنزل':
+      case 'الدخول إلى المنزل':
+        return Icons.home_filled;
+      
+      // أذكار الصلاة
+      case 'adhan':
+      case 'azan':
+      case 'الأذان':
+      case 'أذان':
+        return Icons.volume_up_rounded;
+      case 'after_prayer':
+      case 'بعد الصلاة':
+      case 'بعد السلام':
+      case 'السلام من الصلاة':
+        return Icons.eco_rounded;
       case 'prayer':
       case 'الصلاة':
       case 'صلاة':
       case 'prayers':
-        return Icons.mosque; // مسجد للصلاة
+        return Icons.mosque;
+      
+      // باقي الفئات
       case 'eating':
       case 'food':
       case 'الطعام':
       case 'طعام':
       case 'الأكل':
       case 'أكل':
-        return Icons.restaurant_rounded; // مطعم للطعام
+        return Icons.restaurant_rounded;
       case 'home':
       case 'house':
       case 'المنزل':
       case 'منزل':
       case 'البيت':
       case 'بيت':
-        return Icons.home_rounded; // منزل للبيت
+        return Icons.home_rounded;
       case 'travel':
       case 'السفر':
       case 'سفر':
-        return Icons.flight_rounded; // طائرة للسفر
-      
-      // باقي الفئات
+        return Icons.flight_rounded;
       case 'general':
       case 'عامة':
       case 'عام':
-        return Icons.auto_awesome_rounded; // نجمة للعام
+        return Icons.auto_awesome_rounded;
       case 'quran':
       case 'القرآن':
       case 'قرآن':
-        return Icons.menu_book_rounded; // كتاب للقرآن
+        return Icons.menu_book_rounded;
       case 'tasbih':
       case 'التسبيح':
       case 'تسبيح':
-        return Icons.radio_button_checked; // دائرة للتسبيح
+        return Icons.radio_button_checked;
       case 'dua':
       case 'الدعاء':
       case 'دعاء':
-        return Icons.pan_tool_rounded; // يد للدعاء
+        return Icons.pan_tool_rounded;
       case 'istighfar':
       case 'الاستغفار':
       case 'استغفار':
-        return Icons.favorite_rounded; // قلب للاستغفار
+        return Icons.favorite_rounded;
       case 'friday':
       case 'الجمعة':
       case 'جمعة':
-        return Icons.event_rounded; // تقويم للجمعة
+        return Icons.event_rounded;
       case 'hajj':
       case 'الحج':
       case 'حج':
-        return Icons.location_on_rounded; // موقع للحج
+        return Icons.location_on_rounded;
       case 'ramadan':
       case 'رمضان':
-        return Icons.nights_stay_rounded; // هلال لرمضان
+        return Icons.nights_stay_rounded;
       case 'eid':
       case 'العيد':
       case 'عيد':
-        return Icons.celebration_rounded; // احتفال للعيد
+        return Icons.celebration_rounded;
       case 'illness':
       case 'المرض':
       case 'مرض':
-        return Icons.healing_rounded; // شفاء للمرض
+        return Icons.healing_rounded;
       case 'rain':
       case 'المطر':
       case 'مطر':
-        return Icons.water_drop_rounded; // قطرة للمطر
+        return Icons.water_drop_rounded;
       case 'wind':
       case 'الرياح':
       case 'رياح':
-        return Icons.air_rounded; // هواء للرياح
+        return Icons.air_rounded;
       case 'work':
       case 'العمل':
       case 'عمل':
-        return Icons.work_rounded; // عمل للمهنة
+        return Icons.work_rounded;
       case 'study':
       case 'الدراسة':
       case 'دراسة':
-        return Icons.school_rounded; // مدرسة للدراسة
+        return Icons.school_rounded;
       case 'anxiety':
       case 'القلق':
       case 'قلق':
-        return Icons.psychology_rounded; // عقل للقلق
+        return Icons.psychology_rounded;
       case 'gratitude':
       case 'الشكر':
       case 'شكر':
-        return Icons.thumb_up_rounded; // إعجاب للشكر
+        return Icons.thumb_up_rounded;
       case 'protection':
       case 'الحماية':
       case 'حماية':
-        return Icons.shield_rounded; // درع للحماية
+        return Icons.shield_rounded;
       case 'guidance':
       case 'الهداية':
       case 'هداية':
-        return Icons.lightbulb_rounded; // مصباح للهداية
+        return Icons.lightbulb_rounded;
       case 'forgiveness':
       case 'المغفرة':
       case 'مغفرة':
-        return Icons.clean_hands_rounded; // أيدي نظيفة للمغفرة
+        return Icons.clean_hands_rounded;
       case 'success':
       case 'النجاح':
       case 'نجاح':
-        return Icons.emoji_events_rounded; // كأس للنجاح
+        return Icons.emoji_events_rounded;
       case 'patience':
       case 'الصبر':
       case 'صبر':
-        return Icons.hourglass_bottom_rounded; // ساعة رملية للصبر
+        return Icons.hourglass_bottom_rounded;
       case 'knowledge':
       case 'العلم':
       case 'علم':
-        return Icons.psychology_alt_rounded; // عقل للعلم
+        return Icons.psychology_alt_rounded;
       default:
-        return Icons.auto_awesome_rounded; // افتراضي
+        return Icons.auto_awesome_rounded;
     }
   }
 
-  /// الحصول على لون من الثيم بناءً على نوع الفئة
-// إصلاح لون أيقونة أدعية النوم في CategoryUtils
-// lib/features/athkar/utils/category_utils.dart
-
-  /// الحصول على لون من الثيم بناءً على نوع الفئة
+  /// الحصول على لون من الثيم - نمط ترابي موحد 🎨
   static Color getCategoryThemeColor(String categoryId) {
     switch (categoryId.toLowerCase()) {
-      // أذكار الأوقات
+      // ===== أذكار الأوقات - نمط ترابي دافئ =====
       case 'morning':
       case 'الصباح':
       case 'صباح':
-        return const Color(0xFFDAA520); // ذهبي فاتح كالشروق
+        return const Color(0xFFDAA520); // ذهبي دافئ - شروق الشمس
+        
       case 'evening':
       case 'المساء':
       case 'مساء':
-        return const Color(0xFF8B6F47); // بني دافئ كالغروب
+        return const Color(0xFF8B6F47); // بني دافئ - غروب الشمس
+        
       case 'sleep':
       case 'النوم':
       case 'نوم':
-        return const Color(0xFF5A7AA0); // أزرق فاتح بدلاً من الداكن
+        return const Color(0xFF6B7A8A); // رمادي مزرق هادئ - سكون الليل
+        
       case 'wakeup':
       case 'wake_up':
       case 'الاستيقاظ':
       case 'استيقاظ':
       case 'wake':
-        return const Color(0xFF7A8B6F); // أخضر زيتي فاتح للنهار
+        return const Color(0xFFD4A574); // بيج ذهبي - فجر جديد
       
-      // أذكار العبادة
+      // ===== أذكار المنزل - نمط ترابي =====
+      case 'leaving_home':
+      case 'خروج':
+      case 'الخروج':
+      case 'خروج المنزل':
+      case 'الخروج من المنزل':
+        return const Color(0xFF7A8B9A); // رمادي مزرق - انطلاق هادئ
+        
+      case 'entering_home':
+      case 'دخول':
+      case 'الدخول':
+      case 'دخول المنزل':
+      case 'الدخول إلى المنزل':
+        return const Color(0xFF8B7355); // بني دافئ - دفء المنزل
+      
+      // ===== أذكار الصلاة - نمط ترابي =====
+      case 'adhan':
+      case 'azan':
+      case 'الأذان':
+      case 'أذان':
+        return const Color(0xFF7A6B8F); // بنفسجي ترابي - نداء مقدس
+        
+      case 'after_prayer':
+      case 'بعد الصلاة':
+      case 'بعد السلام':
+      case 'السلام من الصلاة':
+        return const Color(0xFF6B8B7A); // أخضر ترابي - سكينة بعد الصلاة
+        
       case 'prayer':
       case 'الصلاة':
       case 'صلاة':
       case 'prayers':
-        return const Color(0xFF445A3B); // أخضر زيتي داكن مقدس
+        return const Color(0xFF5D7052); // أخضر زيتوني - خشوع
+      
+      // ===== باقي الفئات - نمط ترابي موحد =====
       case 'eating':
       case 'food':
       case 'الطعام':
       case 'طعام':
       case 'الأكل':
       case 'أكل':
-        return const Color(0xFF6B8E5A); // أخضر طبيعي للطعام
+        return const Color(0xFF8B7A5B); // بني فاتح - طعام طبيعي
+        
       case 'home':
       case 'house':
       case 'المنزل':
       case 'منزل':
       case 'البيت':
       case 'بيت':
-        return const Color(0xFF8B7355); // بني دافئ للمنزل
+        return const Color(0xFF8B7355); // بني دافئ
+        
       case 'travel':
       case 'السفر':
       case 'سفر':
-        return const Color(0xFF5F7C8A); // أزرق رمادي للسفر
-      
-      // باقي الفئات
+        return const Color(0xFF7A8B8A); // رمادي مخضر - رحلة
+        
       case 'general':
       case 'عامة':
       case 'عام':
-        return const Color(0xFF8B7355); // بني متوسط متوازن
+        return const Color(0xFF8B8B7A); // بيج رمادي - متوازن
+        
       case 'quran':
       case 'القرآن':
       case 'قرآن':
-        return const Color(0xFF704214); // بني داكن كالمصحف
+        return const Color(0xFF704214); // بني داكن - مصحف
+        
       case 'tasbih':
       case 'التسبيح':
       case 'تسبيح':
-        return const Color(0xFF4A6741); // أخضر داكن روحاني
+        return const Color(0xFF6B7A6B); // أخضر رمادي - تسبيح
+        
       case 'dua':
       case 'الدعاء':
       case 'دعاء':
-        return const Color(0xFF6B4C7C); // بنفسجي داكن للدعاء
+        return const Color(0xFF7A6B7A); // بنفسجي رمادي - دعاء
+        
       case 'istighfar':
       case 'الاستغفار':
       case 'استغفار':
-        return const Color(0xFF8B4A6B); // وردي داكن للتوبة
+        return const Color(0xFF8B6B7A); // وردي ترابي - توبة
+        
       case 'friday':
       case 'الجمعة':
       case 'جمعة':
-        return const Color(0xFF4F6B43); // أخضر مبارك للجمعة
+        return const Color(0xFF6B7A5B); // أخضر زيتوني - جمعة مباركة
+        
       case 'hajj':
       case 'الحج':
       case 'حج':
-        return const Color(0xFF5A5A5A); // رمادي داكن للكعبة
+        return const Color(0xFF6B6B6B); // رمادي - كعبة
+        
       case 'ramadan':
       case 'رمضان':
-        return const Color(0xFF4A3C6B); // بنفسجي داكن لرمضان
+        return const Color(0xFF6B5B7A); // بنفسجي داكن - رمضان
+        
       case 'eid':
       case 'العيد':
       case 'عيد':
-        return const Color(0xFFB8860B); // ذهبي احتفالي للعيد
+        return const Color(0xFFB8860B); // ذهبي - عيد
+        
       case 'illness':
       case 'المرض':
       case 'مرض':
-        return const Color(0xFF5D7A52); // أخضر هادئ للشفاء
+        return const Color(0xFF7A8B6B); // أخضر هادئ - شفاء
+        
       case 'rain':
       case 'المطر':
       case 'مطر':
-        return const Color(0xFF4A6B7C); // أزرق رمادي للمطر
+        return const Color(0xFF6B7A8A); // رمادي مزرق - مطر
+        
       case 'wind':
       case 'الرياح':
       case 'رياح':
-        return const Color(0xFF6B7A7A); // رمادي فضي للرياح
+        return const Color(0xFF7A8A8A); // رمادي فاتح - رياح
+        
       case 'work':
       case 'العمل':
       case 'عمل':
-        return const Color(0xFF7A6B3F); // بني ذهبي للعمل
+        return const Color(0xFF8B7A4F); // بني ذهبي - عمل
+        
       case 'study':
       case 'الدراسة':
       case 'دراسة':
-        return const Color(0xFF3F4A7A); // أزرق داكن للدراسة
+        return const Color(0xFF5B6B7A); // أزرق رمادي - دراسة
+        
       case 'anxiety':
       case 'القلق':
       case 'قلق':
-        return const Color(0xFF4A7A6B); // تركوازي داكن مهدئ
+        return const Color(0xFF6B8A7A); // تركوازي ترابي - طمأنينة
+        
       case 'gratitude':
       case 'الشكر':
       case 'شكر':
-        return const Color(0xFF8B7A2D); // أصفر داكن للشكر
+        return const Color(0xFF9B8B5D); // أصفر ترابي - شكر
+        
       case 'protection':
       case 'الحماية':
       case 'حماية':
-        return const Color(0xFF5A6B4A); // أخضر داكن للحماية
+        return const Color(0xFF6B7A5B); // أخضر زيتوني - حماية
+        
       case 'guidance':
       case 'الهداية':
       case 'هداية':
-        return const Color(0xFF5A4A6B); // بنفسجي داكن للهداية
+        return const Color(0xFF6B5B6B); // بنفسجي رمادي - هداية
+        
       case 'forgiveness':
       case 'المغفرة':
       case 'مغفرة':
-        return const Color(0xFF7A4A5A); // وردي داكن للمغفرة
+        return const Color(0xFF8B6B7A); // وردي ترابي - مغفرة
+        
       case 'success':
       case 'النجاح':
       case 'نجاح':
-        return const Color(0xFF4A6B47); // أخضر داكن للنجاح
+        return const Color(0xFF6B7A5B); // أخضر ترابي - نجاح
+        
       case 'patience':
       case 'الصبر':
       case 'صبر':
-        return const Color(0xFF5A6B6B); // رمادي أزرق للصبر
+        return const Color(0xFF6B7A7A); // رمادي - صبر
+        
       case 'knowledge':
       case 'العلم':
       case 'علم':
-        return const Color(0xFF3F5A7A); // أزرق داكن للعلم
+        return const Color(0xFF5B6B7A); // أزرق رمادي - علم
+        
       default:
-        return const Color(0xFF5D7052); // اللون الأساسي الافتراضي
+        return const Color(0xFF5D7052); // اللون الأساسي
     }
   }
 
@@ -316,8 +391,33 @@ class CategoryUtils {
       case 'النوم':
         return 'نم آمناً في حفظ الله';
       case 'wakeup':
+      case 'wake_up':
       case 'الاستيقاظ':
-        return 'احمد الله على نعمة الحياة';
+      case 'استيقاظ':
+      case 'wake':
+        return 'استيقظ بحمد الله وشكره';
+      case 'leaving_home':
+      case 'خروج':
+      case 'الخروج':
+      case 'خروج المنزل':
+      case 'الخروج من المنزل':
+        return 'اخرج بحفظ الله وتوفيقه';
+      case 'entering_home':
+      case 'دخول':
+      case 'الدخول':
+      case 'دخول المنزل':
+      case 'الدخول إلى المنزل':
+        return 'ادخل منزلك بالبركة والسلام';
+      case 'adhan':
+      case 'azan':
+      case 'الأذان':
+      case 'أذان':
+        return 'أذكار وأدعية سماع الأذان';
+      case 'after_prayer':
+      case 'بعد الصلاة':
+      case 'بعد السلام':
+      case 'السلام من الصلاة':
+        return 'أذكار التسبيح بعد الصلاة';
       case 'prayer':
       case 'الصلاة':
         return 'أذكار قبل وبعد الصلاة';
@@ -415,7 +515,6 @@ class CategoryUtils {
 
   /// تحديد ما إذا كان يجب عرض الوقت للفئة
   static bool shouldShowTime(String categoryId) {
-    // إخفاء الوقت لفئات الصباح والمساء والنوم
     const hiddenTimeCategories = {
       'morning',
       'الصباح',
@@ -439,54 +538,79 @@ class CategoryUtils {
       case 'prayer':
       case 'الصلاة':
         return 3;
+      case 'after_prayer':
+      case 'بعد الصلاة':
+      case 'بعد السلام':
+      case 'السلام من الصلاة':
+        return 4;
+      case 'adhan':
+      case 'azan':
+      case 'الأذان':
+      case 'أذان':
+        return 4;
       case 'sleep':
       case 'النوم':
-        return 4;
-      case 'wakeup':
-      case 'الاستيقاظ':
         return 5;
+      case 'wakeup':
+      case 'wake_up':
+      case 'الاستيقاظ':
+      case 'استيقاظ':
+      case 'wake':
+        return 6;
+      case 'leaving_home':
+      case 'خروج':
+      case 'الخروج':
+      case 'خروج المنزل':
+      case 'الخروج من المنزل':
+        return 7;
+      case 'entering_home':
+      case 'دخول':
+      case 'الدخول':
+      case 'دخول المنزل':
+      case 'الدخول إلى المنزل':
+        return 8;
       case 'eating':
       case 'الطعام':
-        return 6;
+        return 9;
       case 'quran':
       case 'القرآن':
-        return 7;
+        return 10;
       case 'tasbih':
       case 'التسبيح':
-        return 8;
+        return 11;
       case 'dua':
       case 'الدعاء':
-        return 9;
+        return 12;
       case 'istighfar':
       case 'الاستغفار':
-        return 10;
+        return 13;
       case 'friday':
       case 'الجمعة':
-        return 11;
+        return 14;
       case 'travel':
       case 'السفر':
-        return 12;
+        return 15;
       case 'ramadan':
       case 'رمضان':
-        return 13;
+        return 16;
       case 'hajj':
       case 'الحج':
-        return 14;
+        return 17;
       case 'eid':
       case 'العيد':
-        return 15;
+        return 18;
       case 'illness':
       case 'المرض':
-        return 16;
+        return 19;
       case 'rain':
       case 'المطر':
-        return 17;
+        return 20;
       case 'wind':
       case 'الرياح':
-        return 18;
+        return 21;
       case 'general':
       case 'عامة':
-        return 19;
+        return 22;
       default:
         return 99;
     }
