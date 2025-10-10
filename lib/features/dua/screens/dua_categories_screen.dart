@@ -1,4 +1,4 @@
-// lib/features/dua/screens/dua_categories_screen.dart - محسّن
+// lib/features/dua/screens/dua_categories_screen.dart - محدث
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -6,6 +6,7 @@ import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../services/dua_service.dart';
 import '../models/dua_model.dart';
+import '../data/dua_data.dart';
 import 'dua_details_screen.dart';
 
 class DuaCategoriesScreen extends StatefulWidget {
@@ -19,6 +20,7 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
   late final DuaService _duaService;
   
   List<DuaCategory> _categories = [];
+  Map<String, dynamic> _stats = {};
   bool _isLoading = true;
 
   @override
@@ -32,7 +34,14 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
     try {
       setState(() => _isLoading = true);
       
-      _categories = await _duaService.getCategories();
+      // تحميل الفئات والإحصائيات بشكل متوازي
+      final results = await Future.wait([
+        _duaService.getCategories(),
+        DuaData.getDataStats(),
+      ]);
+      
+      _categories = results[0] as List<DuaCategory>;
+      _stats = results[1] as Map<String, dynamic>;
       
       setState(() => _isLoading = false);
     } catch (e) {
@@ -51,6 +60,7 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
         child: Column(
           children: [
             _buildEnhancedAppBar(),
+            if (!_isLoading) _buildStatsBar(),
             Expanded(
               child: _isLoading ? _buildLoading() : _buildContent(),
             ),
@@ -110,7 +120,7 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
                   ),
                 ),
                 Text(
-                  'من الكتاب والسنة',
+                  'من الكتاب والسنة الصحيحة',
                   style: TextStyle(
                     color: context.textSecondaryColor,
                     fontSize: 11.sp,
@@ -121,6 +131,88 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  /// ✅ شريط الإحصائيات
+  Widget _buildStatsBar() {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 12.w),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            ThemeConstants.primary.withOpacity(0.1),
+            ThemeConstants.primaryLight.withOpacity(0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: ThemeConstants.primary.withOpacity(0.2),
+          width: 1.w,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildStatItem(
+            Icons.book_rounded,
+            _stats['totalDuas']?.toString() ?? '0',
+            'دعاء',
+            ThemeConstants.primary,
+          ),
+          Container(
+            width: 1.w,
+            height: 25.h,
+            color: context.dividerColor.withOpacity(0.3),
+          ),
+          _buildStatItem(
+            Icons.menu_book_rounded,
+            '24',
+            'من القرآن',
+            ThemeConstants.accent,
+          ),
+          Container(
+            width: 1.w,
+            height: 25.h,
+            color: context.dividerColor.withOpacity(0.3),
+          ),
+          _buildStatItem(
+            Icons.verified_rounded,
+            '76',
+            'من السنة',
+            ThemeConstants.tertiary,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem(IconData icon, String value, String label, Color color) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 16.sp, color: color),
+            SizedBox(width: 4.w),
+            Text(
+              value,
+              style: TextStyle(
+                fontWeight: ThemeConstants.bold,
+                color: color,
+                fontSize: 14.sp,
+              ),
+            ),
+          ],
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            color: context.textSecondaryColor,
+            fontSize: 10.sp,
+          ),
+        ),
+      ],
     );
   }
 
@@ -148,14 +240,6 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
               fontSize: 14.sp,
             ),
           ),
-          SizedBox(height: 6.h),
-          Text(
-            'يرجى الانتظار قليلاً',
-            style: TextStyle(
-              color: context.textSecondaryColor.withOpacity(0.7),
-              fontSize: 11.sp,
-            ),
-          ),
         ],
       ),
     );
@@ -166,45 +250,22 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
       return _buildEmptyState();
     }
 
-    return Column(
-      children: [
-        Container(
-          margin: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-          child: Row(
-            children: [
-              Icon(
-                Icons.category_rounded,
-                size: 14.sp,
-                color: context.textSecondaryColor,
-              ),
-              SizedBox(width: 4.w),
-              Text(
-                'عدد الفئات: ${_categories.length}',
-                style: TextStyle(
-                  color: context.textSecondaryColor,
-                  fontSize: 12.sp,
-                ),
-              ),
-            ],
-          ),
-        ),
-        
-        Expanded(
-          child: ListView.builder(
-            padding: EdgeInsets.all(12.r),
-            physics: const BouncingScrollPhysics(),
-            itemCount: _categories.length,
-            itemBuilder: (context, index) {
-              final category = _categories[index];
-              
-              return Container(
-                margin: EdgeInsets.only(bottom: 8.h),
-                child: _buildCompactCategoryCard(category, index),
-              );
-            },
-          ),
-        ),
-      ],
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      color: ThemeConstants.primary,
+      child: ListView.builder(
+        padding: EdgeInsets.all(12.r),
+        physics: const BouncingScrollPhysics(),
+        itemCount: _categories.length,
+        itemBuilder: (context, index) {
+          final category = _categories[index];
+          
+          return Container(
+            margin: EdgeInsets.only(bottom: 12.h),
+            child: _buildCategoryCard(category, index),
+          );
+        },
+      ),
     );
   }
 
@@ -234,15 +295,6 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
               fontSize: 18.sp,
             ),
           ),
-          SizedBox(height: 6.h),
-          Text(
-            'لم يتم العثور على فئات الأدعية',
-            style: TextStyle(
-              color: context.textSecondaryColor.withOpacity(0.7),
-              fontSize: 13.sp,
-            ),
-            textAlign: TextAlign.center,
-          ),
           SizedBox(height: 20.h),
           ElevatedButton.icon(
             onPressed: _loadData,
@@ -262,120 +314,128 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
     );
   }
 
-  Widget _buildCompactCategoryCard(DuaCategory category, int index) {
-    final color = _getCategoryColor(category.type);
+  /// ✅ بطاقة الفئة المحسنة
+  Widget _buildCategoryCard(DuaCategory category, int index) {
+    final color = _getCategoryColor(category.id);
+    final icon = _getCategoryIcon(category.id);
+    final gradient = _getCategoryGradient(category.id);
     
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(14.r),
+      borderRadius: BorderRadius.circular(16.r),
       child: InkWell(
         onTap: () => _onCategoryPressed(category),
-        borderRadius: BorderRadius.circular(14.r),
+        borderRadius: BorderRadius.circular(16.r),
         child: Container(
-          padding: EdgeInsets.all(10.r),
+          height: 120.h,
           decoration: BoxDecoration(
-            color: context.cardColor,
-            borderRadius: BorderRadius.circular(14.r),
-            border: Border.all(
-              color: color.withOpacity(0.2),
-              width: 1.w,
-            ),
+            gradient: gradient,
+            borderRadius: BorderRadius.circular(16.r),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 6.r,
-                offset: Offset(0, 2.h),
+                color: color.withOpacity(0.3),
+                blurRadius: 8.r,
+                offset: Offset(0, 4.h),
               ),
             ],
           ),
-          child: Row(
+          child: Stack(
             children: [
-              Container(
-                width: 38.r,
-                height: 38.r,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [color, color.withOpacity(0.8)],
-                  ),
-                  borderRadius: BorderRadius.circular(10.r),
-                  boxShadow: [
-                    BoxShadow(
-                      color: color.withOpacity(0.25),
-                      blurRadius: 4.r,
-                      offset: Offset(0, 2.h),
-                    ),
-                  ],
-                ),
+              // ✅ خلفية زخرفية
+              Positioned(
+                left: -20.w,
+                bottom: -20.h,
                 child: Icon(
-                  _getCategoryIcon(category.type),
-                  color: _shouldUseWhiteIcon(category.type) ? Colors.white : Colors.black87,
-                  size: 18.sp,
+                  icon,
+                  size: 100.sp,
+                  color: Colors.white.withOpacity(0.1),
                 ),
               ),
               
-              SizedBox(width: 10.w),
-              
-              Expanded(
+              // ✅ المحتوى
+              Padding(
+                padding: EdgeInsets.all(16.r),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      category.name,
-                      style: TextStyle(
-                        color: color,
-                        fontWeight: ThemeConstants.bold,
-                        fontFamily: ThemeConstants.fontFamilyArabic,
-                        fontSize: 14.sp,
-                      ),
-                    ),
-                    
-                    SizedBox(height: 3.h),
-                    
-                    Text(
-                      category.description,
-                      style: TextStyle(
-                        color: context.textSecondaryColor,
-                        height: 1.3,
-                        fontSize: 11.sp,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    
-                    SizedBox(height: 3.h),
-                    
                     Row(
                       children: [
-                        Icon(
-                          Icons.format_list_numbered_rounded,
-                          size: 11.sp,
-                          color: ThemeConstants.accent,
+                        Container(
+                          padding: EdgeInsets.all(10.r),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: Icon(
+                            icon,
+                            color: Colors.white,
+                            size: 24.sp,
+                          ),
                         ),
-                        SizedBox(width: 3.w),
-                        Text(
-                          '${category.duaCount} دعاء',
-                          style: TextStyle(
-                            color: ThemeConstants.accent,
-                            fontWeight: ThemeConstants.medium,
-                            fontSize: 10.sp,
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                category.name,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: ThemeConstants.bold,
+                                  fontSize: 16.sp,
+                                ),
+                              ),
+                              SizedBox(height: 2.h),
+                              Text(
+                                category.description,
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 12.sp,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
+                    
+                    // ✅ شريط المعلومات السفلي
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(999.r),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.format_list_numbered_rounded,
+                            size: 14.sp,
+                            color: Colors.white,
+                          ),
+                          SizedBox(width: 4.w),
+                          Text(
+                            '${category.duaCount} دعاء',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: ThemeConstants.semiBold,
+                              fontSize: 12.sp,
+                            ),
+                          ),
+                          SizedBox(width: 12.w),
+                          Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 14.sp,
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
-                ),
-              ),
-              
-              Container(
-                padding: EdgeInsets.all(5.r),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8.r),
-                ),
-                child: Icon(
-                  Icons.chevron_left_rounded,
-                  color: color,
-                  size: 16.sp,
                 ),
               ),
             ],
@@ -385,80 +445,71 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
     );
   }
 
-  bool _shouldUseWhiteIcon(DuaType type) {
-    switch (type) {
-      case DuaType.morning:
-        return false;
-      case DuaType.evening:
-        return true;
-      case DuaType.prayer:
-        return true;
-      case DuaType.sleep:
-        return context.isDarkMode ? true : true;
-      case DuaType.protection:
-        return true;
-      case DuaType.food:
-        return true;
-      case DuaType.travel:
-        return true;
-      default:
-        return true;
-    }
-  }
-
-  Color _getCategoryColor(DuaType type) {
-    switch (type) {
-      case DuaType.morning:
-        return const Color(0xFFDAA520);
-      case DuaType.evening:
-        return const Color(0xFF8B6F47);
-      case DuaType.prayer:
-        return ThemeConstants.primary;
-      case DuaType.sleep:
-        return context.isDarkMode 
-            ? const Color(0xFF708090)
-            : const Color(0xFF2D352D);
-      case DuaType.protection:
-        return ThemeConstants.accent;
-      case DuaType.food:
-        return ThemeConstants.tertiary;
-      case DuaType.travel:
-        return const Color(0xFF7A8B6F);
+  /// ✅ الحصول على لون الفئة
+  Color _getCategoryColor(String categoryId) {
+    switch (categoryId) {
+      case 'quran':
+        return const Color(0xFF2E7D32); // أخضر داكن
+      case 'sahihain':
+        return const Color(0xFF1565C0); // أزرق
+      case 'sunan':
+        return const Color(0xFF6A1B9A); // بنفسجي
+      case 'other_authentic':
+        return const Color(0xFFD84315); // برتقالي داكن
       default:
         return ThemeConstants.primary;
     }
   }
 
-  IconData _getCategoryIcon(DuaType type) {
-    switch (type) {
-      case DuaType.general:
+  /// ✅ الحصول على تدرج الفئة
+  LinearGradient _getCategoryGradient(String categoryId) {
+    switch (categoryId) {
+      case 'quran':
+        return LinearGradient(
+          colors: [const Color(0xFF2E7D32), const Color(0xFF43A047)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
+      case 'sahihain':
+        return LinearGradient(
+          colors: [const Color(0xFF1565C0), const Color(0xFF42A5F5)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
+      case 'sunan':
+        return LinearGradient(
+          colors: [const Color(0xFF6A1B9A), const Color(0xFFAB47BC)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
+      case 'other_authentic':
+        return LinearGradient(
+          colors: [const Color(0xFFD84315), const Color(0xFFFF7043)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
+      default:
+        return LinearGradient(
+          colors: [ThemeConstants.primary, ThemeConstants.primaryLight],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
+    }
+  }
+
+  /// ✅ الحصول على أيقونة الفئة
+  IconData _getCategoryIcon(String categoryId) {
+    switch (categoryId) {
+      case 'quran':
+        return Icons.menu_book_rounded;
+      case 'sahihain':
+        return Icons.verified_rounded;
+      case 'sunan':
+        return Icons.collections_bookmark_rounded;
+      case 'other_authentic':
+        return Icons.bookmark_rounded;
+      default:
         return Icons.auto_awesome;
-      case DuaType.morning:
-        return Icons.wb_sunny_rounded;
-      case DuaType.evening:
-        return Icons.nights_stay_rounded;
-      case DuaType.prayer:
-        return Icons.mosque_rounded;
-      case DuaType.food:
-        return Icons.restaurant_rounded;
-      case DuaType.travel:
-        return Icons.flight_takeoff_rounded;
-      case DuaType.sleep:
-        return Icons.bedtime_rounded;
-      case DuaType.protection:
-        return Icons.shield_rounded;
-      case DuaType.forgiveness:
-        return Icons.favorite_rounded;
-      case DuaType.gratitude:
-        return Icons.celebration_rounded;
-      case DuaType.guidance:
-        return Icons.explore_rounded;
-      case DuaType.health:
-        return Icons.healing_rounded;
-      case DuaType.wealth:
-        return Icons.attach_money_rounded;
-      case DuaType.knowledge:
-        return Icons.school_rounded;
     }
   }
 

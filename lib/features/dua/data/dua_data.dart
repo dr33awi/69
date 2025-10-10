@@ -1,10 +1,10 @@
-// lib/features/dua/data/dua_data.dart - محسّن
+// lib/features/dua/data/dua_data.dart - محدث للبيانات الجديدة
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/dua_model.dart';
 
-/// بيانات الأدعية من ملف JSON
+/// بيانات الأدعية من ملف JSON المحدث
 class DuaData {
   static Map<String, dynamic>? _cachedData;
   static DateTime? _cacheTimestamp;
@@ -13,7 +13,7 @@ class DuaData {
   
   /// تحميل البيانات من ملف JSON مع timeout وcache expiry
   static Future<Map<String, dynamic>> _loadData() async {
-    // ✅ التحقق من صلاحية الكاش
+    // التحقق من صلاحية الكاش
     if (_cachedData != null && _cacheTimestamp != null) {
       final cacheAge = DateTime.now().difference(_cacheTimestamp!);
       if (cacheAge < _cacheExpiry) {
@@ -111,30 +111,21 @@ class DuaData {
           }
           
           final duasData = data['duas'][categoryId] ?? [];
-          final typeIndex = categoryData['type'];
+          final typeIndex = categoryData['type'] ?? 0;
           
           // التحقق من صحة نوع الفئة
-          if (typeIndex == null || 
-              typeIndex < 0 || 
-              typeIndex >= DuaType.values.length) {
-            debugPrint('⚠️ نوع فئة غير صحيح للفئة: $categoryId (استخدام النوع الافتراضي)');
-            // ✅ استخدام النوع الافتراضي بدلاً من تخطي الفئة
-            categories.add(DuaCategory(
-              id: categoryData['id']?.toString() ?? '',
-              name: categoryData['name']?.toString() ?? 'بدون اسم',
-              description: categoryData['description']?.toString() ?? '',
-              type: DuaType.general,
-              duaCount: duasData is List ? duasData.length : 0,
-            ));
-            continue;
+          DuaType type = DuaType.general;
+          if (typeIndex >= 0 && typeIndex < DuaType.values.length) {
+            type = DuaType.values[typeIndex];
           }
           
           categories.add(DuaCategory(
             id: categoryData['id']?.toString() ?? '',
             name: categoryData['name']?.toString() ?? 'بدون اسم',
             description: categoryData['description']?.toString() ?? '',
-            type: DuaType.values[typeIndex],
+            type: type,
             duaCount: duasData is List ? duasData.length : 0,
+            icon: categoryData['icon']?.toString(),
           ));
         } catch (e) {
           debugPrint('⚠️ خطأ في معالجة فئة: $e');
@@ -143,6 +134,15 @@ class DuaData {
       }
       
       debugPrint('✅ تم تحميل ${categories.length} فئة');
+      
+      // ✅ إضافة إحصائيات كل فئة
+      for (var category in categories) {
+        final categoryDuas = data['duas'][category.id];
+        if (categoryDuas is List) {
+          debugPrint('📊 الفئة "${category.name}": ${categoryDuas.length} دعاء');
+        }
+      }
+      
       return categories;
     } catch (e) {
       debugPrint('❌ خطأ في الحصول على الفئات: $e');
@@ -162,6 +162,7 @@ class DuaData {
       }
       
       final List<Dua> allDuas = [];
+      final Map<String, int> categoryCount = {};
       
       for (var entry in duasData.entries) {
         final categoryDuas = entry.value;
@@ -171,6 +172,8 @@ class DuaData {
           continue;
         }
         
+        categoryCount[entry.key] = 0;
+        
         for (var duaData in categoryDuas) {
           try {
             if (duaData is! Map<String, dynamic>) {
@@ -178,7 +181,13 @@ class DuaData {
               continue;
             }
             
+            // ✅ التأكد من أن categoryId موجود
+            if (duaData['categoryId'] == null) {
+              duaData['categoryId'] = entry.key;
+            }
+            
             allDuas.add(_parseDua(duaData));
+            categoryCount[entry.key] = (categoryCount[entry.key] ?? 0) + 1;
           } catch (e) {
             debugPrint('⚠️ خطأ في معالجة دعاء: $e');
             continue;
@@ -186,7 +195,30 @@ class DuaData {
         }
       }
       
-      debugPrint('✅ تم تحميل ${allDuas.length} دعاء');
+      debugPrint('✅ تم تحميل ${allDuas.length} دعاء إجمالاً');
+      
+      // ✅ عرض الإحصائيات
+      categoryCount.forEach((category, count) {
+        String categoryName;
+        switch (category) {
+          case 'quran':
+            categoryName = 'القرآن الكريم';
+            break;
+          case 'sahihain':
+            categoryName = 'الصحيحين';
+            break;
+          case 'sunan':
+            categoryName = 'السنن';
+            break;
+          case 'other_authentic':
+            categoryName = 'أحاديث صحيحة أخرى';
+            break;
+          default:
+            categoryName = category;
+        }
+        debugPrint('📖 $categoryName: $count دعاء');
+      });
+      
       return allDuas;
     } catch (e) {
       debugPrint('❌ خطأ في الحصول على جميع الأدعية: $e');
@@ -219,6 +251,11 @@ class DuaData {
             continue;
           }
           
+          // ✅ التأكد من أن categoryId موجود
+          if (duaData['categoryId'] == null) {
+            duaData['categoryId'] = categoryId;
+          }
+          
           duas.add(_parseDua(duaData));
         } catch (e) {
           debugPrint('⚠️ خطأ في معالجة دعاء: $e');
@@ -226,7 +263,25 @@ class DuaData {
         }
       }
       
-      debugPrint('✅ تم تحميل ${duas.length} دعاء من الفئة: $categoryId');
+      String categoryName;
+      switch (categoryId) {
+        case 'quran':
+          categoryName = 'أدعية من القرآن الكريم';
+          break;
+        case 'sahihain':
+          categoryName = 'أدعية من الصحيحين';
+          break;
+        case 'sunan':
+          categoryName = 'أدعية من السنن';
+          break;
+        case 'other_authentic':
+          categoryName = 'أدعية صحيحة أخرى';
+          break;
+        default:
+          categoryName = categoryId;
+      }
+      
+      debugPrint('✅ تم تحميل ${duas.length} دعاء من فئة: $categoryName');
       return duas;
     } catch (e) {
       debugPrint('❌ خطأ في الحصول على أدعية الفئة $categoryId: $e');
@@ -257,15 +312,11 @@ class DuaData {
       throw FormatException('معرف الفئة مفقود');
     }
     
-    final typeIndex = duaData['type'];
+    final typeIndex = duaData['type'] ?? 0;
     DuaType type = DuaType.general;
     
-    if (typeIndex != null && 
-        typeIndex >= 0 && 
-        typeIndex < DuaType.values.length) {
+    if (typeIndex >= 0 && typeIndex < DuaType.values.length) {
       type = DuaType.values[typeIndex];
-    } else {
-      debugPrint('⚠️ نوع دعاء غير صحيح للدعاء: $id (استخدام النوع الافتراضي)');
     }
     
     return Dua(
@@ -277,6 +328,7 @@ class DuaData {
       source: duaData['source']?.toString(),
       reference: duaData['reference']?.toString(),
       categoryId: categoryId,
+      virtue: duaData['virtue']?.toString(), // ✅ إضافة الفضل
       tags: _parseTags(duaData['tags']),
       order: duaData['order'] as int?,
       type: type,
@@ -305,7 +357,7 @@ class DuaData {
     debugPrint('🗑️ تم مسح ذاكرة التخزين المؤقت');
   }
   
-  /// ✅ الحصول على معلومات الكاش
+  /// الحصول على معلومات الكاش
   static Map<String, dynamic> getCacheInfo() {
     return {
       'isCached': _cachedData != null,
@@ -315,6 +367,38 @@ class DuaData {
           : null,
       'cacheExpiry': _cacheExpiry.inMinutes,
     };
+  }
+  
+  /// ✅ الحصول على إحصائيات البيانات
+  static Future<Map<String, dynamic>> getDataStats() async {
+    try {
+      final data = await _loadData();
+      final Map<String, dynamic> duasData = data['duas'] ?? {};
+      
+      int totalDuas = 0;
+      Map<String, int> categoryStats = {};
+      
+      for (var entry in duasData.entries) {
+        if (entry.value is List) {
+          final count = (entry.value as List).length;
+          categoryStats[entry.key] = count;
+          totalDuas += count;
+        }
+      }
+      
+      return {
+        'totalDuas': totalDuas,
+        'totalCategories': categoryStats.length,
+        'categoryStats': categoryStats,
+        'quranDuas': categoryStats['quran'] ?? 0,
+        'sahihainDuas': categoryStats['sahihain'] ?? 0,
+        'sunanDuas': categoryStats['sunan'] ?? 0,
+        'otherDuas': categoryStats['other_authentic'] ?? 0,
+      };
+    } catch (e) {
+      debugPrint('❌ خطأ في الحصول على الإحصائيات: $e');
+      return {};
+    }
   }
 }
 

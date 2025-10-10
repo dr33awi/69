@@ -1,7 +1,7 @@
-// lib/features/dua/models/dua_model.dart
+// lib/features/dua/models/dua_model.dart - محدث
 import 'package:equatable/equatable.dart';
 
-/// نموذج بيانات الدعاء
+/// نموذج بيانات الدعاء المحدث
 class Dua extends Equatable {
   final String id;
   final String title;
@@ -11,6 +11,7 @@ class Dua extends Equatable {
   final String? source;
   final String? reference;
   final String categoryId;
+  final String? virtue; // ✅ حقل جديد للفضل
   final List<String> tags;
   final int? order;
   final bool isFavorite;
@@ -27,6 +28,7 @@ class Dua extends Equatable {
     this.source,
     this.reference,
     required this.categoryId,
+    this.virtue, // ✅ إضافة الفضل
     this.tags = const [],
     this.order,
     this.isFavorite = false,
@@ -45,6 +47,7 @@ class Dua extends Equatable {
         source,
         reference,
         categoryId,
+        virtue,
         tags,
         order,
         isFavorite,
@@ -62,6 +65,7 @@ class Dua extends Equatable {
     String? source,
     String? reference,
     String? categoryId,
+    String? virtue,
     List<String>? tags,
     int? order,
     bool? isFavorite,
@@ -78,6 +82,7 @@ class Dua extends Equatable {
       source: source ?? this.source,
       reference: reference ?? this.reference,
       categoryId: categoryId ?? this.categoryId,
+      virtue: virtue ?? this.virtue,
       tags: tags ?? this.tags,
       order: order ?? this.order,
       isFavorite: isFavorite ?? this.isFavorite,
@@ -97,6 +102,7 @@ class Dua extends Equatable {
       'source': source,
       'reference': reference,
       'categoryId': categoryId,
+      'virtue': virtue,
       'tags': tags,
       'order': order,
       'isFavorite': isFavorite ? 1 : 0,
@@ -116,6 +122,7 @@ class Dua extends Equatable {
       source: map['source'],
       reference: map['reference'],
       categoryId: map['categoryId'] ?? '',
+      virtue: map['virtue'],
       tags: List<String>.from(map['tags'] ?? []),
       order: map['order'],
       isFavorite: (map['isFavorite'] ?? 0) == 1,
@@ -219,13 +226,14 @@ extension DuaTypeExtension on DuaType {
   }
 }
 
-/// نموذج فئة الأدعية
+/// نموذج فئة الأدعية المحدث
 class DuaCategory extends Equatable {
   final String id;
   final String name;
   final String description;
   final DuaType type;
   final int duaCount;
+  final String? icon; // ✅ حقل جديد للأيقونة
 
   const DuaCategory({
     required this.id,
@@ -233,6 +241,7 @@ class DuaCategory extends Equatable {
     required this.description,
     required this.type,
     this.duaCount = 0,
+    this.icon,
   });
 
   @override
@@ -242,6 +251,7 @@ class DuaCategory extends Equatable {
         description,
         type,
         duaCount,
+        icon,
       ];
 
   DuaCategory copyWith({
@@ -250,6 +260,7 @@ class DuaCategory extends Equatable {
     String? description,
     DuaType? type,
     int? duaCount,
+    String? icon,
   }) {
     return DuaCategory(
       id: id ?? this.id,
@@ -257,11 +268,12 @@ class DuaCategory extends Equatable {
       description: description ?? this.description,
       type: type ?? this.type,
       duaCount: duaCount ?? this.duaCount,
+      icon: icon ?? this.icon,
     );
   }
 }
 
-/// إحصائيات الأدعية
+/// إحصائيات الأدعية المحدثة
 class DuaStats extends Equatable {
   final int totalDuas;
   final int favoriteDuas;
@@ -269,6 +281,7 @@ class DuaStats extends Equatable {
   final int streakDays;
   final DateTime? lastReadDate;
   final Map<DuaType, int> duasByType;
+  final Map<String, int>? duasByCategory; // ✅ إحصائيات حسب الفئة
 
   const DuaStats({
     this.totalDuas = 0,
@@ -277,6 +290,7 @@ class DuaStats extends Equatable {
     this.streakDays = 0,
     this.lastReadDate,
     this.duasByType = const {},
+    this.duasByCategory,
   });
 
   @override
@@ -287,6 +301,7 @@ class DuaStats extends Equatable {
         streakDays,
         lastReadDate,
         duasByType,
+        duasByCategory,
       ];
 
   DuaStats copyWith({
@@ -296,6 +311,7 @@ class DuaStats extends Equatable {
     int? streakDays,
     DateTime? lastReadDate,
     Map<DuaType, int>? duasByType,
+    Map<String, int>? duasByCategory,
   }) {
     return DuaStats(
       totalDuas: totalDuas ?? this.totalDuas,
@@ -304,6 +320,7 @@ class DuaStats extends Equatable {
       streakDays: streakDays ?? this.streakDays,
       lastReadDate: lastReadDate ?? this.lastReadDate,
       duasByType: duasByType ?? this.duasByType,
+      duasByCategory: duasByCategory ?? this.duasByCategory,
     );
   }
 }

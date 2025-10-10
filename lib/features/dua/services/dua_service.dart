@@ -1,4 +1,4 @@
-// lib/features/dua/services/dua_service.dart - محسّن
+// lib/features/dua/services/dua_service.dart - محدث للبيانات الجديدة
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math' as math;
@@ -7,7 +7,7 @@ import '../../../core/infrastructure/services/storage/storage_service.dart';
 import '../models/dua_model.dart';
 import '../data/dua_data.dart';
 
-/// خدمة إدارة الأدعية
+/// خدمة إدارة الأدعية المحدثة
 class DuaService {
   final StorageService _storage;
   Timer? _debounceTimer;
@@ -77,7 +77,7 @@ class DuaService {
     }
   }
 
-  /// ✅ البحث في الأدعية مع Debouncing
+  /// البحث في الأدعية مع Debouncing
   Future<List<Dua>> searchDuas(
     String query, {
     Duration debounce = const Duration(milliseconds: 300),
@@ -102,6 +102,7 @@ class DuaService {
           return dua.title.toLowerCase().contains(lowerQuery) ||
                  dua.arabicText.contains(query) ||
                  (dua.translation?.toLowerCase().contains(lowerQuery) ?? false) ||
+                 (dua.virtue?.toLowerCase().contains(lowerQuery) ?? false) ||
                  dua.tags.any((tag) => tag.toLowerCase().contains(lowerQuery));
         }).toList();
         
@@ -253,11 +254,17 @@ class DuaService {
   }
 
   /// الحصول على دعاء عشوائي
-  Future<Dua?> getRandomDua({DuaType? type}) async {
+  Future<Dua?> getRandomDua({DuaType? type, String? categoryId}) async {
     try {
-      final allDuas = type != null 
-          ? (await getAllDuas()).where((dua) => dua.type == type).toList()
-          : await getAllDuas();
+      List<Dua> allDuas;
+      
+      if (categoryId != null) {
+        allDuas = await getDuasByCategory(categoryId);
+      } else if (type != null) {
+        allDuas = (await getAllDuas()).where((dua) => dua.type == type).toList();
+      } else {
+        allDuas = await getAllDuas();
+      }
       
       if (allDuas.isEmpty) return null;
       
@@ -286,55 +293,44 @@ class DuaService {
     }
   }
 
-  /// ✅ الحصول على التوصيات الذكية (محسّن)
+  /// الحصول على التوصيات الذكية حسب الفئة
   Future<List<Dua>> getRecommendations() async {
     try {
       final now = DateTime.now();
       final hour = now.hour;
       
-      // تحديد النوع المناسب حسب الوقت
-      DuaType targetType;
+      // تحديد الفئة المناسبة حسب الوقت
+      String targetCategory;
       String timeLabel;
       
       if (hour >= 6 && hour < 12) {
-        targetType = DuaType.morning;
+        targetCategory = 'quran'; // أدعية قرآنية للصباح
         timeLabel = 'الصباح';
       } else if (hour >= 12 && hour < 18) {
-        targetType = DuaType.general;
+        targetCategory = 'sahihain'; // أحاديث صحيحة للنهار
         timeLabel = 'النهار';
       } else if (hour >= 18 && hour < 22) {
-        targetType = DuaType.evening;
+        targetCategory = 'sunan'; // أدعية السنن للمساء
         timeLabel = 'المساء';
       } else {
-        targetType = DuaType.sleep;
+        targetCategory = 'other_authentic'; // أدعية أخرى لليل
         timeLabel = 'الليل';
       }
       
-      // الحصول على الأدعية من النوع المحدد
-      final allDuas = await getAllDuas();
-      var filteredDuas = allDuas
-          .where((dua) => dua.type == targetType)
-          .toList();
+      // الحصول على الأدعية من الفئة المحددة
+      var filteredDuas = await getDuasByCategory(targetCategory);
       
-      // ✅ إذا لم توجد أدعية من النوع المحدد، استخدم أدعية عامة
+      // إذا لم توجد أدعية من الفئة، استخدم من القرآن
       if (filteredDuas.isEmpty) {
-        debugPrint('⚠️ لا توجد أدعية من نوع $timeLabel، استخدام الأدعية العامة');
-        filteredDuas = allDuas
-            .where((dua) => dua.type == DuaType.general)
-            .toList();
+        debugPrint('⚠️ لا توجد أدعية في فئة $timeLabel، استخدام أدعية القرآن');
+        filteredDuas = await getDuasByCategory('quran');
       }
       
-      // ✅ إذا لم توجد أدعية عامة أيضاً، إرجاع أول 3 أدعية
-      if (filteredDuas.isEmpty) {
-        debugPrint('⚠️ لا توجد أدعية عامة، إرجاع أول 3 أدعية');
-        return allDuas.take(3).toList();
-      }
-      
-      // ✅ ترتيب عشوائي للتنويع
+      // ترتيب عشوائي للتنويع
       filteredDuas.shuffle();
       
       final recommendations = filteredDuas.take(3).toList();
-      debugPrint('✅ تم الحصول على ${recommendations.length} توصية لوقت $timeLabel');
+      debugPrint('✅ تم الحصول على ${recommendations.length} توصية لوقت $timeLabel من فئة $targetCategory');
       
       return recommendations;
     } catch (e) {
@@ -351,6 +347,13 @@ class DuaService {
       
       final readDuas = allDuas.where((dua) => dua.readCount > 0).length;
       
+      // إحصائيات حسب الفئة
+      final Map<String, int> duasByCategory = {};
+      for (final dua in allDuas) {
+        duasByCategory[dua.categoryId] = (duasByCategory[dua.categoryId] ?? 0) + 1;
+      }
+      
+      // إحصائيات حسب النوع
       final Map<DuaType, int> duasByType = {};
       for (final dua in allDuas) {
         duasByType[dua.type] = (duasByType[dua.type] ?? 0) + 1;
@@ -361,6 +364,7 @@ class DuaService {
         favoriteDuas: favorites.length,
         readDuas: readDuas,
         duasByType: duasByType,
+        duasByCategory: duasByCategory,
       );
     } catch (e) {
       debugPrint('❌ خطأ في الحصول على الإحصائيات: $e');
@@ -389,7 +393,7 @@ class DuaService {
     }
   }
   
-  /// ✅ تنظيف الموارد
+  /// تنظيف الموارد
   void dispose() {
     _debounceTimer?.cancel();
     debugPrint('🗑️ تم تنظيف موارد DuaService');
