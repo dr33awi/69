@@ -13,7 +13,7 @@ class DuaItemCard extends StatelessWidget {
   final VoidCallback? onFavorite;
   final VoidCallback? onShare;
   final VoidCallback? onCopy;
-  final bool showFullText;
+  final Color? categoryColor; // لون الفئة
   
   const DuaItemCard({
     super.key,
@@ -23,142 +23,144 @@ class DuaItemCard extends StatelessWidget {
     this.onFavorite,
     this.onShare,
     this.onCopy,
-    this.showFullText = false,
+    this.categoryColor,
   });
+
+  Color _getCategoryColor(BuildContext context) {
+    // استخدام لون الفئة إذا كان متوفراً، وإلا استخدام لون النوع
+    if (categoryColor != null) {
+      return categoryColor!;
+    }
+    
+    // استخدام لون حسب categoryId
+    switch (dua.categoryId) {
+      case 'quran':
+        return ThemeConstants.primary;
+      case 'sahihain':
+        return ThemeConstants.accent;
+      case 'sunan':
+        return ThemeConstants.tertiary;
+      case 'other_authentic':
+        return ThemeConstants.primaryDark;
+      default:
+        // استخدام لون النوع كاحتياطي
+        return DuaType.fromValue(dua.type).color;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final duaType = DuaType.fromValue(dua.type);
-    final cardColor = duaType.color;
+    final cardColor = _getCategoryColor(context);
     
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        onTap();
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: context.cardColor,
-          borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(
-            color: cardColor.withOpacity(0.2),
-            width: 1.w,
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16.r),
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap();
+        },
+        borderRadius: BorderRadius.circular(16.r),
+        child: Container(
+          decoration: BoxDecoration(
+            color: context.cardColor,
+            borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(
+              color: cardColor.withOpacity(0.2),
+              width: 1.w,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 8.r,
+                offset: Offset(0, 3.h),
+              ),
+            ],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8.r,
-              offset: Offset(0, 3.h),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // رأس البطاقة
-            Container(
-              padding: EdgeInsets.all(12.w),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    cardColor.withOpacity(0.1),
-                    cardColor.withOpacity(0.05),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(15.r),
-                  topRight: Radius.circular(15.r),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          dua.title,
-                          style: TextStyle(
-                            color: context.textPrimaryColor,
-                            fontWeight: ThemeConstants.bold,
-                            fontSize: 14.sp,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        
-                        if (dua.tags.isNotEmpty)
-                          Container(
-                            margin: EdgeInsets.only(top: 4.h),
-                            child: Wrap(
-                              spacing: 4.w,
-                              children: dua.tags.take(3).map((tag) {
-                                return Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 6.w,
-                                    vertical: 2.h,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: cardColor.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8.r),
-                                  ),
-                                  child: Text(
-                                    tag,
-                                    style: TextStyle(
-                                      fontSize: 9.sp,
-                                      color: cardColor,
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          ),
-                      ],
-                    ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // رأس البطاقة
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      cardColor.withOpacity(0.1),
+                      cardColor.withOpacity(0.05),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  
-                  // زر المفضلة
-                  if (onFavorite != null)
-                    IconButton(
-                      onPressed: () {
-                        HapticFeedback.lightImpact();
-                        onFavorite!();
-                      },
-                      icon: Icon(
-                        dua.isFavorite
-                            ? Icons.bookmark
-                            : Icons.bookmark_outline,
-                        color: dua.isFavorite
-                            ? ThemeConstants.accent
-                            : context.textSecondaryColor,
-                        size: 20.sp,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(15.r),
+                    topRight: Radius.circular(15.r),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    // أيقونة النوع
+                    Container(
+                      padding: EdgeInsets.all(6.w),
+                      decoration: BoxDecoration(
+                        color: cardColor.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Icon(
+                        duaType.icon,
+                        color: cardColor,
+                        size: 16.sp,
                       ),
                     ),
-                ],
+                    
+                    SizedBox(width: 10.w),
+                    
+                    // العنوان
+                    Expanded(
+                      child: Text(
+                        dua.title,
+                        style: TextStyle(
+                          color: context.textPrimaryColor,
+                          fontWeight: ThemeConstants.bold,
+                          fontSize: 14.sp,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    
+                    // زر المفضلة
+                    if (onFavorite != null)
+                      IconButton(
+                        onPressed: () {
+                          HapticFeedback.lightImpact();
+                          onFavorite!();
+                        },
+                        icon: Icon(
+                          dua.isFavorite
+                              ? Icons.bookmark
+                              : Icons.bookmark_outline,
+                          color: dua.isFavorite
+                              ? ThemeConstants.accent
+                              : context.textSecondaryColor,
+                          size: 20.sp,
+                        ),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                  ],
+                ),
               ),
-            ),
-            
-            // نص الدعاء
-            Padding(
-              padding: EdgeInsets.all(16.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(12.w),
-                    decoration: BoxDecoration(
-                      color: context.isDarkMode
-                          ? Colors.black.withOpacity(0.2)
-                          : Colors.grey.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(12.r),
-                      border: Border.all(
-                        color: context.dividerColor.withOpacity(0.2),
-                        width: 0.5.w,
-                      ),
-                    ),
-                    child: Text(
+              
+              // نص الدعاء المختصر
+              Padding(
+                padding: EdgeInsets.all(14.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // النص العربي المختصر
+                    Text(
                       dua.arabicText,
                       style: TextStyle(
                         fontSize: fontSize.sp,
@@ -166,212 +168,77 @@ class DuaItemCard extends StatelessWidget {
                         height: 1.8,
                         color: context.textPrimaryColor,
                       ),
-                      textAlign: TextAlign.center,
-                      maxLines: showFullText ? null : 4,
-                      overflow: showFullText 
-                          ? TextOverflow.visible 
-                          : TextOverflow.ellipsis,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.right,
                     ),
-                  ),
-                  
-                  // النطق اللاتيني
-                  if (dua.transliteration != null) ...[
-                    SizedBox(height: 12.h),
-                    Container(
-                      padding: EdgeInsets.all(10.w),
-                      decoration: BoxDecoration(
-                        color: ThemeConstants.info.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(10.r),
-                        border: Border.all(
-                          color: ThemeConstants.info.withOpacity(0.2),
-                          width: 0.5.w,
+                    
+                    SizedBox(height: 10.h),
+                    
+                    // المصدر وزر التفاصيل
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.menu_book_outlined,
+                          size: 12.sp,
+                          color: context.textSecondaryColor.withOpacity(0.7),
                         ),
-                      ),
-                      child: Text(
-                        dua.transliteration!,
-                        style: TextStyle(
-                          fontSize: (fontSize - 4).sp,
-                          color: ThemeConstants.info,
-                          height: 1.5,
-                          fontStyle: FontStyle.italic,
-                        ),
-                        textDirection: TextDirection.ltr,
-                        textAlign: TextAlign.left,
-                        maxLines: showFullText ? null : 3,
-                        overflow: showFullText 
-                            ? TextOverflow.visible 
-                            : TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                  
-                  // الفضل
-                  if (dua.virtue != null) ...[
-                    SizedBox(height: 12.h),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 10.w,
-                        vertical: 8.h,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            ThemeConstants.success.withOpacity(0.05),
-                            ThemeConstants.success.withOpacity(0.02),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(10.r),
-                        border: Border.all(
-                          color: ThemeConstants.success.withOpacity(0.2),
-                          width: 0.5.w,
-                        ),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(
-                            Icons.star_rounded,
-                            color: ThemeConstants.success,
-                            size: 16.sp,
+                        SizedBox(width: 4.w),
+                        Expanded(
+                          child: Text(
+                            '${dua.source} - ${dua.reference}',
+                            style: TextStyle(
+                              fontSize: 10.sp,
+                              color: context.textSecondaryColor.withOpacity(0.7),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          SizedBox(width: 6.w),
-                          Expanded(
-                            child: Text(
-                              dua.virtue!,
-                              style: TextStyle(
-                                fontSize: 12.sp,
-                                color: context.textSecondaryColor,
-                                height: 1.4,
-                              ),
+                        ),
+                        
+                        SizedBox(width: 8.w),
+                        
+                        // زر عرض التفاصيل
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 10.w,
+                            vertical: 4.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: cardColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20.r),
+                            border: Border.all(
+                              color: cardColor.withOpacity(0.3),
+                              width: 1.w,
                             ),
                           ),
-                        ],
-                      ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'التفاصيل',
+                                style: TextStyle(
+                                  fontSize: 11.sp,
+                                  color: cardColor,
+                                  fontWeight: ThemeConstants.medium,
+                                ),
+                              ),
+                              SizedBox(width: 4.w),
+                              Icon(
+                                Icons.arrow_back_ios_rounded,
+                                size: 12.sp,
+                                color: cardColor,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
-                  
-                  // المصدر والمرجع
-                  SizedBox(height: 12.h),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.menu_book_outlined,
-                        size: 14.sp,
-                        color: context.textSecondaryColor.withOpacity(0.7),
-                      ),
-                      SizedBox(width: 4.w),
-                      Expanded(
-                        child: Text(
-                          '${dua.source} - ${dua.reference}',
-                          style: TextStyle(
-                            fontSize: 11.sp,
-                            color: context.textSecondaryColor.withOpacity(0.7),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            
-            // أزرار الإجراءات
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 8.w,
-                vertical: 8.h,
-              ),
-              decoration: BoxDecoration(
-                color: context.dividerColor.withOpacity(0.05),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(15.r),
-                  bottomRight: Radius.circular(15.r),
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  if (onCopy != null)
-                    _buildActionButton(
-                      icon: Icons.copy_rounded,
-                      label: 'نسخ',
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        onCopy!();
-                      },
-                      context: context,
-                    ),
-                  
-                  if (onShare != null)
-                    _buildActionButton(
-                      icon: Icons.share_rounded,
-                      label: 'مشاركة',
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        onShare!();
-                      },
-                      context: context,
-                    ),
-                  
-                  _buildActionButton(
-                    icon: Icons.open_in_new_rounded,
-                    label: 'التفاصيل',
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      onTap();
-                    },
-                    isPrimary: true,
-                    context: context,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    required BuildContext context,
-    bool isPrimary = false,
-  }) {
-    final color = isPrimary 
-        ? DuaType.fromValue(dua.type).color
-        : context.textSecondaryColor;
-    
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8.r),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: 12.w,
-          vertical: 6.h,
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 16.sp,
-              color: color,
-            ),
-            SizedBox(width: 4.w),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: color,
-                fontWeight: isPrimary ? ThemeConstants.medium : null,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

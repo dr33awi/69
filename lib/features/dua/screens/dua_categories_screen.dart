@@ -73,7 +73,6 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
         child: Column(
           children: [
             _buildAppBar(),
-            if (_statistics.isNotEmpty) _buildStatisticsCard(),
             Expanded(
               child: _buildContent(),
             ),
@@ -85,7 +84,7 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
 
   Widget _buildAppBar() {
     return Container(
-      padding: EdgeInsets.all(14.r),
+      padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         color: context.backgroundColor,
         boxShadow: [
@@ -102,7 +101,7 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           
-          SizedBox(width: 10.w),
+          SizedBox(width: 8.w),
           
           Expanded(
             child: Column(
@@ -128,164 +127,76 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
           ),
           
           // زر البحث
-          Container(
-            margin: EdgeInsets.only(left: 6.w),
-            child: Material(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(10.r),
-              child: InkWell(
-                onTap: _openSearch,
-                borderRadius: BorderRadius.circular(10.r),
-                child: Container(
-                  padding: EdgeInsets.all(7.r),
-                  decoration: BoxDecoration(
-                    color: context.cardColor,
-                    borderRadius: BorderRadius.circular(10.r),
-                    border: Border.all(
-                      color: context.dividerColor.withOpacity(0.3),
-                      width: 1.w,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.search_rounded,
-                    color: context.textPrimaryColor,
-                    size: 20.sp,
-                  ),
-                ),
-              ),
-            ),
+          _buildActionButton(
+            icon: Icons.search_rounded,
+            onTap: _openSearch,
           ),
           
           // زر المفضلة
-          Container(
-            margin: EdgeInsets.only(left: 6.w),
-            child: Material(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(10.r),
-              child: InkWell(
-                onTap: _openFavorites,
-                borderRadius: BorderRadius.circular(10.r),
-                child: Container(
-                  padding: EdgeInsets.all(7.r),
-                  decoration: BoxDecoration(
-                    color: context.cardColor,
-                    borderRadius: BorderRadius.circular(10.r),
-                    border: Border.all(
-                      color: context.dividerColor.withOpacity(0.3),
-                      width: 1.w,
-                    ),
-                  ),
-                  child: Stack(
-                    children: [
-                      Icon(
-                        Icons.bookmark_outline_rounded,
-                        color: context.textPrimaryColor,
-                        size: 20.sp,
-                      ),
-                      if ((_statistics['favoritesCount'] ?? 0) > 0)
-                        Positioned(
-                          right: 0,
-                          top: 0,
-                          child: Container(
-                            width: 6.w,
-                            height: 6.h,
-                            decoration: const BoxDecoration(
-                              color: ThemeConstants.error,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+          _buildActionButton(
+            icon: Icons.bookmark_outline_rounded,
+            onTap: _openFavorites,
+            showBadge: (_statistics['favoritesCount'] ?? 0) > 0,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildStatisticsCard() {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildMiniStatCard(
-              icon: Icons.bookmark,
-              value: '${_statistics['favoritesCount'] ?? 0}',
-              label: 'مفضلة',
-              color: ThemeConstants.accent,
-            ),
-          ),
-          SizedBox(width: 8.w),
-          Expanded(
-            child: _buildMiniStatCard(
-              icon: Icons.check_circle_outline,
-              value: '${_statistics['readPercentage'] ?? 0}%',
-              label: 'مقروءة',
-              color: ThemeConstants.success,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMiniStatCard({
+  Widget _buildActionButton({
     required IconData icon,
-    required String value,
-    required String label,
-    required Color color,
+    required VoidCallback onTap,
+    bool showBadge = false,
   }) {
     return Container(
-      padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            color.withOpacity(0.1),
-            color.withOpacity(0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: color.withOpacity(0.2),
-          width: 1.w,
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: color,
-            size: 20.sp,
-          ),
-          SizedBox(width: 8.w),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                value,
-                style: TextStyle(
-                  color: color,
-                  fontWeight: ThemeConstants.bold,
-                  fontSize: 16.sp,
-                ),
+      margin: EdgeInsets.only(left: 6.w),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(10.r),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(10.r),
+          child: Container(
+            padding: EdgeInsets.all(6.w),
+            decoration: BoxDecoration(
+              color: context.cardColor,
+              borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(
+                color: context.dividerColor.withOpacity(0.3),
+                width: 1.w,
               ),
-              Text(
-                label,
-                style: TextStyle(
-                  color: context.textSecondaryColor,
-                  fontSize: 10.sp,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 3.r,
+                  offset: Offset(0, 2.h),
                 ),
-              ),
-            ],
+              ],
+            ),
+            child: Stack(
+              children: [
+                Icon(
+                  icon,
+                  color: context.textPrimaryColor,
+                  size: 20.sp,
+                ),
+                if (showBadge)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      width: 6.w,
+                      height: 6.h,
+                      decoration: const BoxDecoration(
+                        color: ThemeConstants.error,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }

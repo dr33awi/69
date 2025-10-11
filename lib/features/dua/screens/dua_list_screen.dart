@@ -134,64 +134,25 @@ ${dua.virtue != null ? '\nالفضل: ${dua.virtue}' : ''}
     );
   }
 
-  void _showFontSizeDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
-        ),
-        title: Row(
-          children: [
-            Icon(
-              Icons.text_fields_rounded,
-              color: ThemeConstants.tertiary,
-              size: 20.sp,
-            ),
-            SizedBox(width: 8.w),
-            const Text('حجم الخط'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildFontSizeOption('صغير', 16.0),
-            _buildFontSizeOption('متوسط', 18.0),
-            _buildFontSizeOption('كبير', 22.0),
-            _buildFontSizeOption('كبير جداً', 26.0),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFontSizeOption(String label, double size) {
-    final isSelected = _fontSize == size;
-    
-    return ListTile(
-      title: Text(
-        label,
-        style: TextStyle(
-          fontSize: size.sp,
-          fontWeight: isSelected ? ThemeConstants.semiBold : null,
-        ),
-      ),
-      trailing: isSelected
-          ? Icon(
-              Icons.check_circle,
-              color: ThemeConstants.tertiary,
-            )
-          : null,
-      onTap: () async {
-        setState(() => _fontSize = size);
-        await _service.saveFontSize(size);
-        Navigator.pop(context);
-      },
-    );
+  Color _getCategoryColor(String categoryId) {
+    switch (categoryId) {
+      case 'quran':
+        return ThemeConstants.primary;
+      case 'sahihain':
+        return ThemeConstants.accent;
+      case 'sunan':
+        return ThemeConstants.tertiary;
+      case 'other_authentic':
+        return ThemeConstants.primaryDark;
+      default:
+        return ThemeConstants.tertiary;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final categoryColor = _getCategoryColor(widget.category.id);
+    
     return Scaffold(
       backgroundColor: context.backgroundColor,
       body: SafeArea(
@@ -199,7 +160,7 @@ ${dua.virtue != null ? '\nالفضل: ${dua.virtue}' : ''}
           children: [
             _buildAppBar(),
             Expanded(
-              child: _buildContent(),
+              child: _buildContent(categoryColor),
             ),
           ],
         ),
@@ -279,41 +240,12 @@ ${dua.virtue != null ? '\nالفضل: ${dua.virtue}' : ''}
               ),
             ),
           ),
-          
-          // زر حجم الخط
-          Container(
-            margin: EdgeInsets.only(left: 6.w),
-            child: Material(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(10.r),
-              child: InkWell(
-                onTap: _showFontSizeDialog,
-                borderRadius: BorderRadius.circular(10.r),
-                child: Container(
-                  padding: EdgeInsets.all(7.r),
-                  decoration: BoxDecoration(
-                    color: context.cardColor,
-                    borderRadius: BorderRadius.circular(10.r),
-                    border: Border.all(
-                      color: context.dividerColor.withOpacity(0.3),
-                      width: 1.w,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.text_fields_rounded,
-                    color: context.textPrimaryColor,
-                    size: 20.sp,
-                  ),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(Color categoryColor) {
     if (_isLoading) {
       return Center(
         child: AppLoading.page(
@@ -350,6 +282,7 @@ ${dua.virtue != null ? '\nالفضل: ${dua.virtue}' : ''}
           child: DuaItemCard(
             dua: dua,
             fontSize: _fontSize,
+            categoryColor: categoryColor,
             onTap: () => _openDuaDetails(dua),
             onFavorite: () => _toggleFavorite(dua),
             onShare: () => _shareDua(dua),
@@ -358,35 +291,5 @@ ${dua.virtue != null ? '\nالفضل: ${dua.virtue}' : ''}
         );
       },
     );
-  }
-
-  Color _getCategoryColor(String categoryId) {
-    switch (categoryId) {
-      case 'quran':
-        return ThemeConstants.primary;
-      case 'sahihain':
-        return ThemeConstants.accent;
-      case 'sunan':
-        return ThemeConstants.tertiary;
-      case 'other_authentic':
-        return ThemeConstants.primaryDark;
-      default:
-        return ThemeConstants.tertiary;
-    }
-  }
-
-  IconData _getCategoryIcon(String iconName) {
-    switch (iconName) {
-      case 'book_quran':
-        return Icons.menu_book;
-      case 'book_hadith':
-        return Icons.book;
-      case 'book_sunnah':
-        return Icons.auto_stories;
-      case 'verified':
-        return Icons.verified;
-      default:
-        return Icons.pan_tool_rounded;
-    }
   }
 }
