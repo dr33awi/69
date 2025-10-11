@@ -1,4 +1,4 @@
-// lib/features/dua/services/dua_service.dart - محدث للبيانات الجديدة
+// lib/features/dua/services/dua_service.dart - محدث بدون tags
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math' as math;
@@ -12,7 +12,6 @@ class DuaService {
   final StorageService _storage;
   Timer? _debounceTimer;
 
-  // مفاتيح التخزين
   static const String _favoriteDuasKey = 'favorite_duas';
   static const String _duaReadCountPrefix = 'dua_read_count_';
   static const String _duaLastReadPrefix = 'last_read_';
@@ -55,7 +54,7 @@ class DuaService {
     }
   }
 
-  /// إثراء الأدعية ببيانات محلية (المفضلة، عدد القراءات، إلخ)
+  /// إثراء الأدعية ببيانات محلية
   List<Dua> _enrichDuasWithLocalData(List<Dua> duas) {
     try {
       final favoriteDuas = getFavoriteDuas();
@@ -84,10 +83,8 @@ class DuaService {
   }) async {
     final completer = Completer<List<Dua>>();
     
-    // إلغاء المؤقت السابق
     _debounceTimer?.cancel();
     
-    // إنشاء مؤقت جديد
     _debounceTimer = Timer(debounce, () async {
       try {
         if (query.trim().isEmpty) {
@@ -102,8 +99,7 @@ class DuaService {
           return dua.title.toLowerCase().contains(lowerQuery) ||
                  dua.arabicText.contains(query) ||
                  (dua.translation?.toLowerCase().contains(lowerQuery) ?? false) ||
-                 (dua.virtue?.toLowerCase().contains(lowerQuery) ?? false) ||
-                 dua.tags.any((tag) => tag.toLowerCase().contains(lowerQuery));
+                 (dua.virtue?.toLowerCase().contains(lowerQuery) ?? false);
         }).toList();
         
         debugPrint('🔍 نتائج البحث عن "$query": ${results.length} دعاء');
@@ -168,11 +164,9 @@ class DuaService {
   /// تسجيل قراءة دعاء
   Future<void> markDuaAsRead(String duaId) async {
     try {
-      // زيادة عدد القراءات
       final currentCount = getDuaReadCount(duaId);
       await _storage.setInt('$_duaReadCountPrefix$duaId', currentCount + 1);
       
-      // تحديث تاريخ آخر قراءة
       await _storage.setString(
         '$_duaLastReadPrefix$duaId',
         DateTime.now().toIso8601String(),
@@ -299,34 +293,30 @@ class DuaService {
       final now = DateTime.now();
       final hour = now.hour;
       
-      // تحديد الفئة المناسبة حسب الوقت
       String targetCategory;
       String timeLabel;
       
       if (hour >= 6 && hour < 12) {
-        targetCategory = 'quran'; // أدعية قرآنية للصباح
+        targetCategory = 'quran';
         timeLabel = 'الصباح';
       } else if (hour >= 12 && hour < 18) {
-        targetCategory = 'sahihain'; // أحاديث صحيحة للنهار
+        targetCategory = 'sahihain';
         timeLabel = 'النهار';
       } else if (hour >= 18 && hour < 22) {
-        targetCategory = 'sunan'; // أدعية السنن للمساء
+        targetCategory = 'sunan';
         timeLabel = 'المساء';
       } else {
-        targetCategory = 'other_authentic'; // أدعية أخرى لليل
+        targetCategory = 'other_authentic';
         timeLabel = 'الليل';
       }
       
-      // الحصول على الأدعية من الفئة المحددة
       var filteredDuas = await getDuasByCategory(targetCategory);
       
-      // إذا لم توجد أدعية من الفئة، استخدم من القرآن
       if (filteredDuas.isEmpty) {
         debugPrint('⚠️ لا توجد أدعية في فئة $timeLabel، استخدام أدعية القرآن');
         filteredDuas = await getDuasByCategory('quran');
       }
       
-      // ترتيب عشوائي للتنويع
       filteredDuas.shuffle();
       
       final recommendations = filteredDuas.take(3).toList();
@@ -347,13 +337,11 @@ class DuaService {
       
       final readDuas = allDuas.where((dua) => dua.readCount > 0).length;
       
-      // إحصائيات حسب الفئة
       final Map<String, int> duasByCategory = {};
       for (final dua in allDuas) {
         duasByCategory[dua.categoryId] = (duasByCategory[dua.categoryId] ?? 0) + 1;
       }
       
-      // إحصائيات حسب النوع
       final Map<DuaType, int> duasByType = {};
       for (final dua in allDuas) {
         duasByType[dua.type] = (duasByType[dua.type] ?? 0) + 1;
@@ -375,11 +363,9 @@ class DuaService {
   /// مسح جميع البيانات
   Future<void> clearAllData() async {
     try {
-      // مسح المفاتيح الرئيسية
       await _storage.remove(_favoriteDuasKey);
       await _storage.remove(_fontSizeKey);
       
-      // مسح عدادات القراءة لجميع الأدعية
       final allDuas = await DuaData.getAllDuas();
       for (final dua in allDuas) {
         await _storage.remove('$_duaReadCountPrefix${dua.id}');

@@ -1,4 +1,4 @@
-// lib/features/dua/models/dua_model.dart - محدث
+// lib/features/dua/models/dua_model.dart - محدث بدون tags
 import 'package:equatable/equatable.dart';
 
 /// نموذج بيانات الدعاء المحدث
@@ -11,8 +11,7 @@ class Dua extends Equatable {
   final String? source;
   final String? reference;
   final String categoryId;
-  final String? virtue; // ✅ حقل جديد للفضل
-  final List<String> tags;
+  final String? virtue;
   final int? order;
   final bool isFavorite;
   final int readCount;
@@ -28,8 +27,7 @@ class Dua extends Equatable {
     this.source,
     this.reference,
     required this.categoryId,
-    this.virtue, // ✅ إضافة الفضل
-    this.tags = const [],
+    this.virtue,
     this.order,
     this.isFavorite = false,
     this.readCount = 0,
@@ -48,7 +46,6 @@ class Dua extends Equatable {
         reference,
         categoryId,
         virtue,
-        tags,
         order,
         isFavorite,
         readCount,
@@ -66,7 +63,6 @@ class Dua extends Equatable {
     String? reference,
     String? categoryId,
     String? virtue,
-    List<String>? tags,
     int? order,
     bool? isFavorite,
     int? readCount,
@@ -83,7 +79,6 @@ class Dua extends Equatable {
       reference: reference ?? this.reference,
       categoryId: categoryId ?? this.categoryId,
       virtue: virtue ?? this.virtue,
-      tags: tags ?? this.tags,
       order: order ?? this.order,
       isFavorite: isFavorite ?? this.isFavorite,
       readCount: readCount ?? this.readCount,
@@ -103,7 +98,6 @@ class Dua extends Equatable {
       'reference': reference,
       'categoryId': categoryId,
       'virtue': virtue,
-      'tags': tags,
       'order': order,
       'isFavorite': isFavorite ? 1 : 0,
       'readCount': readCount,
@@ -123,7 +117,6 @@ class Dua extends Equatable {
       reference: map['reference'],
       categoryId: map['categoryId'] ?? '',
       virtue: map['virtue'],
-      tags: List<String>.from(map['tags'] ?? []),
       order: map['order'],
       isFavorite: (map['isFavorite'] ?? 0) == 1,
       readCount: map['readCount'] ?? 0,
@@ -137,20 +130,20 @@ class Dua extends Equatable {
 
 /// أنواع الأدعية
 enum DuaType {
-  general, // عامة
-  morning, // الصباح
-  evening, // المساء
-  prayer, // الصلاة
-  food, // الطعام
-  travel, // السفر
-  sleep, // النوم
-  protection, // الحماية
-  forgiveness, // الاستغفار
-  gratitude, // الشكر
-  guidance, // الهداية
-  health, // الصحة
-  wealth, // الرزق
-  knowledge, // العلم
+  general,
+  morning,
+  evening,
+  prayer,
+  food,
+  travel,
+  sleep,
+  protection,
+  forgiveness,
+  gratitude,
+  guidance,
+  health,
+  wealth,
+  knowledge,
 }
 
 extension DuaTypeExtension on DuaType {
@@ -220,9 +213,8 @@ extension DuaTypeExtension on DuaType {
     }
   }
   
-  /// الحصول على معرف الفئة من النوع
   String get categoryId {
-    return name; // يستخدم اسم enum كمعرف (general, morning, etc.)
+    return name;
   }
 }
 
@@ -233,7 +225,7 @@ class DuaCategory extends Equatable {
   final String description;
   final DuaType type;
   final int duaCount;
-  final String? icon; // ✅ حقل جديد للأيقونة
+  final String? icon;
 
   const DuaCategory({
     required this.id,
@@ -281,7 +273,7 @@ class DuaStats extends Equatable {
   final int streakDays;
   final DateTime? lastReadDate;
   final Map<DuaType, int> duasByType;
-  final Map<String, int>? duasByCategory; // ✅ إحصائيات حسب الفئة
+  final Map<String, int>? duasByCategory;
 
   const DuaStats({
     this.totalDuas = 0,

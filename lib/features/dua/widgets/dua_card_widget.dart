@@ -1,4 +1,4 @@
-// lib/features/dua/widgets/dua_card_widget.dart - محدث
+// lib/features/dua/widgets/dua_card_widget.dart - محدث بدون tags
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -36,7 +36,6 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
   bool _isPressed = false;
   bool _isExpanded = false;
   
-  // حفظ القيم المحسوبة لتجنب إعادة الحساب
   late bool _isRead;
   late Color _cardColor;
 
@@ -60,13 +59,11 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
     ));
   }
   
-  /// تحديث القيم المحسوبة
   void _updateComputedValues() {
     _isRead = widget.dua.readCount > 0;
     _cardColor = _getCategoryColor();
   }
 
-  /// ✅ الحصول على لون حسب الفئة
   Color _getCategoryColor() {
     switch (widget.dua.categoryId) {
       case 'quran':
@@ -86,7 +83,6 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
   void didUpdateWidget(DuaCardWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     
-    // تحديث القيم عند تغيير readCount
     if (oldWidget.dua.readCount != widget.dua.readCount ||
         oldWidget.dua.categoryId != widget.dua.categoryId) {
       _updateComputedValues();
@@ -157,7 +153,6 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
                     SizedBox(height: 12.h),
                     _buildArabicText(),
                     
-                    // ✅ عرض الفضل إذا كان موجوداً
                     if (widget.dua.virtue != null && _isExpanded) ...[
                       SizedBox(height: 10.h),
                       _buildVirtueSection(),
@@ -209,53 +204,18 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
         SizedBox(width: 10.w),
         
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.dua.title,
-                style: TextStyle(
-                  fontWeight: ThemeConstants.bold,
-                  color: _cardColor,
-                  fontSize: 14.sp,
-                ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 2,
-              ),
-              
-              if (widget.dua.tags.isNotEmpty) ...[
-                SizedBox(height: 3.h),
-                Wrap(
-                  spacing: 5.w,
-                  runSpacing: 3.h,
-                  children: widget.dua.tags.take(3).map((tag) => 
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                      decoration: BoxDecoration(
-                        color: _cardColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(999.r),
-                        border: Border.all(
-                          color: _cardColor.withOpacity(0.2),
-                          width: 1.w,
-                        ),
-                      ),
-                      child: Text(
-                        tag,
-                        style: TextStyle(
-                          color: _cardColor,
-                          fontWeight: ThemeConstants.medium,
-                          fontSize: 10.sp,
-                        ),
-                      ),
-                    ),
-                  ).toList(),
-                ),
-              ],
-            ],
+          child: Text(
+            widget.dua.title,
+            style: TextStyle(
+              fontWeight: ThemeConstants.bold,
+              color: _cardColor,
+              fontSize: 14.sp,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
           ),
         ),
         
-        // ✅ زر المفضلة
         if (widget.onFavorite != null)
           IconButton(
             onPressed: widget.onFavorite,
@@ -368,7 +328,6 @@ class _DuaCardWidgetState extends State<DuaCardWidget>
     );
   }
 
-  /// ✅ قسم الفضل الجديد
   Widget _buildVirtueSection() {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),

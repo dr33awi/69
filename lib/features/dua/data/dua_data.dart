@@ -1,4 +1,4 @@
-// lib/features/dua/data/dua_data.dart - محدث للبيانات الجديدة
+// lib/features/dua/data/dua_data.dart - محدث بدون tags
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,7 +13,6 @@ class DuaData {
   
   /// تحميل البيانات من ملف JSON مع timeout وcache expiry
   static Future<Map<String, dynamic>> _loadData() async {
-    // التحقق من صلاحية الكاش
     if (_cachedData != null && _cacheTimestamp != null) {
       final cacheAge = DateTime.now().difference(_cacheTimestamp!);
       if (cacheAge < _cacheExpiry) {
@@ -43,7 +42,6 @@ class DuaData {
       _cachedData = decoded;
       _cacheTimestamp = DateTime.now();
       
-      // التحقق من البنية الأساسية
       _validateDataStructure(_cachedData!);
       
       debugPrint('✅ تم تحميل بيانات الأدعية بنجاح');
@@ -113,7 +111,6 @@ class DuaData {
           final duasData = data['duas'][categoryId] ?? [];
           final typeIndex = categoryData['type'] ?? 0;
           
-          // التحقق من صحة نوع الفئة
           DuaType type = DuaType.general;
           if (typeIndex >= 0 && typeIndex < DuaType.values.length) {
             type = DuaType.values[typeIndex];
@@ -135,7 +132,6 @@ class DuaData {
       
       debugPrint('✅ تم تحميل ${categories.length} فئة');
       
-      // ✅ إضافة إحصائيات كل فئة
       for (var category in categories) {
         final categoryDuas = data['duas'][category.id];
         if (categoryDuas is List) {
@@ -181,7 +177,6 @@ class DuaData {
               continue;
             }
             
-            // ✅ التأكد من أن categoryId موجود
             if (duaData['categoryId'] == null) {
               duaData['categoryId'] = entry.key;
             }
@@ -197,7 +192,6 @@ class DuaData {
       
       debugPrint('✅ تم تحميل ${allDuas.length} دعاء إجمالاً');
       
-      // ✅ عرض الإحصائيات
       categoryCount.forEach((category, count) {
         String categoryName;
         switch (category) {
@@ -251,7 +245,6 @@ class DuaData {
             continue;
           }
           
-          // ✅ التأكد من أن categoryId موجود
           if (duaData['categoryId'] == null) {
             duaData['categoryId'] = categoryId;
           }
@@ -328,29 +321,13 @@ class DuaData {
       source: duaData['source']?.toString(),
       reference: duaData['reference']?.toString(),
       categoryId: categoryId,
-      virtue: duaData['virtue']?.toString(), // ✅ إضافة الفضل
-      tags: _parseTags(duaData['tags']),
+      virtue: duaData['virtue']?.toString(),
       order: duaData['order'] as int?,
       type: type,
     );
   }
 
-  /// تحليل قائمة الوسوم
-  static List<String> _parseTags(dynamic tags) {
-    if (tags == null) return [];
-    
-    if (tags is List) {
-      return tags
-          .where((tag) => tag != null)
-          .map((tag) => tag.toString())
-          .where((tag) => tag.isNotEmpty)
-          .toList();
-    }
-    
-    return [];
-  }
-
-  /// مسح الذاكرة المؤقتة (للاختبار أو إعادة التحميل)
+  /// مسح الذاكرة المؤقتة
   static void clearCache() {
     _cachedData = null;
     _cacheTimestamp = null;
@@ -369,7 +346,7 @@ class DuaData {
     };
   }
   
-  /// ✅ الحصول على إحصائيات البيانات
+  /// الحصول على إحصائيات البيانات
   static Future<Map<String, dynamic>> getDataStats() async {
     try {
       final data = await _loadData();
