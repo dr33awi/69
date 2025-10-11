@@ -104,35 +104,6 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
           
           SizedBox(width: 10.w),
           
-          Container(
-            padding: EdgeInsets.all(7.r),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  ThemeConstants.tertiary,
-                  ThemeConstants.tertiaryLight,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(10.r),
-              boxShadow: [
-                BoxShadow(
-                  color: ThemeConstants.tertiary.withOpacity(0.3),
-                  blurRadius: 6.r,
-                  offset: Offset(0, 3.h),
-                ),
-              ],
-            ),
-            child: Icon(
-              Icons.pan_tool_rounded,
-              color: Colors.white,
-              size: 20.sp,
-            ),
-          ),
-          
-          SizedBox(width: 10.w),
-          
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

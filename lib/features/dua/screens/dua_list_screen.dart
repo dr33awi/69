@@ -208,8 +208,6 @@ ${dua.virtue != null ? '\nالفضل: ${dua.virtue}' : ''}
   }
 
   Widget _buildAppBar() {
-    final categoryColor = _getCategoryColor(widget.category.id);
-    
     return Container(
       padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
@@ -226,32 +224,6 @@ ${dua.virtue != null ? '\nالفضل: ${dua.virtue}' : ''}
         children: [
           AppBackButton(
             onPressed: () => Navigator.of(context).pop(),
-          ),
-          
-          SizedBox(width: 10.w),
-          
-          Container(
-            padding: EdgeInsets.all(7.r),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [categoryColor, categoryColor.withOpacity(0.8)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(10.r),
-              boxShadow: [
-                BoxShadow(
-                  color: categoryColor.withOpacity(0.3),
-                  blurRadius: 6.r,
-                  offset: Offset(0, 3.h),
-                ),
-              ],
-            ),
-            child: Icon(
-              _getCategoryIcon(widget.category.icon),
-              color: Colors.white,
-              size: 20.sp,
-            ),
           ),
           
           SizedBox(width: 10.w),

@@ -23,10 +23,8 @@ class DuaDetailsScreen extends StatefulWidget {
   State<DuaDetailsScreen> createState() => _DuaDetailsScreenState();
 }
 
-class _DuaDetailsScreenState extends State<DuaDetailsScreen> 
-    with SingleTickerProviderStateMixin {
+class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
   late final DuaService _service;
-  late final AnimationController _animationController;
   
   late DuaItem _dua;
   double _fontSize = 18.0;
@@ -43,17 +41,11 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen>
     _service = context.duaService;
     _dua = widget.dua;
     
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 500),
-      vsync: this,
-    );
-    
     _initialize();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
     super.dispose();
   }
 
@@ -73,7 +65,6 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen>
     
     if (mounted) {
       setState(() {});
-      _animationController.forward();
     }
   }
 
@@ -132,9 +123,6 @@ ${_dua.virtue != null ? '\nالفضل: ${_dua.virtue}' : ''}
         _dua = _categoryDuas[_currentIndex];
       });
       
-      _animationController.reset();
-      _animationController.forward();
-      
       // تحديد كمقروء
       _service.markAsRead(_dua.id);
       _service.saveLastViewed(_dua.id, widget.category.id);
@@ -147,9 +135,6 @@ ${_dua.virtue != null ? '\nالفضل: ${_dua.virtue}' : ''}
         _currentIndex++;
         _dua = _categoryDuas[_currentIndex];
       });
-      
-      _animationController.reset();
-      _animationController.forward();
       
       // تحديد كمقروء
       _service.markAsRead(_dua.id);
@@ -169,52 +154,49 @@ ${_dua.virtue != null ? '\nالفضل: ${_dua.virtue}' : ''}
           children: [
             _buildAppBar(categoryColor),
             Expanded(
-              child: FadeTransition(
-                opacity: _animationController,
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.all(16.w),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // معلومات الدعاء
-                      _buildDuaInfo(duaType),
-                      
-                      SizedBox(height: 20.h),
-                      
-                      // نص الدعاء العربي
-                      _buildArabicText(),
-                      
-                      // النطق اللاتيني
-                      if (_dua.transliteration != null && _showTransliteration) ...[
-                        SizedBox(height: 16.h),
-                        _buildTransliteration(),
-                      ],
-                      
-                      // الترجمة
-                      if (_dua.translation != null && _showTranslation) ...[
-                        SizedBox(height: 16.h),
-                        _buildTranslation(),
-                      ],
-                      
-                      // الفضل
-                      if (_dua.virtue != null) ...[
-                        SizedBox(height: 16.h),
-                        _buildVirtue(),
-                      ],
-                      
-                      // المصدر
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(16.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // معلومات الدعاء
+                    _buildDuaInfo(duaType),
+                    
+                    SizedBox(height: 20.h),
+                    
+                    // نص الدعاء العربي
+                    _buildArabicText(),
+                    
+                    // النطق اللاتيني
+                    if (_dua.transliteration != null && _showTransliteration) ...[
                       SizedBox(height: 16.h),
-                      _buildSource(),
-                      
-                      // التصنيفات
-                      if (_dua.tags.isNotEmpty) ...[
-                        SizedBox(height: 16.h),
-                        _buildTags(),
-                      ],
-                      
-                      SizedBox(height: 80.h), // مساحة للأزرار السفلية
+                      _buildTransliteration(),
                     ],
-                  ),
+                    
+                    // الترجمة
+                    if (_dua.translation != null && _showTranslation) ...[
+                      SizedBox(height: 16.h),
+                      _buildTranslation(),
+                    ],
+                    
+                    // الفضل
+                    if (_dua.virtue != null) ...[
+                      SizedBox(height: 16.h),
+                      _buildVirtue(),
+                    ],
+                    
+                    // المصدر
+                    SizedBox(height: 16.h),
+                    _buildSource(),
+                    
+                    // التصنيفات
+                    if (_dua.tags.isNotEmpty) ...[
+                      SizedBox(height: 16.h),
+                      _buildTags(),
+                    ],
+                    
+                    SizedBox(height: 80.h), // مساحة للأزرار السفلية
+                  ],
                 ),
               ),
             ),
@@ -407,22 +389,12 @@ ${_dua.virtue != null ? '\nالفضل: ${_dua.virtue}' : ''}
                 
                 SizedBox(height: 4.h),
                 
-                Row(
-                  children: [
-                    Icon(
-                      Icons.category_outlined,
-                      size: 14.sp,
-                      color: context.textSecondaryColor,
-                    ),
-                    SizedBox(width: 4.w),
-                    Text(
-                      duaType.arabicName,
-                      style: TextStyle(
-                        color: context.textSecondaryColor,
-                        fontSize: 12.sp,
-                      ),
-                    ),
-                  ],
+                Text(
+                  duaType.arabicName,
+                  style: TextStyle(
+                    color: context.textSecondaryColor,
+                    fontSize: 12.sp,
+                  ),
                 ),
               ],
             ),
@@ -479,23 +451,13 @@ ${_dua.virtue != null ? '\nالفضل: ${_dua.virtue}' : ''}
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.translate,
-                color: ThemeConstants.info,
-                size: 18.sp,
-              ),
-              SizedBox(width: 6.w),
-              Text(
-                'النطق اللاتيني',
-                style: TextStyle(
-                  color: ThemeConstants.info,
-                  fontWeight: ThemeConstants.semiBold,
-                  fontSize: 14.sp,
-                ),
-              ),
-            ],
+          Text(
+            'النطق اللاتيني',
+            style: TextStyle(
+              color: ThemeConstants.info,
+              fontWeight: ThemeConstants.semiBold,
+              fontSize: 14.sp,
+            ),
           ),
           
           SizedBox(height: 10.h),
@@ -530,23 +492,13 @@ ${_dua.virtue != null ? '\nالفضل: ${_dua.virtue}' : ''}
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.g_translate,
-                color: ThemeConstants.primaryLight,
-                size: 18.sp,
-              ),
-              SizedBox(width: 6.w),
-              Text(
-                'المعنى',
-                style: TextStyle(
-                  color: ThemeConstants.primaryLight,
-                  fontWeight: ThemeConstants.semiBold,
-                  fontSize: 14.sp,
-                ),
-              ),
-            ],
+          Text(
+            'المعنى',
+            style: TextStyle(
+              color: ThemeConstants.primaryLight,
+              fontWeight: ThemeConstants.semiBold,
+              fontSize: 14.sp,
+            ),
           ),
           
           SizedBox(height: 10.h),
@@ -781,17 +733,7 @@ ${_dua.virtue != null ? '\nالفضل: ${_dua.virtue}' : ''}
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.r),
         ),
-        title: Row(
-          children: [
-            Icon(
-              Icons.text_fields_rounded,
-              color: ThemeConstants.tertiary,
-              size: 20.sp,
-            ),
-            SizedBox(width: 8.w),
-            const Text('حجم الخط'),
-          ],
-        ),
+        title: Text('حجم الخط'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

@@ -17,11 +17,8 @@ class DuaFavoritesScreen extends StatefulWidget {
   State<DuaFavoritesScreen> createState() => _DuaFavoritesScreenState();
 }
 
-class _DuaFavoritesScreenState extends State<DuaFavoritesScreen> 
-    with TickerProviderStateMixin {
+class _DuaFavoritesScreenState extends State<DuaFavoritesScreen> {
   late final DuaService _service;
-  late final AnimationController _listAnimationController;
-  late final AnimationController _emptyAnimationController;
   
   List<DuaItem> _favoriteDuas = [];
   List<DuaCategory> _categories = [];
@@ -36,24 +33,11 @@ class _DuaFavoritesScreenState extends State<DuaFavoritesScreen>
   void initState() {
     super.initState();
     _service = context.duaService;
-    
-    _listAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-    
-    _emptyAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    );
-    
     _loadData();
   }
 
   @override
   void dispose() {
-    _listAnimationController.dispose();
-    _emptyAnimationController.dispose();
     super.dispose();
   }
 
@@ -71,12 +55,6 @@ class _DuaFavoritesScreenState extends State<DuaFavoritesScreen>
           _categories = categories;
           _isLoading = false;
         });
-        
-        if (_favoriteDuas.isNotEmpty) {
-          _listAnimationController.forward();
-        } else {
-          _emptyAnimationController.forward();
-        }
       }
     } catch (e) {
       if (mounted) {
@@ -219,32 +197,6 @@ ${dua.source} - ${dua.reference}
         children: [
           AppBackButton(
             onPressed: () => Navigator.of(context).pop(),
-          ),
-          
-          SizedBox(width: 10.w),
-          
-          Container(
-            padding: EdgeInsets.all(7.r),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [ThemeConstants.accent, ThemeConstants.accentLight],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(10.r),
-              boxShadow: [
-                BoxShadow(
-                  color: ThemeConstants.accent.withOpacity(0.3),
-                  blurRadius: 6.r,
-                  offset: Offset(0, 3.h),
-                ),
-              ],
-            ),
-            child: Icon(
-              Icons.bookmark,
-              color: Colors.white,
-              size: 20.sp,
-            ),
           ),
           
           SizedBox(width: 10.w),
@@ -410,37 +362,10 @@ ${dua.source} - ${dua.reference}
         itemCount: duas.length,
         itemBuilder: (context, index) {
           final dua = duas[index];
-          final delay = index * 50;
           
-          return AnimatedBuilder(
-            animation: _listAnimationController,
-            builder: (context, child) {
-              final animation = Tween<double>(
-                begin: 0.0,
-                end: 1.0,
-              ).animate(
-                CurvedAnimation(
-                  parent: _listAnimationController,
-                  curve: Interval(
-                    delay / 1000,
-                    (delay + 500) / 1000,
-                    curve: Curves.easeOutCubic,
-                  ),
-                ),
-              );
-              
-              return Transform.translate(
-                offset: Offset(0, (1 - animation.value) * 30),
-                child: Opacity(
-                  opacity: animation.value,
-                  child: child,
-                ),
-              );
-            },
-            child: Container(
-              margin: EdgeInsets.only(bottom: 12.h),
-              child: _buildFavoriteDuaCard(dua),
-            ),
+          return Container(
+            margin: EdgeInsets.only(bottom: 12.h),
+            child: _buildFavoriteDuaCard(dua),
           );
         },
       ),
@@ -685,68 +610,65 @@ ${dua.source} - ${dua.reference}
 
   Widget _buildEmptyState() {
     return Center(
-      child: FadeTransition(
-        opacity: _emptyAnimationController,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 120.w,
-              height: 120.h,
-              decoration: BoxDecoration(
-                color: ThemeConstants.accent.withOpacity(0.1),
-                shape: BoxShape.circle,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 120.w,
+            height: 120.h,
+            decoration: BoxDecoration(
+              color: ThemeConstants.accent.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.bookmark_outline,
+              size: 60.sp,
+              color: ThemeConstants.accent.withOpacity(0.5),
+            ),
+          ),
+          
+          SizedBox(height: 20.h),
+          
+          Text(
+            'لا توجد أدعية مفضلة',
+            style: TextStyle(
+              color: context.textPrimaryColor,
+              fontWeight: ThemeConstants.bold,
+              fontSize: 20.sp,
+            ),
+          ),
+          
+          SizedBox(height: 8.h),
+          
+          Text(
+            'اضغط على أيقونة المفضلة في أي دعاء\nليتم حفظه هنا',
+            style: TextStyle(
+              color: context.textSecondaryColor,
+              fontSize: 14.sp,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          
+          SizedBox(height: 24.h),
+          
+          ElevatedButton.icon(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.search),
+            label: const Text('استكشف الأدعية'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ThemeConstants.accent,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(
+                horizontal: 20.w,
+                vertical: 12.h,
               ),
-              child: Icon(
-                Icons.bookmark_outline,
-                size: 60.sp,
-                color: ThemeConstants.accent.withOpacity(0.5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.r),
               ),
             ),
-            
-            SizedBox(height: 20.h),
-            
-            Text(
-              'لا توجد أدعية مفضلة',
-              style: TextStyle(
-                color: context.textPrimaryColor,
-                fontWeight: ThemeConstants.bold,
-                fontSize: 20.sp,
-              ),
-            ),
-            
-            SizedBox(height: 8.h),
-            
-            Text(
-              'اضغط على أيقونة المفضلة في أي دعاء\nليتم حفظه هنا',
-              style: TextStyle(
-                color: context.textSecondaryColor,
-                fontSize: 14.sp,
-                height: 1.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            
-            SizedBox(height: 24.h),
-            
-            ElevatedButton.icon(
-              onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(Icons.search),
-              label: const Text('استكشف الأدعية'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ThemeConstants.accent,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(
-                  horizontal: 20.w,
-                  vertical: 12.h,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -790,22 +712,12 @@ ${dua.source} - ${dua.reference}
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.sort,
-                color: ThemeConstants.tertiary,
-                size: 24.sp,
-              ),
-              SizedBox(width: 8.w),
-              Text(
-                'ترتيب حسب',
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: ThemeConstants.bold,
-                ),
-              ),
-            ],
+          Text(
+            'ترتيب حسب',
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: ThemeConstants.bold,
+            ),
           ),
           
           SizedBox(height: 20.h),
