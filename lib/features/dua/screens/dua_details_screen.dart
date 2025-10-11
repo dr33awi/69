@@ -1,212 +1,259 @@
-// lib/features/dua/screens/dua_details_screen.dart - محسّن
+// lib/features/dua/screens/dua_details_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../services/dua_service.dart';
 import '../models/dua_model.dart';
-import '../widgets/dua_card_widget.dart';
 
 class DuaDetailsScreen extends StatefulWidget {
-  final String categoryId;
-  final String categoryName;
-
+  final DuaItem dua;
+  final DuaCategory category;
+  
   const DuaDetailsScreen({
     super.key,
-    required this.categoryId,
-    required this.categoryName,
+    required this.dua,
+    required this.category,
   });
 
   @override
   State<DuaDetailsScreen> createState() => _DuaDetailsScreenState();
 }
 
-class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
-  late final DuaService _duaService;
+class _DuaDetailsScreenState extends State<DuaDetailsScreen> 
+    with SingleTickerProviderStateMixin {
+  late final DuaService _service;
+  late final AnimationController _animationController;
   
-  List<Dua> _duas = [];
-  List<Dua> _displayedDuas = [];
-  bool _isLoading = true;
-  double _fontSize = 16.0;
-  final ScrollController _scrollController = ScrollController();
-  String? _errorMessage;
+  late DuaItem _dua;
+  double _fontSize = 18.0;
+  bool _showTransliteration = true;
+  bool _showTranslation = true;
   
-  // ✅ للـ Pagination
-  static const int _itemsPerPage = 10;
-  bool _isLoadingMore = false;
+  // للتنقل بين الأدعية
+  List<DuaItem> _categoryDuas = [];
+  int _currentIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _duaService = getService<DuaService>();
-    _scrollController.addListener(_onScroll);
-    _loadDuas();
+    _service = context.duaService;
+    _dua = widget.dua;
+    
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    
+    _initialize();
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
-  /// ✅ معالج التمرير للـ Pagination
-  void _onScroll() {
-    if (_scrollController.position.pixels >= 
-        _scrollController.position.maxScrollExtent * 0.8) {
-      _loadMoreDuas();
+  Future<void> _initialize() async {
+    // تحديد كمقروء
+    await _service.markAsRead(_dua.id);
+    
+    // حفظ آخر دعاء تم عرضه
+    await _service.saveLastViewed(_dua.id, widget.category.id);
+    
+    // تحميل حجم الخط
+    _fontSize = await _service.getSavedFontSize();
+    
+    // تحميل جميع أدعية الفئة للتنقل
+    _categoryDuas = await _service.getDuasByCategory(widget.category.id);
+    _currentIndex = _categoryDuas.indexWhere((d) => d.id == _dua.id);
+    
+    if (mounted) {
+      setState(() {});
+      _animationController.forward();
     }
   }
 
-  /// ✅ تحميل المزيد من الأدعية
-  void _loadMoreDuas() {
-    if (_isLoadingMore || _displayedDuas.length >= _duas.length) return;
-    
-    setState(() => _isLoadingMore = true);
-    
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (!mounted) return;
-      
-      setState(() {
-        final nextItems = _duas
-            .skip(_displayedDuas.length)
-            .take(_itemsPerPage)
-            .toList();
-        _displayedDuas.addAll(nextItems);
-        _isLoadingMore = false;
-        
-        debugPrint('📄 تم تحميل ${nextItems.length} دعاء إضافي (المجموع: ${_displayedDuas.length}/${_duas.length})');
-      });
-    });
-  }
-
-  /// ✅ تحميل الأدعية مع معالجة أفضل للأخطاء
-  Future<void> _loadDuas() async {
-    if (!mounted) return;
+  Future<void> _toggleFavorite() async {
+    final isFavorite = await _service.toggleFavorite(_dua.id);
     
     setState(() {
-      _isLoading = true;
-      _errorMessage = null;
+      _dua = _dua.copyWith(isFavorite: isFavorite);
+      
+      // تحديث في القائمة أيضاً
+      if (_currentIndex >= 0 && _currentIndex < _categoryDuas.length) {
+        _categoryDuas[_currentIndex] = _dua;
+      }
     });
     
-    try {
-      final results = await Future.wait([
-        _duaService.getDuasByCategory(widget.categoryId),
-        _duaService.getSavedFontSize(),
-      ]).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () => throw TimeoutException('انتهت مهلة التحميل'),
-      );
-      
-      if (!mounted) return;
-      
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isFavorite ? 'تمت الإضافة للمفضلة' : 'تمت الإزالة من المفضلة',
+        ),
+        backgroundColor: isFavorite ? ThemeConstants.success : null,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Future<void> _shareDua() async {
+    final text = '''
+${_dua.arabicText}
+
+${_dua.title}
+${_dua.virtue != null ? '\nالفضل: ${_dua.virtue}' : ''}
+المصدر: ${_dua.source} - ${_dua.reference}
+
+تطبيق الأذكار والأدعية
+''';
+    
+    await Share.share(text);
+  }
+
+  void _copyDua() {
+    Clipboard.setData(ClipboardData(text: _dua.arabicText));
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('تم نسخ الدعاء'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _previousDua() {
+    if (_currentIndex > 0) {
       setState(() {
-        _duas = results[0] as List<Dua>;
-        _fontSize = results[1] as double;
-        
-        // ✅ تحميل أول دفعة
-        _displayedDuas = _duas.take(_itemsPerPage).toList();
-        
-        _isLoading = false;
+        _currentIndex--;
+        _dua = _categoryDuas[_currentIndex];
       });
       
-      debugPrint('✅ تم تحميل ${_duas.length} دعاء من ${widget.categoryName}');
-      debugPrint('📄 عرض ${_displayedDuas.length} دعاء في البداية');
-    } on TimeoutException catch (e) {
-      if (!mounted) return;
+      _animationController.reset();
+      _animationController.forward();
+      
+      // تحديد كمقروء
+      _service.markAsRead(_dua.id);
+      _service.saveLastViewed(_dua.id, widget.category.id);
+    }
+  }
+
+  void _nextDua() {
+    if (_currentIndex < _categoryDuas.length - 1) {
       setState(() {
-        _isLoading = false;
-        _errorMessage = 'انتهت مهلة التحميل. يرجى المحاولة مرة أخرى';
+        _currentIndex++;
+        _dua = _categoryDuas[_currentIndex];
       });
-      context.showErrorSnackBar(_errorMessage!);
-      debugPrint('❌ Timeout: $e');
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-        _errorMessage = 'حدث خطأ في تحميل الأدعية';
-      });
-      debugPrint('❌ خطأ في تحميل الأدعية: $e');
-      context.showErrorSnackBar(_errorMessage!);
+      
+      _animationController.reset();
+      _animationController.forward();
+      
+      // تحديد كمقروء
+      _service.markAsRead(_dua.id);
+      _service.saveLastViewed(_dua.id, widget.category.id);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final duaType = DuaType.fromValue(_dua.type);
+    final categoryColor = _getCategoryColor(widget.category.id);
+    
     return Scaffold(
       backgroundColor: context.backgroundColor,
       body: SafeArea(
         child: Column(
           children: [
-            _buildEnhancedAppBar(),
+            _buildAppBar(categoryColor),
             Expanded(
-              child: _buildBody(),
+              child: FadeTransition(
+                opacity: _animationController,
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.all(16.w),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // معلومات الدعاء
+                      _buildDuaInfo(duaType),
+                      
+                      SizedBox(height: 20.h),
+                      
+                      // نص الدعاء العربي
+                      _buildArabicText(),
+                      
+                      // النطق اللاتيني
+                      if (_dua.transliteration != null && _showTransliteration) ...[
+                        SizedBox(height: 16.h),
+                        _buildTransliteration(),
+                      ],
+                      
+                      // الترجمة
+                      if (_dua.translation != null && _showTranslation) ...[
+                        SizedBox(height: 16.h),
+                        _buildTranslation(),
+                      ],
+                      
+                      // الفضل
+                      if (_dua.virtue != null) ...[
+                        SizedBox(height: 16.h),
+                        _buildVirtue(),
+                      ],
+                      
+                      // المصدر
+                      SizedBox(height: 16.h),
+                      _buildSource(),
+                      
+                      // التصنيفات
+                      if (_dua.tags.isNotEmpty) ...[
+                        SizedBox(height: 16.h),
+                        _buildTags(),
+                      ],
+                      
+                      SizedBox(height: 80.h), // مساحة للأزرار السفلية
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),
       ),
+      
+      // الأزرار السفلية
+      bottomNavigationBar: _buildBottomBar(categoryColor),
     );
   }
 
-  Widget _buildBody() {
-    if (_isLoading) {
-      return _buildLoading();
-    }
-    
-    if (_errorMessage != null) {
-      return _buildErrorState();
-    }
-    
-    if (_duas.isEmpty) {
-      return _buildEmptyState();
-    }
-    
-    return _buildContent();
-  }
-
-  Widget _buildEnhancedAppBar() {
+  Widget _buildAppBar(Color categoryColor) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+      padding: EdgeInsets.all(14.r),
+      decoration: BoxDecoration(
+        color: context.backgroundColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8.r,
+            offset: Offset(0, 2.h),
+          ),
+        ],
+      ),
       child: Row(
         children: [
           AppBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
           
-          SizedBox(width: 8.w),
-          
-          Container(
-            padding: EdgeInsets.all(6.r),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [ThemeConstants.primary, ThemeConstants.primaryLight],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(10.r),
-              boxShadow: [
-                BoxShadow(
-                  color: ThemeConstants.primary.withOpacity(0.25),
-                  blurRadius: 6.r,
-                  offset: Offset(0, 3.h),
-                ),
-              ],
-            ),
-            child: Icon(
-              Icons.menu_book_rounded,
-              color: Colors.white,
-              size: 20.sp,
-            ),
-          ),
-          
-          SizedBox(width: 8.w),
+          SizedBox(width: 10.w),
           
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.categoryName,
+                  _dua.title,
                   style: TextStyle(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
@@ -215,294 +262,515 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (!_isLoading)
-                  Text(
-                    '${_duas.length} دعاء',
-                    style: TextStyle(
-                      color: context.textSecondaryColor,
-                      fontSize: 11.sp,
-                    ),
+                Text(
+                  '${widget.category.name} • ${_currentIndex + 1}/${_categoryDuas.length}',
+                  style: TextStyle(
+                    color: context.textSecondaryColor,
+                    fontSize: 11.sp,
                   ),
+                ),
               ],
             ),
           ),
           
-          _buildActionButton(
-            icon: Icons.text_fields_rounded,
-            onTap: _showFontSizeDialog,
+          // زر المفضلة
+          IconButton(
+            onPressed: _toggleFavorite,
+            icon: Icon(
+              _dua.isFavorite ? Icons.bookmark : Icons.bookmark_outline,
+              color: _dua.isFavorite ? ThemeConstants.accent : context.textSecondaryColor,
+              size: 24.sp,
+            ),
+          ),
+          
+          // زر الإعدادات
+          PopupMenuButton<String>(
+            icon: Icon(
+              Icons.more_vert,
+              color: context.textSecondaryColor,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            onSelected: (value) {
+              switch (value) {
+                case 'copy':
+                  _copyDua();
+                  break;
+                case 'share':
+                  _shareDua();
+                  break;
+                case 'font':
+                  _showFontSizeDialog();
+                  break;
+                case 'display':
+                  _showDisplaySettings();
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'copy',
+                child: Row(
+                  children: [
+                    Icon(Icons.copy, size: 20.sp),
+                    SizedBox(width: 8.w),
+                    const Text('نسخ الدعاء'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'share',
+                child: Row(
+                  children: [
+                    Icon(Icons.share, size: 20.sp),
+                    SizedBox(width: 8.w),
+                    const Text('مشاركة'),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'font',
+                child: Row(
+                  children: [
+                    Icon(Icons.text_fields, size: 20.sp),
+                    SizedBox(width: 8.w),
+                    const Text('حجم الخط'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'display',
+                child: Row(
+                  children: [
+                    Icon(Icons.visibility, size: 20.sp),
+                    SizedBox(width: 8.w),
+                    const Text('إعدادات العرض'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildActionButton({
-    required IconData icon,
-    required VoidCallback onTap,
-    bool isSecondary = false,
-  }) {
+  Widget _buildDuaInfo(DuaType duaType) {
     return Container(
-      margin: EdgeInsets.only(left: 6.w),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(10.r),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(10.r),
-          child: Container(
-            padding: EdgeInsets.all(6.r),
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            duaType.color.withOpacity(0.1),
+            duaType.color.withOpacity(0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: duaType.color.withOpacity(0.2),
+          width: 1.w,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(10.w),
             decoration: BoxDecoration(
-              color: context.cardColor,
-              borderRadius: BorderRadius.circular(10.r),
-              border: Border.all(
-                color: context.dividerColor.withOpacity(0.3),
-                width: 1.w,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 3.r,
-                  offset: Offset(0, 1.5.h),
+              color: duaType.color.withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              duaType.icon,
+              color: duaType.color,
+              size: 24.sp,
+            ),
+          ),
+          
+          SizedBox(width: 12.w),
+          
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _dua.title,
+                  style: TextStyle(
+                    color: context.textPrimaryColor,
+                    fontWeight: ThemeConstants.bold,
+                    fontSize: 16.sp,
+                  ),
+                ),
+                
+                SizedBox(height: 4.h),
+                
+                Row(
+                  children: [
+                    Icon(
+                      Icons.category_outlined,
+                      size: 14.sp,
+                      color: context.textSecondaryColor,
+                    ),
+                    SizedBox(width: 4.w),
+                    Text(
+                      duaType.arabicName,
+                      style: TextStyle(
+                        color: context.textSecondaryColor,
+                        fontSize: 12.sp,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            child: Icon(
-              icon,
-              color: isSecondary ? context.textSecondaryColor : ThemeConstants.primary,
-              size: 20.sp,
-            ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildArabicText() {
+    return Container(
+      padding: EdgeInsets.all(20.w),
+      decoration: BoxDecoration(
+        color: context.isDarkMode
+            ? Colors.black.withOpacity(0.3)
+            : Colors.white,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(
+          color: context.dividerColor.withOpacity(0.3),
+          width: 1.w,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10.r,
+            offset: Offset(0, 4.h),
+          ),
+        ],
+      ),
+      child: SelectableText(
+        _dua.arabicText,
+        style: TextStyle(
+          fontSize: _fontSize.sp,
+          fontFamily: ThemeConstants.fontFamilyArabic,
+          height: 2.0,
+          color: context.textPrimaryColor,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildTransliteration() {
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: ThemeConstants.info.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: ThemeConstants.info.withOpacity(0.2),
+          width: 1.w,
         ),
       ),
-    );
-  }
-
-  Widget _buildLoading() {
-    return Center(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: EdgeInsets.all(14.r),
-            decoration: BoxDecoration(
-              color: ThemeConstants.primary.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: CircularProgressIndicator(
-              color: ThemeConstants.primary,
-              strokeWidth: 2.5.w,
-            ),
-          ),
-          SizedBox(height: 14.h),
-          Text(
-            'جاري تحميل ${widget.categoryName}...',
-            style: TextStyle(
-              color: context.textSecondaryColor,
-              fontSize: 14.sp,
-            ),
-          ),
-          SizedBox(height: 6.h),
-          Text(
-            'يرجى الانتظار قليلاً',
-            style: TextStyle(
-              color: context.textSecondaryColor.withOpacity(0.7),
-              fontSize: 11.sp,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildErrorState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: EdgeInsets.all(20.r),
-            decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.error_outline_rounded,
-              size: 50.sp,
-              color: Colors.red,
-            ),
-          ),
-          SizedBox(height: 14.h),
-          Text(
-            'حدث خطأ',
-            style: TextStyle(
-              color: context.textSecondaryColor,
-              fontWeight: ThemeConstants.bold,
-              fontSize: 18.sp,
-            ),
-          ),
-          SizedBox(height: 6.h),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 30.w),
-            child: Text(
-              _errorMessage ?? 'حدث خطأ غير متوقع',
-              style: TextStyle(
-                color: context.textSecondaryColor.withOpacity(0.7),
-                fontSize: 13.sp,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          SizedBox(height: 20.h),
-          ElevatedButton.icon(
-            onPressed: _loadDuas,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: ThemeConstants.primary,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.r),
-              ),
-            ),
-            icon: Icon(Icons.refresh_rounded, size: 18.sp),
-            label: Text('إعادة المحاولة', style: TextStyle(fontSize: 13.sp)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: EdgeInsets.all(20.r),
-            decoration: BoxDecoration(
-              color: context.textSecondaryColor.withOpacity(0.05),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.menu_book_outlined,
-              size: 50.sp,
-              color: context.textSecondaryColor.withOpacity(0.5),
-            ),
-          ),
-          SizedBox(height: 14.h),
-          Text(
-            'لا توجد أدعية',
-            style: TextStyle(
-              color: context.textSecondaryColor,
-              fontWeight: ThemeConstants.bold,
-              fontSize: 18.sp,
-            ),
-          ),
-          SizedBox(height: 6.h),
-          Text(
-            'لا توجد أدعية في هذه الفئة حالياً',
-            style: TextStyle(
-              color: context.textSecondaryColor.withOpacity(0.7),
-              fontSize: 13.sp,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 20.h),
-          ElevatedButton.icon(
-            onPressed: _loadDuas,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: ThemeConstants.primary,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.r),
-              ),
-            ),
-            icon: Icon(Icons.refresh_rounded, size: 18.sp),
-            label: Text('إعادة المحاولة', style: TextStyle(fontSize: 13.sp)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildContent() {
-    return Column(
-      children: [
-        Container(
-          margin: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-          child: Row(
+          Row(
             children: [
               Icon(
-                Icons.format_list_numbered_rounded,
-                size: 14.sp,
-                color: context.textSecondaryColor,
+                Icons.translate,
+                color: ThemeConstants.info,
+                size: 18.sp,
               ),
-              SizedBox(width: 4.w),
+              SizedBox(width: 6.w),
               Text(
-                'عدد الأدعية: ${_duas.length}',
+                'النطق اللاتيني',
                 style: TextStyle(
-                  color: context.textSecondaryColor,
-                  fontSize: 12.sp,
+                  color: ThemeConstants.info,
+                  fontWeight: ThemeConstants.semiBold,
+                  fontSize: 14.sp,
                 ),
               ),
-              
-              const Spacer(),
-              
-              if (_duas.any((d) => d.readCount > 0)) ...[
-                Icon(
-                  Icons.check_circle_rounded,
-                  size: 14.sp,
-                  color: ThemeConstants.accent,
+            ],
+          ),
+          
+          SizedBox(height: 10.h),
+          
+          SelectableText(
+            _dua.transliteration!,
+            style: TextStyle(
+              fontSize: (_fontSize - 2).sp,
+              color: context.textPrimaryColor,
+              height: 1.6,
+              fontStyle: FontStyle.italic,
+            ),
+            textDirection: TextDirection.ltr,
+            textAlign: TextAlign.left,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTranslation() {
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: ThemeConstants.primaryLight.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: ThemeConstants.primaryLight.withOpacity(0.2),
+          width: 1.w,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.g_translate,
+                color: ThemeConstants.primaryLight,
+                size: 18.sp,
+              ),
+              SizedBox(width: 6.w),
+              Text(
+                'المعنى',
+                style: TextStyle(
+                  color: ThemeConstants.primaryLight,
+                  fontWeight: ThemeConstants.semiBold,
+                  fontSize: 14.sp,
                 ),
-                SizedBox(width: 4.w),
+              ),
+            ],
+          ),
+          
+          SizedBox(height: 10.h),
+          
+          SelectableText(
+            _dua.translation!,
+            style: TextStyle(
+              fontSize: (_fontSize - 2).sp,
+              color: context.textPrimaryColor,
+              height: 1.6,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVirtue() {
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            ThemeConstants.success.withOpacity(0.08),
+            ThemeConstants.success.withOpacity(0.03),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: ThemeConstants.success.withOpacity(0.3),
+          width: 1.w,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.star_rounded,
+                color: ThemeConstants.success,
+                size: 20.sp,
+              ),
+              SizedBox(width: 6.w),
+              Text(
+                'الفضل',
+                style: TextStyle(
+                  color: ThemeConstants.success,
+                  fontWeight: ThemeConstants.semiBold,
+                  fontSize: 14.sp,
+                ),
+              ),
+            ],
+          ),
+          
+          SizedBox(height: 10.h),
+          
+          Text(
+            _dua.virtue!,
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: context.textPrimaryColor,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSource() {
+    return Container(
+      padding: EdgeInsets.all(14.w),
+      decoration: BoxDecoration(
+        color: context.cardColor,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: context.dividerColor.withOpacity(0.3),
+          width: 1.w,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.menu_book,
+            color: context.textSecondaryColor,
+            size: 20.sp,
+          ),
+          
+          SizedBox(width: 10.w),
+          
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  'مقروءة: ${_duas.where((d) => d.readCount > 0).length}',
+                  'المصدر',
                   style: TextStyle(
-                    color: ThemeConstants.accent,
+                    color: context.textSecondaryColor,
                     fontSize: 12.sp,
                   ),
                 ),
-              ],
-            ],
-          ),
-        ),
-        
-        Expanded(
-          child: ListView.builder(
-            controller: _scrollController,
-            padding: EdgeInsets.all(12.r),
-            physics: const BouncingScrollPhysics(),
-            itemCount: _displayedDuas.length + (_isLoadingMore ? 1 : 0),
-            itemBuilder: (context, index) {
-              // ✅ عرض مؤشر التحميل في الأسفل
-              if (index == _displayedDuas.length) {
-                return Container(
-                  padding: EdgeInsets.all(20.r),
-                  alignment: Alignment.center,
-                  child: CircularProgressIndicator(
-                    color: ThemeConstants.primary,
-                    strokeWidth: 2.w,
+                Text(
+                  '${_dua.source} - ${_dua.reference}',
+                  style: TextStyle(
+                    color: context.textPrimaryColor,
+                    fontWeight: ThemeConstants.medium,
+                    fontSize: 14.sp,
                   ),
-                );
-              }
-              
-              final dua = _displayedDuas[index];
-              
-              return Container(
-                margin: EdgeInsets.only(bottom: 10.h),
-                child: DuaCardWidget(
-                  dua: dua,
-                  index: index,
-                  fontSize: _fontSize,
-                  onTap: () => _onDuaTap(dua, index),
-                  onShare: () => _shareDua(dua),
-                  onCopy: () => _copyDua(dua),
                 ),
-              );
-            },
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTags() {
+    return Wrap(
+      spacing: 8.w,
+      runSpacing: 8.h,
+      children: _dua.tags.map((tag) {
+        return Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: 12.w,
+            vertical: 6.h,
+          ),
+          decoration: BoxDecoration(
+            color: ThemeConstants.tertiary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20.r),
+            border: Border.all(
+              color: ThemeConstants.tertiary.withOpacity(0.3),
+              width: 1.w,
+            ),
+          ),
+          child: Text(
+            tag,
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: ThemeConstants.tertiary,
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildBottomBar(Color categoryColor) {
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: context.cardColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10.r,
+            offset: Offset(0, -2.h),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          // السابق
+          IconButton(
+            onPressed: _currentIndex > 0 ? _previousDua : null,
+            icon: Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: _currentIndex > 0 
+                  ? categoryColor 
+                  : context.textSecondaryColor.withOpacity(0.3),
+            ),
+          ),
+          
+          // نسخ
+          IconButton(
+            onPressed: _copyDua,
+            icon: Icon(
+              Icons.copy_rounded,
+              color: context.textSecondaryColor,
+            ),
+          ),
+          
+          // مشاركة
+          Container(
+            decoration: BoxDecoration(
+              color: categoryColor,
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              onPressed: _shareDua,
+              icon: const Icon(
+                Icons.share_rounded,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          
+          // المفضلة
+          IconButton(
+            onPressed: _toggleFavorite,
+            icon: Icon(
+              _dua.isFavorite ? Icons.bookmark : Icons.bookmark_outline,
+              color: _dua.isFavorite 
+                  ? ThemeConstants.accent 
+                  : context.textSecondaryColor,
+            ),
+          ),
+          
+          // التالي
+          IconButton(
+            onPressed: _currentIndex < _categoryDuas.length - 1 ? _nextDua : null,
+            icon: Icon(
+              Icons.arrow_back_ios_rounded,
+              color: _currentIndex < _categoryDuas.length - 1 
+                  ? categoryColor 
+                  : context.textSecondaryColor.withOpacity(0.3),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -510,27 +778,18 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: context.cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.r),
         ),
-        contentPadding: EdgeInsets.all(16.r),
         title: Row(
           children: [
-            Container(
-              padding: EdgeInsets.all(6.r),
-              decoration: BoxDecoration(
-                color: ThemeConstants.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10.r),
-              ),
-              child: Icon(
-                Icons.text_fields_rounded,
-                color: ThemeConstants.primary,
-                size: 18.sp,
-              ),
+            Icon(
+              Icons.text_fields_rounded,
+              color: ThemeConstants.tertiary,
+              size: 20.sp,
             ),
-            SizedBox(width: 6.w),
-            Text('حجم الخط', style: TextStyle(fontSize: 16.sp)),
+            SizedBox(width: 8.w),
+            const Text('حجم الخط'),
           ],
         ),
         content: Column(
@@ -549,155 +808,116 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
   Widget _buildFontSizeOption(String label, double size) {
     final isSelected = _fontSize == size;
     
-    return Container(
-      margin: EdgeInsets.only(bottom: 6.h),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(10.r),
-        child: InkWell(
-          onTap: () async {
-            HapticFeedback.lightImpact();
-            setState(() => _fontSize = size);
-            
-            await _duaService.saveFontSize(size);
-            
-            if (mounted) {
-              Navigator.pop(context);
-            }
-          },
-          borderRadius: BorderRadius.circular(10.r),
-          child: Container(
-            padding: EdgeInsets.all(10.r),
-            decoration: BoxDecoration(
-              color: isSelected 
-                  ? ThemeConstants.primary.withOpacity(0.1)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(10.r),
-              border: Border.all(
-                color: isSelected 
-                    ? ThemeConstants.primary.withOpacity(0.3)
-                    : context.dividerColor.withOpacity(0.2),
-                width: 1.w,
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 18.r,
-                  height: 18.r,
-                  decoration: BoxDecoration(
-                    color: isSelected ? ThemeConstants.primary : Colors.transparent,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isSelected ? ThemeConstants.primary : context.textSecondaryColor,
-                      width: 1.w,
-                    ),
-                  ),
-                  child: isSelected 
-                      ? Icon(
-                          Icons.check,
-                          color: Colors.white,
-                          size: 12.sp,
-                        )
-                      : null,
-                ),
-                SizedBox(width: 10.w),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: size.sp,
-                      fontWeight: isSelected ? ThemeConstants.semiBold : ThemeConstants.regular,
-                      color: isSelected ? ThemeConstants.primary : context.textPrimaryColor,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 3.h),
-                  decoration: BoxDecoration(
-                    color: context.textSecondaryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(999.r),
-                  ),
-                  child: Text(
-                    '${size.toInt()}',
-                    style: TextStyle(
-                      color: context.textSecondaryColor,
-                      fontWeight: ThemeConstants.medium,
-                      fontSize: 10.sp,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+    return ListTile(
+      title: Text(
+        label,
+        style: TextStyle(
+          fontSize: size.sp,
+          fontWeight: isSelected ? ThemeConstants.semiBold : null,
         ),
       ),
+      trailing: isSelected
+          ? Icon(
+              Icons.check_circle,
+              color: ThemeConstants.tertiary,
+            )
+          : null,
+      onTap: () async {
+        setState(() => _fontSize = size);
+        await _service.saveFontSize(size);
+        Navigator.pop(context);
+      },
     );
   }
 
-  Future<void> _onDuaTap(Dua dua, int index) async {
-    HapticFeedback.lightImpact();
-    
-    try {
-      await _duaService.markDuaAsRead(dua.id);
-      
-      if (mounted) {
-        setState(() {
-          final updatedDua = dua.copyWith(
-            readCount: dua.readCount + 1,
-            lastRead: DateTime.now(),
-          );
-          
-          // ✅ تحديث في القائمتين
-          final duaIndex = _duas.indexWhere((d) => d.id == dua.id);
-          if (duaIndex != -1) {
-            _duas[duaIndex] = updatedDua;
-          }
-          
-          final displayIndex = _displayedDuas.indexWhere((d) => d.id == dua.id);
-          if (displayIndex != -1) {
-            _displayedDuas[displayIndex] = updatedDua;
-          }
-        });
-      }
-    } catch (e) {
-      debugPrint('❌ خطأ في تسجيل قراءة الدعاء: $e');
-      
-      if (mounted) {
-        context.showErrorSnackBar('فشل تسجيل قراءة الدعاء');
-      }
+  void _showDisplaySettings() {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20.r),
+          topRight: Radius.circular(20.r),
+        ),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Container(
+              padding: EdgeInsets.all(20.w),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.visibility,
+                        color: ThemeConstants.tertiary,
+                        size: 24.sp,
+                      ),
+                      SizedBox(width: 8.w),
+                      Text(
+                        'إعدادات العرض',
+                        style: TextStyle(
+                          fontSize: 18.sp,
+                          fontWeight: ThemeConstants.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  SizedBox(height: 20.h),
+                  
+                  SwitchListTile(
+                    title: const Text('النطق اللاتيني'),
+                    subtitle: const Text('عرض النطق بالأحرف اللاتينية'),
+                    value: _showTransliteration,
+                    onChanged: _dua.transliteration != null 
+                        ? (value) {
+                            setState(() {
+                              _showTransliteration = value;
+                            });
+                            this.setState(() {});
+                          }
+                        : null,
+                    activeColor: ThemeConstants.tertiary,
+                  ),
+                  
+                  SwitchListTile(
+                    title: const Text('المعنى'),
+                    subtitle: const Text('عرض معنى الدعاء'),
+                    value: _showTranslation,
+                    onChanged: _dua.translation != null
+                        ? (value) {
+                            setState(() {
+                              _showTranslation = value;
+                            });
+                            this.setState(() {});
+                          }
+                        : null,
+                    activeColor: ThemeConstants.tertiary,
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Color _getCategoryColor(String categoryId) {
+    switch (categoryId) {
+      case 'quran':
+        return ThemeConstants.primary;
+      case 'sahihain':
+        return ThemeConstants.accent;
+      case 'sunan':
+        return ThemeConstants.tertiary;
+      case 'other_authentic':
+        return ThemeConstants.primaryDark;
+      default:
+        return ThemeConstants.tertiary;
     }
   }
-
-  void _shareDua(Dua dua) {
-    HapticFeedback.lightImpact();
-    
-    final text = '''${dua.title}
-
-${dua.arabicText}
-
-${dua.source != null ? 'المصدر: ${dua.source}' : ''}
-${dua.reference != null ? 'المرجع: ${dua.reference}' : ''}
-
-من تطبيق أذكاري - الأدعية المأثورة''';
-    
-    Clipboard.setData(ClipboardData(text: text));
-    context.showSuccessSnackBar('تم نسخ الدعاء للمشاركة');
-  }
-
-  void _copyDua(Dua dua) {
-    HapticFeedback.lightImpact();
-    
-    Clipboard.setData(ClipboardData(text: dua.arabicText));
-    context.showSuccessSnackBar('تم نسخ الدعاء');
-  }
-}
-
-/// ✅ استثناء Timeout
-class TimeoutException implements Exception {
-  final String message;
-  TimeoutException(this.message);
-  
-  @override
-  String toString() => 'TimeoutException: $message';
 }

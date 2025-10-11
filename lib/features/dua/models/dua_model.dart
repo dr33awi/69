@@ -1,59 +1,125 @@
-// lib/features/dua/models/dua_model.dart - محدث بدون tags
-import 'package:equatable/equatable.dart';
+// lib/features/dua/models/dua_model.dart
 
-/// نموذج بيانات الدعاء المحدث
-class Dua extends Equatable {
+import 'package:flutter/material.dart';
+
+/// نموذج فئة الأدعية
+class DuaCategory {
+  final String id;
+  final String name;
+  final String description;
+  final int type;
+  final String icon;
+  final int duasCount;
+
+  const DuaCategory({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.type,
+    required this.icon,
+    this.duasCount = 0,
+  });
+
+  factory DuaCategory.fromJson(Map<String, dynamic> json) {
+    return DuaCategory(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      description: json['description'] as String,
+      type: json['type'] as int? ?? 0,
+      icon: json['icon'] as String? ?? 'book',
+      duasCount: 0, // سيتم تحديثه لاحقاً
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'description': description,
+    'type': type,
+    'icon': icon,
+  };
+
+  DuaCategory copyWith({
+    String? id,
+    String? name,
+    String? description,
+    int? type,
+    String? icon,
+    int? duasCount,
+  }) {
+    return DuaCategory(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      type: type ?? this.type,
+      icon: icon ?? this.icon,
+      duasCount: duasCount ?? this.duasCount,
+    );
+  }
+}
+
+/// نموذج الدعاء
+class DuaItem {
   final String id;
   final String title;
   final String arabicText;
   final String? transliteration;
   final String? translation;
-  final String? source;
-  final String? reference;
+  final String source;
+  final String reference;
   final String categoryId;
   final String? virtue;
-  final int? order;
+  final List<String> tags;
+  final int type;
   final bool isFavorite;
-  final int readCount;
-  final DateTime? lastRead;
-  final DuaType type;
 
-  const Dua({
+  const DuaItem({
     required this.id,
     required this.title,
     required this.arabicText,
     this.transliteration,
     this.translation,
-    this.source,
-    this.reference,
+    required this.source,
+    required this.reference,
     required this.categoryId,
     this.virtue,
-    this.order,
+    required this.tags,
+    required this.type,
     this.isFavorite = false,
-    this.readCount = 0,
-    this.lastRead,
-    this.type = DuaType.general,
   });
 
-  @override
-  List<Object?> get props => [
-        id,
-        title,
-        arabicText,
-        transliteration,
-        translation,
-        source,
-        reference,
-        categoryId,
-        virtue,
-        order,
-        isFavorite,
-        readCount,
-        lastRead,
-        type,
-      ];
+  factory DuaItem.fromJson(Map<String, dynamic> json) {
+    return DuaItem(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      arabicText: json['arabicText'] as String,
+      transliteration: json['transliteration'] as String?,
+      translation: json['translation'] as String?,
+      source: json['source'] as String? ?? '',
+      reference: json['reference'] as String? ?? '',
+      categoryId: json['categoryId'] as String,
+      virtue: json['virtue'] as String?,
+      tags: (json['tags'] as List<dynamic>?)?.cast<String>() ?? [],
+      type: json['type'] as int? ?? 0,
+      isFavorite: false,
+    );
+  }
 
-  Dua copyWith({
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'arabicText': arabicText,
+    'transliteration': transliteration,
+    'translation': translation,
+    'source': source,
+    'reference': reference,
+    'categoryId': categoryId,
+    'virtue': virtue,
+    'tags': tags,
+    'type': type,
+  };
+
+  DuaItem copyWith({
     String? id,
     String? title,
     String? arabicText,
@@ -63,13 +129,11 @@ class Dua extends Equatable {
     String? reference,
     String? categoryId,
     String? virtue,
-    int? order,
+    List<String>? tags,
+    int? type,
     bool? isFavorite,
-    int? readCount,
-    DateTime? lastRead,
-    DuaType? type,
   }) {
-    return Dua(
+    return DuaItem(
       id: id ?? this.id,
       title: title ?? this.title,
       arabicText: arabicText ?? this.arabicText,
@@ -79,240 +143,136 @@ class Dua extends Equatable {
       reference: reference ?? this.reference,
       categoryId: categoryId ?? this.categoryId,
       virtue: virtue ?? this.virtue,
-      order: order ?? this.order,
-      isFavorite: isFavorite ?? this.isFavorite,
-      readCount: readCount ?? this.readCount,
-      lastRead: lastRead ?? this.lastRead,
+      tags: tags ?? this.tags,
       type: type ?? this.type,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'title': title,
-      'arabicText': arabicText,
-      'transliteration': transliteration,
-      'translation': translation,
-      'source': source,
-      'reference': reference,
-      'categoryId': categoryId,
-      'virtue': virtue,
-      'order': order,
-      'isFavorite': isFavorite ? 1 : 0,
-      'readCount': readCount,
-      'lastRead': lastRead?.millisecondsSinceEpoch,
-      'type': type.index,
-    };
-  }
-
-  factory Dua.fromMap(Map<String, dynamic> map) {
-    return Dua(
-      id: map['id'] ?? '',
-      title: map['title'] ?? '',
-      arabicText: map['arabicText'] ?? '',
-      transliteration: map['transliteration'],
-      translation: map['translation'],
-      source: map['source'],
-      reference: map['reference'],
-      categoryId: map['categoryId'] ?? '',
-      virtue: map['virtue'],
-      order: map['order'],
-      isFavorite: (map['isFavorite'] ?? 0) == 1,
-      readCount: map['readCount'] ?? 0,
-      lastRead: map['lastRead'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(map['lastRead'])
-          : null,
-      type: DuaType.values[map['type'] ?? 0],
+      isFavorite: isFavorite ?? this.isFavorite,
     );
   }
 }
 
 /// أنواع الأدعية
 enum DuaType {
-  general,
-  morning,
-  evening,
-  prayer,
-  food,
-  travel,
-  sleep,
-  protection,
-  forgiveness,
-  gratitude,
-  guidance,
-  health,
-  wealth,
-  knowledge,
-}
+  general(0),
+  morning(1),
+  evening(2),
+  prayer(3),
+  food(4),
+  travel(5),
+  sleep(6),
+  protection(7),
+  forgiveness(8),
+  thanks(9),
+  guidance(10),
+  healing(11),
+  wealth(12),
+  knowledge(13);
 
-extension DuaTypeExtension on DuaType {
-  String get displayName {
+  final int value;
+  const DuaType(this.value);
+
+  static DuaType fromValue(int value) {
+    return DuaType.values.firstWhere(
+      (type) => type.value == value,
+      orElse: () => DuaType.general,
+    );
+  }
+
+  String get arabicName {
     switch (this) {
       case DuaType.general:
-        return 'أدعية عامة';
+        return 'عام';
       case DuaType.morning:
-        return 'أدعية الصباح';
+        return 'الصباح';
       case DuaType.evening:
-        return 'أدعية المساء';
+        return 'المساء';
       case DuaType.prayer:
-        return 'أدعية الصلاة';
+        return 'الصلاة';
       case DuaType.food:
-        return 'أدعية الطعام';
+        return 'الطعام';
       case DuaType.travel:
-        return 'أدعية السفر';
+        return 'السفر';
       case DuaType.sleep:
-        return 'أدعية النوم';
+        return 'النوم';
       case DuaType.protection:
-        return 'أدعية الحماية';
+        return 'الحماية';
       case DuaType.forgiveness:
-        return 'أدعية الاستغفار';
-      case DuaType.gratitude:
-        return 'أدعية الشكر';
+        return 'الاستغفار';
+      case DuaType.thanks:
+        return 'الشكر';
       case DuaType.guidance:
-        return 'أدعية الهداية';
-      case DuaType.health:
-        return 'أدعية الصحة';
+        return 'الهداية';
+      case DuaType.healing:
+        return 'الشفاء';
       case DuaType.wealth:
-        return 'أدعية الرزق';
+        return 'الرزق';
       case DuaType.knowledge:
-        return 'أدعية العلم';
+        return 'العلم';
     }
   }
 
-  String get description {
+  IconData get icon {
     switch (this) {
       case DuaType.general:
-        return 'أدعية متنوعة للحياة اليومية';
+        return Icons.menu_book;
       case DuaType.morning:
-        return 'أدعية للبدء بها في الصباح';
+        return Icons.wb_sunny;
       case DuaType.evening:
-        return 'أدعية للمساء والليل';
+        return Icons.nights_stay;
       case DuaType.prayer:
-        return 'أدعية قبل وبعد الصلاة';
+        return Icons.mosque;
       case DuaType.food:
-        return 'أدعية قبل وبعد تناول الطعام';
+        return Icons.restaurant;
       case DuaType.travel:
-        return 'أدعية للسفر والرحلات';
+        return Icons.flight;
       case DuaType.sleep:
-        return 'أدعية قبل النوم';
+        return Icons.bedtime;
       case DuaType.protection:
-        return 'أدعية للحماية من الشر';
+        return Icons.shield;
       case DuaType.forgiveness:
-        return 'أدعية طلب المغفرة والتوبة';
-      case DuaType.gratitude:
-        return 'أدعية الحمد والشكر';
+        return Icons.favorite;
+      case DuaType.thanks:
+        return Icons.volunteer_activism;
       case DuaType.guidance:
-        return 'أدعية طلب الهداية';
-      case DuaType.health:
-        return 'أدعية للصحة والعافية';
+        return Icons.explore;
+      case DuaType.healing:
+        return Icons.healing;
       case DuaType.wealth:
-        return 'أدعية طلب الرزق الحلال';
+        return Icons.attach_money;
       case DuaType.knowledge:
-        return 'أدعية طلب العلم والحكمة';
+        return Icons.school;
     }
   }
-  
-  String get categoryId {
-    return name;
-  }
-}
 
-/// نموذج فئة الأدعية المحدث
-class DuaCategory extends Equatable {
-  final String id;
-  final String name;
-  final String description;
-  final DuaType type;
-  final int duaCount;
-  final String? icon;
-
-  const DuaCategory({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.type,
-    this.duaCount = 0,
-    this.icon,
-  });
-
-  @override
-  List<Object?> get props => [
-        id,
-        name,
-        description,
-        type,
-        duaCount,
-        icon,
-      ];
-
-  DuaCategory copyWith({
-    String? id,
-    String? name,
-    String? description,
-    DuaType? type,
-    int? duaCount,
-    String? icon,
-  }) {
-    return DuaCategory(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      description: description ?? this.description,
-      type: type ?? this.type,
-      duaCount: duaCount ?? this.duaCount,
-      icon: icon ?? this.icon,
-    );
-  }
-}
-
-/// إحصائيات الأدعية المحدثة
-class DuaStats extends Equatable {
-  final int totalDuas;
-  final int favoriteDuas;
-  final int readDuas;
-  final int streakDays;
-  final DateTime? lastReadDate;
-  final Map<DuaType, int> duasByType;
-  final Map<String, int>? duasByCategory;
-
-  const DuaStats({
-    this.totalDuas = 0,
-    this.favoriteDuas = 0,
-    this.readDuas = 0,
-    this.streakDays = 0,
-    this.lastReadDate,
-    this.duasByType = const {},
-    this.duasByCategory,
-  });
-
-  @override
-  List<Object?> get props => [
-        totalDuas,
-        favoriteDuas,
-        readDuas,
-        streakDays,
-        lastReadDate,
-        duasByType,
-        duasByCategory,
-      ];
-
-  DuaStats copyWith({
-    int? totalDuas,
-    int? favoriteDuas,
-    int? readDuas,
-    int? streakDays,
-    DateTime? lastReadDate,
-    Map<DuaType, int>? duasByType,
-    Map<String, int>? duasByCategory,
-  }) {
-    return DuaStats(
-      totalDuas: totalDuas ?? this.totalDuas,
-      favoriteDuas: favoriteDuas ?? this.favoriteDuas,
-      readDuas: readDuas ?? this.readDuas,
-      streakDays: streakDays ?? this.streakDays,
-      lastReadDate: lastReadDate ?? this.lastReadDate,
-      duasByType: duasByType ?? this.duasByType,
-      duasByCategory: duasByCategory ?? this.duasByCategory,
-    );
+  Color get color {
+    switch (this) {
+      case DuaType.general:
+        return const Color(0xFF5D7052);
+      case DuaType.morning:
+        return const Color(0xFFDAA520);
+      case DuaType.evening:
+        return const Color(0xFF445A3B);
+      case DuaType.prayer:
+        return const Color(0xFF8B6F47);
+      case DuaType.food:
+        return const Color(0xFFB8860B);
+      case DuaType.travel:
+        return const Color(0xFF6B8E9F);
+      case DuaType.sleep:
+        return const Color(0xFF6B5637);
+      case DuaType.protection:
+        return const Color(0xFF5D7052);
+      case DuaType.forgiveness:
+        return const Color(0xFFB85450);
+      case DuaType.thanks:
+        return const Color(0xFF8FA584);
+      case DuaType.guidance:
+        return const Color(0xFF7A8B6F);
+      case DuaType.healing:
+        return const Color(0xFFD4A574);
+      case DuaType.wealth:
+        return const Color(0xFF996515);
+      case DuaType.knowledge:
+        return const Color(0xFF6B8E9F);
+    }
   }
 }

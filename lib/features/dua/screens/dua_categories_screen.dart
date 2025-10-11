@@ -1,4 +1,5 @@
-// lib/features/dua/screens/dua_categories_screen.dart - محدث
+// lib/features/dua/screens/dua_categories_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -6,8 +7,9 @@ import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../services/dua_service.dart';
 import '../models/dua_model.dart';
-import '../data/dua_data.dart';
-import 'dua_details_screen.dart';
+import 'dua_list_screen.dart';
+import 'dua_search_screen.dart';
+import 'dua_favorites_screen.dart';
 
 class DuaCategoriesScreen extends StatefulWidget {
   const DuaCategoriesScreen({super.key});
@@ -17,37 +19,48 @@ class DuaCategoriesScreen extends StatefulWidget {
 }
 
 class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
-  late final DuaService _duaService;
+  late final DuaService _service;
   
   List<DuaCategory> _categories = [];
-  Map<String, dynamic> _stats = {};
+  Map<String, dynamic> _statistics = {};
   bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _duaService = getService<DuaService>();
+    _service = context.duaService;
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   Future<void> _loadData() async {
     try {
-      setState(() => _isLoading = true);
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+
+      final categories = await _service.loadCategories();
+      final stats = await _service.getStatistics();
       
-      // تحميل الفئات والإحصائيات بشكل متوازي
-      final results = await Future.wait([
-        _duaService.getCategories(),
-        DuaData.getDataStats(),
-      ]);
-      
-      _categories = results[0] as List<DuaCategory>;
-      _stats = results[1] as Map<String, dynamic>;
-      
-      setState(() => _isLoading = false);
-    } catch (e) {
-      setState(() => _isLoading = false);
       if (mounted) {
-        context.showErrorSnackBar('حدث خطأ في تحميل البيانات');
+        setState(() {
+          _categories = categories;
+          _statistics = stats;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'حدث خطأ في تحميل البيانات';
+          _isLoading = false;
+        });
       }
     }
   }
@@ -59,10 +72,10 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            _buildEnhancedAppBar(),
-            if (!_isLoading) _buildStatsBar(),
+            _buildAppBar(),
+            if (_statistics.isNotEmpty) _buildStatisticsCard(),
             Expanded(
-              child: _isLoading ? _buildLoading() : _buildContent(),
+              child: _buildContent(),
             ),
           ],
         ),
@@ -70,29 +83,42 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
     );
   }
 
-  Widget _buildEnhancedAppBar() {
+  Widget _buildAppBar() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+      padding: EdgeInsets.all(14.r),
+      decoration: BoxDecoration(
+        color: context.backgroundColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8.r,
+            offset: Offset(0, 2.h),
+          ),
+        ],
+      ),
       child: Row(
         children: [
           AppBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
           
-          SizedBox(width: 8.w),
+          SizedBox(width: 10.w),
           
           Container(
-            padding: EdgeInsets.all(6.r),
+            padding: EdgeInsets.all(7.r),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [ThemeConstants.primary, ThemeConstants.primaryLight],
+                colors: [
+                  ThemeConstants.tertiary,
+                  ThemeConstants.tertiaryLight,
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(10.r),
               boxShadow: [
                 BoxShadow(
-                  color: ThemeConstants.primary.withOpacity(0.25),
+                  color: ThemeConstants.tertiary.withOpacity(0.3),
                   blurRadius: 6.r,
                   offset: Offset(0, 3.h),
                 ),
@@ -105,7 +131,7 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
             ),
           ),
           
-          SizedBox(width: 8.w),
+          SizedBox(width: 10.w),
           
           Expanded(
             child: Column(
@@ -116,11 +142,11 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
                   style: TextStyle(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
-                    fontSize: 16.sp,
+                    fontSize: 17.sp,
                   ),
                 ),
                 Text(
-                  'من الكتاب والسنة الصحيحة',
+                  'ادعُ ربك بقلب خاشع',
                   style: TextStyle(
                     color: context.textSecondaryColor,
                     fontSize: 11.sp,
@@ -129,116 +155,164 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
               ],
             ),
           ),
+          
+          // زر البحث
+          Container(
+            margin: EdgeInsets.only(left: 6.w),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(10.r),
+              child: InkWell(
+                onTap: _openSearch,
+                borderRadius: BorderRadius.circular(10.r),
+                child: Container(
+                  padding: EdgeInsets.all(7.r),
+                  decoration: BoxDecoration(
+                    color: context.cardColor,
+                    borderRadius: BorderRadius.circular(10.r),
+                    border: Border.all(
+                      color: context.dividerColor.withOpacity(0.3),
+                      width: 1.w,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.search_rounded,
+                    color: context.textPrimaryColor,
+                    size: 20.sp,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          
+          // زر المفضلة
+          Container(
+            margin: EdgeInsets.only(left: 6.w),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(10.r),
+              child: InkWell(
+                onTap: _openFavorites,
+                borderRadius: BorderRadius.circular(10.r),
+                child: Container(
+                  padding: EdgeInsets.all(7.r),
+                  decoration: BoxDecoration(
+                    color: context.cardColor,
+                    borderRadius: BorderRadius.circular(10.r),
+                    border: Border.all(
+                      color: context.dividerColor.withOpacity(0.3),
+                      width: 1.w,
+                    ),
+                  ),
+                  child: Stack(
+                    children: [
+                      Icon(
+                        Icons.bookmark_outline_rounded,
+                        color: context.textPrimaryColor,
+                        size: 20.sp,
+                      ),
+                      if ((_statistics['favoritesCount'] ?? 0) > 0)
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: Container(
+                            width: 6.w,
+                            height: 6.h,
+                            decoration: const BoxDecoration(
+                              color: ThemeConstants.error,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  /// ✅ شريط الإحصائيات
-  Widget _buildStatsBar() {
+  Widget _buildStatisticsCard() {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 12.w),
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildMiniStatCard(
+              icon: Icons.bookmark,
+              value: '${_statistics['favoritesCount'] ?? 0}',
+              label: 'مفضلة',
+              color: ThemeConstants.accent,
+            ),
+          ),
+          SizedBox(width: 8.w),
+          Expanded(
+            child: _buildMiniStatCard(
+              icon: Icons.check_circle_outline,
+              value: '${_statistics['readPercentage'] ?? 0}%',
+              label: 'مقروءة',
+              color: ThemeConstants.success,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniStatCard({
+    required IconData icon,
+    required String value,
+    required String label,
+    required Color color,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            ThemeConstants.primary.withOpacity(0.1),
-            ThemeConstants.primaryLight.withOpacity(0.05),
+            color.withOpacity(0.1),
+            color.withOpacity(0.05),
           ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
-          color: ThemeConstants.primary.withOpacity(0.2),
+          color: color.withOpacity(0.2),
           width: 1.w,
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildStatItem(
-            Icons.book_rounded,
-            _stats['totalDuas']?.toString() ?? '0',
-            'دعاء',
-            ThemeConstants.primary,
-          ),
-          Container(
-            width: 1.w,
-            height: 25.h,
-            color: context.dividerColor.withOpacity(0.3),
-          ),
-          _buildStatItem(
-            Icons.menu_book_rounded,
-            '24',
-            'من القرآن',
-            ThemeConstants.accent,
-          ),
-          Container(
-            width: 1.w,
-            height: 25.h,
-            color: context.dividerColor.withOpacity(0.3),
-          ),
-          _buildStatItem(
-            Icons.verified_rounded,
-            '76',
-            'من السنة',
-            ThemeConstants.tertiary,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatItem(IconData icon, String value, String label, Color color) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Icon(icon, size: 16.sp, color: color),
-            SizedBox(width: 4.w),
-            Text(
-              value,
-              style: TextStyle(
-                fontWeight: ThemeConstants.bold,
-                color: color,
-                fontSize: 14.sp,
-              ),
-            ),
-          ],
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            color: context.textSecondaryColor,
-            fontSize: 10.sp,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLoading() {
-    return Center(
-      child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: EdgeInsets.all(14.r),
-            decoration: BoxDecoration(
-              color: ThemeConstants.primary.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: CircularProgressIndicator(
-              color: ThemeConstants.primary,
-              strokeWidth: 2.5.w,
-            ),
+          Icon(
+            icon,
+            color: color,
+            size: 20.sp,
           ),
-          SizedBox(height: 14.h),
-          Text(
-            'جاري تحميل الأدعية...',
-            style: TextStyle(
-              color: context.textSecondaryColor,
-              fontSize: 14.sp,
-            ),
+          SizedBox(width: 8.w),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: ThemeConstants.bold,
+                  fontSize: 16.sp,
+                ),
+              ),
+              Text(
+                label,
+                style: TextStyle(
+                  color: context.textSecondaryColor,
+                  fontSize: 10.sp,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -246,194 +320,332 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
   }
 
   Widget _buildContent() {
-    if (_categories.isEmpty) {
-      return _buildEmptyState();
-    }
-
-    return RefreshIndicator(
-      onRefresh: _loadData,
-      color: ThemeConstants.primary,
-      child: ListView.builder(
-        padding: EdgeInsets.all(12.r),
-        physics: const BouncingScrollPhysics(),
-        itemCount: _categories.length,
-        itemBuilder: (context, index) {
-          final category = _categories[index];
-          
-          return Container(
-            margin: EdgeInsets.only(bottom: 12.h),
-            child: _buildCategoryCard(category, index),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: EdgeInsets.all(20.r),
-            decoration: BoxDecoration(
-              color: context.textSecondaryColor.withOpacity(0.05),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.menu_book_outlined,
-              size: 50.sp,
-              color: context.textSecondaryColor.withOpacity(0.5),
-            ),
-          ),
-          SizedBox(height: 14.h),
-          Text(
-            'لا توجد فئات',
-            style: TextStyle(
-              color: context.textSecondaryColor,
-              fontWeight: ThemeConstants.bold,
-              fontSize: 18.sp,
-            ),
-          ),
-          SizedBox(height: 20.h),
-          ElevatedButton.icon(
-            onPressed: _loadData,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: ThemeConstants.primary,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.r),
+    if (_isLoading) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(16.w),
+              decoration: BoxDecoration(
+                color: ThemeConstants.tertiary.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: CircularProgressIndicator(
+                color: ThemeConstants.tertiary,
+                strokeWidth: 3.w,
               ),
             ),
-            icon: Icon(Icons.refresh_rounded, size: 18.sp),
-            label: Text('إعادة المحاولة', style: TextStyle(fontSize: 13.sp)),
+            SizedBox(height: 16.h),
+            Text(
+              'جاري تحميل الأدعية...',
+              style: TextStyle(
+                color: context.textSecondaryColor,
+                fontSize: 16.sp,
+                fontWeight: ThemeConstants.medium,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              'يرجى الانتظار قليلاً',
+              style: TextStyle(
+                color: context.textSecondaryColor.withOpacity(0.7),
+                fontSize: 12.sp,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(24.w),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.error_outline_rounded,
+                size: 60.sp,
+                color: Colors.red.withOpacity(0.7),
+              ),
+            ),
+            SizedBox(height: 16.h),
+            Text(
+              'حدث خطأ',
+              style: TextStyle(
+                color: context.textPrimaryColor,
+                fontWeight: ThemeConstants.bold,
+                fontSize: 20.sp,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              _error!,
+              style: TextStyle(
+                color: context.textSecondaryColor.withOpacity(0.7),
+                fontSize: 14.sp,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 24.h),
+            ElevatedButton.icon(
+              onPressed: _loadData,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ThemeConstants.tertiary,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 24.w,
+                  vertical: 12.h,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.r),
+                ),
+              ),
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('إعادة المحاولة'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_categories.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(24.w),
+              decoration: BoxDecoration(
+                color: context.textSecondaryColor.withOpacity(0.05),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.pan_tool_outlined,
+                size: 60.sp,
+                color: context.textSecondaryColor.withOpacity(0.5),
+              ),
+            ),
+            SizedBox(height: 16.h),
+            Text(
+              'لا توجد أدعية',
+              style: TextStyle(
+                color: context.textSecondaryColor,
+                fontWeight: ThemeConstants.bold,
+                fontSize: 20.sp,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              'لا توجد أدعية متاحة حالياً',
+              style: TextStyle(
+                color: context.textSecondaryColor.withOpacity(0.7),
+                fontSize: 14.sp,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        Container(
+          margin: EdgeInsets.symmetric(
+            horizontal: 16.w,
+            vertical: 12.h,
           ),
-        ],
-      ),
+          padding: EdgeInsets.symmetric(
+            horizontal: 16.w,
+            vertical: 12.h,
+          ),
+          decoration: BoxDecoration(
+            color: context.cardColor,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(
+              color: context.dividerColor.withOpacity(0.3),
+              width: 1.w,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.category_rounded,
+                size: 16.sp,
+                color: ThemeConstants.tertiary,
+              ),
+              SizedBox(width: 8.w),
+              Text(
+                'عدد الفئات: ${_categories.length}',
+                style: TextStyle(
+                  color: context.textSecondaryColor,
+                  fontSize: 14.sp,
+                  fontWeight: ThemeConstants.medium,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 8.w,
+                  vertical: 4.h,
+                ),
+                decoration: BoxDecoration(
+                  color: ThemeConstants.tertiary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Text(
+                  '${_statistics['totalDuas'] ?? 0} دعاء',
+                  style: TextStyle(
+                    color: ThemeConstants.tertiary,
+                    fontSize: 12.sp,
+                    fontWeight: ThemeConstants.medium,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: _loadData,
+            color: ThemeConstants.tertiary,
+            child: ListView.builder(
+              padding: EdgeInsets.symmetric(
+                horizontal: 16.w,
+                vertical: 8.h,
+              ),
+              physics: const BouncingScrollPhysics(),
+              itemCount: _categories.length,
+              itemBuilder: (context, index) {
+                final category = _categories[index];
+                return Container(
+                  margin: EdgeInsets.only(bottom: 12.h),
+                  child: _buildCompactCategoryCard(category),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  /// ✅ بطاقة الفئة المحسنة
-  Widget _buildCategoryCard(DuaCategory category, int index) {
-    final color = _getCategoryColor(category.id);
-    final icon = _getCategoryIcon(category.id);
-    final gradient = _getCategoryGradient(category.id);
+  Widget _buildCompactCategoryCard(DuaCategory category) {
+    final categoryColor = _getCategoryColor(category.id);
+    final categoryIcon = _getCategoryIcon(category.icon);
     
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(16.r),
       child: InkWell(
-        onTap: () => _onCategoryPressed(category),
+        onTap: () => _openCategory(category),
         borderRadius: BorderRadius.circular(16.r),
         child: Container(
-          height: 120.h,
+          padding: EdgeInsets.all(12.w),
           decoration: BoxDecoration(
-            gradient: gradient,
+            color: context.cardColor,
             borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(
+              color: categoryColor.withOpacity(0.2),
+              width: 1.w,
+            ),
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(0.3),
+                color: Colors.black.withOpacity(0.04),
                 blurRadius: 8.r,
-                offset: Offset(0, 4.h),
+                offset: Offset(0, 2.h),
               ),
             ],
           ),
-          child: Stack(
+          child: Row(
             children: [
-              // ✅ خلفية زخرفية
-              Positioned(
-                left: -20.w,
-                bottom: -20.h,
+              Container(
+                width: 44.w,
+                height: 44.h,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [categoryColor, categoryColor.withOpacity(0.8)],
+                  ),
+                  borderRadius: BorderRadius.circular(12.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: categoryColor.withOpacity(0.3),
+                      blurRadius: 6.r,
+                      offset: Offset(0, 2.h),
+                    ),
+                  ],
+                ),
                 child: Icon(
-                  icon,
-                  size: 100.sp,
-                  color: Colors.white.withOpacity(0.1),
+                  categoryIcon,
+                  color: Colors.white,
+                  size: 20.sp,
                 ),
               ),
               
-              // ✅ المحتوى
-              Padding(
-                padding: EdgeInsets.all(16.r),
+              SizedBox(width: 12.w),
+              
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(10.r),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                          child: Icon(
-                            icon,
-                            color: Colors.white,
-                            size: 24.sp,
-                          ),
-                        ),
-                        SizedBox(width: 12.w),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                category.name,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: ThemeConstants.bold,
-                                  fontSize: 16.sp,
-                                ),
-                              ),
-                              SizedBox(height: 2.h),
-                              Text(
-                                category.description,
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.9),
-                                  fontSize: 12.sp,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    Text(
+                      category.name,
+                      style: TextStyle(
+                        color: context.textPrimaryColor,
+                        fontWeight: ThemeConstants.bold,
+                        fontFamily: ThemeConstants.fontFamilyArabic,
+                        fontSize: 16.sp,
+                      ),
                     ),
                     
-                    // ✅ شريط المعلومات السفلي
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(999.r),
+                    SizedBox(height: 4.h),
+                    
+                    Text(
+                      category.description,
+                      style: TextStyle(
+                        color: context.textSecondaryColor,
+                        height: 1.3,
+                        fontSize: 12.sp,
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.format_list_numbered_rounded,
-                            size: 14.sp,
-                            color: Colors.white,
-                          ),
-                          SizedBox(width: 4.w),
-                          Text(
-                            '${category.duaCount} دعاء',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: ThemeConstants.semiBold,
-                              fontSize: 12.sp,
-                            ),
-                          ),
-                          SizedBox(width: 12.w),
-                          Icon(
-                            Icons.arrow_forward_rounded,
-                            size: 14.sp,
-                            color: Colors.white,
-                          ),
-                        ],
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 10.w,
+                  vertical: 6.h,
+                ),
+                decoration: BoxDecoration(
+                  color: categoryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20.r),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      '${category.duasCount}',
+                      style: TextStyle(
+                        color: categoryColor,
+                        fontWeight: ThemeConstants.bold,
+                        fontSize: 14.sp,
                       ),
+                    ),
+                    SizedBox(width: 4.w),
+                    Icon(
+                      Icons.chevron_left_rounded,
+                      color: categoryColor,
+                      size: 18.sp,
                     ),
                   ],
                 ),
@@ -445,97 +657,62 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
     );
   }
 
-  /// ✅ الحصول على لون الفئة
   Color _getCategoryColor(String categoryId) {
     switch (categoryId) {
       case 'quran':
-        return const Color(0xFF2E7D32); // أخضر داكن
-      case 'sahihain':
-        return const Color(0xFF1565C0); // أزرق
-      case 'sunan':
-        return const Color(0xFF6A1B9A); // بنفسجي
-      case 'other_authentic':
-        return const Color(0xFFD84315); // برتقالي داكن
-      default:
         return ThemeConstants.primary;
-    }
-  }
-
-  /// ✅ الحصول على تدرج الفئة
-  LinearGradient _getCategoryGradient(String categoryId) {
-    switch (categoryId) {
-      case 'quran':
-        return LinearGradient(
-          colors: [const Color(0xFF2E7D32), const Color(0xFF43A047)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        );
       case 'sahihain':
-        return LinearGradient(
-          colors: [const Color(0xFF1565C0), const Color(0xFF42A5F5)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        );
+        return ThemeConstants.accent;
       case 'sunan':
-        return LinearGradient(
-          colors: [const Color(0xFF6A1B9A), const Color(0xFFAB47BC)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        );
+        return ThemeConstants.tertiary;
       case 'other_authentic':
-        return LinearGradient(
-          colors: [const Color(0xFFD84315), const Color(0xFFFF7043)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        );
+        return ThemeConstants.primaryDark;
       default:
-        return LinearGradient(
-          colors: [ThemeConstants.primary, ThemeConstants.primaryLight],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        );
+        return ThemeConstants.tertiary;
     }
   }
 
-  /// ✅ الحصول على أيقونة الفئة
-  IconData _getCategoryIcon(String categoryId) {
-    switch (categoryId) {
-      case 'quran':
-        return Icons.menu_book_rounded;
-      case 'sahihain':
-        return Icons.verified_rounded;
-      case 'sunan':
-        return Icons.collections_bookmark_rounded;
-      case 'other_authentic':
-        return Icons.bookmark_rounded;
+  IconData _getCategoryIcon(String iconName) {
+    switch (iconName) {
+      case 'book_quran':
+        return Icons.menu_book;
+      case 'book_hadith':
+        return Icons.book;
+      case 'book_sunnah':
+        return Icons.auto_stories;
+      case 'verified':
+        return Icons.verified;
       default:
-        return Icons.auto_awesome;
+        return Icons.pan_tool_rounded;
     }
   }
 
-  void _onCategoryPressed(DuaCategory category) {
+  void _openCategory(DuaCategory category) {
     HapticFeedback.lightImpact();
     Navigator.push(
       context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => DuaDetailsScreen(
-          categoryId: category.id,
-          categoryName: category.name,
-        ),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(1.0, 0.0);
-          const end = Offset.zero;
-          const curve = Curves.easeInOut;
-          
-          var tween = Tween(begin: begin, end: end).chain(
-            CurveTween(curve: curve),
-          );
-          
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
-          );
-        },
+      MaterialPageRoute(
+        builder: (context) => DuaListScreen(category: category),
+      ),
+    );
+  }
+
+  void _openSearch() {
+    HapticFeedback.lightImpact();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const DuaSearchScreen(),
+      ),
+    );
+  }
+
+  void _openFavorites() {
+    HapticFeedback.lightImpact();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const DuaFavoritesScreen(),
       ),
     );
   }
