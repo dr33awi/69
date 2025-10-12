@@ -163,6 +163,49 @@ ${dua.virtue != null ? '\nالفضل: ${dua.virtue}' : ''}
     }
   }
 
+  Widget _buildActionButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: EdgeInsets.only(left: 6.w),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(10.r),
+        child: InkWell(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            onTap();
+          },
+          borderRadius: BorderRadius.circular(10.r),
+          child: Container(
+            padding: EdgeInsets.all(7.r),
+            decoration: BoxDecoration(
+              color: context.cardColor,
+              borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(
+                color: context.dividerColor.withOpacity(0.3),
+                width: 1.w,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 3.r,
+                  offset: Offset(0, 2.h),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: context.textPrimaryColor,
+              size: 20.sp,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final categoryColor = _getCategoryColor(widget.category.id);
@@ -256,42 +299,9 @@ ${dua.virtue != null ? '\nالفضل: ${dua.virtue}' : ''}
           ),
           
           // زر البحث
-          Container(
-            margin: EdgeInsets.only(left: 6.w),
-            child: Material(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(10.r),
-              child: InkWell(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  _openSearch();
-                },
-                borderRadius: BorderRadius.circular(10.r),
-                child: Container(
-                  padding: EdgeInsets.all(7.r),
-                  decoration: BoxDecoration(
-                    color: context.cardColor,
-                    borderRadius: BorderRadius.circular(10.r),
-                    border: Border.all(
-                      color: context.dividerColor.withOpacity(0.3),
-                      width: 1.w,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 3.r,
-                        offset: Offset(0, 2.h),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.search_rounded,
-                    color: context.textPrimaryColor,
-                    size: 20.sp,
-                  ),
-                ),
-              ),
-            ),
+          _buildActionButton(
+            icon: Icons.search_rounded,
+            onTap: _openSearch,
           ),
         ],
       ),
