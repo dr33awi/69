@@ -47,7 +47,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         remoteMessage.notification?.let { notification ->
             Log.d(TAG, "Message notification body: ${notification.body}")
             showNotification(
-                title = notification.title ?: "تطبيق الأذكار",
+                title = notification.title ?: "ذكرني",
                 body = notification.body ?: "",
                 data = remoteMessage.data
             )
@@ -56,7 +56,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     private fun handleDataMessage(data: Map<String, String>) {
         val type = data["type"]
-        val title = data["title"] ?: "تطبيق الأذكار"
+        val title = data["title"] ?: "ذكرني"
         val body = data["body"] ?: ""
         
         Log.d(TAG, "Handling data message of type: $type")
@@ -120,7 +120,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channelName = "أذكار"
-            val channelDescription = "إشعارات تطبيق الأذكار"
+            val channelDescription = "إشعارات ذكرني"
             val importance = NotificationManager.IMPORTANCE_HIGH
             
             val channel = NotificationChannel(CHANNEL_ID, channelName, importance).apply {

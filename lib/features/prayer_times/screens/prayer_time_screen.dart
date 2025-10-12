@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:async';
 import '../../../app/themes/app_theme.dart';
@@ -284,7 +285,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
               ],
             ),
             child: Icon(
-              Icons.schedule_rounded,
+            FlutterIslamicIcons.solidMosque,
               color: Colors.white,
               size: 18.sp,
             ),

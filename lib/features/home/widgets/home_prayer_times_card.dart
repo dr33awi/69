@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:async';
 import '../../../app/themes/app_theme.dart';
@@ -231,9 +232,9 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
             borderRadius: BorderRadius.circular(10.r),
           ),
           child: Icon(
-            Icons.mosque,
+            FlutterIslamicIcons.solidMosque,
             color: Colors.white,
-            size: 24.sp,
+            size: 18.sp,
           ),
         ),
         

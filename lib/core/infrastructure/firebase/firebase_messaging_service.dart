@@ -202,9 +202,9 @@ class FirebaseMessagingService {
     if (_notificationService == null) return;
     
     try {
-      final title = message.notification?.title ?? 'تطبيق الأذكار';
+      final title = message.notification?.title ?? 'ذكرني';
       final body = message.notification?.body ?? '';
-      
+
       final notificationData = LocalNotificationModels.NotificationData(
         id: 'firebase_${message.messageId ?? DateTime.now().millisecondsSinceEpoch}',
         title: title,

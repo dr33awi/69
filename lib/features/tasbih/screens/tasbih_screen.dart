@@ -4,6 +4,7 @@ import 'package:athkar_app/features/tasbih/widgets/dhikr_selector_widget.dart';
 import 'package:athkar_app/features/tasbih/widgets/tasbih_main_area.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
@@ -91,7 +92,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
               borderRadius: BorderRadius.circular(10.r),
             ),
             child: Icon(
-              Icons.radio_button_checked,
+              FlutterIslamicIcons.solidTasbihHand,
               color: Colors.white,
               size: 20.sp,
             ),

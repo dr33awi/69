@@ -1,170 +1,226 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
 import '../../../app/themes/app_theme.dart';
 
-/// أدوات مساعدة لفئات الأذكار - نمط ألوان موحد
+/// أدوات مساعدة لفئات الأذكار - نمط ألوان موحد مع أيقونات إسلامية
 class CategoryUtils {
-  /// الحصول على أيقونة مناسبة لكل فئة
+  /// الحصول على أيقونة إسلامية مناسبة لكل فئة
   static IconData getCategoryIcon(String categoryId) {
     switch (categoryId.toLowerCase()) {
-      // أذكار الأوقات
+      // ===== أذكار الأوقات =====
       case 'morning':
       case 'الصباح':
       case 'صباح':
-        return Icons.wb_sunny_rounded;
+        return FlutterIslamicIcons.solidPrayer; // صلاة الصباح
+        
       case 'evening':
       case 'المساء':
       case 'مساء':
-        return Icons.wb_twilight_rounded;
+        return FlutterIslamicIcons.solidCrescentMoon; // هلال المساء
+        
       case 'sleep':
       case 'النوم':
       case 'نوم':
-        return Icons.bedtime_rounded;
+        return FlutterIslamicIcons.crescentMoon; // هلال النوم (خطي)
+        
       case 'wakeup':
       case 'wake_up':
       case 'الاستيقاظ':
       case 'استيقاظ':
       case 'wake':
-        return Icons.wb_sunny;
+        return FlutterIslamicIcons.solidPrayingPerson; // شخص يصلي
       
-      // أذكار المنزل
+      // ===== أذكار المنزل =====
       case 'leaving_home':
       case 'خروج':
       case 'الخروج':
       case 'خروج المنزل':
       case 'الخروج من المنزل':
-        return Icons.logout_rounded;
+        return FlutterIslamicIcons.solidMuslim; // مسلم يخرج
+        
       case 'entering_home':
       case 'دخول':
       case 'الدخول':
       case 'دخول المنزل':
       case 'الدخول إلى المنزل':
-        return Icons.home_filled;
+        return FlutterIslamicIcons.solidFamily; // عائلة في المنزل
       
-      // أذكار الصلاة
+      // ===== أذكار الصلاة =====
       case 'adhan':
       case 'azan':
       case 'الأذان':
       case 'أذان':
-        return Icons.volume_up_rounded;
+        return FlutterIslamicIcons.solidMinaret; // مئذنة الأذان
+        
       case 'after_prayer':
       case 'بعد الصلاة':
       case 'بعد السلام':
       case 'السلام من الصلاة':
-        return Icons.eco_rounded;
+        return FlutterIslamicIcons.solidTasbih2; // مسبحة مملوءة
+        
       case 'prayer':
       case 'الصلاة':
       case 'صلاة':
       case 'prayers':
-        return Icons.mosque;
+        return FlutterIslamicIcons.solidSajadah; // سجادة صلاة مملوءة
       
-      // باقي الفئات
+      // ===== الأكل =====
       case 'eating':
       case 'food':
       case 'الطعام':
       case 'طعام':
       case 'الأكل':
       case 'أكل':
-        return Icons.restaurant_rounded;
+        return FlutterIslamicIcons.solidIftar; // إفطار
+        
+      // ===== المنزل =====
       case 'home':
       case 'house':
       case 'المنزل':
       case 'منزل':
       case 'البيت':
       case 'بيت':
-        return Icons.home_rounded;
+        return FlutterIslamicIcons.solidFamily; // عائلة
+        
+      // ===== السفر =====
       case 'travel':
       case 'السفر':
       case 'سفر':
-        return Icons.flight_rounded;
+        return FlutterIslamicIcons.solidHadji; // حاج مسافر
+        
+      // ===== عام =====
       case 'general':
       case 'عامة':
       case 'عام':
-        return Icons.auto_awesome_rounded;
+        return FlutterIslamicIcons.tasbih2; // مسبحة (خطي)
+        
+      // ===== القرآن =====
       case 'quran':
       case 'القرآن':
       case 'قرآن':
-        return Icons.menu_book_rounded;
+        return FlutterIslamicIcons.solidQuran2; // مصحف مملوء
+        
+      // ===== التسبيح =====
       case 'tasbih':
       case 'التسبيح':
       case 'تسبيح':
-        return Icons.radio_button_checked;
+        return FlutterIslamicIcons.solidTasbih3; // مسبحة ثلاثية
+        
+      // ===== الدعاء =====
       case 'dua':
       case 'الدعاء':
       case 'دعاء':
-        return Icons.pan_tool_rounded;
+        return FlutterIslamicIcons.solidTasbihHand; // يد دعاء
+        
+      // ===== الاستغفار =====
       case 'istighfar':
       case 'الاستغفار':
       case 'استغفار':
-        return Icons.favorite_rounded;
+        return FlutterIslamicIcons.solidPrayingPerson; // شخص يدعو
+        
+      // ===== الجمعة =====
       case 'friday':
       case 'الجمعة':
       case 'جمعة':
-        return Icons.event_rounded;
+        return FlutterIslamicIcons.solidMosque; // مسجد مملوء
+        
+      // ===== الحج =====
       case 'hajj':
       case 'الحج':
       case 'حج':
-        return Icons.location_on_rounded;
+        return FlutterIslamicIcons.solidKaaba; // كعبة
+        
+      // ===== رمضان =====
       case 'ramadan':
       case 'رمضان':
-        return Icons.nights_stay_rounded;
+        return FlutterIslamicIcons.solidLantern; // فانوس رمضان
+        
+      // ===== العيد =====
       case 'eid':
       case 'العيد':
       case 'عيد':
-        return Icons.celebration_rounded;
+        return FlutterIslamicIcons.solidTakbir; // تكبير العيد
+        
+      // ===== المرض =====
       case 'illness':
       case 'المرض':
       case 'مرض':
-        return Icons.healing_rounded;
+        return FlutterIslamicIcons.solidWudhu; // وضوء/طهارة
+        
+      // ===== المطر =====
       case 'rain':
       case 'المطر':
       case 'مطر':
-        return Icons.water_drop_rounded;
+        return FlutterIslamicIcons.solidWudhu; // ماء
+        
+      // ===== الرياح =====
       case 'wind':
       case 'الرياح':
       case 'رياح':
-        return Icons.air_rounded;
+        return FlutterIslamicIcons.solidCrescentMoon; // هلال
+        
+      // ===== العمل =====
       case 'work':
       case 'العمل':
       case 'عمل':
-        return Icons.work_rounded;
+        return FlutterIslamicIcons.solidCommunity; // مجتمع/عمل
+        
+      // ===== الدراسة =====
       case 'study':
       case 'الدراسة':
       case 'دراسة':
-        return Icons.school_rounded;
+        return FlutterIslamicIcons.quran2; // مصحف (خطي)
+        
+      // ===== القلق =====
       case 'anxiety':
       case 'القلق':
       case 'قلق':
-        return Icons.psychology_rounded;
+        return FlutterIslamicIcons.solidPrayingPerson; // دعاء
+        
+      // ===== الشكر =====
       case 'gratitude':
       case 'الشكر':
       case 'شكر':
-        return Icons.thumb_up_rounded;
+        return FlutterIslamicIcons.solidKowtow; // سجود شكر
+        
+      // ===== الحماية =====
       case 'protection':
       case 'الحماية':
       case 'حماية':
-        return Icons.shield_rounded;
+        return FlutterIslamicIcons.solidAllah; // لفظ الجلالة
+        
+      // ===== الهداية =====
       case 'guidance':
       case 'الهداية':
       case 'هداية':
-        return Icons.lightbulb_rounded;
+        return FlutterIslamicIcons.solidQibla2; // قبلة
+        
+      // ===== المغفرة =====
       case 'forgiveness':
       case 'المغفرة':
       case 'مغفرة':
-        return Icons.clean_hands_rounded;
+        return FlutterIslamicIcons.solidKowtow; // سجود
+        
+      // ===== النجاح =====
       case 'success':
       case 'النجاح':
       case 'نجاح':
-        return Icons.emoji_events_rounded;
+        return FlutterIslamicIcons.solidTawhid; // توحيد
+        
+      // ===== الصبر =====
       case 'patience':
       case 'الصبر':
       case 'صبر':
-        return Icons.hourglass_bottom_rounded;
+        return FlutterIslamicIcons.tasbih3; // مسبحة
+        
+      // ===== العلم =====
       case 'knowledge':
       case 'العلم':
       case 'علم':
-        return Icons.psychology_alt_rounded;
+        return FlutterIslamicIcons.quran; // مصحف
+        
       default:
-        return Icons.auto_awesome_rounded;
+        return FlutterIslamicIcons.solidTasbih2; // الأيقونة الافتراضية
     }
   }
 

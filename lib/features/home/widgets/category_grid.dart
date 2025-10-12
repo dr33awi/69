@@ -1,9 +1,10 @@
-// lib/features/home/widgets/category_grid.dart - محسّن للشاشات الصغيرة
+// lib/features/home/widgets/category_grid.dart - محسّن مع أيقونات إسلامية
 
 import 'package:athkar_app/app/themes/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
 
 class CategoryGrid extends StatefulWidget {
   const CategoryGrid({super.key});
@@ -38,42 +39,42 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
     CategoryItem(
       id: 'prayer_times',
       title: 'مواقيت الصلاة',
-      icon: Icons.mosque,
+      icon: FlutterIslamicIcons.solidMosque, // 🕌 مسجد
       routeName: '/prayer-times',
       isInDevelopment: false,
     ),
     CategoryItem(
       id: 'athkar',
       title: 'الأذكار اليومية',
-      icon: Icons.menu_book_rounded,
+      icon: Icons.menu_book_rounded, // 📿 مسبحة
       routeName: '/athkar',
       isInDevelopment: false,
     ),
     CategoryItem(
       id: 'asma_allah',  
       title: 'أسماء الله الحسنى',  
-      icon: Icons.star_purple500_outlined,  
+      icon: FlutterIslamicIcons.solidAllah, // ☪️ الله 99
       routeName: '/asma-allah',
       isInDevelopment: false,
     ),
     CategoryItem(
       id: 'qibla',
       title: 'اتجاه القبلة',
-      icon: Icons.explore,
+      icon: FlutterIslamicIcons.solidQibla, // 🧭 قبلة
       routeName: '/qibla',
       isInDevelopment: false,
     ),
     CategoryItem(
       id: 'tasbih',
       title: 'المسبحة الرقمية',
-      icon: Icons.radio_button_checked,
+      icon: FlutterIslamicIcons.solidTasbihHand, // 📿 مسبحة ثلاثية
       routeName: '/tasbih',
       isInDevelopment: false,
     ),
     CategoryItem(
       id: 'dua',
       title:  'الأدعية الإسلامية',
-      icon: Icons.pan_tool_rounded,
+      icon: FlutterIslamicIcons.solidPrayer, // 🤲 يد دعاء
       routeName: '/dua',
       isInDevelopment: false,
     ),

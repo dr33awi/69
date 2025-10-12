@@ -133,14 +133,14 @@ class AppColors {
       case 'verse':
       case 'آية':
         return const LinearGradient(
-          colors: [primary, primaryLight],
+          colors: [accent, accentLight],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         );
       case 'hadith':
       case 'حديث':
         return const LinearGradient(
-          colors: [accent, accentLight],
+          colors: [primary, primaryLight],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         );

@@ -1,4 +1,4 @@
-# 🕌 تطبيق الأذكار الإسلامي - Athkar App
+# 🕌ذكرني الإسلامي - Athkar App
 
 <div align="center">
   <img src="assets/images/Logo.png" alt="شعار التطبيق" width="120" height="120">

@@ -2,6 +2,7 @@
 import 'package:athkar_app/app/themes/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:math' as math;
@@ -659,7 +660,7 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
       case QuoteType.hadith:
         return Icons.auto_stories_rounded;
       case QuoteType.dua:
-        return Icons.pan_tool_rounded;
+        return  FlutterIslamicIcons.solidPrayer;
     }
   }
 

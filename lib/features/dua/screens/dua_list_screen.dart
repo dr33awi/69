@@ -238,72 +238,122 @@ ${dua.virtue != null ? '\nالفضل: ${dua.virtue}' : ''}
           ),
         ],
       ),
-      child: Row(
+      child: Column(
         children: [
-          AppBackButton(
-            onPressed: () => Navigator.of(context).pop(),
+          Row(
+            children: [
+              AppBackButton(
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              
+              SizedBox(width: 10.w),
+              
+              Container(
+                padding: EdgeInsets.all(7.r),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      _getCategoryColor(widget.category.id),
+                      _getCategoryColor(widget.category.id).withOpacity(0.8),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(10.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _getCategoryColor(widget.category.id).withOpacity(0.3),
+                      blurRadius: 6.r,
+                      offset: Offset(0, 3.h),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  _getCategoryIcon(widget.category.icon),
+                  color: Colors.white,
+                  size: 20.sp,
+                ),
+              ),
+              
+              SizedBox(width: 10.w),
+              
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.category.name,
+                      style: TextStyle(
+                        fontWeight: ThemeConstants.bold,
+                        color: context.textPrimaryColor,
+                        fontSize: 17.sp,
+                      ),
+                    ),
+                    Text(
+                      '${_duas.length} دعاء',
+                      style: TextStyle(
+                        color: context.textSecondaryColor,
+                        fontSize: 11.sp,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
           
-          SizedBox(width: 10.w),
+          SizedBox(height: 12.h),
           
-          Container(
-            padding: EdgeInsets.all(7.r),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  _getCategoryColor(widget.category.id),
-                  _getCategoryColor(widget.category.id).withOpacity(0.8),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(10.r),
-              boxShadow: [
-                BoxShadow(
-                  color: _getCategoryColor(widget.category.id).withOpacity(0.3),
-                  blurRadius: 6.r,
-                  offset: Offset(0, 3.h),
-                ),
-              ],
+          // شريط البحث
+          _buildSearchBar(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        _openSearch();
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: 14.w,
+          vertical: 12.h,
+        ),
+        decoration: BoxDecoration(
+          color: context.cardColor,
+          borderRadius: BorderRadius.circular(10.r),
+          border: Border.all(
+            color: context.dividerColor.withOpacity(0.3),
+            width: 1.w,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4.r,
+              offset: Offset(0, 2.h),
             ),
-            child: Icon(
-              _getCategoryIcon(widget.category.icon),
-              color: Colors.white,
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.search_rounded,
+              color: context.textSecondaryColor,
               size: 20.sp,
             ),
-          ),
-          
-          SizedBox(width: 10.w),
-          
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.category.name,
-                  style: TextStyle(
-                    fontWeight: ThemeConstants.bold,
-                    color: context.textPrimaryColor,
-                    fontSize: 17.sp,
-                  ),
-                ),
-                Text(
-                  '${_duas.length} دعاء',
-                  style: TextStyle(
-                    color: context.textSecondaryColor,
-                    fontSize: 11.sp,
-                  ),
-                ),
-              ],
+            SizedBox(width: 12.w),
+            Text(
+              'ابحث في الأدعية...',
+              style: TextStyle(
+                color: context.textSecondaryColor.withOpacity(0.7),
+                fontSize: 14.sp,
+              ),
             ),
-          ),
-          
-          // زر البحث
-          _buildActionButton(
-            icon: Icons.search_rounded,
-            onTap: _openSearch,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

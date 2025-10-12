@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
@@ -123,7 +124,7 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
                   ],
                 ),
                 child: Icon(
-                  Icons.pan_tool_rounded,
+                  FlutterIslamicIcons.solidPrayer,
                   color: Colors.white,
                   size: 20.sp,
                 ),

@@ -1,17 +1,17 @@
 // lib/core/infrastructure/firebase/widgets/app_status_monitor.dart
+// نسخة محدثة لحل مشكلة setState during build
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:get_it/get_it.dart';
 import '../remote_config_manager.dart';
 import '../remote_config_service.dart';
 import 'maintenance_screen.dart';
 import 'force_update_screen.dart';
 
-// الحصول على GetIt instance
 final GetIt _getIt = GetIt.instance;
 
 /// مراقب حالة التطبيق (الصيانة والتحديث الإجباري)
-/// يراقب التغييرات في Remote Config ويعرض الشاشات المناسبة
 class AppStatusMonitor extends StatefulWidget {
   final Widget child;
   final RemoteConfigManager? configManager;
@@ -31,29 +31,30 @@ class _AppStatusMonitorState extends State<AppStatusMonitor> {
   FirebaseRemoteConfigService? _remoteConfigService;
   bool _isMaintenanceMode = false;
   bool _isForceUpdateRequired = false;
+  bool _hasShownDialog = false; // منع عرض الـ Dialog أكثر من مرة
   
   @override
   void initState() {
     super.initState();
-    _initializeManagers();
+    // تأجيل التهيئة لما بعد البناء الأول
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _initializeManagers();
+      }
+    });
   }
   
   /// تهيئة المديرين والخدمات
   void _initializeManagers() {
-    // استخدم ConfigManager الممرر أو احصل عليه من GetIt
     _configManager = widget.configManager ?? _tryGetConfigManager();
-    
-    // محاولة الحصول على FirebaseRemoteConfigService
     _remoteConfigService = _tryGetRemoteConfigService();
     
-    // إعداد المستمعين وفحص الحالة
     if (_configManager != null) {
       _setupListeners();
       _checkInitialStatus();
       debugPrint('✅ AppStatusMonitor initialized with ConfigManager');
     } else {
       debugPrint('⚠️ AppStatusMonitor: No ConfigManager available');
-      // محاولة مرة أخرى بعد تأخير
       _retryInitialization();
     }
   }
@@ -93,9 +94,7 @@ class _AppStatusMonitorState extends State<AppStatusMonitor> {
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted && _configManager == null) {
         debugPrint('🔄 Retrying to get ConfigManager...');
-        setState(() {
-          _initializeManagers();
-        });
+        _initializeManagers();
       }
     });
   }
@@ -104,10 +103,7 @@ class _AppStatusMonitorState extends State<AppStatusMonitor> {
   void _setupListeners() {
     if (_configManager == null) return;
     
-    // مراقبة وضع الصيانة
     _configManager!.maintenanceMode.addListener(_onMaintenanceModeChanged);
-    
-    // مراقبة التحديث الإجباري
     _configManager!.forceUpdate.addListener(_onForceUpdateChanged);
     
     debugPrint('🔔 Listeners setup for Remote Config changes');
@@ -115,25 +111,29 @@ class _AppStatusMonitorState extends State<AppStatusMonitor> {
   
   /// فحص الحالة الأولية
   void _checkInitialStatus() {
-    if (_configManager == null) return;
+    if (_configManager == null || !mounted) return;
     
     final maintenanceMode = _configManager!.isMaintenanceModeActive;
     final forceUpdate = _configManager!.isForceUpdateRequired;
     
-    setState(() {
-      _isMaintenanceMode = maintenanceMode;
-      _isForceUpdateRequired = forceUpdate;
+    // استخدم postFrameCallback لتحديث الحالة بأمان
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _isMaintenanceMode = maintenanceMode;
+          _isForceUpdateRequired = forceUpdate;
+        });
+        
+        debugPrint('📊 Initial App Status:');
+        debugPrint('  - Maintenance Mode: $_isMaintenanceMode');
+        debugPrint('  - Force Update: $_isForceUpdateRequired');
+        
+        // عرض Dialog إذا لزم الأمر
+        if (_isMaintenanceMode || _isForceUpdateRequired) {
+          _showAppropriateDialog();
+        }
+      }
     });
-    
-    debugPrint('📊 Initial App Status:');
-    debugPrint('  - Maintenance Mode: $_isMaintenanceMode');
-    debugPrint('  - Force Update: $_isForceUpdateRequired');
-    debugPrint('  - Required Version: ${_configManager!.requiredAppVersion}');
-    
-    // إذا كانت أي من الحالات مفعلة عند البداية
-    if (_isMaintenanceMode || _isForceUpdateRequired) {
-      debugPrint('⚠️ App status requires action on startup');
-    }
   }
   
   /// معالج تغيير وضع الصيانة
@@ -142,15 +142,21 @@ class _AppStatusMonitorState extends State<AppStatusMonitor> {
     
     final newValue = _configManager!.isMaintenanceModeActive;
     if (_isMaintenanceMode != newValue) {
-      setState(() {
-        _isMaintenanceMode = newValue;
+      // استخدم postFrameCallback لضمان عدم التحديث أثناء البناء
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _isMaintenanceMode = newValue;
+            _hasShownDialog = false; // السماح بعرض Dialog جديد
+          });
+          
+          debugPrint('🔧 Maintenance mode changed to: $_isMaintenanceMode');
+          
+          if (_isMaintenanceMode) {
+            _showAppropriateDialog();
+          }
+        }
       });
-      
-      debugPrint('🔧 Maintenance mode changed to: $_isMaintenanceMode');
-      
-      if (_isMaintenanceMode) {
-        _showMaintenanceDialog();
-      }
     }
   }
   
@@ -160,17 +166,39 @@ class _AppStatusMonitorState extends State<AppStatusMonitor> {
     
     final newValue = _configManager!.isForceUpdateRequired;
     if (_isForceUpdateRequired != newValue) {
-      setState(() {
-        _isForceUpdateRequired = newValue;
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _isForceUpdateRequired = newValue;
+            _hasShownDialog = false;
+          });
+          
+          debugPrint('🚨 Force update changed to: $_isForceUpdateRequired');
+          
+          if (_isForceUpdateRequired) {
+            _showAppropriateDialog();
+          }
+        }
       });
+    }
+  }
+  
+  /// عرض Dialog المناسب حسب الحالة
+  void _showAppropriateDialog() {
+    if (_hasShownDialog || !mounted) return;
+    
+    _hasShownDialog = true;
+    
+    // تأجيل عرض الـ Dialog لتجنب الخطأ
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       
-      debugPrint('🚨 Force update changed to: $_isForceUpdateRequired');
-      debugPrint('  - Required version: ${_configManager!.requiredAppVersion}');
-      
-      if (_isForceUpdateRequired) {
+      if (_isMaintenanceMode) {
+        _showMaintenanceDialog();
+      } else if (_isForceUpdateRequired) {
         _showForceUpdateDialog();
       }
-    }
+    });
   }
   
   /// عرض شاشة الصيانة كـ Dialog
@@ -205,7 +233,6 @@ class _AppStatusMonitorState extends State<AppStatusMonitor> {
   
   @override
   void dispose() {
-    // إزالة المستمعين
     if (_configManager != null) {
       _configManager!.maintenanceMode.removeListener(_onMaintenanceModeChanged);
       _configManager!.forceUpdate.removeListener(_onForceUpdateChanged);
@@ -220,54 +247,16 @@ class _AppStatusMonitorState extends State<AppStatusMonitor> {
     // إذا لم يتم تهيئة ConfigManager بعد
     if (_configManager == null) {
       debugPrint('⏳ AppStatusMonitor: Waiting for ConfigManager...');
-      // عرض المحتوى العادي مع مؤشر تحميل صغير
-      return Stack(
-        children: [
-          widget.child,
-          // مؤشر صغير في الأعلى للتطوير فقط
-          if (const bool.fromEnvironment('dart.vm.product') == false)
-            const Positioned(
-              top: 50,
-              right: 20,
-              child: Card(
-                color: Colors.orange,
-                child: Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        width: 12,
-                        height: 12,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        'Loading Config...',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-        ],
-      );
+      return widget.child; // عرض المحتوى العادي مباشرة
     }
     
-    // إذا كان وضع الصيانة مفعل، عرض شاشة الصيانة
+    // إذا كان وضع الصيانة مفعل
     if (_isMaintenanceMode) {
       debugPrint('🔧 Rendering MaintenanceScreen');
       return const MaintenanceScreen();
     }
     
-    // إذا كان التحديث الإجباري مطلوب، عرض شاشة التحديث
+    // إذا كان التحديث الإجباري مطلوب
     if (_isForceUpdateRequired) {
       debugPrint('🚨 Rendering ForceUpdateScreen');
       return ForceUpdateScreen(
@@ -278,20 +267,10 @@ class _AppStatusMonitorState extends State<AppStatusMonitor> {
     // عرض المحتوى العادي
     return widget.child;
   }
-  
-  /// طريقة للتحديث اليدوي (للاختبار)
-  @visibleForTesting
-  Future<void> refreshStatus() async {
-    if (_configManager != null) {
-      await _configManager!.refreshConfig();
-      _checkInitialStatus();
-    }
-  }
 }
 
 /// Extension للوصول السريع من Context
 extension AppStatusMonitorExtension on BuildContext {
-  /// فحص وضع الصيانة
   bool get isInMaintenanceMode {
     try {
       if (_getIt.isRegistered<RemoteConfigManager>()) {
@@ -302,7 +281,6 @@ extension AppStatusMonitorExtension on BuildContext {
     return false;
   }
   
-  /// فحص التحديث الإجباري
   bool get needsForceUpdate {
     try {
       if (_getIt.isRegistered<RemoteConfigManager>()) {

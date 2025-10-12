@@ -4,6 +4,7 @@ import 'package:athkar_app/app/themes/app_theme.dart';
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
@@ -105,7 +106,7 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
                   ],
                 ),
                 child: Icon(
-                  Icons.star_outline,
+                  FlutterIslamicIcons.solidAllah,
                   color: Colors.white,
                   size: 20.sp,
                 ),

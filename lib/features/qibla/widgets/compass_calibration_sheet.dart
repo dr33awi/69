@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:math' as math;
 import '../../../app/themes/app_theme.dart';
@@ -89,7 +90,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    Icons.explore_rounded,
+                    FlutterIslamicIcons.solidQibla,
                     color: ThemeConstants.warning,
                     size: 20.sp,
                   ),

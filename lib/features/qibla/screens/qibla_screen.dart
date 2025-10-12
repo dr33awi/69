@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
@@ -277,7 +278,7 @@ class _QiblaScreenState extends State<QiblaScreen>
               ],
             ),
             child: Icon(
-              Icons.explore_rounded,
+              FlutterIslamicIcons.solidQibla,
               color: Colors.white,
               size: 18.sp,
             ),

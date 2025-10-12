@@ -4,6 +4,7 @@ import 'package:athkar_app/features/tasbih/services/tasbih_service.dart';
 import 'package:athkar_app/features/tasbih/widgets/tasbih_bead_widget.dart';
 import 'package:athkar_app/features/tasbih/widgets/tasbih_counter_ring.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../../../../app/themes/app_theme.dart';
@@ -140,7 +141,7 @@ class TasbihMainArea extends StatelessWidget {
               context,
               'الجولة الحالية',
               '$currentRound / ${currentDhikr.recommendedCount}',
-              Icons.radio_button_checked,
+              FlutterIslamicIcons.solidTasbihHand,
               currentDhikr.primaryColor,
             ),
           ),
