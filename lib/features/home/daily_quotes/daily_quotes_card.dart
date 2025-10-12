@@ -1,5 +1,6 @@
 // lib/features/home/widgets/daily_quotes_card.dart
 import 'package:athkar_app/app/themes/app_theme.dart';
+import 'package:athkar_app/app/themes/widgets/core/app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
@@ -574,15 +575,10 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 8.h),
-          ElevatedButton(
+          AppButton.primary(
+            text: 'إعادة المحاولة',
             onPressed: _loadQuotesData,
-            style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 7.h),
-            ),
-            child: Text(
-              'إعادة المحاولة',
-              style: TextStyle(fontSize: 11.sp),
-            ),
+            size: ButtonSize.small,
           ),
         ],
       ),
@@ -618,15 +614,10 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
             ),
           ),
           SizedBox(height: 8.h),
-          ElevatedButton(
+          AppButton.primary(
+            text: 'إعادة التحميل',
             onPressed: _loadQuotesData,
-            style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 7.h),
-            ),
-            child: Text(
-              'إعادة التحميل',
-              style: TextStyle(fontSize: 11.sp),
-            ),
+            size: ButtonSize.small,
           ),
         ],
       ),
@@ -869,57 +860,26 @@ class QuoteDetailsModal extends StatelessWidget {
                   
                   SizedBox(height: 18.h),
                   
-                  // Action buttons
+                  // Action buttons - باستخدام AppButton
                   Row(
                     children: [
                       Expanded(
-                        child: SizedBox(
-                          height: 40.h,
-                          child: ElevatedButton.icon(
-                            onPressed: () => _copyQuote(context),
-                            icon: Icon(
-                              Icons.copy_rounded,
-                              size: 16.sp,
-                            ),
-                            label: Text(
-                              'نسخ النص',
-                              style: TextStyle(fontSize: 12.sp),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: context.surfaceColor,
-                              foregroundColor: context.textPrimaryColor,
-                              side: BorderSide(color: context.dividerColor),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.r),
-                              ),
-                            ),
-                          ),
+                        child: AppButton.outline(
+                          text: 'نسخ النص',
+                          onPressed: () => _copyQuote(context),
+                          icon: Icons.copy_rounded,
+                          size: ButtonSize.small,
                         ),
                       ),
                       
                       SizedBox(width: 8.w),
                       
                       Expanded(
-                        child: SizedBox(
-                          height: 40.h,
-                          child: ElevatedButton.icon(
-                            onPressed: () => _shareQuote(context),
-                            icon: Icon(
-                              Icons.share_rounded,
-                              size: 16.sp,
-                            ),
-                            label: Text(
-                              'مشاركة',
-                              style: TextStyle(fontSize: 12.sp),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: context.primaryColor,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.r),
-                              ),
-                            ),
-                          ),
+                        child: AppButton.primary(
+                          text: 'مشاركة',
+                          onPressed: () => _shareQuote(context),
+                          icon: Icons.share_rounded,
+                          size: ButtonSize.small,
                         ),
                       ),
                     ],

@@ -1,6 +1,7 @@
 // lib/features/settings/screens/main_settings_screen.dart
-// محدث: استخدام PermissionConstants.criticalPermissions
+// محدث: مبسط باستخدام الـ widgets المنفصلة
 
+import 'package:athkar_app/features/settings/widgets/dialogs/about_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -10,14 +11,18 @@ import 'package:in_app_review/in_app_review.dart';
 
 import '../../../app/di/service_locator.dart';
 import '../../../app/themes/app_theme.dart';
-import '../../../app/routes/app_router.dart';
 import '../../../core/infrastructure/services/permissions/permission_service.dart';
 import '../../../core/infrastructure/services/permissions/permission_manager.dart';
-import '../../../core/infrastructure/services/permissions/permission_constants.dart'; // ✅ استيراد مضاف
+import '../../../core/infrastructure/services/permissions/permission_constants.dart';
 import '../../../core/infrastructure/services/permissions/models/permission_state.dart';
 
-import '../widgets/settings_section.dart';
-import '../widgets/settings_tile.dart';
+import '../widgets/header/settings_header.dart';
+import '../widgets/permissions/permission_status_card.dart';
+import '../widgets/permissions/permission_bottom_sheet.dart';
+import '../widgets/sections/notifications_section.dart';
+import '../widgets/sections/appearance_section.dart';
+import '../widgets/sections/support_section.dart';
+import '../widgets/dialogs/reset_settings_dialog.dart';
 import '../services/settings_services_manager.dart';
 
 class MainSettingsScreen extends StatefulWidget {
@@ -40,7 +45,6 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
   // للتحكم في المراجعة داخل التطبيق
   final InAppReview _inAppReview = InAppReview.instance;
   
-  // ✅ استخدام PermissionConstants بدلاً من التعريف المحلي
   List<AppPermissionType> get _criticalPermissions => 
       PermissionConstants.criticalPermissions;
 
@@ -108,7 +112,7 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(),
+            SettingsHeader(onReset: _handleResetSettings),
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
@@ -120,116 +124,7 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
-      decoration: BoxDecoration(
-        color: context.backgroundColor,
-        border: Border(
-          bottom: BorderSide(
-            color: context.dividerColor.withValues(alpha: 0.1),
-            width: 1.w,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          // زر الرجوع
-          AppBackButton(
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          
-          SizedBox(width: 8.w),
-          
-          // الأيقونة
-          Container(
-            padding: EdgeInsets.all(6.w),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Theme.of(context).primaryColor,
-                  Theme.of(context).primaryColor.withValues(alpha: 0.8),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(10.r),
-            ),
-            child: Icon(
-              Icons.settings,
-              color: Colors.white,
-              size: 20.sp,
-            ),
-          ),
-          
-          SizedBox(width: 8.w),
-          
-          // العنوان والوصف
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'الإعدادات',
-                  style: context.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16.sp,
-                  ),
-                ),
-                Text(
-                  'تخصيص تجربتك مع التطبيق',
-                  style: context.bodySmall?.copyWith(
-                    color: context.textSecondaryColor,
-                    fontSize: 11.sp,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
-          // زر إعادة تعيين الإعدادات
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => _resetSettings(),
-              borderRadius: BorderRadius.circular(10.r),
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: ThemeConstants.error.withValues(alpha: 0.3),
-                    width: 1.w,
-                  ),
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.refresh_rounded,
-                      color: ThemeConstants.error,
-                      size: 16.sp,
-                    ),
-                    SizedBox(width: 4.w),
-                    Text(
-                      'إعادة تعيين',
-                      style: TextStyle(
-                        color: ThemeConstants.error,
-                        fontSize: 10.sp,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildSettingsList() {
-    final settings = _settingsManager.settings;
-    
     return RefreshIndicator(
       onRefresh: _handleRefresh,
       color: context.primaryColor,
@@ -242,140 +137,23 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
             SizedBox(height: 12.h),
             
             // بطاقة حالة الأذونات
-            _buildPermissionStatusCard(),
+            PermissionStatusCard(
+              result: _permissionResult,
+              onTap: _showPermissionsBottomSheet,
+            ),
             
             // قسم الإشعارات
-            SettingsSection(
-              title: 'الإشعارات',
-              subtitle: 'إدارة التنبيهات والتذكيرات',
-              icon: Icons.notifications_active,
-              children: [
-                SettingsTile(
-                  icon: Icons.access_time,
-                  title: 'إشعارات الصلاة',
-                  subtitle: 'تنبيهات أوقات الصلاة والأذان',
-                  onTap: () => Navigator.pushNamed(context, AppRouter.prayerNotificationsSettings),
-                  trailing: Icon(Icons.arrow_forward_ios, size: 14.sp),
-                ),
-                SettingsTile(
-                  icon: Icons.menu_book,
-                  title: 'إشعارات الأذكار',
-                  subtitle: 'تذكيرات الأذكار اليومية',
-                  onTap: () => Navigator.pushNamed(context, AppRouter.athkarNotificationsSettings),
-                  trailing: Icon(Icons.arrow_forward_ios, size: 14.sp),
-                ),
-                SettingsTile(
-                  icon: Icons.vibration,
-                  title: 'الاهتزاز',
-                  subtitle: 'اهتزاز عند وصول الإشعارات',
-                  trailing: SettingsSwitch(
-                    value: settings.vibrationEnabled,
-                    onChanged: (value) async {
-                      await _settingsManager.toggleVibration(value);
-                      setState(() {});
-                    },
-                  ),
-                ),
-              ],
-            ),
+            NotificationsSection(manager: _settingsManager),
             
-            // قسم المظهر والعرض
-            SettingsSection(
-              title: 'المظهر والعرض',
-              subtitle: 'تخصيص شكل التطبيق',
-              icon: Icons.palette,
-              children: [
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 12.w,
-                    vertical: 10.h,
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 40.w,
-                        height: 40.h,
-                        decoration: BoxDecoration(
-                          color: context.primaryColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10.r),
-                        ),
-                        child: Icon(
-                          _settingsManager.isDarkMode 
-                              ? Icons.dark_mode 
-                              : Icons.light_mode,
-                          color: context.primaryColor,
-                          size: 20.sp,
-                        ),
-                      ),
-                      SizedBox(width: 12.w),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'وضع العرض',
-                              style: context.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14.sp,
-                              ),
-                            ),
-                            Text(
-                              _settingsManager.currentThemeName,
-                              style: context.bodySmall?.copyWith(
-                                color: context.textSecondaryColor,
-                                fontSize: 11.sp,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Switch.adaptive(
-                        value: _settingsManager.isDarkMode,
-                        onChanged: (value) async {
-                          await _settingsManager.changeTheme(
-                            value ? ThemeMode.dark : ThemeMode.light
-                          );
-                          setState(() {});
-                        },
-                        activeColor: context.primaryColor,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+            // قسم المظهر
+            AppearanceSection(manager: _settingsManager),
             
-            // قسم الدعم والمعلومات
-            SettingsSection(
-              title: 'الدعم والمعلومات',
-              subtitle: 'معلومات التطبيق والدعم',
-              icon: Icons.info_outline,
-              children: [
-                SettingsTile(
-                  icon: Icons.share_outlined,
-                  title: 'مشاركة التطبيق',
-                  subtitle: 'شارك التطبيق مع الأصدقاء والعائلة',
-                  onTap: () => _shareApp(),
-                ),
-                SettingsTile(
-                  icon: Icons.star_outline,
-                  title: 'تقييم التطبيق',
-                  subtitle: 'قيم التطبيق على المتجر وادعمنا',
-                  onTap: () => _rateApp(),
-                ),
-                SettingsTile(
-                  icon: Icons.headset_mic_outlined,
-                  title: 'تواصل معنا',
-                  subtitle: 'أرسل استفساراتك ومقترحاتك',
-                  onTap: () => _contactUs(),
-                ),
-                SettingsTile(
-                  icon: Icons.info_outline,
-                  title: 'عن التطبيق',
-                  subtitle: 'معلومات الإصدار والمطور',
-                  onTap: () => _showAboutDialog(),
-                ),
-              ],
+            // قسم الدعم
+            SupportSection(
+              onShare: _shareApp,
+              onRate: _rateApp,
+              onContact: _contactUs,
+              onAbout: _showAboutDialog,
             ),
           ],
         ),
@@ -383,509 +161,16 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
     );
   }
 
-  // بطاقة حالة الأذونات
-  Widget _buildPermissionStatusCard() {
-    if (_permissionResult == null) {
-      return const SizedBox();
-    }
-    
-    final granted = _permissionResult!.grantedCount;
-    final denied = _permissionResult!.missingCount;
-    final total = granted + denied;
-    final percentage = total > 0 ? granted / total : 0.0;
-    
-    return GestureDetector(
-      onTap: () => _showPermissionsBottomSheet(),
-      child: Container(
-        margin: EdgeInsets.symmetric(
-          horizontal: 12.w,
-          vertical: 6.h,
-        ),
-        padding: EdgeInsets.all(12.w),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              _getStatusColor(percentage),
-              _getStatusColor(percentage).withValues(alpha: 0.8),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16.r),
-          boxShadow: [
-            BoxShadow(
-              color: _getStatusColor(percentage).withValues(alpha: 0.3),
-              blurRadius: 8.r,
-              offset: Offset(0, 3.h),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                // الأيقونة
-                Container(
-                  padding: EdgeInsets.all(10.w),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(10.r),
-                  ),
-                  child: Icon(
-                    Icons.security,
-                    color: Colors.white,
-                    size: 24.sp,
-                  ),
-                ),
-                
-                SizedBox(width: 10.w),
-                
-                // المعلومات
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'حالة الأذونات',
-                        style: context.titleMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14.sp,
-                        ),
-                      ),
-                      Text(
-                        '$granted من $total أذونات مفعلة',
-                        style: context.bodySmall?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.9),
-                          fontSize: 11.sp,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                // أيقونة السهم
-                Container(
-                  padding: EdgeInsets.all(6.w),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(16.r),
-                  ),
-                  child: Icon(
-                    Icons.arrow_forward_ios,
-                    color: Colors.white,
-                    size: 14.sp,
-                  ),
-                ),
-              ],
-            ),
-            
-            // إحصائيات سريعة
-            SizedBox(height: 12.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildQuickStat('مفعلة', granted, Colors.white),
-                Container(
-                  width: 1.w,
-                  height: 24.h,
-                  color: Colors.white.withValues(alpha: 0.3),
-                ),
-                _buildQuickStat('معطلة', denied, Colors.white.withValues(alpha: 0.9)),
-                Container(
-                  width: 1.w,
-                  height: 24.h,
-                  color: Colors.white.withValues(alpha: 0.3),
-                ),
-                _buildQuickStat('الكل', total, Colors.white),
-              ],
-            ),
-            
-            // نص توضيحي
-            SizedBox(height: 10.h),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(16.r),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.touch_app,
-                    color: Colors.white,
-                    size: 12.sp,
-                  ),
-                  SizedBox(width: 4.w),
-                  Text(
-                    'اضغط لإدارة الأذونات',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10.sp,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // ==================== Event Handlers ====================
   
-  Widget _buildQuickStat(String label, int value, Color color) {
-    return Column(
-      children: [
-        Text(
-          value.toString(),
-          style: TextStyle(
-            fontSize: 18.sp,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10.sp,
-            color: color.withValues(alpha: 0.8),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // نافذة الأذونات المنبثقة
   void _showPermissionsBottomSheet() {
-    showModalBottomSheet(
+    PermissionBottomSheet.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.9,
-        builder: (context, scrollController) => Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20.r),
-              topRight: Radius.circular(20.r),
-            ),
-          ),
-          child: Column(
-            children: [
-              // مقبض السحب
-              Container(
-                margin: EdgeInsets.only(top: 10.h),
-                width: 36.w,
-                height: 4.h,
-                decoration: BoxDecoration(
-                  color: Colors.grey[400],
-                  borderRadius: BorderRadius.circular(2.r),
-                ),
-              ),
-              
-              // العنوان
-              Padding(
-                padding: EdgeInsets.all(16.w),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(8.w),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10.r),
-                      ),
-                      child: Icon(
-                        Icons.admin_panel_settings,
-                        color: Theme.of(context).primaryColor,
-                        size: 20.sp,
-                      ),
-                    ),
-                    SizedBox(width: 10.w),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'إدارة الأذونات',
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            'تحكم في أذونات التطبيق',
-                            style: TextStyle(
-                              fontSize: 11.sp,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close),
-                      iconSize: 20.sp,
-                    ),
-                  ],
-                ),
-              ),
-              
-              Divider(height: 1.h),
-              
-              // قائمة الأذونات
-              Expanded(
-                child: ListView(
-                  controller: scrollController,
-                  padding: EdgeInsets.all(12.w),
-                  children: [
-                    ..._criticalPermissions
-                        .where((p) => _permissionStatuses.containsKey(p))
-                        .map((permission) => Padding(
-                          padding: EdgeInsets.only(bottom: 10.h),
-                          child: _buildPermissionCard(permission),
-                        )),
-                    
-                    SizedBox(height: 16.h),
-                    
-                    // زر إعدادات النظام
-                    _buildSystemSettingsButton(),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ).then((_) {
-      _handleRefresh();
-    });
-  }
-  
-  // بطاقة إذن
-  Widget _buildPermissionCard(AppPermissionType permission) {
-    final status = _permissionStatuses[permission] ?? AppPermissionStatus.unknown;
-    final isGranted = status == AppPermissionStatus.granted;
-    
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(
-          color: isGranted 
-              ? ThemeConstants.success.withValues(alpha: 0.3)
-              : Theme.of(context).dividerColor.withValues(alpha: 0.2),
-          width: 1.w,
-        ),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(12.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                // أيقونة الإذن
-                Container(
-                  width: 38.w,
-                  height: 38.h,
-                  decoration: BoxDecoration(
-                    color: isGranted
-                        ? ThemeConstants.success.withValues(alpha: 0.1)
-                        : Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10.r),
-                  ),
-                  child: Icon(
-                    _getPermissionIcon(permission),
-                    color: isGranted
-                        ? ThemeConstants.success
-                        : Theme.of(context).primaryColor,
-                    size: 20.sp,
-                  ),
-                ),
-                SizedBox(width: 10.w),
-                
-                // معلومات الإذن
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _getPermissionTitle(permission),
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      SizedBox(height: 2.h),
-                      Text(
-                        _getPermissionDescription(permission),
-                        style: TextStyle(
-                          fontSize: 11.sp,
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                // حالة الإذن
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                  decoration: BoxDecoration(
-                    color: isGranted
-                        ? ThemeConstants.success.withValues(alpha: 0.1)
-                        : ThemeConstants.warning.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(16.r),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        isGranted ? Icons.check_circle : Icons.warning,
-                        size: 12.sp,
-                        color: isGranted
-                            ? ThemeConstants.success
-                            : ThemeConstants.warning,
-                      ),
-                      SizedBox(width: 3.w),
-                      Text(
-                        isGranted ? 'مفعل' : 'معطل',
-                        style: TextStyle(
-                          fontSize: 10.sp,
-                          fontWeight: FontWeight.bold,
-                          color: isGranted
-                              ? ThemeConstants.success
-                              : ThemeConstants.warning,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            
-            // زر التفعيل إذا كان الإذن معطل
-            if (!isGranted) ...[
-              SizedBox(height: 10.h),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await _requestPermission(permission);
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 8.h),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.r),
-                    ),
-                  ),
-                  child: Text(
-                    'تفعيل الإذن',
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-  
-  Widget _buildSystemSettingsButton() {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
-          width: 1.w,
-        ),
-        borderRadius: BorderRadius.circular(14.r),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(14.r),
-        child: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-            _permissionService.openAppSettings();
-          },
-          borderRadius: BorderRadius.circular(14.r),
-          child: Padding(
-            padding: EdgeInsets.all(12.w),
-            child: Row(
-              children: [
-                Container(
-                  width: 38.w,
-                  height: 38.h,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10.r),
-                  ),
-                  child: Icon(
-                    Icons.phonelink_setup,
-                    color: Theme.of(context).primaryColor,
-                    size: 20.sp,
-                  ),
-                ),
-                SizedBox(width: 10.w),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'إعدادات النظام',
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      SizedBox(height: 2.h),
-                      Text(
-                        'فتح إعدادات التطبيق في النظام',
-                        style: TextStyle(
-                          fontSize: 11.sp,
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.open_in_new,
-                  size: 16.sp,
-                  color: Theme.of(context).textTheme.bodySmall?.color,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-  
-  // دوال مساعدة للأذونات
-  IconData _getPermissionIcon(AppPermissionType permission) {
-    return PermissionConstants.getIcon(permission);
-  }
-  
-  String _getPermissionTitle(AppPermissionType permission) {
-    return PermissionConstants.getName(permission);
-  }
-  
-  String _getPermissionDescription(AppPermissionType permission) {
-    return PermissionConstants.getDescription(permission);
+      permissionStatuses: _permissionStatuses,
+      criticalPermissions: _criticalPermissions,
+      onRequestPermission: _requestPermission,
+      onOpenSystemSettings: _permissionService.openAppSettings,
+    ).then((_) => _handleRefresh());
   }
   
   Future<void> _requestPermission(AppPermissionType permission) async {
@@ -902,14 +187,14 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
       );
       
       if (granted) {
-        _showSuccessMessage('تم تفعيل إذن ${_getPermissionTitle(permission)}');
+        final title = PermissionConstants.getName(permission);
+        _showSuccessMessage('تم تفعيل إذن $title');
       }
     }
     
     await _refreshPermissionStatuses();
   }
 
-  // معالج Pull to Refresh
   Future<void> _handleRefresh() async {
     HapticFeedback.mediumImpact();
     
@@ -937,62 +222,10 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
     }
   }
 
-  // الدوال المساعدة
-  
-  Future<void> _resetSettings() async {
+  Future<void> _handleResetSettings() async {
     HapticFeedback.heavyImpact();
     
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
-        ),
-        title: Row(
-          children: [
-            Container(
-              padding: EdgeInsets.all(6.w),
-              decoration: BoxDecoration(
-                color: ThemeConstants.error.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              child: Icon(
-                Icons.warning,
-                color: ThemeConstants.error,
-                size: 20.sp,
-              ),
-            ),
-            SizedBox(width: 10.w),
-            Expanded(
-              child: Text(
-                'إعادة تعيين الإعدادات',
-                style: TextStyle(fontSize: 15.sp),
-              ),
-            ),
-          ],
-        ),
-        content: Text(
-          'هل أنت متأكد من إعادة جميع الإعدادات إلى الوضع الافتراضي؟\n\nسيتم مسح جميع التخصيصات والإعدادات المحفوظة.',
-          style: TextStyle(height: 1.5, fontSize: 13.sp),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('إلغاء', style: TextStyle(fontSize: 13.sp)),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: ThemeConstants.error,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.r),
-              ),
-            ),
-            child: Text('إعادة تعيين', style: TextStyle(fontSize: 13.sp)),
-          ),
-        ],
-      ),
-    ) ?? false;
+    final confirmed = await ResetSettingsDialog.show(context);
     
     if (confirmed) {
       await _settingsManager.resetSettings();
@@ -1040,100 +273,10 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
   }
 
   void _showAboutDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: EdgeInsets.all(16.w),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    ThemeConstants.primary.withValues(alpha: 0.1),
-                    ThemeConstants.primary.withValues(alpha: 0.05),
-                  ],
-                ),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.mosque,
-                size: 48.sp,
-                color: ThemeConstants.primary,
-              ),
-            ),
-            SizedBox(height: 16.h),
-            Text(
-              'حصن المسلم',
-              style: TextStyle(
-                fontSize: 20.sp,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 6.h),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-              decoration: BoxDecoration(
-                color: ThemeConstants.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16.r),
-              ),
-              child: Text(
-                'الإصدار 1.0.0',
-                style: TextStyle(
-                  color: ThemeConstants.primary,
-                  fontSize: 10.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            SizedBox(height: 16.h),
-            Text(
-              'تطبيق شامل للأذكار والأدعية\nيساعدك على المحافظة على أذكارك اليومية',
-              textAlign: TextAlign.center,
-              style: TextStyle(height: 1.5, fontSize: 12.sp),
-            ),
-            SizedBox(height: 16.h),
-            Divider(height: 1.h),
-            SizedBox(height: 10.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.code, size: 14.sp, color: Colors.grey[600]),
-                SizedBox(width: 4.w),
-                Text(
-                  'تطوير وتصميم',
-                  style: TextStyle(
-                    fontSize: 10.sp,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 4.h),
-            Text(
-              'فريق التطوير',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 12.sp,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('إغلاق', style: TextStyle(fontSize: 13.sp)),
-          ),
-        ],
-      ),
-    );
+    AppAboutDialog.show(context);
   }
 
-  // رسائل التنبيه
+  // ==================== Helper Methods ====================
   
   void _showSuccessMessage(String message) {
     _showSnackBar(message, ThemeConstants.success, Icons.check_circle);
@@ -1160,12 +303,6 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
         ),
       ),
     );
-  }
-
-  Color _getStatusColor(double percentage) {
-    if (percentage >= 1.0) return ThemeConstants.success;
-    if (percentage >= 0.5) return ThemeConstants.warning;
-    return ThemeConstants.error;
   }
   
   @override

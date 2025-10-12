@@ -109,7 +109,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   SizedBox(width: 8.w),
                   Text(
                     _currentPage == _pages.length - 1
-                        ? 'اسحب للبدء'
+                        ? 'اضغط للبدء'
                         : 'اسحب للمتابعة',
                     style: TextStyle(
                       fontSize: _currentPage == _pages.length - 1 

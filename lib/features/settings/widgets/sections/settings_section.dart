@@ -1,7 +1,7 @@
 // lib/features/settings/widgets/settings_section.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../app/themes/app_theme.dart';
+import '../../../../app/themes/app_theme.dart';
 
 /// قسم في شاشة الإعدادات
 class SettingsSection extends StatelessWidget {
