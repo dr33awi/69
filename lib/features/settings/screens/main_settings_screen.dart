@@ -258,7 +258,7 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
   Future<void> _contactUs() async {
     final Uri emailUri = Uri(
       scheme: 'mailto',
-      path: 'support@yourapp.com',
+      path: 'dhakaranifeedback@gmail.com',
       queryParameters: {
         'subject': 'استفسار من تطبيق حصن المسلم',
         'body': 'اكتب رسالتك هنا...',
