@@ -6,7 +6,7 @@ import '../../../app/themes/app_theme.dart';
 class DhikrItem {
   final String id;
   final String text;
-  final String? virtue; // الفضل
+  final String? virtue; //الفضيلة
   final int recommendedCount;
   final DhikrCategory category;
   final List<Color> gradient;

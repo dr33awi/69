@@ -80,7 +80,7 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
     final text = '''${_currentDua.arabicText}
 
 ${_currentDua.title}
-${_currentDua.virtue != null ? '\nالفضل: ${_currentDua.virtue}' : ''}
+${_currentDua.virtue != null ? '\nالفضيلة: ${_currentDua.virtue}' : ''}
 المصدر: ${_currentDua.source} - ${_currentDua.reference}
 
 من تطبيق أذكاري''';
@@ -94,7 +94,7 @@ ${_currentDua.virtue != null ? '\nالفضل: ${_currentDua.virtue}' : ''}
     final text = '''${_currentDua.arabicText}
 
 ${_currentDua.title}
-${_currentDua.virtue != null ? '\nالفضل: ${_currentDua.virtue}' : ''}
+${_currentDua.virtue != null ? '\nالفضيلة: ${_currentDua.virtue}' : ''}
 المصدر: ${_currentDua.source} - ${_currentDua.reference}
 
 من تطبيق أذكاري''';
@@ -373,7 +373,7 @@ ${_currentDua.virtue != null ? '\nالفضل: ${_currentDua.virtue}' : ''}
             SizedBox(height: 24.h),
           ],
           
-          // الفضل
+          // الفضيلة
           if (dua.virtue != null) ...[
             _buildSectionTitle(
               'الفضيلة',

@@ -213,7 +213,7 @@ ${_category!.athkar.map((item) => '✓ ${item.text.truncate(50)}').join('\n')}
     final text = '''
 ${item.text}
 
-${item.fadl != null ? 'الفضل: ${item.fadl}\n' : ''}
+${item.fadl != null ? 'الفضيلة: ${item.fadl}\n' : ''}
 ${item.source != null ? 'المصدر: ${item.source}' : ''}
 
 تطبيق الأذكار

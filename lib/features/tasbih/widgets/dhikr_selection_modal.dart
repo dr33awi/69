@@ -425,7 +425,7 @@ class _DhikrSelectionModalState extends State<DhikrSelectionModal> {
     
     AppInfoDialog.show(
       context: context,
-      title: 'فضل الذكر',
+      title: 'فضيلة الذكر',
       content: dhikr.virtue!,
       icon: Icons.star_rounded,
       closeButtonText: 'حسناً',

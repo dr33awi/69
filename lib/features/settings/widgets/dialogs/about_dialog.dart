@@ -388,7 +388,8 @@ class _AppAboutDialogState extends State<AppAboutDialog> {
                         width: 1.w,
                       ),
                     ),
-                    child: Text('في حال وجود أي خطأ في أي نص أو مصدر، يرجى التواصل معنا',                      style: context.bodySmall?.copyWith(
+                    child: Text('في حال وجود أي خطأ في أي نص أو مصدر، يرجى التواصل معنا', 
+                        style: context.bodySmall?.copyWith(
                         color: AppColors.warning.darken(0.2),
                         fontWeight: ThemeConstants.medium,
                         fontSize: 11.sp,

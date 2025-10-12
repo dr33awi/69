@@ -91,7 +91,7 @@ class _DuaListScreenState extends State<DuaListScreen> {
 ${dua.arabicText}
 
 ${dua.title}
-${dua.virtue != null ? '\nالفضل: ${dua.virtue}' : ''}
+${dua.virtue != null ? '\nالفضيلة: ${dua.virtue}' : ''}
 المصدر: ${dua.source} - ${dua.reference}
 
 تطبيق الأذكار والأدعية

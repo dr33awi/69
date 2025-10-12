@@ -53,9 +53,9 @@ class CustomDhikrDialogs {
                 SizedBox(height: 16.h),
                 _buildTextField(
                   context,
-                  'الفضل (اختياري)',
+                  'الفضيلة (اختياري)',
                   virtueController,
-                  'أدخل فضل الذكر...',
+                  'أدخل فضيلة الذكر...', 
                   maxLines: 3,
                 ),
                 SizedBox(height: 16.h),
@@ -196,7 +196,7 @@ class CustomDhikrDialogs {
               children: [
                 _buildTextField(context, 'نص الذكر', textController, 'أدخل نص الذكر...', maxLines: 2),
                 SizedBox(height: 16.h),
-                _buildTextField(context, 'الفضل (اختياري)', virtueController, 'أدخل فضل الذكر...', maxLines: 3),
+                _buildTextField(context, 'الفضيلة (اختياري)', virtueController, 'أدخل فضيلة الذكر...', maxLines: 3),
                 SizedBox(height: 16.h),
                 _buildCategoryDropdown(context, selectedCategory, (value) {
                   if (value != null) {

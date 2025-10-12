@@ -221,7 +221,7 @@ class DhikrCardSimple extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'الفضل',
+                  'الفضيلة',
                   style: TextStyle(
                     color: isSelected 
                         ? Colors.white

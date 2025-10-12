@@ -171,7 +171,7 @@ class AthkarItemCard extends StatelessWidget {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'الفضل',
+                                            'الفضيلة',
                                             style: TextStyle(
                                               color: ThemeConstants.accent,
                                               fontWeight: ThemeConstants.semiBold,
