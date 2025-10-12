@@ -147,14 +147,27 @@ ${_currentDua.virtue != null ? '\nالفضل: ${_currentDua.virtue}' : ''}
 
   Widget _buildEnhancedAppBar(Color categoryColor) {
     return Container(
-      padding: EdgeInsets.all(12.w),
+      padding: EdgeInsets.all(14.r),
+      decoration: BoxDecoration(
+        color: context.backgroundColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8.r,
+            offset: Offset(0, 2.h),
+          ),
+        ],
+      ),
       child: Row(
         children: [
-          AppBackButton(onPressed: () => Navigator.of(context).pop()),
-          SizedBox(width: 8.w),
+          AppBackButton(
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          
+          SizedBox(width: 10.w),
           
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
+            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [categoryColor, categoryColor.withOpacity(0.8)],
@@ -180,7 +193,7 @@ ${_currentDua.virtue != null ? '\nالفضل: ${_currentDua.virtue}' : ''}
             ),
           ),
           
-          SizedBox(width: 8.w),
+          SizedBox(width: 10.w),
           
           Expanded(
             child: Column(
@@ -190,14 +203,14 @@ ${_currentDua.virtue != null ? '\nالفضل: ${_currentDua.virtue}' : ''}
                   _currentDua.title,
                   style: TextStyle(
                     fontWeight: ThemeConstants.bold,
-                    color: categoryColor,
+                    color: context.textPrimaryColor,
                     fontSize: 14.sp,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  '${widget.category.name}',
+                  widget.category.name,
                   style: TextStyle(
                     color: context.textSecondaryColor,
                     fontSize: 10.sp,
@@ -207,17 +220,16 @@ ${_currentDua.virtue != null ? '\nالفضل: ${_currentDua.virtue}' : ''}
             ),
           ),
           
-          _buildActionButton(
-            icon: _currentDua.isFavorite ? Icons.bookmark : Icons.bookmark_outline,
-            onTap: _toggleFavorite,
-            color: _currentDua.isFavorite ? ThemeConstants.accent : null,
-          ),
-          
           PopupMenuButton<String>(
-            icon: _buildActionIcon(Icons.more_vert),
+            icon: Icon(
+              Icons.more_vert_rounded,
+              color: context.textPrimaryColor,
+              size: 20.sp,
+            ),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
             onSelected: (value) {
               switch (value) {
+                case 'favorite': _toggleFavorite(); break;
                 case 'copy': _copyDua(); break;
                 case 'share': _shareDua(); break;
                 case 'font': _showFontSizeDialog(); break;
@@ -225,10 +237,25 @@ ${_currentDua.virtue != null ? '\nالفضل: ${_currentDua.virtue}' : ''}
             },
             itemBuilder: (context) => [
               PopupMenuItem(
+                value: 'favorite',
+                child: Row(
+                  children: [
+                    Icon(
+                      _currentDua.isFavorite ? Icons.bookmark : Icons.bookmark_outline,
+                      size: 20.sp,
+                      color: _currentDua.isFavorite ? ThemeConstants.accent : null,
+                    ),
+                    SizedBox(width: 8.w),
+                    Text(_currentDua.isFavorite ? 'إزالة من المفضلة' : 'إضافة للمفضلة'),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
                 value: 'copy',
                 child: Row(
                   children: [
-                    Icon(Icons.copy, size: 20.sp),
+                    Icon(Icons.copy_rounded, size: 20.sp),
                     SizedBox(width: 8.w),
                     const Text('نسخ'),
                   ],
@@ -238,7 +265,7 @@ ${_currentDua.virtue != null ? '\nالفضل: ${_currentDua.virtue}' : ''}
                 value: 'share',
                 child: Row(
                   children: [
-                    Icon(Icons.share, size: 20.sp),
+                    Icon(Icons.share_rounded, size: 20.sp),
                     SizedBox(width: 8.w),
                     const Text('مشاركة'),
                   ],
@@ -249,7 +276,7 @@ ${_currentDua.virtue != null ? '\nالفضل: ${_currentDua.virtue}' : ''}
                 value: 'font',
                 child: Row(
                   children: [
-                    Icon(Icons.text_fields, size: 20.sp),
+                    Icon(Icons.text_fields_rounded, size: 20.sp),
                     SizedBox(width: 8.w),
                     const Text('حجم الخط'),
                   ],
@@ -258,73 +285,6 @@ ${_currentDua.virtue != null ? '\nالفضل: ${_currentDua.virtue}' : ''}
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required VoidCallback onTap,
-    Color? color,
-  }) {
-    return Container(
-      margin: EdgeInsets.only(left: 6.w),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(10.r),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(10.r),
-          child: Container(
-            padding: EdgeInsets.all(6.w),
-            decoration: BoxDecoration(
-              color: context.cardColor,
-              borderRadius: BorderRadius.circular(10.r),
-              border: Border.all(
-                color: context.dividerColor.withOpacity(0.3),
-                width: 1.w,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 3.r,
-                  offset: Offset(0, 2.h),
-                ),
-              ],
-            ),
-            child: Icon(
-              icon,
-              color: color ?? context.textPrimaryColor,
-              size: 20.sp,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionIcon(IconData icon) {
-    return Container(
-      padding: EdgeInsets.all(6.w),
-      decoration: BoxDecoration(
-        color: context.cardColor,
-        borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(
-          color: context.dividerColor.withOpacity(0.3),
-          width: 1.w,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 3.r,
-            offset: Offset(0, 2.h),
-          ),
-        ],
-      ),
-      child: Icon(
-        icon,
-        color: context.textSecondaryColor,
-        size: 20.sp,
       ),
     );
   }
@@ -472,8 +432,6 @@ ${_currentDua.virtue != null ? '\nالفضل: ${_currentDua.virtue}' : ''}
               ),
             ),
           ),
-          
-
           
           SizedBox(height: 32.h),
         ],
@@ -636,7 +594,6 @@ ${_currentDua.virtue != null ? '\nالفضل: ${_currentDua.virtue}' : ''}
       },
     );
   }
-
 
   Color _getCategoryColor(String categoryId) {
     switch (categoryId) {

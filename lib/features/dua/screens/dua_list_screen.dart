@@ -125,7 +125,6 @@ ${dua.virtue != null ? '\nالفضل: ${dua.virtue}' : ''}
   }
 
   void _openSearch() {
-    HapticFeedback.lightImpact();
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -146,6 +145,21 @@ ${dua.virtue != null ? '\nالفضل: ${dua.virtue}' : ''}
         return ThemeConstants.primaryDark;
       default:
         return ThemeConstants.tertiary;
+    }
+  }
+
+  IconData _getCategoryIcon(String iconName) {
+    switch (iconName) {
+      case 'book_quran':
+        return Icons.menu_book;
+      case 'book_hadith':
+        return Icons.book;
+      case 'book_sunnah':
+        return Icons.auto_stories;
+      case 'verified':
+        return Icons.verified;
+      default:
+        return Icons.pan_tool_rounded;
     }
   }
 
@@ -189,6 +203,35 @@ ${dua.virtue != null ? '\nالفضل: ${dua.virtue}' : ''}
           
           SizedBox(width: 10.w),
           
+          Container(
+            padding: EdgeInsets.all(7.r),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  _getCategoryColor(widget.category.id),
+                  _getCategoryColor(widget.category.id).withOpacity(0.8),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(10.r),
+              boxShadow: [
+                BoxShadow(
+                  color: _getCategoryColor(widget.category.id).withOpacity(0.3),
+                  blurRadius: 6.r,
+                  offset: Offset(0, 3.h),
+                ),
+              ],
+            ),
+            child: Icon(
+              _getCategoryIcon(widget.category.icon),
+              color: Colors.white,
+              size: 20.sp,
+            ),
+          ),
+          
+          SizedBox(width: 10.w),
+          
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,7 +262,10 @@ ${dua.virtue != null ? '\nالفضل: ${dua.virtue}' : ''}
               color: Colors.transparent,
               borderRadius: BorderRadius.circular(10.r),
               child: InkWell(
-                onTap: _openSearch,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  _openSearch();
+                },
                 borderRadius: BorderRadius.circular(10.r),
                 child: Container(
                   padding: EdgeInsets.all(7.r),
@@ -230,6 +276,13 @@ ${dua.virtue != null ? '\nالفضل: ${dua.virtue}' : ''}
                       color: context.dividerColor.withOpacity(0.3),
                       width: 1.w,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 3.r,
+                        offset: Offset(0, 2.h),
+                      ),
+                    ],
                   ),
                   child: Icon(
                     Icons.search_rounded,

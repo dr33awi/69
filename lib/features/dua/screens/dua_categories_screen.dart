@@ -84,7 +84,7 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
 
   Widget _buildAppBar() {
     return Container(
-      padding: EdgeInsets.all(12.w),
+      padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
         color: context.backgroundColor,
         boxShadow: [
@@ -95,50 +95,126 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
           ),
         ],
       ),
-      child: Row(
+      child: Column(
         children: [
-          AppBackButton(
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          
-          SizedBox(width: 8.w),
-          
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'الأدعية المأثورة',
-                  style: TextStyle(
-                    fontWeight: ThemeConstants.bold,
-                    color: context.textPrimaryColor,
-                    fontSize: 17.sp,
+          Row(
+            children: [
+              AppBackButton(
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              
+              SizedBox(width: 10.w),
+              
+              Container(
+                padding: EdgeInsets.all(7.r),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [ThemeConstants.tertiary, ThemeConstants.tertiaryLight],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
+                  borderRadius: BorderRadius.circular(10.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: ThemeConstants.tertiary.withOpacity(0.3),
+                      blurRadius: 6.r,
+                      offset: Offset(0, 3.h),
+                    ),
+                  ],
                 ),
-                Text(
-                  'ادعُ ربك بقلب خاشع',
-                  style: TextStyle(
-                    color: context.textSecondaryColor,
-                    fontSize: 11.sp,
-                  ),
+                child: Icon(
+                  Icons.pan_tool_rounded,
+                  color: Colors.white,
+                  size: 20.sp,
                 ),
-              ],
-            ),
+              ),
+              
+              SizedBox(width: 10.w),
+              
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'الأدعية المأثورة',
+                      style: TextStyle(
+                        fontWeight: ThemeConstants.bold,
+                        color: context.textPrimaryColor,
+                        fontSize: 17.sp,
+                      ),
+                    ),
+                    Text(
+                      'ادعُ ربك بقلب خاشع',
+                      style: TextStyle(
+                        color: context.textSecondaryColor,
+                        fontSize: 11.sp,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // زر المفضلة
+              _buildActionButton(
+                icon: Icons.bookmark_outline_rounded,
+                onTap: _openFavorites,
+                showBadge: (_statistics['favoritesCount'] ?? 0) > 0,
+              ),
+            ],
           ),
           
-          // زر البحث
-          _buildActionButton(
-            icon: Icons.search_rounded,
-            onTap: _openSearch,
-          ),
+          SizedBox(height: 12.h),
           
-          // زر المفضلة
-          _buildActionButton(
-            icon: Icons.bookmark_outline_rounded,
-            onTap: _openFavorites,
-            showBadge: (_statistics['favoritesCount'] ?? 0) > 0,
-          ),
+          // شريط البحث
+          _buildSearchBar(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        _openSearch();
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: 14.w,
+          vertical: 12.h,
+        ),
+        decoration: BoxDecoration(
+          color: context.cardColor,
+          borderRadius: BorderRadius.circular(10.r),
+          border: Border.all(
+            color: context.dividerColor.withOpacity(0.3),
+            width: 1.w,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4.r,
+              offset: Offset(0, 2.h),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.search_rounded,
+              color: context.textSecondaryColor,
+              size: 20.sp,
+            ),
+            SizedBox(width: 12.w),
+            Text(
+              'ابحث في الأدعية...',
+              style: TextStyle(
+                color: context.textSecondaryColor.withOpacity(0.7),
+                fontSize: 14.sp,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -154,10 +230,13 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(10.r),
         child: InkWell(
-          onTap: onTap,
+          onTap: () {
+            HapticFeedback.lightImpact();
+            onTap();
+          },
           borderRadius: BorderRadius.circular(10.r),
           child: Container(
-            padding: EdgeInsets.all(6.w),
+            padding: EdgeInsets.all(7.r),
             decoration: BoxDecoration(
               color: context.cardColor,
               borderRadius: BorderRadius.circular(10.r),
@@ -167,7 +246,7 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withOpacity(0.1),
                   blurRadius: 3.r,
                   offset: Offset(0, 2.h),
                 ),
@@ -580,7 +659,6 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
   }
 
   void _openSearch() {
-    HapticFeedback.lightImpact();
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -590,7 +668,6 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
   }
 
   void _openFavorites() {
-    HapticFeedback.lightImpact();
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -599,3 +676,4 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
     );
   }
 }
+

@@ -223,7 +223,7 @@ ${dua.virtue != null ? '\nالفضيلة: ${dua.virtue}' : ''}
 
   Widget _buildAppBar() {
     return Container(
-      padding: EdgeInsets.all(12.w),
+      padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
         color: context.backgroundColor,
         boxShadow: [
@@ -240,7 +240,33 @@ ${dua.virtue != null ? '\nالفضيلة: ${dua.virtue}' : ''}
             onPressed: () => Navigator.of(context).pop(),
           ),
           
-          SizedBox(width: 8.w),
+          SizedBox(width: 10.w),
+          
+          Container(
+            padding: EdgeInsets.all(7.r),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [ThemeConstants.accent, ThemeConstants.accentLight],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(10.r),
+              boxShadow: [
+                BoxShadow(
+                  color: ThemeConstants.accent.withOpacity(0.3),
+                  blurRadius: 6.r,
+                  offset: Offset(0, 3.h),
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.bookmark_rounded,
+              color: Colors.white,
+              size: 20.sp,
+            ),
+          ),
+          
+          SizedBox(width: 10.w),
           
           Expanded(
             child: Column(
@@ -293,10 +319,13 @@ ${dua.virtue != null ? '\nالفضيلة: ${dua.virtue}' : ''}
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(10.r),
         child: InkWell(
-          onTap: onTap,
+          onTap: () {
+            HapticFeedback.lightImpact();
+            onTap();
+          },
           borderRadius: BorderRadius.circular(10.r),
           child: Container(
-            padding: EdgeInsets.all(6.w),
+            padding: EdgeInsets.all(7.r),
             decoration: BoxDecoration(
               color: context.cardColor,
               borderRadius: BorderRadius.circular(10.r),
@@ -306,7 +335,7 @@ ${dua.virtue != null ? '\nالفضيلة: ${dua.virtue}' : ''}
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withOpacity(0.1),
                   blurRadius: 3.r,
                   offset: Offset(0, 2.h),
                 ),

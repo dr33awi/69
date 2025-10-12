@@ -140,7 +140,7 @@ class _DuaSearchScreenState extends State<DuaSearchScreen> {
 
   Widget _buildSearchHeader() {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
         color: context.backgroundColor,
         boxShadow: [
@@ -159,20 +159,53 @@ class _DuaSearchScreenState extends State<DuaSearchScreen> {
                 onPressed: () => Navigator.of(context).pop(),
               ),
               
-              SizedBox(width: 12.w),
+              SizedBox(width: 10.w),
+              
+              Container(
+                padding: EdgeInsets.all(7.r),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [ThemeConstants.tertiary, ThemeConstants.tertiaryLight],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(10.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: ThemeConstants.tertiary.withOpacity(0.3),
+                      blurRadius: 6.r,
+                      offset: Offset(0, 3.h),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.search_rounded,
+                  color: Colors.white,
+                  size: 20.sp,
+                ),
+              ),
+              
+              SizedBox(width: 10.w),
               
               Expanded(
                 child: Container(
-                  height: 48.h,
+                  height: 44.h,
                   decoration: BoxDecoration(
                     color: context.cardColor,
-                    borderRadius: BorderRadius.circular(12.r),
+                    borderRadius: BorderRadius.circular(10.r),
                     border: Border.all(
                       color: _searchFocus.hasFocus
                           ? ThemeConstants.tertiary.withOpacity(0.5)
                           : context.dividerColor.withOpacity(0.3),
                       width: 1.w,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 4.r,
+                        offset: Offset(0, 2.h),
+                      ),
+                    ],
                   ),
                   child: TextField(
                     controller: _searchController,
@@ -188,15 +221,10 @@ class _DuaSearchScreenState extends State<DuaSearchScreen> {
                         color: context.textSecondaryColor.withOpacity(0.7),
                         fontSize: 15.sp,
                       ),
-                      prefixIcon: Icon(
-                        Icons.search,
-                        color: context.textSecondaryColor,
-                        size: 22.sp,
-                      ),
                       suffixIcon: _searchController.text.isNotEmpty
                           ? IconButton(
                               icon: Icon(
-                                Icons.clear,
+                                Icons.clear_rounded,
                                 color: context.textSecondaryColor,
                                 size: 20.sp,
                               ),
@@ -208,8 +236,8 @@ class _DuaSearchScreenState extends State<DuaSearchScreen> {
                           : null,
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16.w,
-                        vertical: 14.h,
+                        horizontal: 14.w,
+                        vertical: 12.h,
                       ),
                     ),
                   ),
@@ -221,7 +249,7 @@ class _DuaSearchScreenState extends State<DuaSearchScreen> {
           // عدد النتائج
           if (_isSearching && !_isLoading)
             Container(
-              margin: EdgeInsets.only(top: 12.h),
+              margin: EdgeInsets.only(top: 10.h),
               padding: EdgeInsets.symmetric(
                 horizontal: 12.w,
                 vertical: 6.h,
