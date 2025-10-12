@@ -1,25 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- android/app/src/main/res/drawable/launch_background.xml -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- خلفية ملونة بدلاً من ملف PNG -->
+    <!-- خلفية بلون واحد فقط -->
     <item>
         <shape android:shape="rectangle">
-            <gradient
-                android:startColor="#2E7D32"
-                android:endColor="#4CAF50"
-                android:angle="45"
-                android:type="linear" />
+            <solid android:color="#FFFFFF" />
         </shape>
     </item>
     
     <!-- شعار التطبيق في المنتصف -->
     <item 
         android:gravity="center" 
-        android:width="120dp"
-        android:height="120dp">
+        android:width="200dp"
+        android:height="200dp">
         <vector xmlns:android="http://schemas.android.com/apk/res/android"
-            android:width="120dp"
-            android:height="120dp"
+            android:width="200dp"
+            android:height="200dp"
             android:viewportWidth="24"
             android:viewportHeight="24"
             android:tint="#FFFFFF">

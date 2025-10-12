@@ -5,7 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
 import '../models/prayer_time_model.dart';
 
-class NextPrayerCountdown extends StatelessWidget {
+class NextPrayerCountdown extends StatefulWidget {
   final PrayerTime nextPrayer;
   final PrayerTime? currentPrayer;
 
@@ -16,6 +16,11 @@ class NextPrayerCountdown extends StatelessWidget {
   });
 
   @override
+  State<NextPrayerCountdown> createState() => _NextPrayerCountdownState();
+}
+
+class _NextPrayerCountdownState extends State<NextPrayerCountdown> {
+  @override
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(12.w),
@@ -24,14 +29,14 @@ class NextPrayerCountdown extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            _getPrayerColor(nextPrayer.type),
-            _getPrayerColor(nextPrayer.type).darken(0.2),
+            _getPrayerColor(widget.nextPrayer.type),
+            _getPrayerColor(widget.nextPrayer.type).darken(0.2),
           ],
         ),
         borderRadius: BorderRadius.circular(14.r),
         boxShadow: [
           BoxShadow(
-            color: _getPrayerColor(nextPrayer.type).withOpacity(0.3),
+            color: _getPrayerColor(widget.nextPrayer.type).withOpacity(0.3),
             blurRadius: 12.r,
             offset: Offset(0, 6.h),
           ),
@@ -72,17 +77,17 @@ class NextPrayerCountdown extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      nextPrayer.nameAr,
+                      widget.nextPrayer.nameAr,
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: ThemeConstants.bold,
                         fontSize: 19.sp,
                       ),
                     ),
-                    if (currentPrayer != null) ...[
+                    if (widget.currentPrayer != null) ...[
                       SizedBox(height: 2.h),
                       Text(
-                        'الصلاة الحالية: ${currentPrayer!.nameAr}',
+                        'الصلاة الحالية: ${widget.currentPrayer!.nameAr}',
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.7),
                           fontSize: 9.sp,
@@ -94,54 +99,7 @@ class NextPrayerCountdown extends StatelessWidget {
               ),
               
               // العد التنازلي
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 10.w,
-                  vertical: 6.h,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(10.r),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.3),
-                    width: 1.w,
-                  ),
-                ),
-                child: StreamBuilder(
-                  stream: Stream.periodic(const Duration(seconds: 1)),
-                  builder: (context, snapshot) {
-                    final duration = nextPrayer.remainingTime;
-                    final hours = duration.inHours;
-                    final minutes = duration.inMinutes % 60;
-                    final seconds = duration.inSeconds % 60;
-                    
-                    return Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildTimeUnit(hours.toString().padLeft(2, '0'), 'س'),
-                        Text(
-                          ':',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: ThemeConstants.bold,
-                            fontSize: 16.sp,
-                          ),
-                        ),
-                        _buildTimeUnit(minutes.toString().padLeft(2, '0'), 'د'),
-                        Text(
-                          ':',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: ThemeConstants.bold,
-                            fontSize: 16.sp,
-                          ),
-                        ),
-                        _buildTimeUnit(seconds.toString().padLeft(2, '0'), 'ث'),
-                      ],
-                    );
-                  },
-                ),
-              ),
+              _buildCountdown(),
             ],
           ),
           
@@ -164,6 +122,85 @@ class NextPrayerCountdown extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildCountdown() {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: 10.w,
+        vertical: 6.h,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.3),
+          width: 1.w,
+        ),
+      ),
+      child: StreamBuilder(
+        stream: Stream.periodic(const Duration(seconds: 1)),
+        builder: (context, snapshot) {
+          // حساب الوقت المتبقي
+          final now = DateTime.now();
+          final prayerTime = widget.nextPrayer.time;
+          
+          // إذا كان وقت الصلاة في الماضي، نحسب للغد
+          DateTime targetTime = prayerTime;
+          if (prayerTime.isBefore(now)) {
+            // إضافة يوم واحد
+            targetTime = DateTime(
+              now.year,
+              now.month,
+              now.day + 1,
+              prayerTime.hour,
+              prayerTime.minute,
+              prayerTime.second,
+            );
+          }
+          
+          final duration = targetTime.difference(now);
+          
+          // التحقق من أن المدة موجبة
+          if (duration.isNegative || duration.inSeconds < 1) {
+            return _buildTimeDisplay(0, 0, 0);
+          }
+          
+          final hours = duration.inHours;
+          final minutes = duration.inMinutes % 60;
+          final seconds = duration.inSeconds % 60;
+          
+          return _buildTimeDisplay(hours, minutes, seconds);
+        },
+      ),
+    );
+  }
+
+  Widget _buildTimeDisplay(int hours, int minutes, int seconds) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildTimeUnit(hours.toString().padLeft(2, '0'), 'س'),
+        Text(
+          ':',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: ThemeConstants.bold,
+            fontSize: 16.sp,
+          ),
+        ),
+        _buildTimeUnit(minutes.toString().padLeft(2, '0'), 'د'),
+        Text(
+          ':',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: ThemeConstants.bold,
+            fontSize: 16.sp,
+          ),
+        ),
+        _buildTimeUnit(seconds.toString().padLeft(2, '0'), 'ث'),
+      ],
     );
   }
 
@@ -193,13 +230,28 @@ class NextPrayerCountdown extends StatelessWidget {
   }
 
   double _calculateProgress() {
-    if (currentPrayer == null) return 0.0;
+    if (widget.currentPrayer == null) return 0.0;
     
     final now = DateTime.now();
-    final totalDuration = nextPrayer.time.difference(currentPrayer!.time);
-    final elapsed = now.difference(currentPrayer!.time);
+    final start = widget.currentPrayer!.time;
+    final end = widget.nextPrayer.time;
     
-    if (totalDuration.inSeconds == 0) return 0.0;
+    // إذا كانت الصلاة التالية في اليوم التالي
+    DateTime targetEnd = end;
+    if (end.isBefore(start)) {
+      targetEnd = DateTime(
+        now.year,
+        now.month,
+        now.day + 1,
+        end.hour,
+        end.minute,
+      );
+    }
+    
+    final totalDuration = targetEnd.difference(start);
+    final elapsed = now.difference(start);
+    
+    if (totalDuration.inSeconds <= 0) return 0.0;
     
     return (elapsed.inSeconds / totalDuration.inSeconds).clamp(0.0, 1.0);
   }

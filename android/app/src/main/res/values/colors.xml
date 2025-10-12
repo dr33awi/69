@@ -3,7 +3,7 @@
     <!-- ==================== الألوان الأساسية للتطبيق ==================== -->
     
     <!-- أيقونة التطبيق -->
-    <color name="ic_launcher_background">#e7e8e3</color>
+    <color name="ic_launcher_background">#FFFFFF</color>
     
     <!-- ألوان الإشعارات لـ Firebase -->
     <color name="notification_color">#2E7D32</color>

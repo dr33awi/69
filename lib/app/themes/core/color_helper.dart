@@ -103,29 +103,31 @@ class AppColors {
   }
 
   /// الحصول على تدرج الفئة
-  static LinearGradient getCategoryGradient(String categoryId) {
-    switch (categoryId) {
-      case 'prayer_times': return primaryGradient;
-      case 'athkar': return accentGradient;
-      case 'asma_allah': return tertiaryGradient;
-      case 'dua': return const LinearGradient(
-          colors: [tertiaryDark, tertiary],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        );
-      case 'qibla': return const LinearGradient(
-          colors: [primaryDark, primary],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        );
-      case 'tasbih': return const LinearGradient(
-          colors: [accentDark, accent],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        );
-      default: return primaryGradient;
-    }
+static LinearGradient getCategoryGradient(String categoryId) {
+  switch (categoryId) {
+    case 'prayer_times': return primaryGradient;
+    case 'athkar': return accentGradient;
+    case 'hadith': return accentGradient; // ذهبي
+    
+    case 'asma_allah': return tertiaryGradient;
+    case 'dua': return const LinearGradient(
+        colors: [tertiaryDark, tertiary],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    case 'qibla': return const LinearGradient(
+        colors: [primaryDark, primary],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    case 'tasbih': return const LinearGradient(
+        colors: [accentDark, accent],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    default: return primaryGradient;
   }
+}
 
   /// الحصول على تدرج المحتوى حسب النوع
   static LinearGradient getContentGradient(String contentType) {

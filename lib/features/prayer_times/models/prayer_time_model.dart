@@ -1,8 +1,10 @@
 // lib/features/prayer_times/models/prayer_time_model.dart
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import '../../../app/themes/theme_constants.dart';
 
-/// نموذج وقت الصلاة المنظف
+/// نموذج وقت الصلاة
 @immutable
 class PrayerTime {
   final String id;
@@ -23,13 +25,36 @@ class PrayerTime {
     required this.type,
   });
 
-  /// الوقت المتبقي
+  /// الوقت المتبقي - محسّن لحل مشكلة العد التنازلي
   Duration get remainingTime {
     final now = DateTime.now();
-    if (time.isAfter(now)) {
-      return time.difference(now);
+    
+    // إنشاء DateTime لوقت الصلاة اليوم
+    final todayPrayer = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      time.hour,
+      time.minute,
+      time.second,
+    );
+    
+    // إذا كان الوقت في المستقبل اليوم
+    if (todayPrayer.isAfter(now)) {
+      return todayPrayer.difference(now);
     }
-    return Duration.zero;
+    
+    // إذا كان الوقت قد مضى اليوم، احسب للغد (للفجر مثلاً)
+    final tomorrowPrayer = DateTime(
+      now.year,
+      now.month,
+      now.day + 1,
+      time.hour,
+      time.minute,
+      time.second,
+    );
+    
+    return tomorrowPrayer.difference(now);
   }
 
   /// التحقق من اقتراب الوقت
@@ -37,6 +62,26 @@ class PrayerTime {
     final remaining = remainingTime;
     return remaining.inMinutes <= 15 && remaining.inMinutes > 0;
   }
+
+  /// تنسيق الوقت مباشرة
+  String get formattedTime {
+    try {
+      final hour = time.hour;
+      final minute = time.minute.toString().padLeft(2, '0');
+      final period = hour >= 12 ? 'م' : 'ص';
+      final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+      return '$displayHour:$minute $period';
+    } catch (e) {
+      debugPrint('[PrayerTime] خطأ في تنسيق الوقت: $e');
+      return '--:--';
+    }
+  }
+
+  /// الحصول على اللون
+  Color get color => ThemeConstants.getPrayerColor(type.name);
+  
+  /// الحصول على الأيقونة
+  IconData get icon => ThemeConstants.getPrayerIcon(type.name);
 
   /// نسخ مع تعديل
   PrayerTime copyWith({
@@ -93,7 +138,7 @@ class PrayerTime {
   int get hashCode => id.hashCode ^ time.hashCode;
 }
 
-/// أنواع الصلوات (المستخدمة فقط)
+/// أنواع الصلوات
 enum PrayerType {
   fajr('fajr', 'الفجر', 'Fajr'),
   sunrise('sunrise', 'الشروق', 'Sunrise'),
@@ -108,7 +153,6 @@ enum PrayerType {
   final String nameAr;
   final String nameEn;
   
-  // للتوافق مع الكود الموجود
   String get name => key;
 
   static PrayerType? fromKey(String key) {
@@ -284,7 +328,26 @@ class DailyPrayerTimes {
   /// الصلاة التالية
   PrayerTime? get nextPrayer {
     try {
-      return prayers.firstWhere((prayer) => prayer.isNext);
+      final now = DateTime.now();
+      
+      // البحث عن أول صلاة قادمة (غير منتهية وليست الشروق)
+      for (final prayer in prayers) {
+        if (prayer.type == PrayerType.sunrise) continue;
+        
+        // إنشاء وقت الصلاة اليوم
+        final todayPrayer = DateTime(
+          now.year, now.month, now.day,
+          prayer.time.hour, prayer.time.minute,
+        );
+        
+        // إذا كانت الصلاة في المستقبل
+        if (todayPrayer.isAfter(now)) {
+          return prayer;
+        }
+      }
+      
+      // إذا لم نجد (كل الصلوات انتهت)، نعيد الفجر
+      return prayers.firstWhere((p) => p.type == PrayerType.fajr);
     } catch (_) {
       return null;
     }
@@ -292,11 +355,24 @@ class DailyPrayerTimes {
 
   /// الصلاة الحالية
   PrayerTime? get currentPrayer {
-    final passedPrayers = prayers.where((p) => p.isPassed).toList();
-    if (passedPrayers.isEmpty) return null;
+    final now = DateTime.now();
+    PrayerTime? current;
     
-    passedPrayers.sort((a, b) => b.time.compareTo(a.time));
-    return passedPrayers.first;
+    // البحث عن آخر صلاة مرت
+    for (final prayer in prayers) {
+      final todayPrayer = DateTime(
+        now.year, now.month, now.day,
+        prayer.time.hour, prayer.time.minute,
+      );
+      
+      if (todayPrayer.isBefore(now) || todayPrayer.isAtSameMomentAs(now)) {
+        if (current == null || prayer.time.isAfter(current.time)) {
+          current = prayer;
+        }
+      }
+    }
+    
+    return current;
   }
 
   /// تحديث حالات الصلوات
@@ -304,21 +380,45 @@ class DailyPrayerTimes {
     final now = DateTime.now();
     final updatedPrayers = <PrayerTime>[];
     
-    PrayerTime? nextPrayer;
-    
+    // ترتيب الصلوات حسب الوقت
     final sortedPrayers = List<PrayerTime>.from(prayers);
     sortedPrayers.sort((a, b) => a.time.compareTo(b.time));
     
+    PrayerTime? foundNext;
+    
     for (final prayer in sortedPrayers) {
-      final isPassed = prayer.time.isBefore(now);
-      final isNext = nextPrayer == null && !isPassed;
+      // إنشاء وقت الصلاة اليوم
+      final todayPrayer = DateTime(
+        now.year, now.month, now.day,
+        prayer.time.hour, prayer.time.minute,
+      );
       
-      if (isNext) nextPrayer = prayer;
+      final isPassed = todayPrayer.isBefore(now);
+      
+      // الصلاة التالية هي أول صلاة لم تنتهي بعد (وليست الشروق)
+      final isNext = foundNext == null && 
+                     !isPassed && 
+                     prayer.type != PrayerType.sunrise;
+      
+      if (isNext) {
+        foundNext = prayer;
+      }
       
       updatedPrayers.add(prayer.copyWith(
         isPassed: isPassed,
         isNext: isNext,
       ));
+    }
+    
+    // إذا لم نجد صلاة تالية (كل الصلوات انتهت)، الفجر هو التالي
+    if (foundNext == null) {
+      final fajrIndex = updatedPrayers.indexWhere((p) => p.type == PrayerType.fajr);
+      if (fajrIndex != -1) {
+        updatedPrayers[fajrIndex] = updatedPrayers[fajrIndex].copyWith(
+          isNext: true,
+          isPassed: false,
+        );
+      }
     }
     
     return DailyPrayerTimes(

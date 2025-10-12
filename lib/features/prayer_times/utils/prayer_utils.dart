@@ -1,9 +1,10 @@
-// lib/features/prayer_times/utils/prayer_utils_unified.dart
+// lib/features/prayer_times/utils/prayer_utils.dart
+
 import 'package:flutter/material.dart';
 import '../../../app/themes/theme_constants.dart';
 import '../models/prayer_time_model.dart';
 
-/// أدوات موحدة لمواقيت الصلاة - بدون تكرار
+/// أدوات موحدة لمواقيت الصلاة
 class PrayerUtils {
   PrayerUtils._();
 
@@ -16,26 +17,36 @@ class PrayerUtils {
     bool showPeriod = true,
     bool shortPeriod = true,
   }) {
-    if (use24Hour) {
-      return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+    try {
+      if (use24Hour) {
+        return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+      }
+      
+      final hour = time.hour;
+      final minute = time.minute.toString().padLeft(2, '0');
+      final period = shortPeriod 
+          ? (hour >= 12 ? 'م' : 'ص')
+          : (hour >= 12 ? 'مساءً' : 'صباحاً');
+      final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+      
+      if (showPeriod) {
+        return '$displayHour:$minute $period';
+      }
+      return '$displayHour:$minute';
+    } catch (e) {
+      debugPrint('[PrayerUtils] خطأ في تنسيق الوقت: $e');
+      return '--:--';
     }
-    
-    final hour = time.hour;
-    final minute = time.minute.toString().padLeft(2, '0');
-    final period = shortPeriod 
-        ? (hour >= 12 ? 'م' : 'ص')
-        : (hour >= 12 ? 'مساءً' : 'صباحاً');
-    final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-    
-    if (showPeriod) {
-      return '$displayHour:$minute $period';
-    }
-    return '$displayHour:$minute';
   }
 
-  /// تنسيق المدة المتبقية
+  /// تنسيق المدة المتبقية - محسّن
   static String formatRemainingTime(Duration duration) {
-    if (duration.isNegative || duration.inSeconds == 0) {
+    // التحقق من صحة المدة
+    if (duration.isNegative) {
+      return 'انتهى الوقت';
+    }
+    
+    if (duration.inSeconds < 1) {
       return 'حان الآن';
     }
     
@@ -43,29 +54,76 @@ class PrayerUtils {
     final minutes = duration.inMinutes % 60;
     final seconds = duration.inSeconds % 60;
     
-    if (hours > 24) {
+    // أكثر من يوم
+    if (hours >= 24) {
       final days = hours ~/ 24;
+      final remainingHours = hours % 24;
+      if (remainingHours > 0) {
+        return 'بعد $days يوم و $remainingHours ساعة';
+      }
       return 'بعد $days يوم';
-    } else if (hours > 0) {
+    } 
+    // أكثر من ساعة
+    else if (hours > 0) {
       if (minutes > 0) {
         return 'بعد $hours ساعة و $minutes دقيقة';
       }
       return 'بعد $hours ساعة';
-    } else if (minutes > 0) {
+    } 
+    // أكثر من دقيقة
+    else if (minutes > 0) {
+      if (seconds > 0 && minutes < 5) {
+        // نعرض الثواني فقط إذا كان أقل من 5 دقائق
+        return 'بعد $minutes دقيقة و $seconds ثانية';
+      }
       return 'بعد $minutes دقيقة';
-    } else {
+    } 
+    // ثواني فقط
+    else {
       return 'بعد $seconds ثانية';
     }
   }
 
+  /// حساب الوقت المتبقي لصلاة معينة - دالة مساعدة
+  static Duration calculateRemainingTime(DateTime prayerTime) {
+    final now = DateTime.now();
+    
+    // إنشاء DateTime لوقت الصلاة اليوم
+    final todayPrayer = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      prayerTime.hour,
+      prayerTime.minute,
+      prayerTime.second,
+    );
+    
+    // إذا كان الوقت في المستقبل اليوم
+    if (todayPrayer.isAfter(now)) {
+      return todayPrayer.difference(now);
+    }
+    
+    // إذا كان الوقت قد مضى اليوم، احسب للغد
+    final tomorrowPrayer = DateTime(
+      now.year,
+      now.month,
+      now.day + 1,
+      prayerTime.hour,
+      prayerTime.minute,
+      prayerTime.second,
+    );
+    
+    return tomorrowPrayer.difference(now);
+  }
+
   // ==================== الألوان والأيقونات ====================
   
-  /// الحصول على لون الصلاة - استخدام ThemeConstants مباشرة
+  /// الحصول على لون الصلاة
   static Color getPrayerColor(PrayerType type) {
     return ThemeConstants.getPrayerColor(type.name);
   }
 
-  /// الحصول على أيقونة الصلاة - استخدام ThemeConstants مباشرة
+  /// الحصول على أيقونة الصلاة
   static IconData getPrayerIcon(PrayerType type) {
     return ThemeConstants.getPrayerIcon(type.name);
   }
@@ -77,7 +135,7 @@ class PrayerUtils {
 
   // ==================== رسائل الأخطاء ====================
   
-  /// رسالة خطأ موحدة للموقع والصلاة
+  /// رسالة خطأ موحدة
   static String getErrorMessage(dynamic error) {
     final errorStr = error.toString().toLowerCase();
     
@@ -142,8 +200,27 @@ class PrayerUtils {
     DateTime? currentTime,
   }) {
     final now = currentTime ?? DateTime.now();
-    final totalDuration = nextPrayer.time.difference(currentPrayer.time);
-    final elapsed = now.difference(currentPrayer.time);
+    
+    // إنشاء أوقات محددة لليوم
+    final currentToday = DateTime(
+      now.year, now.month, now.day,
+      currentPrayer.time.hour,
+      currentPrayer.time.minute,
+    );
+    
+    final nextToday = DateTime(
+      now.year, now.month, now.day,
+      nextPrayer.time.hour,
+      nextPrayer.time.minute,
+    );
+    
+    // إذا كانت الصلاة التالية في اليوم التالي (الفجر مثلاً)
+    final nextTarget = nextToday.isBefore(currentToday)
+        ? nextToday.add(const Duration(days: 1))
+        : nextToday;
+    
+    final totalDuration = nextTarget.difference(currentToday);
+    final elapsed = now.difference(currentToday);
     
     if (totalDuration.inSeconds <= 0) return 0.0;
     
@@ -152,9 +229,8 @@ class PrayerUtils {
 
   /// التحقق من اقتراب وقت الصلاة
   static bool isPrayerApproaching(PrayerTime prayer, {int minutesBefore = 15}) {
-    final now = DateTime.now();
-    final timeDiff = prayer.time.difference(now);
-    return timeDiff.inMinutes > 0 && timeDiff.inMinutes <= minutesBefore;
+    final remaining = calculateRemainingTime(prayer.time);
+    return remaining.inMinutes > 0 && remaining.inMinutes <= minutesBefore;
   }
 
   // ==================== النصوص ====================
@@ -179,9 +255,8 @@ class PrayerUtils {
   
   /// تنسيق الوقت حتى موعد محدد
   static String formatTimeUntil(DateTime targetTime, {DateTime? fromTime}) {
-    final from = fromTime ?? DateTime.now();
-    final diff = targetTime.difference(from);
-    return formatRemainingTime(diff);
+    final duration = calculateRemainingTime(targetTime);
+    return formatRemainingTime(duration);
   }
 
   /// رسالة التنبيه
@@ -312,21 +387,20 @@ enum ErrorType {
 /// Extensions للسهولة
 extension PrayerTimeExtensions on PrayerTime {
   // خصائص التنسيق
-  String get formattedTime => PrayerUtils.formatTime(time);
   String get formattedTime24 => PrayerUtils.formatTime(time, use24Hour: true);
   String get statusText => PrayerUtils.getPrayerStatusText(this);
   String get remainingTimeText => PrayerUtils.formatRemainingTime(remainingTime);
   
-  // الألوان والأيقونات
-  Color get color => PrayerUtils.getPrayerColor(type);
-  IconData get icon => PrayerUtils.getPrayerIcon(type);
+  // الألوان والأيقونات (موجودة بالفعل في PrayerTime class)
+  // Color get color => PrayerUtils.getPrayerColor(type);
+  // IconData get icon => PrayerUtils.getPrayerIcon(type);
   LinearGradient get gradient => PrayerUtils.getPrayerGradient(type);
   
   // التحقق من الحالة
   bool get isApproachingSoon => PrayerUtils.isPrayerApproaching(this);
   bool isApproachingIn(int minutes) => PrayerUtils.isPrayerApproaching(this, minutesBefore: minutes);
   
-  /// التحقق من أن الصلاة حالية (بين وقتها ووقت الصلاة التالية)
+  /// التحقق من أن الصلاة حالية
   bool isCurrent(PrayerTime? nextPrayer) {
     if (!isPassed || nextPrayer == null) return false;
     final now = DateTime.now();
