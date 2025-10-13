@@ -1,4 +1,4 @@
-// lib/main.dart - محدث مع Onboarding + معالج الإشعارات المحسّن
+// lib/main.dart - محدث مع Onboarding + معالج الإشعارات
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,11 +16,10 @@ import 'core/infrastructure/services/permissions/permission_manager.dart';
 import 'core/infrastructure/services/permissions/widgets/permission_monitor.dart';
 import 'core/infrastructure/services/storage/storage_service.dart';
 
-// ==================== 🔔 خدمات الإشعارات ====================
+// ==================== 🔔 إضافة: خدمات الإشعارات ====================
 import 'core/infrastructure/services/notifications/notification_manager.dart';
 import 'core/infrastructure/services/notifications/notification_tap_handler.dart';
-import 'core/infrastructure/services/notifications/pending_notification_handler.dart';
-// ========================================================
+// ====================================================================
 
 // خدمات التطوير والمراقبة
 import 'core/infrastructure/config/development_config.dart';
@@ -54,9 +53,9 @@ Future<void> main() async {
       try {
         await _fastBootstrap();
         
-        // ==================== 🔔 إعداد معالج الإشعارات ====================
+        // ==================== 🔔 إضافة: إعداد معالج الإشعارات ====================
         await _setupNotificationHandler();
-        // ==================================================================
+        // ==========================================================================
         
         final app = const AthkarApp();
         final wrappedApp = DevicePreviewConfig.wrapApp(app);
@@ -77,17 +76,27 @@ Future<void> main() async {
   );
 }
 
-// ==================== 🔔 دالة إعداد معالج الإشعارات ====================
+// ==================== 🔔 إضافة: دالة إعداد معالج الإشعارات ====================
 /// إعداد معالج النقر على الإشعارات
 Future<void> _setupNotificationHandler() async {
   try {
     debugPrint('🔔 [Main] ========== إعداد معالج الإشعارات ==========');
     
-    final pendingHandler = PendingNotificationHandler();
+    // التحقق من تهيئة NotificationManager
+    final hasPermission = await NotificationManager.instance.hasPermission();
+    if (!hasPermission) {
+      debugPrint('⚠️ [Main] NotificationManager لم يتم منحه الأذونات بعد');
+      // سنستمع للإشعارات على أي حال للتعامل مع حالة منح الأذونات لاحقاً
+    }
+    
+    // إنشاء معالج الإشعارات
+    final handler = NotificationTapHandler(
+      navigatorKey: AppRouter.navigatorKey, // استخدام navigatorKey من AppRouter
+    );
     
     // الاستماع لأحداث النقر على الإشعارات
     NotificationManager.instance.onTap.listen(
-      (event) async {
+      (event) {
         debugPrint('🔔 [Main] ========================================');
         debugPrint('🔔 [Main] تم استقبال حدث نقر على إشعار');
         debugPrint('🔔 [Main] ========================================');
@@ -97,30 +106,13 @@ Future<void> _setupNotificationHandler() async {
         debugPrint('   📌 Payload: ${event.payload}');
         debugPrint('🔔 [Main] ========================================');
         
-        // التحقق من جاهزية Navigator
-        final context = AppRouter.navigatorKey.currentContext;
-        
-        if (context == null || !context.mounted) {
-          debugPrint('⏳ [Main] التطبيق ليس جاهزاً بعد، حفظ الإشعار كمعلق');
-          pendingHandler.setPendingNotification(event);
-          return;
-        }
-        
-        // التطبيق جاهز، معالجة فورية
-        debugPrint('✅ [Main] التطبيق جاهز، معالجة فورية');
-        
-        await Future.delayed(const Duration(milliseconds: 300));
-        
-        final handler = NotificationTapHandler(
-          navigatorKey: AppRouter.navigatorKey,
-        );
-        
-        await handler.handleNotificationTap(event);
+        // معالجة النقر على الإشعار
+        handler.handleNotificationTap(event);
       },
       onError: (error) {
         debugPrint('❌ [Main] خطأ في معالجة حدث الإشعار: $error');
       },
-      cancelOnError: false,
+      cancelOnError: false, // الاستمرار في الاستماع حتى بعد الأخطاء
     );
     
     debugPrint('✅ [Main] تم إعداد معالج الإشعارات بنجاح');
@@ -131,6 +123,8 @@ Future<void> _setupNotificationHandler() async {
   } catch (e, stackTrace) {
     debugPrint('❌ [Main] خطأ خطير في إعداد معالج الإشعارات: $e');
     debugPrint('Stack trace: $stackTrace');
+    // لا نرمي الخطأ لأن هذا قد يمنع التطبيق من العمل
+    // سنستمر في التشغيل حتى بدون معالج الإشعارات
   }
 }
 // ==============================================================================
@@ -190,10 +184,12 @@ Future<void> _initializeRemoteConfigEarly() async {
     final remoteConfigService = getIt<FirebaseRemoteConfigService>();
     await remoteConfigService.initialize();
     
+    // فرض جلب البيانات الجديدة
     debugPrint('🔄 Forcing refresh of Remote Config...');
     bool refreshSuccess = await remoteConfigService.refresh();
     debugPrint('  - First refresh result: $refreshSuccess');
     
+    // إذا كانت القيم افتراضية، جرب forceRefreshForTesting
     if (remoteConfigService.requiredAppVersion == "1.0.0" || 
         remoteConfigService.requiredAppVersion == "1.1.0") {
       debugPrint('⚠️ Default values detected, trying force refresh...');
@@ -272,11 +268,8 @@ class _AthkarAppState extends State<AthkarApp> {
     
     _initializeConfigManager();
     
+    // فحص أولي للأذونات (فقط إذا تم تجاوز Onboarding)
     _scheduleInitialPermissionCheck();
-    
-    // ==================== 🔔 معالجة الإشعارات المعلقة ====================
-    _schedulePendingNotificationCheck();
-    // =====================================================================
   }
 
   void _initializeConfigManager() {
@@ -309,6 +302,7 @@ class _AthkarAppState extends State<AthkarApp> {
   }
 
   void _scheduleInitialPermissionCheck() {
+    // فحص إذا كان المستخدم تجاوز Onboarding و Permissions Setup
     Future.delayed(const Duration(milliseconds: 1500), () async {
       if (!mounted) return;
       
@@ -317,6 +311,7 @@ class _AthkarAppState extends State<AthkarApp> {
         final onboardingCompleted = storage.getBool('onboarding_completed') ?? false;
         final permissionsSetupCompleted = storage.getBool('permissions_setup_completed') ?? false;
         
+        // فحص الأذونات فقط إذا تم إكمال الإعداد
         if (onboardingCompleted && permissionsSetupCompleted) {
           if (!_permissionManager.hasCheckedThisSession) {
             debugPrint('[AthkarApp] Performing initial permission check');
@@ -329,51 +324,25 @@ class _AthkarAppState extends State<AthkarApp> {
     });
   }
 
-  // ==================== 🔔 دالة فحص الإشعارات المعلقة ====================
-  
-  /// فحص ومعالجة الإشعارات المعلقة بعد تهيئة التطبيق
-  void _schedulePendingNotificationCheck() {
-    // الانتظار حتى يتم تهيئة التطبيق بالكامل
-    Future.delayed(const Duration(milliseconds: 2000), () async {
-      if (!mounted) return;
-      
-      try {
-        final pendingHandler = PendingNotificationHandler();
-        
-        if (pendingHandler.hasPendingNotification()) {
-          debugPrint('🔔 [AthkarApp] يوجد إشعار معلق، سيتم معالجته الآن');
-          
-          // الانتظار قليلاً للتأكد من اكتمال بناء الواجهة
-          await Future.delayed(const Duration(milliseconds: 500));
-          
-          await pendingHandler.handlePendingNotification();
-          
-          // مسح الإشعار بعد المعالجة
-          pendingHandler.clearPendingNotification();
-          
-        } else {
-          debugPrint('📭 [AthkarApp] لا يوجد إشعار معلق');
-        }
-      } catch (e) {
-        debugPrint('❌ [AthkarApp] خطأ في معالجة الإشعار المعلق: $e');
-      }
-    });
-  }
-  // ===========================================================================
-
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: getIt<ThemeNotifier>(),
       builder: (context, themeMode, child) {
+        // تهيئة ScreenUtil
         return ScreenUtilInit(
+          // حجم التصميم المرجعي - iPhone 11 كمرجع
           designSize: const Size(375, 812),
+          
+          // السماح بتغيير حجم النص ديناميكياً
           minTextAdapt: true,
+          
+          // دعم تقسيم الشاشة
           splitScreenMode: true,
           
           builder: (context, child) {
             return MaterialApp(
-            title: 'ذكرني',
+              title: 'حصن المسلم',
               debugShowCheckedModeBanner: false,
               
               theme: AppTheme.lightTheme,
@@ -388,7 +357,9 @@ class _AthkarAppState extends State<AthkarApp> {
                 GlobalCupertinoLocalizations.delegate,
               ],
               
+              // ==================== 🔔 مهم: استخدام navigatorKey ====================
               navigatorKey: AppRouter.navigatorKey,
+              // ======================================================================
               
               home: _buildInitialScreen(),
               
@@ -414,19 +385,23 @@ class _AthkarAppState extends State<AthkarApp> {
     Widget screen;
     
     try {
+      // فحص إذا اكتمل Onboarding
       final storage = getIt<StorageService>();
       final onboardingCompleted = storage.getBool('onboarding_completed') ?? false;
       final permissionsSetupCompleted = storage.getBool('permissions_setup_completed') ?? false;
       
       if (!onboardingCompleted) {
+        // المستخدم الجديد - عرض Onboarding
         debugPrint('🎬 Starting with onboarding');
         return const OnboardingScreen();
         
       } else if (!permissionsSetupCompleted) {
+        // Onboarding مكتمل لكن لم يتم إعداد الأذونات
         debugPrint('🔐 Starting with permissions setup');
         return const PermissionsSetupScreen();
         
       } else {
+        // كل شيء مكتمل - عرض الشاشة الرئيسية
         debugPrint('🏠 Starting with home screen');
         screen = const PermissionMonitor(
           showNotifications: true,
@@ -435,12 +410,14 @@ class _AthkarAppState extends State<AthkarApp> {
       }
     } catch (e) {
       debugPrint('❌ Error determining initial screen: $e');
+      // في حالة الخطأ، عرض الشاشة الرئيسية
       screen = const PermissionMonitor(
         showNotifications: true,
         child: HomeScreen(),
       );
     }
     
+    // تطبيق AppStatusMonitor إذا كان جاهزاً
     return _wrapWithAppMonitor(screen);
   }
 
