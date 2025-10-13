@@ -154,11 +154,6 @@ class AppConstants {
   static const int defaultMinBatteryLevel = 15;
   static const int criticalBatteryLevel = 5;
 
-  // ===== معلومات التطبيق =====
-  static const String appName = 'حصن المسلم';
-  static const String appVersion = '1.0.0';
-  static const String supportEmail = 'support@yourapp.com';
-  static const String playStoreUrl = 'https://play.google.com/store/apps/details?id=com.yourapp.athkar';
 
   // ===== الثوابت المفقودة التي يحتاجها التطبيق =====
   

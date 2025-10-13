@@ -259,8 +259,8 @@ class _SplashScreenState extends State<SplashScreen>
           ),
           SizedBox(height: 12.h),
           Text(
-            'حصن المسلم',
-            style: TextStyle(
+            'ذكرني',
+              style: TextStyle(
               fontSize: 20.sp,
               fontWeight: FontWeight.bold,
               color: Colors.white,

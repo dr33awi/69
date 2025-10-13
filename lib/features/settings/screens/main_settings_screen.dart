@@ -260,7 +260,7 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
       scheme: 'mailto',
       path: 'dhakaranifeedback@gmail.com',
       queryParameters: {
-        'subject': 'استفسار من تطبيق حصن المسلم',
+        'subject': 'استفسار من تطبيق ذكرني',
         'body': 'اكتب رسالتك هنا...',
       },
     );
