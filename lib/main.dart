@@ -1,4 +1,4 @@
-// lib/main.dart - محدث مع Onboarding
+// lib/main.dart - محدث مع Onboarding + معالج الإشعارات
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,6 +15,11 @@ import 'app/themes/core/theme_notifier.dart';
 import 'core/infrastructure/services/permissions/permission_manager.dart';
 import 'core/infrastructure/services/permissions/widgets/permission_monitor.dart';
 import 'core/infrastructure/services/storage/storage_service.dart';
+
+// ==================== 🔔 إضافة: خدمات الإشعارات ====================
+import 'core/infrastructure/services/notifications/notification_manager.dart';
+import 'core/infrastructure/services/notifications/notification_tap_handler.dart';
+// ====================================================================
 
 // خدمات التطوير والمراقبة
 import 'core/infrastructure/config/development_config.dart';
@@ -48,6 +53,10 @@ Future<void> main() async {
       try {
         await _fastBootstrap();
         
+        // ==================== 🔔 إضافة: إعداد معالج الإشعارات ====================
+        await _setupNotificationHandler();
+        // ==========================================================================
+        
         final app = const AthkarApp();
         final wrappedApp = DevicePreviewConfig.wrapApp(app);
         runApp(wrappedApp ?? app);
@@ -66,6 +75,59 @@ Future<void> main() async {
     },
   );
 }
+
+// ==================== 🔔 إضافة: دالة إعداد معالج الإشعارات ====================
+/// إعداد معالج النقر على الإشعارات
+Future<void> _setupNotificationHandler() async {
+  try {
+    debugPrint('🔔 [Main] ========== إعداد معالج الإشعارات ==========');
+    
+    // التحقق من تهيئة NotificationManager
+    final hasPermission = await NotificationManager.instance.hasPermission();
+    if (!hasPermission) {
+      debugPrint('⚠️ [Main] NotificationManager لم يتم منحه الأذونات بعد');
+      // سنستمع للإشعارات على أي حال للتعامل مع حالة منح الأذونات لاحقاً
+    }
+    
+    // إنشاء معالج الإشعارات
+    final handler = NotificationTapHandler(
+      navigatorKey: AppRouter.navigatorKey, // استخدام navigatorKey من AppRouter
+    );
+    
+    // الاستماع لأحداث النقر على الإشعارات
+    NotificationManager.instance.onTap.listen(
+      (event) {
+        debugPrint('🔔 [Main] ========================================');
+        debugPrint('🔔 [Main] تم استقبال حدث نقر على إشعار');
+        debugPrint('🔔 [Main] ========================================');
+        debugPrint('   📌 Category: ${event.category}');
+        debugPrint('   📌 ID: ${event.notificationId}');
+        debugPrint('   📌 Timestamp: ${event.timestamp}');
+        debugPrint('   📌 Payload: ${event.payload}');
+        debugPrint('🔔 [Main] ========================================');
+        
+        // معالجة النقر على الإشعار
+        handler.handleNotificationTap(event);
+      },
+      onError: (error) {
+        debugPrint('❌ [Main] خطأ في معالجة حدث الإشعار: $error');
+      },
+      cancelOnError: false, // الاستمرار في الاستماع حتى بعد الأخطاء
+    );
+    
+    debugPrint('✅ [Main] تم إعداد معالج الإشعارات بنجاح');
+    debugPrint('   - Navigator Key: ${AppRouter.navigatorKey}');
+    debugPrint('   - Handler: Ready');
+    debugPrint('   - Listener: Active');
+    
+  } catch (e, stackTrace) {
+    debugPrint('❌ [Main] خطأ خطير في إعداد معالج الإشعارات: $e');
+    debugPrint('Stack trace: $stackTrace');
+    // لا نرمي الخطأ لأن هذا قد يمنع التطبيق من العمل
+    // سنستمر في التشغيل حتى بدون معالج الإشعارات
+  }
+}
+// ==============================================================================
 
 Future<void> _fastBootstrap() async {
   debugPrint('========== Fast Bootstrap Starting ==========');
@@ -295,7 +357,9 @@ class _AthkarAppState extends State<AthkarApp> {
                 GlobalCupertinoLocalizations.delegate,
               ],
               
+              // ==================== 🔔 مهم: استخدام navigatorKey ====================
               navigatorKey: AppRouter.navigatorKey,
+              // ======================================================================
               
               home: _buildInitialScreen(),
               

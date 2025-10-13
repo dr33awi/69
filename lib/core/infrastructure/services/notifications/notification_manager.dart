@@ -1,12 +1,12 @@
-// lib/core/infrastructure/services/notifications/notification_manager.dart (مبسط)
+// lib/core/infrastructure/services/notifications/notification_manager.dart
 
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'notification_service.dart';
 import 'models/notification_models.dart';
+import 'constants/notification_messages.dart'; // 👈 استيراد الثوابت الجديدة
 
-/// مدير مركزي للإشعارات (مبسط)
-/// يحتوي فقط على الوظائف المستخدمة فعلياً
+/// مدير مركزي للإشعارات (محدث مع رسائل محسّنة)
 class NotificationManager {
   final NotificationService _service;
   
@@ -40,7 +40,7 @@ class NotificationManager {
   
   // ========== إشعارات الصلاة ==========
   
-  /// جدولة إشعار الصلاة
+  /// جدولة إشعار الصلاة (محدث مع رسائل محسّنة)
   Future<void> schedulePrayerNotification({
     required String prayerName,
     required String arabicName,
@@ -48,27 +48,41 @@ class NotificationManager {
     int minutesBefore = 0,
   }) async {
     final scheduledTime = time.subtract(Duration(minutes: minutesBefore));
-    final id = 'prayer_${prayerName}_${time.millisecondsSinceEpoch}';
+    final id = 'prayer_${prayerName}_${minutesBefore}_${time.millisecondsSinceEpoch}';
+    
+    // استخدام الرسائل من الثوابت 👇
+    String title;
+    String body;
+    
+    if (minutesBefore > 0) {
+      // إشعار قبل الصلاة
+      title = NotificationMessages.getPrayerReminderTitle(arabicName, minutesBefore);
+      body = NotificationMessages.getPrayerReminderBody(arabicName);
+    } else {
+      // إشعار وقت الصلاة
+      title = NotificationMessages.getPrayerTimeTitle(arabicName);
+      body = NotificationMessages.getPrayerTimeBody(arabicName);
+    }
     
     final notification = NotificationData(
       id: id,
-      title: minutesBefore > 0 
-          ? 'اقترب وقت $arabicName'
-          : 'حان وقت $arabicName',
-      body: minutesBefore > 0
-          ? 'بعد $minutesBefore دقيقة'
-          : 'حان الآن وقت صلاة $arabicName',
+      title: title,
+      body: body,
       category: NotificationCategory.prayer,
       priority: NotificationPriority.high,
       scheduledTime: scheduledTime,
       repeatType: NotificationRepeat.daily,
       payload: {
         'prayer': prayerName,
+        'arabicName': arabicName,
         'time': time.toIso8601String(),
+        'minutesBefore': minutesBefore,
       },
     );
     
     await _service.scheduleNotification(notification);
+    
+    debugPrint('[NotificationManager] جدولة إشعار $arabicName: $title');
   }
   
   /// إلغاء جميع إشعارات الصلاة
@@ -78,12 +92,13 @@ class NotificationManager {
   
   // ========== إشعارات الأذكار ==========
   
-  /// جدولة تذكير الأذكار
+  /// جدولة تذكير الأذكار (محدث مع رسائل محسّنة)
   Future<void> scheduleAthkarReminder({
     required String categoryId,
     required String categoryName,
     required TimeOfDay time,
     NotificationRepeat repeat = NotificationRepeat.daily,
+    bool useMotivationalMessage = false, // خيار لاستخدام رسالة تحفيزية عشوائية
   }) async {
     final now = DateTime.now();
     var scheduledDate = DateTime(
@@ -99,10 +114,18 @@ class NotificationManager {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
     
+    // استخدام الرسائل من الثوابت 👇
+    final message = NotificationMessages.getAthkarMessage(categoryId, categoryName);
+    
+    // إذا أردنا استخدام رسالة تحفيزية عشوائية
+    final body = useMotivationalMessage 
+        ? NotificationMessages.getRandomMotivation()
+        : message['body']!;
+    
     final notification = NotificationData(
       id: 'athkar_$categoryId',
-      title: 'وقت $categoryName',
-      body: 'حان وقت قراءة $categoryName',
+      title: message['title']!,
+      body: body,
       category: NotificationCategory.athkar,
       priority: NotificationPriority.normal,
       scheduledTime: scheduledDate,
@@ -110,10 +133,13 @@ class NotificationManager {
       payload: {
         'categoryId': categoryId,
         'categoryName': categoryName,
+        'type': 'athkar_reminder',
       },
     );
     
     await _service.scheduleNotification(notification);
+    
+    debugPrint('[NotificationManager] جدولة تذكير أذكار $categoryName: ${message['title']}');
   }
   
   /// إلغاء تذكير أذكار محدد
@@ -128,16 +154,20 @@ class NotificationManager {
   
   // ========== إشعارات بسيطة ==========
   
-  /// عرض إشعار فوري (الوظيفة الأساسية الوحيدة المطلوبة)
+  /// عرض إشعار فوري (محدث)
   Future<void> showInstantNotification({
     required String title,
     required String body,
     Map<String, dynamic>? payload,
     NotificationPriority priority = NotificationPriority.normal,
+    String? emoji,
   }) async {
+    // إضافة رمز تعبيري اختياري للعنوان
+    final finalTitle = emoji != null ? '$emoji $title' : title;
+    
     final notification = NotificationData(
       id: 'instant_${DateTime.now().millisecondsSinceEpoch}',
-      title: title,
+      title: finalTitle,
       body: body,
       category: NotificationCategory.system,
       priority: priority,
@@ -145,6 +175,111 @@ class NotificationManager {
     );
     
     await _service.showNotification(notification);
+  }
+  
+  // ========== إشعارات مساعدة محسّنة ==========
+  
+  /// إشعار نجاح العملية
+  Future<void> showSuccessNotification(String message) async {
+    await showInstantNotification(
+      title: 'نجحت العملية',
+      body: message,
+      emoji: '✅',
+      priority: NotificationPriority.normal,
+    );
+  }
+  
+  /// إشعار خطأ
+  Future<void> showErrorNotification(String message) async {
+    await showInstantNotification(
+      title: 'حدث خطأ',
+      body: message,
+      emoji: '❌',
+      priority: NotificationPriority.high,
+    );
+  }
+  
+  /// إشعار تحذير
+  Future<void> showWarningNotification(String message) async {
+    await showInstantNotification(
+      title: 'تنبيه',
+      body: message,
+      emoji: '⚠️',
+      priority: NotificationPriority.normal,
+    );
+  }
+  
+  /// إشعار معلومات
+  Future<void> showInfoNotification(String message) async {
+    await showInstantNotification(
+      title: 'معلومة',
+      body: message,
+      emoji: 'ℹ️',
+      priority: NotificationPriority.low,
+    );
+  }
+  
+  /// إشعار إنجاز (عند إتمام الأذكار مثلاً)
+  Future<void> showAchievementNotification({
+    required String title,
+    String? customMessage,
+  }) async {
+    final message = customMessage ?? NotificationMessages.getRandomCompletionMessage();
+    
+    await showInstantNotification(
+      title: title,
+      body: message,
+      emoji: '🎉',
+      priority: NotificationPriority.normal,
+      payload: {
+        'type': 'achievement',
+        'timestamp': DateTime.now().toIso8601String(),
+      },
+    );
+  }
+  
+  /// إشعار تحفيزي عشوائي للأذكار
+  Future<void> showMotivationalNotification() async {
+    final message = NotificationMessages.getRandomMotivation();
+    
+    await showInstantNotification(
+      title: 'تذكير',
+      body: message,
+      emoji: '💚',
+      priority: NotificationPriority.low,
+      payload: {
+        'type': 'motivational',
+      },
+    );
+  }
+  
+  /// إشعار نصيحة يومية
+  Future<void> showDailyTip() async {
+    final tip = NotificationMessages.getRandomTip();
+    
+    await showInstantNotification(
+      title: 'نصيحة اليوم',
+      body: tip,
+      emoji: '💡',
+      priority: NotificationPriority.low,
+      payload: {
+        'type': 'daily_tip',
+      },
+    );
+  }
+  
+  /// إشعار ترحيب حسب الوقت
+  Future<void> showTimeBasedGreeting() async {
+    final greeting = NotificationMessages.getTimeBasedGreeting();
+    
+    await showInstantNotification(
+      title: 'مرحباً',
+      body: greeting,
+      priority: NotificationPriority.low,
+      payload: {
+        'type': 'greeting',
+      },
+    );
   }
   
   // ========== الإعدادات الأساسية ==========
@@ -169,13 +304,84 @@ class NotificationManager {
     return _service.cancelAllNotifications();
   }
   
-  /// الحصول على الإشعارات المجدولة (للتوافق مع الكود الموجود)
+  /// الحصول على الإشعارات المجدولة
   Future<List<NotificationData>> getScheduledNotifications() {
     return _service.getScheduledNotifications();
+  }
+  
+  /// الحصول على عدد الإشعارات المجدولة
+  Future<int> getScheduledNotificationsCount() async {
+    final notifications = await getScheduledNotifications();
+    return notifications.length;
+  }
+  
+  /// الحصول على إشعارات الصلاة المجدولة فقط
+  Future<List<NotificationData>> getScheduledPrayerNotifications() async {
+    final all = await getScheduledNotifications();
+    return all.where((n) => n.category == NotificationCategory.prayer).toList();
+  }
+  
+  /// الحصول على إشعارات الأذكار المجدولة فقط
+  Future<List<NotificationData>> getScheduledAthkarNotifications() async {
+    final all = await getScheduledNotifications();
+    return all.where((n) => n.category == NotificationCategory.athkar).toList();
   }
   
   /// التنظيف
   Future<void> dispose() {
     return _service.dispose();
+  }
+  
+  // ========== دوال مساعدة للتصحيح ==========
+  
+  /// طباعة معلومات الإشعارات المجدولة (للتطوير)
+  Future<void> debugPrintScheduledNotifications() async {
+    final notifications = await getScheduledNotifications();
+    
+    debugPrint('═══════════════════════════════════════');
+    debugPrint('إجمالي الإشعارات المجدولة: ${notifications.length}');
+    debugPrint('═══════════════════════════════════════');
+    
+    if (notifications.isEmpty) {
+      debugPrint('لا توجد إشعارات مجدولة');
+      return;
+    }
+    
+    // تصنيف الإشعارات
+    final byCategory = <NotificationCategory, List<NotificationData>>{};
+    
+    for (final notif in notifications) {
+      byCategory.putIfAbsent(notif.category, () => []).add(notif);
+    }
+    
+    // طباعة كل فئة
+    byCategory.forEach((category, list) {
+      debugPrint('\n📌 ${_getCategoryName(category)}: ${list.length}');
+      
+      for (final notif in list) {
+        debugPrint('  ├─ ${notif.title}');
+        if (notif.scheduledTime != null) {
+          debugPrint('  │  الوقت: ${notif.scheduledTime}');
+        }
+      }
+    });
+    
+    debugPrint('═══════════════════════════════════════\n');
+  }
+  
+  /// الحصول على اسم الفئة بالعربية
+  String _getCategoryName(NotificationCategory category) {
+    switch (category) {
+      case NotificationCategory.prayer:
+        return 'إشعارات الصلاة';
+      case NotificationCategory.athkar:
+        return 'إشعارات الأذكار';
+      case NotificationCategory.quran:
+        return 'إشعارات القرآن';
+      case NotificationCategory.reminder:
+        return 'تذكيرات عامة';
+      case NotificationCategory.system:
+        return 'إشعارات النظام';
+    }
   }
 }
