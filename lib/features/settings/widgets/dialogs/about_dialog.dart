@@ -1,10 +1,8 @@
 // lib/features/settings/widgets/dialogs/app_about_dialog.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../../../app/themes/app_theme.dart';
 
@@ -639,30 +637,6 @@ class _AppAboutDialogState extends State<AppAboutDialog> {
           
           SizedBox(height: 16.h),
           
-          // أزرار الإجراءات
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildActionButton(
-                context,
-                icon: Icons.email_rounded,
-                label: 'تواصل',
-                color: context.primaryColor,
-                onTap: () => _launchUrl('mailto:dhakaranifeedback@gmail.com'),
-              ),
-              SizedBox(width: 20.w),
-              _buildActionButton(
-                context,
-                icon: Icons.share_rounded,
-                label: 'مشاركة',
-                color: AppColors.accent,
-                onTap: _shareApp,
-              ),
-            ],
-          ),
-          
-          SizedBox(height: 20.h),
-          
           // حقوق النشر
           Text(
             '© ${DateTime.now().year} ذكرني. جميع الحقوق محفوظة',
@@ -722,98 +696,6 @@ class _AppAboutDialogState extends State<AppAboutDialog> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          HapticFeedback.lightImpact();
-          onTap();
-        },
-        borderRadius: BorderRadius.circular(12.r),
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-          decoration: BoxDecoration(
-            color: color.withOpacitySafe(0.1),
-            borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(
-              color: color.withOpacitySafe(0.2),
-              width: 1.w,
-            ),
-          ),
-          child: Column(
-            children: [
-              Icon(
-                icon,
-                size: 24.sp,
-                color: color,
-              ),
-              SizedBox(height: 6.h),
-              Text(
-                label,
-                style: context.labelSmall?.copyWith(
-                  color: color,
-                  fontWeight: ThemeConstants.semiBold,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _launchUrl(String urlString) async {
-    try {
-      final uri = Uri.parse(urlString);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'لا يمكن فتح الرابط',
-                style: context.bodyMedium?.copyWith(color: Colors.white),
-              ),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      debugPrint('Error launching URL: $e');
-    }
-  }
-
-  void _shareApp() {
-    Navigator.pop(context);
-    // هنا يمكنك إضافة كود المشاركة
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'شكراً لمشاركة التطبيق مع الآخرين',
-          style: context.bodyMedium?.copyWith(color: Colors.white),
-        ),
-        backgroundColor: AppColors.success,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.r),
-        ),
       ),
     );
   }

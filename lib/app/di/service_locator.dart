@@ -17,6 +17,7 @@ import 'package:athkar_app/core/infrastructure/services/storage/storage_service_
 import 'package:athkar_app/core/infrastructure/services/logger/app_logger.dart';
 import 'package:athkar_app/core/infrastructure/services/performance/performance_monitor.dart';
 import 'package:athkar_app/core/infrastructure/services/memory/leak_tracker_service.dart';
+import 'package:athkar_app/core/infrastructure/services/share/share_service.dart';
 import 'package:athkar_app/features/athkar/services/athkar_service.dart';
 import 'package:athkar_app/features/dua/services/dua_service.dart';
 import 'package:athkar_app/features/prayer_times/services/prayer_times_service.dart';
@@ -96,6 +97,9 @@ class ServiceLocator {
       await _registerNotificationServices();
       _registerDeviceServices();
       _registerErrorHandler();
+      
+      // 5. تسجيل ShareService
+      _registerShareService();
 
       _isEssentialInitialized = true;
       stopwatch.stop();
@@ -330,6 +334,20 @@ class ServiceLocator {
     }
   }
 
+  /// تسجيل ShareService
+  void _registerShareService() {
+    debugPrint('ServiceLocator: Registering share service...');
+    
+    try {
+      if (!getIt.isRegistered<ShareService>()) {
+        getIt.registerLazySingleton<ShareService>(() => ShareService());
+        debugPrint('✅ ShareService registered successfully');
+      }
+    } catch (e) {
+      debugPrint('❌ Error registering ShareService: $e');
+    }
+  }
+
   /// تسجيل خدمات الميزات كـ Lazy (لن تُهيئ حتى الاستخدام الفعلي)
   void _registerFeatureServicesLazy() {
     debugPrint('ServiceLocator: Registering feature services as TRUE LAZY...');
@@ -557,7 +575,8 @@ class ServiceLocator {
            getIt.isRegistered<ThemeNotifier>() &&
            getIt.isRegistered<PermissionService>() &&
            getIt.isRegistered<UnifiedPermissionManager>() &&
-           getIt.isRegistered<BatteryService>();
+           getIt.isRegistered<BatteryService>() &&
+           getIt.isRegistered<ShareService>();
   }
 
   /// فحص أن التطبيق جاهز للعمل (بدون إجبار تهيئة الخدمات)
@@ -725,6 +744,11 @@ extension ServiceLocatorExtensions on BuildContext {
   AppErrorHandler get errorHandler => getIt<AppErrorHandler>();
   BatteryService get batteryService => getIt<BatteryService>();
   ThemeNotifier get themeNotifier => getIt<ThemeNotifier>();
+  
+  // ==================== ShareService ====================
+  /// خدمة المشاركة والنسخ
+  ShareService get shareService => getIt<ShareService>();
+  // ======================================================
   
   // خدمات الميزات (ستُهيئ عند أول استخدام)
   PrayerTimesService get prayerTimesService {

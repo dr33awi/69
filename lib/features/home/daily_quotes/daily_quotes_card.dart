@@ -1,10 +1,10 @@
-// lib/features/home/widgets/daily_quotes_card.dart
+// lib/features/home/daily_quotes/daily_quotes_card.dart
 import 'package:athkar_app/app/themes/app_theme.dart';
+import 'package:athkar_app/core/infrastructure/services/share/share_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:share_plus/share_plus.dart';
 import 'dart:math' as math;
 import 'dart:convert';
 
@@ -650,7 +650,7 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
       case QuoteType.hadith:
         return Icons.auto_stories_rounded;
       case QuoteType.dua:
-        return  FlutterIslamicIcons.solidPrayer;
+        return FlutterIslamicIcons.solidPrayer;
     }
   }
 
@@ -665,17 +665,22 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
     }
   }
 
-  void _copyQuote(BuildContext context, QuoteData quote) {
-    final shareText = '${quote.content}\n\n${quote.source}\n\nمن تطبيق الأذكار';
-    Clipboard.setData(ClipboardData(text: shareText));
-    context.showSuccessSnackBar('تم نسخ النص بنجاح');
-    HapticFeedback.mediumImpact();
-  }
+void _copyQuote(BuildContext context, QuoteData quote) {
+  context.copyDailyQuote(
+    quote.content,
+    quote.source,
+    theme: quote.theme,
+  );
+}
 
   void _shareQuote(BuildContext context, QuoteData quote) {
+    context.shareDailyQuote(
+      quote.content,
+      quote.source,
+      theme: quote.theme,
+    );
+    
     HapticFeedback.lightImpact();
-    final shareText = '${quote.content}\n\n${quote.source}\n\nمن تطبيق الأذكار';
-    Share.share(shareText);
   }
 
   void _showQuoteDetails(BuildContext context, QuoteData quote) {
@@ -903,16 +908,21 @@ class QuoteDetailsModal extends StatelessWidget {
     }
   }
 
-  void _copyQuote(BuildContext context) {
-    final fullText = '${quote.content}\n\n${quote.source}';
-    Clipboard.setData(ClipboardData(text: fullText));
-    context.showSuccessSnackBar('تم نسخ النص بنجاح');
-    HapticFeedback.mediumImpact();
-  }
+void _copyQuote(BuildContext context) {
+  context.copyDailyQuote(
+    quote.content,
+    quote.source,
+    theme: quote.theme,
+  );
+}
 
   void _shareQuote(BuildContext context) {
+    context.shareDailyQuote(
+      quote.content,
+      quote.source,
+      theme: quote.theme,
+    );
+    
     HapticFeedback.lightImpact();
-    final shareText = '${quote.content}\n\n${quote.source}\n\nمن تطبيق الأذكار';
-    Share.share(shareText);
   }
 }

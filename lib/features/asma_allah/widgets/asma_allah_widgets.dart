@@ -1,8 +1,8 @@
 // lib/features/asma_allah/widgets/asma_allah_widgets.dart - محسّن للشاشات الصغيرة
+import 'package:athkar_app/core/infrastructure/services/share/share_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:athkar_app/app/themes/app_theme.dart';
 import '../models/asma_allah_model.dart';
 import '../extensions/asma_allah_extensions.dart';
@@ -408,29 +408,19 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
     return '${truncatedWords.join(' ')}...';
   }
 
-  void _copyName() {
-    final text = '''${widget.item.name}
-
-الشرح والتفسير: ${widget.item.explanation}
-
-من تطبيق أذكاري - أسماء الله الحسنى''';
-
-    Clipboard.setData(ClipboardData(text: text));
-    
-    context.showSuccessSnackBar('تم نسخ الاسم بنجاح');
-    HapticFeedback.mediumImpact();
-  }
+void _copyName() {
+  context.copyAsmaAllah(
+    widget.item.name,
+    widget.item.explanation,
+    meaning: widget.item.meaning,
+  );
+}
 
   void _shareName() {
-    final content = '''${widget.item.name}
-
-الشرح والتفسير: ${widget.item.explanation}
-
-من تطبيق أذكاري - أسماء الله الحسنى''';
-
-    Share.share(
-      content,
-      subject: 'أسماء الله الحسنى - ${widget.item.name}',
+    context.shareAsmaAllah(
+      widget.item.name,
+      widget.item.explanation,
+      meaning: widget.item.meaning,
     );
     
     HapticFeedback.lightImpact();

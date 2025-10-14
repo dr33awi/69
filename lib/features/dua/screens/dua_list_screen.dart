@@ -1,5 +1,6 @@
 // lib/features/dua/screens/dua_list_screen.dart
 
+import 'package:athkar_app/core/infrastructure/services/share/share_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -100,16 +101,17 @@ ${dua.virtue != null ? '\nالفضيلة: ${dua.virtue}' : ''}
     await Share.share(text);
   }
 
-  void _copyDua(DuaItem dua) {
-    Clipboard.setData(ClipboardData(text: dua.arabicText));
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تم نسخ الدعاء'),
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
+void _copyDua(DuaItem dua) {
+  context.copyDua(
+    dua.title,
+    dua.arabicText,
+    transliteration: dua.transliteration,
+    translation: dua.translation,
+    virtue: dua.virtue,
+    source: dua.source,
+    reference: dua.reference,
+  );
+}
 
   void _openDuaDetails(DuaItem dua) {
     HapticFeedback.lightImpact();

@@ -1,9 +1,9 @@
 // lib/features/athkar/screens/athkar_details_screen.dart
+import 'package:athkar_app/core/infrastructure/services/share/share_extensions.dart';
 import 'package:athkar_app/features/athkar/utils/athkar_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../../../core/infrastructure/services/storage/storage_service.dart';
@@ -95,7 +95,7 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
         _loading = false;
       });
       
-    } catch (e) {
+    } catch (e, stackTrace) {
       if (!mounted) return;
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -181,14 +181,15 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
   }
 
   Future<void> _shareProgress() async {
-    final text = '''
-✨ أكملت ${_category!.title} ✨
-${_category!.athkar.map((item) => '✓ ${item.text.truncate(50)}').join('\n')}
-
-تطبيق الأذكار
-    ''';
+    final completedTexts = _category!.athkar
+        .where((item) => _completedItems.contains(item.id))
+        .map((item) => item.text.truncate(50))
+        .toList();
     
-    await Share.share(text);
+    await context.shareService.shareAthkarProgress(
+      _category!.title,
+      completedTexts,
+    );
   }
 
   void _resetAll() {
@@ -210,16 +211,12 @@ ${_category!.athkar.map((item) => '✓ ${item.text.truncate(50)}').join('\n')}
   }
 
   Future<void> _shareItem(AthkarItem item) async {
-    final text = '''
-${item.text}
-
-${item.fadl != null ? 'الفضيلة: ${item.fadl}\n' : ''}
-${item.source != null ? 'المصدر: ${item.source}' : ''}
-
-تطبيق الأذكار
-''';
-    
-    await Share.share(text);
+    await context.shareAthkar(
+      item.text,
+      fadl: item.fadl,
+      source: item.source,
+      categoryTitle: _category!.title,
+    );
   }
 
   void _showFontSizeDialog() {

@@ -1,10 +1,10 @@
 // lib/features/asma_allah/screens/asma_detail_screen.dart - محسن للشاشات الصغيرة
 import 'dart:ui';
 import 'package:athkar_app/app/themes/app_theme.dart';
+import 'package:athkar_app/core/infrastructure/services/share/share_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../models/asma_allah_model.dart';
 import '../services/asma_allah_service.dart';
@@ -532,29 +532,19 @@ class _UnifiedAsmaAllahDetailsScreenState
     }
   }
 
-  void _copyContent(AsmaAllahModel item) {
-    final content = '''${item.name}
-
-الشرح والتفسير: ${item.explanation}
-
-من تطبيق أذكاري - أسماء الله الحسنى''';
-
-    Clipboard.setData(ClipboardData(text: content));
-    
-    context.showSuccessSnackBar('تم نسخ المحتوى بنجاح');
-    HapticFeedback.mediumImpact();
-  }
+void _copyContent(AsmaAllahModel item) {
+  context.copyAsmaAllah(
+    item.name,
+    item.explanation,
+    meaning: item.meaning,
+  );
+}
 
   void _shareContent(AsmaAllahModel item) {
-    final content = '''${item.name}
-
-الشرح والتفسير: ${item.explanation}
-
-من تطبيق أذكاري - أسماء الله الحسنى''';
-
-    Share.share(
-      content,
-      subject: 'أسماء الله الحسنى - ${item.name}',
+    context.shareAsmaAllah(
+      item.name,
+      item.explanation,
+      meaning: item.meaning,
     );
     
     HapticFeedback.lightImpact();

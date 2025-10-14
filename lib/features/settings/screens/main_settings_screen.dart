@@ -1,11 +1,11 @@
 // lib/features/settings/screens/main_settings_screen.dart
 // محدث: مبسط باستخدام الـ widgets المنفصلة
 
+import 'package:athkar_app/core/infrastructure/services/share/share_extensions.dart';
 import 'package:athkar_app/features/settings/widgets/dialogs/about_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:in_app_review/in_app_review.dart';
 
@@ -236,12 +236,7 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
   }
 
   void _shareApp() {
-    Share.share(
-      'جرب تطبيق حصن المسلم - تطبيق شامل للأذكار والأدعية\n'
-      'حمل التطبيق الآن من:\n'
-      'https://play.google.com/store/apps/details?id=com.yourapp.athkar',
-      subject: 'تطبيق حصن المسلم',
-    );
+    context.shareApp();
   }
 
   Future<void> _rateApp() async {

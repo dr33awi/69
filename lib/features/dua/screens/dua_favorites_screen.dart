@@ -1,9 +1,9 @@
 // lib/features/dua/screens/dua_favorites_screen.dart
 
+import 'package:athkar_app/core/infrastructure/services/share/share_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../services/dua_service.dart';
@@ -109,46 +109,38 @@ class _DuaFavoritesScreenState extends State<DuaFavoritesScreen> {
   Future<void> _shareAllFavorites() async {
     if (_favoriteDuas.isEmpty) return;
     
-    final text = '''
-أدعيتي المفضلة
-
-${_favoriteDuas.map((dua) => '''
-${dua.title}
-${dua.arabicText}
-${dua.source} - ${dua.reference}
-━━━━━━━━━━━━━━━
-''').join('\n')}
-
-تطبيق الأذكار والأدعية
-''';
+    final duasMap = _favoriteDuas.map((dua) => {
+      'title': dua.title,
+      'text': dua.arabicText,
+      'source': '${dua.source} - ${dua.reference}',
+    }).toList();
     
-    await Share.share(text);
+    await context.shareService.shareFavoriteDuas(duasMap);
   }
 
   Future<void> _shareDua(DuaItem dua) async {
-    final text = '''
-${dua.arabicText}
-
-${dua.title}
-${dua.virtue != null ? '\nالفضيلة: ${dua.virtue}' : ''}
-المصدر: ${dua.source} - ${dua.reference}
-
-تطبيق الأذكار والأدعية
-''';
-    
-    await Share.share(text);
-  }
-
-  void _copyDua(DuaItem dua) {
-    Clipboard.setData(ClipboardData(text: dua.arabicText));
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تم نسخ الدعاء'),
-        duration: Duration(seconds: 2),
-      ),
+    await context.shareDua(
+      dua.title,
+      dua.arabicText,
+      transliteration: dua.transliteration,
+      translation: dua.translation,
+      virtue: dua.virtue,
+      source: dua.source,
+      reference: dua.reference,
     );
   }
+
+void _copyDua(DuaItem dua) {
+  context.copyDua(
+    dua.title,
+    dua.arabicText,
+    transliteration: dua.transliteration,
+    translation: dua.translation,
+    virtue: dua.virtue,
+    source: dua.source,
+    reference: dua.reference,
+  );
+}
 
   void _openDuaDetails(DuaItem dua) {
     final category = _categories.firstWhere(

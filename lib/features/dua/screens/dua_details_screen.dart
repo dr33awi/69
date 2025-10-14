@@ -1,9 +1,9 @@
 // lib/features/dua/screens/dua_details_screen.dart
 
+import 'package:athkar_app/core/infrastructure/services/share/share_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../services/dua_service.dart';
@@ -76,30 +76,29 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
     );
   }
 
-  void _copyDua() {
-    final text = '''${_currentDua.arabicText}
-
-${_currentDua.title}
-${_currentDua.virtue != null ? '\nالفضيلة: ${_currentDua.virtue}' : ''}
-المصدر: ${_currentDua.source} - ${_currentDua.reference}
-
-من تطبيق أذكاري''';
-    
-    Clipboard.setData(ClipboardData(text: text));
-    context.showSuccessSnackBar('تم نسخ الدعاء بنجاح');
-    HapticFeedback.mediumImpact();
-  }
+void _copyDua() {
+  context.copyDua(
+    _currentDua.title,
+    _currentDua.arabicText,
+    transliteration: _currentDua.transliteration,
+    translation: _currentDua.translation,
+    virtue: _currentDua.virtue,
+    source: _currentDua.source,
+    reference: _currentDua.reference,
+  );
+}
 
   void _shareDua() {
-    final text = '''${_currentDua.arabicText}
-
-${_currentDua.title}
-${_currentDua.virtue != null ? '\nالفضيلة: ${_currentDua.virtue}' : ''}
-المصدر: ${_currentDua.source} - ${_currentDua.reference}
-
-من تطبيق أذكاري''';
+    context.shareDua(
+      _currentDua.title,
+      _currentDua.arabicText,
+      transliteration: _currentDua.transliteration,
+      translation: _currentDua.translation,
+      virtue: _currentDua.virtue,
+      source: _currentDua.source,
+      reference: _currentDua.reference,
+    );
     
-    Share.share(text, subject: 'دعاء - ${_currentDua.title}');
     HapticFeedback.lightImpact();
   }
 

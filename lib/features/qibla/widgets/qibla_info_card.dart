@@ -1,6 +1,5 @@
 // lib/features/qibla/widgets/qibla_info_card.dart - للشاشات الصغيرة
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
 import '../models/qibla_model.dart';
@@ -313,13 +312,11 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
                 context: context,
                 label: 'خط العرض',
                 value: '${widget.qiblaData.latitude.toStringAsFixed(6)}°',
-                onTap: () => _copyToClipboard(context, widget.qiblaData.latitude.toString(), 'خط العرض'),
               ),
               _buildDetailRow(
                 context: context,
                 label: 'خط الطول',
                 value: '${widget.qiblaData.longitude.toStringAsFixed(6)}°',
-                onTap: () => _copyToClipboard(context, widget.qiblaData.longitude.toString(), 'خط الطول'),
               ),
             ],
           ),
@@ -511,56 +508,35 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
     required String label,
     required String value,
     Color? valueColor,
-    VoidCallback? onTap,
   }) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 3.h),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(6.r),
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 3.w,
-              vertical: 3.h,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      color: context.textSecondaryColor,
-                      fontSize: 10.sp,
-                    ),
-                  ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: 3.w,
+          vertical: 3.h,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: context.textSecondaryColor,
+                  fontSize: 10.sp,
                 ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      value,
-                      style: TextStyle(
-                        fontWeight: ThemeConstants.medium,
-                        color: valueColor ?? context.textPrimaryColor,
-                        fontSize: 10.sp,
-                      ),
-                    ),
-                    if (onTap != null) ...[
-                      SizedBox(width: 3.w),
-                      Icon(
-                        Icons.copy,
-                        size: 16.sp,
-                        color: context.textSecondaryColor.withOpacity(0.5),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
+              ),
             ),
-          ),
+            Text(
+              value,
+              style: TextStyle(
+                fontWeight: ThemeConstants.medium,
+                color: valueColor ?? context.textPrimaryColor,
+                fontSize: 10.sp,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -660,21 +636,6 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
     if (widget.qiblaData.isStale) return ThemeConstants.warning;
     if (widget.qiblaData.isVeryStale) return ThemeConstants.error;
     return context.textSecondaryColor;
-  }
-
-  void _copyToClipboard(BuildContext context, String text, String label) {
-    if (!widget.enableInteraction) return;
-
-    Clipboard.setData(ClipboardData(text: text));
-    HapticFeedback.lightImpact();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('تم نسخ $label: $text', style: TextStyle(fontSize: 11.sp)),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
   }
 
   void _showDirectionDetails(BuildContext context) {

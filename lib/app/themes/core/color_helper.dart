@@ -98,7 +98,7 @@ class AppColors {
       case 'dua': return duaColor;
       case 'qibla': return qiblaColor;
       case 'tasbih': return tasbihColor;
-      default: return primary;
+      default: return const Color(0xFF5D7052);
     }
   }
 

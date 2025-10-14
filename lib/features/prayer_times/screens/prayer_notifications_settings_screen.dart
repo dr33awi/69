@@ -472,7 +472,10 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
                   width: 70.w,
                   child: DropdownButtonFormField<int>(
                     value: minutesBefore,
-                    style: TextStyle(fontSize: 12.sp),
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: context.textPrimaryColor,
+                    ),
                     decoration: InputDecoration(
                       isDense: true,
                       contentPadding: EdgeInsets.symmetric(
@@ -483,7 +486,13 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
                     items: [0, 5, 10, 15, 20, 25, 30, 45, 60]
                         .map((minutes) => DropdownMenuItem(
                               value: minutes,
-                              child: Text('$minutes'),
+                              child: Text(
+                                '$minutes',
+                                style: TextStyle(
+                                  color: context.textPrimaryColor,
+                                  fontSize: 12.sp,
+                                ),
+                              ),
                             ))
                         .toList(),
                     onChanged: (value) {
