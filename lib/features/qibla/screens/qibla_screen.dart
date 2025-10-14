@@ -1,4 +1,4 @@
-// lib/features/qibla/screens/qibla_screen_v2.dart
+// lib/features/qibla/screens/qibla_screen.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
@@ -12,16 +12,18 @@ import '../../../core/infrastructure/services/permissions/permission_service.dar
 import '../services/qibla_service.dart';
 import '../widgets/qibla_compass.dart';
 import '../widgets/qibla_info_card.dart';
+import '../widgets/compass_calibration_sheet.dart';
+import '../widgets/qibla_accuracy_indicator.dart';
 
-/// شاشة القبلة باستخدام flutter_qiblah
+/// شاشة القبلة المحسنة
 class QiblaScreen extends StatefulWidget {
   const QiblaScreen({super.key});
 
   @override
-  State<QiblaScreen> createState() => _QiblaScreenV2State();
+  State<QiblaScreen> createState() => _QiblaScreenState();
 }
 
-class _QiblaScreenV2State extends State<QiblaScreen>
+class _QiblaScreenState extends State<QiblaScreen>
     with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   
   late final QiblaService _qiblaService;
@@ -57,7 +59,7 @@ class _QiblaScreenV2State extends State<QiblaScreen>
         }
       });
     } catch (e) {
-      debugPrint('[QiblaScreenV2] خطأ في تهيئة الشاشة: $e');
+      debugPrint('[QiblaScreen] خطأ في تهيئة الشاشة: $e');
     }
   }
 
@@ -86,11 +88,25 @@ class _QiblaScreenV2State extends State<QiblaScreen>
         });
       }
     } catch (e) {
-      debugPrint('[QiblaScreenV2] خطأ في تحديث البيانات: $e');
+      debugPrint('[QiblaScreen] خطأ في تحديث البيانات: $e');
       if (mounted) {
         _showErrorSnackbar(e.toString());
       }
     }
+  }
+
+  void _showCalibrationSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => CompassCalibrationSheet(
+        onStartCalibration: () {
+          _qiblaService.startCalibration();
+        },
+        initialAccuracy: _qiblaService.compassAccuracy * 100,
+      ),
+    );
   }
 
   void _showErrorSnackbar(String message) {
@@ -105,18 +121,6 @@ class _QiblaScreenV2State extends State<QiblaScreen>
           onPressed: () => _updateQiblaData(forceUpdate: true),
           textColor: Colors.white,
         ),
-      ),
-    );
-  }
-
-  void _showSuccessSnackbar(String message) {
-    if (!mounted) return;
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: TextStyle(fontSize: 12.sp)),
-        backgroundColor: ThemeConstants.success,
-        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -174,7 +178,20 @@ class _QiblaScreenV2State extends State<QiblaScreen>
                               SizedBox(height: 12.h),
                               
                               if (service.qiblaData != null) ...[
-                                QiblaInfoCard(qiblaData: service.qiblaData!),
+                                QiblaInfoCard(
+                                  qiblaData: service.qiblaData!,
+                                  currentDirection: service.currentDirection,
+                                ),
+                                SizedBox(height: 12.h),
+                                
+                                // مؤشر دقة البوصلة
+                                if (service.hasCompass)
+                                  QiblaAccuracyIndicator(
+                                    accuracy: service.compassAccuracy * 100,
+                                    isCalibrated: service.isCalibrated,
+                                    onCalibrate: _showCalibrationSheet,
+                                  ),
+                                
                                 SizedBox(height: 12.h),
                               ],
                               
@@ -256,6 +273,14 @@ class _QiblaScreenV2State extends State<QiblaScreen>
             ),
           ),
           
+          // زر المعايرة
+          if (service.hasCompass && !service.isCalibrated)
+            _buildActionButton(
+              icon: Icons.compass_calibration,
+              onTap: _showCalibrationSheet,
+              isSecondary: true,
+            ),
+          
           _buildActionButton(
             icon: service.isLoading
                 ? Icons.hourglass_empty
@@ -321,7 +346,9 @@ class _QiblaScreenV2State extends State<QiblaScreen>
   }
 
   String _getStatusText(QiblaService service) {
-    if (service.isLoading) {
+    if (service.isCalibrating) {
+      return 'جاري المعايرة...';
+    } else if (service.isLoading) {
       return 'جاري التحديث...';
     } else if (service.errorMessage != null) {
       return 'خطأ في التحديث';
@@ -332,6 +359,7 @@ class _QiblaScreenV2State extends State<QiblaScreen>
   }
 
   Color _getStatusColor(QiblaService service) {
+    if (service.isCalibrating) return ThemeConstants.info;
     if (service.isLoading) return ThemeConstants.warning;
     if (service.errorMessage != null) return ThemeConstants.error;
     if (service.qiblaData != null) return context.primaryColor;
@@ -339,6 +367,11 @@ class _QiblaScreenV2State extends State<QiblaScreen>
   }
 
   Widget _buildMainContent(QiblaService service) {
+    // حالة المعايرة
+    if (service.isCalibrating) {
+      return _buildCalibrationState(service);
+    }
+    
     if (service.qiblaData != null) {
       return _buildCompassView(service);
     }
@@ -358,6 +391,83 @@ class _QiblaScreenV2State extends State<QiblaScreen>
     return _buildInitialState();
   }
 
+  Widget _buildCalibrationState(QiblaService service) {
+    return Container(
+      constraints: BoxConstraints(
+        minHeight: 240.h,
+        maxHeight: 300.h,
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 120.w,
+            height: 120.w,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: ThemeConstants.info.withOpacity(0.1),
+              border: Border.all(
+                color: ThemeConstants.info,
+                width: 3.w,
+              ),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: 100.w,
+                  height: 100.w,
+                  child: CircularProgressIndicator(
+                    value: service.calibrationProgress / 100,
+                    strokeWidth: 8.w,
+                    backgroundColor: ThemeConstants.info.withOpacity(0.2),
+                    valueColor: const AlwaysStoppedAnimation(ThemeConstants.info),
+                  ),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.compass_calibration,
+                      size: 36.sp,
+                      color: ThemeConstants.info,
+                    ),
+                    SizedBox(height: 4.h),
+                    Text(
+                      '${service.calibrationProgress}%',
+                      style: TextStyle(
+                        fontSize: 18.sp,
+                        fontWeight: ThemeConstants.bold,
+                        color: ThemeConstants.info,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            service.calibrationMessage,
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            'حرك هاتفك في شكل رقم 8',
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: context.textSecondaryColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCompassView(QiblaService service) {
     return Container(
       constraints: BoxConstraints(
@@ -371,25 +481,32 @@ class _QiblaScreenV2State extends State<QiblaScreen>
             child: QiblaCompass(
               qiblaDirection: service.qiblaData!.qiblaDirection,
               currentDirection: service.currentDirection,
-              accuracy: 1.0, // flutter_qiblah دائماً دقيقة
-              isCalibrated: true,
+              accuracy: service.compassAccuracy,
+              isCalibrated: service.isCalibrated,
+              onCalibrate: _showCalibrationSheet,
             ),
           ),
           
           if (service.isLoading)
             Positioned(
-              top: 4.h,
-              right: 4.w,
+              top: 8.h,
+              right: 8.w,
               child: Container(
-                padding: EdgeInsets.all(4.w),
+                padding: EdgeInsets.symmetric(
+                  horizontal: 8.w,
+                  vertical: 4.h,
+                ),
                 decoration: BoxDecoration(
-                  color: context.cardColor.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(8.r),
+                  color: context.cardColor.withOpacity(0.95),
+                  borderRadius: BorderRadius.circular(20.r),
+                  border: Border.all(
+                    color: ThemeConstants.primary.withOpacity(0.3),
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 2.r,
-                      offset: Offset(0, 1.h),
+                      color: ThemeConstants.primary.withOpacity(0.2),
+                      blurRadius: 8.r,
+                      offset: Offset(0, 2.h),
                     ),
                   ],
                 ),
@@ -397,16 +514,22 @@ class _QiblaScreenV2State extends State<QiblaScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     SizedBox(
-                      width: 12.w,
-                      height: 12.w,
-                      child: CircularProgressIndicator(strokeWidth: 1.5.w),
+                      width: 14.w,
+                      height: 14.w,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.w,
+                        valueColor: const AlwaysStoppedAnimation(
+                          ThemeConstants.primary,
+                        ),
+                      ),
                     ),
-                    SizedBox(width: 4.w),
+                    SizedBox(width: 6.w),
                     Text(
-                      'تحديث...',
+                      'تحديث الموقع...',
                       style: TextStyle(
-                        fontSize: 10.sp,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 11.sp,
+                        fontWeight: FontWeight.w600,
+                        color: ThemeConstants.primary,
                       ),
                     ),
                   ],
