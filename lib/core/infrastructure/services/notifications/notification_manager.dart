@@ -4,9 +4,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'notification_service.dart';
 import 'models/notification_models.dart';
-import 'constants/notification_messages.dart'; // 👈 استيراد الثوابت الجديدة
+import 'constants/notification_messages.dart';
 
-/// مدير مركزي للإشعارات (محدث مع رسائل محسّنة)
+/// مدير مركزي للإشعارات
 class NotificationManager {
   final NotificationService _service;
   
@@ -40,7 +40,7 @@ class NotificationManager {
   
   // ========== إشعارات الصلاة ==========
   
-  /// جدولة إشعار الصلاة (محدث مع رسائل محسّنة)
+  /// جدولة إشعار الصلاة
   Future<void> schedulePrayerNotification({
     required String prayerName,
     required String arabicName,
@@ -50,7 +50,6 @@ class NotificationManager {
     final scheduledTime = time.subtract(Duration(minutes: minutesBefore));
     final id = 'prayer_${prayerName}_${minutesBefore}_${time.millisecondsSinceEpoch}';
     
-    // استخدام الرسائل من الثوابت 👇
     String title;
     String body;
     
@@ -92,13 +91,13 @@ class NotificationManager {
   
   // ========== إشعارات الأذكار ==========
   
-  /// جدولة تذكير الأذكار (محدث مع رسائل محسّنة)
+  /// جدولة تذكير الأذكار
   Future<void> scheduleAthkarReminder({
     required String categoryId,
     required String categoryName,
     required TimeOfDay time,
     NotificationRepeat repeat = NotificationRepeat.daily,
-    bool useMotivationalMessage = false, // خيار لاستخدام رسالة تحفيزية عشوائية
+    bool useMotivationalMessage = false,
   }) async {
     final now = DateTime.now();
     var scheduledDate = DateTime(
@@ -114,7 +113,6 @@ class NotificationManager {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
     
-    // استخدام الرسائل من الثوابت 👇
     final message = NotificationMessages.getAthkarMessage(categoryId, categoryName);
     
     // إذا أردنا استخدام رسالة تحفيزية عشوائية
@@ -154,7 +152,7 @@ class NotificationManager {
   
   // ========== إشعارات بسيطة ==========
   
-  /// عرض إشعار فوري (محدث)
+  /// عرض إشعار فوري
   Future<void> showInstantNotification({
     required String title,
     required String body,
@@ -176,8 +174,6 @@ class NotificationManager {
     
     await _service.showNotification(notification);
   }
-  
-  // ========== إشعارات مساعدة محسّنة ==========
   
   /// إشعار نجاح العملية
   Future<void> showSuccessNotification(String message) async {
@@ -216,69 +212,6 @@ class NotificationManager {
       body: message,
       emoji: 'ℹ️',
       priority: NotificationPriority.low,
-    );
-  }
-  
-  /// إشعار إنجاز (عند إتمام الأذكار مثلاً)
-  Future<void> showAchievementNotification({
-    required String title,
-    String? customMessage,
-  }) async {
-    final message = customMessage ?? NotificationMessages.getRandomCompletionMessage();
-    
-    await showInstantNotification(
-      title: title,
-      body: message,
-      emoji: '🎉',
-      priority: NotificationPriority.normal,
-      payload: {
-        'type': 'achievement',
-        'timestamp': DateTime.now().toIso8601String(),
-      },
-    );
-  }
-  
-  /// إشعار تحفيزي عشوائي للأذكار
-  Future<void> showMotivationalNotification() async {
-    final message = NotificationMessages.getRandomMotivation();
-    
-    await showInstantNotification(
-      title: 'تذكير',
-      body: message,
-      emoji: '💚',
-      priority: NotificationPriority.low,
-      payload: {
-        'type': 'motivational',
-      },
-    );
-  }
-  
-  /// إشعار نصيحة يومية
-  Future<void> showDailyTip() async {
-    final tip = NotificationMessages.getRandomTip();
-    
-    await showInstantNotification(
-      title: 'نصيحة اليوم',
-      body: tip,
-      emoji: '💡',
-      priority: NotificationPriority.low,
-      payload: {
-        'type': 'daily_tip',
-      },
-    );
-  }
-  
-  /// إشعار ترحيب حسب الوقت
-  Future<void> showTimeBasedGreeting() async {
-    final greeting = NotificationMessages.getTimeBasedGreeting();
-    
-    await showInstantNotification(
-      title: 'مرحباً',
-      body: greeting,
-      priority: NotificationPriority.low,
-      payload: {
-        'type': 'greeting',
-      },
     );
   }
   

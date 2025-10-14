@@ -1,9 +1,11 @@
-// lib/main.dart - محدث مع Onboarding + معالج الإشعارات
+// lib/main.dart - محدث مع معالجة الإشعارات الكاملة
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 // Firebase imports
 import 'package:firebase_core/firebase_core.dart';
@@ -16,10 +18,10 @@ import 'core/infrastructure/services/permissions/permission_manager.dart';
 import 'core/infrastructure/services/permissions/widgets/permission_monitor.dart';
 import 'core/infrastructure/services/storage/storage_service.dart';
 
-// ==================== 🔔 إضافة: خدمات الإشعارات ====================
+// خدمات الإشعارات
 import 'core/infrastructure/services/notifications/notification_manager.dart';
 import 'core/infrastructure/services/notifications/notification_tap_handler.dart';
-// ====================================================================
+import 'core/infrastructure/services/notifications/models/notification_models.dart';
 
 // خدمات التطوير والمراقبة
 import 'core/infrastructure/config/development_config.dart';
@@ -39,6 +41,11 @@ import 'features/home/screens/home_screen.dart';
 import 'features/onboarding/screens/onboarding_screen.dart';
 import 'features/onboarding/screens/permissions_setup_screen.dart';
 
+// ==================== متغير عام لحفظ الإشعار الأولي ====================
+NotificationAppLaunchDetails? _notificationAppLaunchDetails;
+NotificationTapEvent? _pendingNotificationEvent;
+// ========================================================================
+
 /// نقطة دخول التطبيق
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,14 +55,17 @@ Future<void> main() async {
     DeviceOrientation.portraitDown,
   ]);
   
+  // ==================== الحصول على تفاصيل الإشعار الأولي ====================
+  await _checkInitialNotification();
+  // ===========================================================================
+  
   runZonedGuarded(
     () async {
       try {
         await _fastBootstrap();
         
-        // ==================== 🔔 إضافة: إعداد معالج الإشعارات ====================
+        // إعداد معالج الإشعارات مع معالجة الإشعار المعلق
         await _setupNotificationHandler();
-        // ==========================================================================
         
         final app = const AthkarApp();
         final wrappedApp = DevicePreviewConfig.wrapApp(app);
@@ -76,25 +86,83 @@ Future<void> main() async {
   );
 }
 
-// ==================== 🔔 إضافة: دالة إعداد معالج الإشعارات ====================
-/// إعداد معالج النقر على الإشعارات
+// ==================== دالة جديدة: فحص الإشعار الأولي ====================
+Future<void> _checkInitialNotification() async {
+  try {
+    debugPrint('🔍 [Main] فحص الإشعار الأولي عند بدء التطبيق...');
+    
+    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = 
+        FlutterLocalNotificationsPlugin();
+    
+    // الحصول على تفاصيل الإشعار الذي فتح التطبيق
+    _notificationAppLaunchDetails = await flutterLocalNotificationsPlugin
+        .getNotificationAppLaunchDetails();
+    
+    if (_notificationAppLaunchDetails != null) {
+      final didNotificationLaunchApp = 
+          _notificationAppLaunchDetails!.didNotificationLaunchApp;
+      
+      if (didNotificationLaunchApp) {
+        debugPrint('✅ [Main] التطبيق تم فتحه من إشعار!');
+        
+        final response = _notificationAppLaunchDetails!.notificationResponse;
+        if (response != null && response.payload != null) {
+          debugPrint('📦 [Main] Payload: ${response.payload}');
+          
+          // تحويل الـ payload إلى NotificationTapEvent
+          try {
+            final payloadData = jsonDecode(response.payload!);
+            
+            _pendingNotificationEvent = NotificationTapEvent(
+              notificationId: payloadData['id'] ?? 'unknown',
+              category: NotificationCategory.values[
+                payloadData['category'] ?? 0
+              ],
+              payload: payloadData['payload'] ?? {},
+            );
+            
+            debugPrint('🎯 [Main] تم حفظ الإشعار المعلق للمعالجة');
+            debugPrint('   - Category: ${_pendingNotificationEvent!.category}');
+            debugPrint('   - ID: ${_pendingNotificationEvent!.notificationId}');
+            
+          } catch (e) {
+            debugPrint('❌ [Main] خطأ في تحليل payload: $e');
+          }
+        }
+      } else {
+        debugPrint('ℹ️ [Main] التطبيق لم يتم فتحه من إشعار');
+      }
+    }
+  } catch (e) {
+    debugPrint('❌ [Main] خطأ في فحص الإشعار الأولي: $e');
+  }
+}
+
+// ==================== تحديث دالة إعداد معالج الإشعارات ====================
 Future<void> _setupNotificationHandler() async {
   try {
     debugPrint('🔔 [Main] ========== إعداد معالج الإشعارات ==========');
     
-    // التحقق من تهيئة NotificationManager
-    final hasPermission = await NotificationManager.instance.hasPermission();
-    if (!hasPermission) {
-      debugPrint('⚠️ [Main] NotificationManager لم يتم منحه الأذونات بعد');
-      // سنستمع للإشعارات على أي حال للتعامل مع حالة منح الأذونات لاحقاً
-    }
-    
     // إنشاء معالج الإشعارات
     final handler = NotificationTapHandler(
-      navigatorKey: AppRouter.navigatorKey, // استخدام navigatorKey من AppRouter
+      navigatorKey: AppRouter.navigatorKey,
     );
     
-    // الاستماع لأحداث النقر على الإشعارات
+    // معالجة الإشعار المعلق إن وجد
+    if (_pendingNotificationEvent != null) {
+      debugPrint('🎯 [Main] معالجة الإشعار المعلق...');
+      
+      // تأجيل المعالجة قليلاً للتأكد من جاهزية Navigator
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        if (_pendingNotificationEvent != null) {
+          debugPrint('🚀 [Main] تنفيذ معالجة الإشعار المعلق الآن');
+          handler.handleNotificationTap(_pendingNotificationEvent!);
+          _pendingNotificationEvent = null; // مسح الإشعار بعد المعالجة
+        }
+      });
+    }
+    
+    // الاستماع للإشعارات المستقبلية
     NotificationManager.instance.onTap.listen(
       (event) {
         debugPrint('🔔 [Main] ========================================');
@@ -112,22 +180,20 @@ Future<void> _setupNotificationHandler() async {
       onError: (error) {
         debugPrint('❌ [Main] خطأ في معالجة حدث الإشعار: $error');
       },
-      cancelOnError: false, // الاستمرار في الاستماع حتى بعد الأخطاء
+      cancelOnError: false,
     );
     
     debugPrint('✅ [Main] تم إعداد معالج الإشعارات بنجاح');
     debugPrint('   - Navigator Key: ${AppRouter.navigatorKey}');
     debugPrint('   - Handler: Ready');
     debugPrint('   - Listener: Active');
+    debugPrint('   - Pending Event: ${_pendingNotificationEvent != null ? "Yes" : "No"}');
     
   } catch (e, stackTrace) {
     debugPrint('❌ [Main] خطأ خطير في إعداد معالج الإشعارات: $e');
     debugPrint('Stack trace: $stackTrace');
-    // لا نرمي الخطأ لأن هذا قد يمنع التطبيق من العمل
-    // سنستمر في التشغيل حتى بدون معالج الإشعارات
   }
 }
-// ==============================================================================
 
 Future<void> _fastBootstrap() async {
   debugPrint('========== Fast Bootstrap Starting ==========');
@@ -184,12 +250,10 @@ Future<void> _initializeRemoteConfigEarly() async {
     final remoteConfigService = getIt<FirebaseRemoteConfigService>();
     await remoteConfigService.initialize();
     
-    // فرض جلب البيانات الجديدة
     debugPrint('🔄 Forcing refresh of Remote Config...');
     bool refreshSuccess = await remoteConfigService.refresh();
     debugPrint('  - First refresh result: $refreshSuccess');
     
-    // إذا كانت القيم افتراضية، جرب forceRefreshForTesting
     if (remoteConfigService.requiredAppVersion == "1.0.0" || 
         remoteConfigService.requiredAppVersion == "1.1.0") {
       debugPrint('⚠️ Default values detected, trying force refresh...');
@@ -255,7 +319,7 @@ class AthkarApp extends StatefulWidget {
   State<AthkarApp> createState() => _AthkarAppState();
 }
 
-class _AthkarAppState extends State<AthkarApp> {
+class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
   late final UnifiedPermissionManager _permissionManager;
   RemoteConfigManager? _configManager;
   bool _configManagerReady = false;
@@ -264,12 +328,52 @@ class _AthkarAppState extends State<AthkarApp> {
   void initState() {
     super.initState();
     
+    // إضافة observer لمراقبة حالة التطبيق
+    WidgetsBinding.instance.addObserver(this);
+    
     _permissionManager = getIt<UnifiedPermissionManager>();
     
     _initializeConfigManager();
     
     // فحص أولي للأذونات (فقط إذا تم تجاوز Onboarding)
     _scheduleInitialPermissionCheck();
+    
+    // معالجة أي إشعار معلق بعد بناء الواجهة
+    _processPendingNotificationIfAny();
+  }
+  
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    debugPrint('🔄 [AthkarApp] App lifecycle state: $state');
+    
+    if (state == AppLifecycleState.resumed) {
+      // التطبيق عاد للواجهة - فحص إذا كان هناك إشعار معلق
+      _processPendingNotificationIfAny();
+    }
+  }
+  
+  void _processPendingNotificationIfAny() {
+    // هذه الدالة للتأكد من معالجة أي إشعار معلق
+    if (_pendingNotificationEvent != null) {
+      debugPrint('🎯 [AthkarApp] وجد إشعار معلق، سيتم معالجته...');
+      
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (_pendingNotificationEvent != null && mounted) {
+          final handler = NotificationTapHandler(
+            navigatorKey: AppRouter.navigatorKey,
+          );
+          
+          handler.handleNotificationTap(_pendingNotificationEvent!);
+          _pendingNotificationEvent = null;
+        }
+      });
+    }
   }
 
   void _initializeConfigManager() {
@@ -357,9 +461,8 @@ class _AthkarAppState extends State<AthkarApp> {
                 GlobalCupertinoLocalizations.delegate,
               ],
               
-              // ==================== 🔔 مهم: استخدام navigatorKey ====================
+              // استخدام navigatorKey
               navigatorKey: AppRouter.navigatorKey,
-              // ======================================================================
               
               home: _buildInitialScreen(),
               

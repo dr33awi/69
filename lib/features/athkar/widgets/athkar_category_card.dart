@@ -20,7 +20,6 @@ class AthkarCategoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final categoryColor = CategoryUtils.getCategoryThemeColor(category.id);
     final categoryIcon = CategoryUtils.getCategoryIcon(category.id);
-    final description = CategoryUtils.getCategoryDescription(category.id);
     
     return GestureDetector(
       onTap: () {

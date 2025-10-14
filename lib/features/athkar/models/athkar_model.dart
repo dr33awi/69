@@ -112,61 +112,6 @@ class AthkarCategory {
       return null;
     }
   }
-
-  /// نسخة محدثة من الفئة مع أذكار جديدة
-  AthkarCategory copyWith({
-    String? id,
-    String? title,
-    String? description,
-    IconData? icon,
-    Color? color,
-    TimeOfDay? notifyTime,
-    List<AthkarItem>? athkar,
-  }) {
-    return AthkarCategory(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      description: description ?? this.description,
-      icon: icon ?? this.icon,
-      color: color ?? this.color,
-      notifyTime: notifyTime ?? this.notifyTime,
-      athkar: athkar ?? this.athkar,
-    );
-  }
-
-  /// عدد الأذكار في الفئة
-  int get itemCount => athkar.length;
-
-  /// إجمالي عدد المرات المطلوبة لإكمال الفئة
-  int get totalCount => athkar.fold(0, (sum, item) => sum + item.count);
-
-  /// التحقق من اكتمال فئة بناءً على التقدم
-  bool isCompleted(Map<int, int> progress) {
-    for (final item in athkar) {
-      final currentCount = progress[item.id] ?? 0;
-      if (currentCount < item.count) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /// حساب نسبة التقدم
-  double getProgressPercentage(Map<int, int> progress) {
-    if (athkar.isEmpty) return 0.0;
-    
-    int completed = 0;
-    int total = 0;
-    
-    for (final item in athkar) {
-      final currentCount = progress[item.id] ?? 0;
-      completed += currentCount.clamp(0, item.count);
-      total += item.count;
-    }
-    
-    if (total == 0) return 0.0;
-    return (completed / total).clamp(0.0, 1.0);
-  }
 }
 
 /// كلاس لتحليل البيانات من JSON
