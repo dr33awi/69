@@ -55,7 +55,9 @@ dependencies:
   # --- Development & Performance ---
   logger: ^2.4.0
   flutter_islamic_icons: ^1.0.2
-  flutter_qiblah: ^3.0.4
+  flutter_compass: ^0.8.1
+  geolocator: ^14.0.2
+
 
 
 

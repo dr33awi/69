@@ -1,4 +1,4 @@
-// lib/features/qibla/widgets/qibla_compass.dart - الإصلاح
+// lib/features/qibla/widgets/qibla_compass.dart - بدون عرض الاتجاه الحالي
 import 'dart:math' as math;
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -439,122 +439,66 @@ class _QiblaCompassState extends State<QiblaCompass>
   Widget _buildStatusInfo(double size) {
     return Positioned(
       bottom: size * 0.1,
-      child: AnimatedBuilder(
-        animation: _rotationAnimation,
-        builder: (context, child) {
-          // عرض القيمة الحالية بشكل سلس
-          final displayDirection = _rotationController.isAnimating
-              ? _rotationAnimation.value % 360
-              : widget.currentDirection;
-          
-          return Column(
-            children: [
-              AnimatedContainer(
-                duration: _animationDuration,
-                padding: EdgeInsets.symmetric(
-                  horizontal: _isPointingToQibla ? 12.w : 10.w,
-                  vertical: _isPointingToQibla ? 6.h : 4.h,
-                ),
-                decoration: BoxDecoration(
-                  color: context.cardColor.withOpacity(0.95),
-                  borderRadius: BorderRadius.circular(12.r),
-                  border: Border.all(
-                    color: _isPointingToQibla 
-                        ? ThemeConstants.success.withOpacity(0.3)
-                        : context.primaryColor.withOpacity(0.3),
-                    width: _isPointingToQibla ? 1.5.w : 1.w,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 6.r,
-                      offset: Offset(0, 2.h),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      _isPointingToQibla ? Icons.gps_fixed : Icons.screen_rotation_alt,
-                      size: _isPointingToQibla ? 20.sp : 18.sp,
-                      color: _isPointingToQibla ? ThemeConstants.success : context.primaryColor,
-                    ),
-                    SizedBox(width: 6.w),
-                    Text(
-                      '${displayDirection.toStringAsFixed(1)}°',
-                      style: TextStyle(
-                        fontWeight: _isPointingToQibla ? ThemeConstants.bold : ThemeConstants.semiBold,
-                        color: _isPointingToQibla ? ThemeConstants.success : context.textPrimaryColor,
-                        fontSize: 14.sp,
-                      ),
-                    ),
-                  ],
-                ),
+      child: Column(
+        children: [
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: 10.w,
+              vertical: 3.h,
+            ),
+            decoration: BoxDecoration(
+              color: _getAccuracyColor().withOpacity(0.2),
+              borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(
+                color: _getAccuracyColor().withOpacity(0.5),
               ),
-
-              SizedBox(height: 6.h),
-
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 10.w,
-                  vertical: 3.h,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _getAccuracyIcon(),
+                  size: 18.sp,
+                  color: _getAccuracyColor(),
                 ),
-                decoration: BoxDecoration(
-                  color: _getAccuracyColor().withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(10.r),
-                  border: Border.all(
-                    color: _getAccuracyColor().withOpacity(0.5),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      _getAccuracyIcon(),
-                      size: 18.sp,
-                      color: _getAccuracyColor(),
-                    ),
-                    SizedBox(width: 3.w),
-                    Text(
-                      _getAccuracyText(),
-                      style: TextStyle(
-                        color: _getAccuracyColor(),
-                        fontWeight: ThemeConstants.medium,
-                        fontSize: 11.sp,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              if (_isPointingToQibla) ...[
-                SizedBox(height: 6.h),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 10.w,
-                    vertical: 3.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: ThemeConstants.success.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10.r),
-                    border: Border.all(
-                      color: ThemeConstants.success.withOpacity(0.3),
-                    ),
-                  ),
-                  child: Text(
-                    '🕋 تشير نحو القبلة',
-                    style: TextStyle(
-                      color: ThemeConstants.success,
-                      fontWeight: ThemeConstants.semiBold,
-                      fontSize: 11.sp,
-                    ),
+                SizedBox(width: 3.w),
+                Text(
+                  _getAccuracyText(),
+                  style: TextStyle(
+                    color: _getAccuracyColor(),
+                    fontWeight: ThemeConstants.medium,
+                    fontSize: 11.sp,
                   ),
                 ),
               ],
-            ],
-          );
-        },
+            ),
+          ),
+
+          if (_isPointingToQibla) ...[
+            SizedBox(height: 6.h),
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: 10.w,
+                vertical: 3.h,
+              ),
+              decoration: BoxDecoration(
+                color: ThemeConstants.success.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10.r),
+                border: Border.all(
+                  color: ThemeConstants.success.withOpacity(0.3),
+                ),
+              ),
+              child: Text(
+                '🕋 تشير نحو القبلة',
+                style: TextStyle(
+                  color: ThemeConstants.success,
+                  fontWeight: ThemeConstants.semiBold,
+                  fontSize: 11.sp,
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -644,10 +588,7 @@ class _QiblaCompassState extends State<QiblaCompass>
   }
 }
 
-// الـ Painters تبقى كما هي...
-// (نفس الكود السابق للـ EnhancedCompassPainter, QiblaArrowPainter, AccuracyRingPainter)
-
-// Painters (نفس الكود السابق)
+// Painters
 class EnhancedCompassPainter extends CustomPainter {
   final double accuracy;
   final bool isDarkMode;
