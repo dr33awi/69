@@ -1,7 +1,6 @@
-// lib/features/qibla/screens/qibla_screen.dart - محسن للشاشات الصغيرة
+// lib/features/qibla/screens/qibla_screen_v2.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -13,17 +12,16 @@ import '../../../core/infrastructure/services/permissions/permission_service.dar
 import '../services/qibla_service.dart';
 import '../widgets/qibla_compass.dart';
 import '../widgets/qibla_info_card.dart';
-import '../widgets/compass_calibration_sheet.dart';
 
-/// شاشة القبلة - محسنة للشاشات الصغيرة
+/// شاشة القبلة باستخدام flutter_qiblah
 class QiblaScreen extends StatefulWidget {
   const QiblaScreen({super.key});
 
   @override
-  State<QiblaScreen> createState() => _QiblaScreenState();
+  State<QiblaScreen> createState() => _QiblaScreenV2State();
 }
 
-class _QiblaScreenState extends State<QiblaScreen>
+class _QiblaScreenV2State extends State<QiblaScreen>
     with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   
   late final QiblaService _qiblaService;
@@ -59,7 +57,7 @@ class _QiblaScreenState extends State<QiblaScreen>
         }
       });
     } catch (e) {
-      debugPrint('[QiblaScreen] خطأ في تهيئة الشاشة: $e');
+      debugPrint('[QiblaScreenV2] خطأ في تهيئة الشاشة: $e');
     }
   }
 
@@ -88,62 +86,11 @@ class _QiblaScreenState extends State<QiblaScreen>
         });
       }
     } catch (e) {
-      debugPrint('[QiblaScreen] خطأ في تحديث البيانات: $e');
+      debugPrint('[QiblaScreenV2] خطأ في تحديث البيانات: $e');
       if (mounted) {
         _showErrorSnackbar(e.toString());
       }
     }
-  }
-
-  void _startCalibration() async {
-    if (_disposed) return;
-    
-    HapticFeedback.lightImpact();
-    
-    _showCompassCalibrationSheet(
-      context: context,
-      onStartCalibration: () async {
-        await _qiblaService.startCalibration();
-        
-        if (mounted) {
-          _showCalibrationProgressDialog();
-        }
-      },
-      initialAccuracy: _qiblaService.compassAccuracy,
-    );
-  }
-
-  void _showCompassCalibrationSheet({
-    required BuildContext context,
-    required VoidCallback onStartCalibration,
-    double initialAccuracy = 0.0,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => CompassCalibrationSheet(
-        onStartCalibration: onStartCalibration,
-        initialAccuracy: initialAccuracy,
-      ),
-    );
-  }
-
-  void _showCalibrationProgressDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => ChangeNotifierProvider.value(
-        value: _qiblaService,
-        child: _CalibrationProgressDialog(
-          qiblaService: _qiblaService,
-        ),
-      ),
-    ).then((_) {
-      if (_qiblaService.isCalibrated) {
-        _showSuccessSnackbar(_qiblaService.calibrationMessage);
-      }
-    });
   }
 
   void _showErrorSnackbar(String message) {
@@ -318,11 +265,6 @@ class _QiblaScreenState extends State<QiblaScreen>
                 : () => _updateQiblaData(forceUpdate: true),
             isLoading: service.isLoading,
           ),
-          
-          _buildActionButton(
-            icon: Icons.compass_calibration_outlined,
-            onTap: _startCalibration,
-          ),
         ],
       ),
     );
@@ -429,9 +371,8 @@ class _QiblaScreenState extends State<QiblaScreen>
             child: QiblaCompass(
               qiblaDirection: service.qiblaData!.qiblaDirection,
               currentDirection: service.currentDirection,
-              accuracy: service.compassAccuracy,
-              isCalibrated: service.isCalibrated,
-              onCalibrate: _startCalibration,
+              accuracy: 1.0, // flutter_qiblah دائماً دقيقة
+              isCalibrated: true,
             ),
           ),
           
@@ -643,46 +584,6 @@ class _QiblaScreenState extends State<QiblaScreen>
               ),
             ),
           ),
-          if (service.qiblaData != null) ...[
-            SizedBox(height: 16.h),
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(12.w),
-              decoration: BoxDecoration(
-                color: context.cardColor,
-                borderRadius: BorderRadius.circular(8.r),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 2.r,
-                    offset: Offset(0, 1.h),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    'اتجاه القبلة: ${service.qiblaData!.qiblaDirection.toStringAsFixed(1)}°',
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.bold,
-                      color: ThemeConstants.primary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 4.h),
-                  Text(
-                    service.qiblaData!.directionDescription,
-                    style: TextStyle(
-                      fontSize: 11.sp,
-                      color: Colors.grey.shade700,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ],
         ],
       ),
     );
@@ -757,175 +658,6 @@ class _QiblaScreenState extends State<QiblaScreen>
           ],
         ),
       ),
-    );
-  }
-}
-
-// Calibration Progress Dialog Widget
-class _CalibrationProgressDialog extends StatefulWidget {
-  final QiblaService qiblaService;
-  
-  const _CalibrationProgressDialog({
-    required this.qiblaService,
-  });
-  
-  @override
-  State<_CalibrationProgressDialog> createState() => __CalibrationProgressDialogState();
-}
-
-class __CalibrationProgressDialogState extends State<_CalibrationProgressDialog>
-    with SingleTickerProviderStateMixin {
-  
-  late AnimationController _animationController;
-  bool _hasCompleted = false;
-  
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat();
-  }
-  
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-  
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<QiblaService>(
-      builder: (context, service, child) {
-        if (service.calibrationProgress >= 100 && 
-            !service.isCalibrating && 
-            !_hasCompleted) {
-          
-          _hasCompleted = true;
-          
-          Future.delayed(const Duration(milliseconds: 1500), () {
-            if (mounted) {
-              Navigator.of(context).pop();
-            }
-          });
-        }
-        
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                service.calibrationProgress >= 100
-                    ? Icons.check_circle_outline
-                    : Icons.compass_calibration,
-                color: service.calibrationProgress >= 100
-                    ? ThemeConstants.success
-                    : ThemeConstants.primary,
-                size: 20.sp,
-              ),
-              SizedBox(width: 6.w),
-              Text(
-                service.calibrationProgress >= 100
-                    ? 'اكتملت المعايرة!'
-                    : 'جاري المعايرة...',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14.sp),
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                height: 100.h,
-                width: 200.w,
-                decoration: BoxDecoration(
-                  color: context.cardColor.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(8.r),
-                ),
-                child: Center(
-                  child: service.isCalibrating
-                      ? RotationTransition(
-                          turns: _animationController,
-                          child: Icon(
-                            Icons.explore,
-                            size: 42.sp,
-                            color: ThemeConstants.primary,
-                          ),
-                        )
-                      : Icon(
-                          Icons.check_circle,
-                          size: 42.sp,
-                          color: ThemeConstants.success,
-                        ),
-                ),
-              ),
-              
-              SizedBox(height: 12.h),
-              
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: Text(
-                  service.calibrationMessage,
-                  key: ValueKey(service.calibrationMessage),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontWeight: service.calibrationProgress >= 100
-                        ? ThemeConstants.bold
-                        : ThemeConstants.medium,
-                    color: service.calibrationProgress >= 100
-                        ? ThemeConstants.success
-                        : context.textPrimaryColor,
-                    fontSize: 12.sp,
-                  ),
-                ),
-              ),
-              
-              SizedBox(height: 8.h),
-              
-              LinearProgressIndicator(
-                value: service.calibrationProgress / 100,
-                backgroundColor: context.dividerColor.withOpacity(0.3),
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  service.calibrationProgress >= 100
-                      ? ThemeConstants.success
-                      : ThemeConstants.primary,
-                ),
-                minHeight: 3.h,
-              ),
-            ],
-          ),
-          actions: [
-            if (service.isCalibrating)
-              TextButton(
-                onPressed: () {
-                  service.resetCalibration();
-                  Navigator.of(context).pop();
-                },
-                child: Text('إلغاء', style: TextStyle(fontSize: 12.sp)),
-              ),
-            
-            if (!service.isCalibrating && service.calibrationProgress >= 100)
-              ElevatedButton.icon(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: Icon(Icons.check, size: 14.sp),
-                label: Text('تم', style: TextStyle(fontSize: 12.sp)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: ThemeConstants.success,
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6.r),
-                  ),
-                ),
-              ),
-          ],
-        );
-      },
     );
   }
 }
