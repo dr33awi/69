@@ -2,10 +2,10 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("dev.flutter.flutter-gradle-plugin")
-    // إضافة Google Services (مطلوب لـ Firebase)
+    // Firebase Plugins
     id("com.google.gms.google-services")
-    // إضافة Crashlytics (اختياري)
     id("com.google.firebase.crashlytics")
+    id("com.google.firebase.firebase-perf")
 }
 
 android {
@@ -73,30 +73,36 @@ dependencies {
     // Core library desugaring
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 
-    // Firebase BoM - استخدم أحدث إصدار مستقر
-    implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
-
-    // Firebase libraries الأساسية - بدون تحديد إصدارات (BoM يدير ذلك)
-    implementation("com.google.firebase:firebase-messaging-ktx")
-    implementation("com.google.firebase:firebase-config-ktx")
-    implementation("com.google.firebase:firebase-analytics-ktx")
-    implementation("com.google.firebase:firebase-crashlytics-ktx")
+    // ========== Firebase Dependencies with Explicit Versions ==========
     
-    // إزالة firebase-core المنفصل - هو مدمج في firebase-analytics-ktx
-
-    // WorkManager - للمهام في الخلفية
-    implementation("androidx.work:work-runtime-ktx:2.9.1")
-
-    // Multidex support
-    implementation("androidx.multidex:multidex:2.0.1")
-
-    // Google Play Services (مطلوب لـ Firebase)
+    // Firebase BoM - يحدد الإصدارات المتوافقة
+    implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
+    
+    // Firebase Core Services - بدون -ktx لأن BoM يديرها
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-messaging") 
+    implementation("com.google.firebase:firebase-config")
+    implementation("com.google.firebase:firebase-crashlytics")
+    
+    // Firebase Performance
+    implementation("com.google.firebase:firebase-perf")
+    
+    // Firebase In-App Messaging
+    implementation("com.google.firebase:firebase-inappmessaging-display")
+    
+    // ========== Google Play Services ==========
     implementation("com.google.android.gms:play-services-base:18.5.0")
-    implementation("com.google.android.gms:play-services-auth:21.2.0")
-
-    // AndroidX Core (للتوافق)
+    
+    // ========== AndroidX Dependencies ==========
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
+    implementation("androidx.multidex:multidex:2.0.1")
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+    
+    // ========== Kotlin Coroutines ==========
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
 }
 
 flutter {

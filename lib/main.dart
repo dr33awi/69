@@ -1,4 +1,4 @@
-// lib/main.dart - محدث مع حل مشكلة التكرار في الفحص
+// lib/main.dart - محدث مع خدمات Firebase الجديدة
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -7,9 +7,16 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-// Firebase imports
+// Firebase imports (محدث)
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'firebase_options.dart';
+
+// Firebase Services الجديدة
+import 'core/infrastructure/firebase/firebase_initializer.dart';
+import 'core/infrastructure/firebase/analytics/analytics_service.dart';
+import 'core/infrastructure/firebase/performance/performance_service.dart';
 
 // Service Locator والخدمات
 import 'app/di/service_locator.dart';
@@ -41,9 +48,13 @@ import 'features/home/screens/home_screen.dart';
 import 'features/onboarding/screens/onboarding_screen.dart';
 import 'features/onboarding/screens/permissions_setup_screen.dart';
 
-// ==================== متغير عام لحفظ الإشعار الأولي ====================
+// ==================== متغيرات عامة ====================
 NotificationAppLaunchDetails? _notificationAppLaunchDetails;
 NotificationTapEvent? _pendingNotificationEvent;
+
+// خدمات Firebase الجديدة
+late final AnalyticsService _analyticsService;
+late final PerformanceService _performanceService;
 // ========================================================================
 
 /// نقطة دخول التطبيق
@@ -55,37 +66,48 @@ Future<void> main() async {
     DeviceOrientation.portraitDown,
   ]);
   
-  // ==================== الحصول على تفاصيل الإشعار الأولي ====================
+  // فحص الإشعار الأولي
   await _checkInitialNotification();
-  // ===========================================================================
   
   runZonedGuarded(
     () async {
       try {
+        // تهيئة سريعة مع Firebase المحسن
         await _fastBootstrap();
         
-        // إعداد معالج الإشعارات مع معالجة الإشعار المعلق
+        // إعداد معالج الإشعارات
         await _setupNotificationHandler();
         
         final app = const AthkarApp();
         final wrappedApp = DevicePreviewConfig.wrapApp(app);
         runApp(wrappedApp ?? app);
         
+        // تهيئة الخدمات في الخلفية
         _backgroundInitialization();
         
       } catch (e, s) {
         debugPrint('خطأ في تشغيل التطبيق: $e');
         debugPrint('Stack trace: $s');
+        
+        // تسجيل الخطأ في Crashlytics إذا كان متاحاً
+        if (FirebaseInitializer.isCrashlyticsAvailable) {
+          await FirebaseCrashlytics.instance.recordError(e, s, fatal: true);
+        }
+        
         runApp(_ErrorApp(error: e.toString()));
       }
     },
     (error, stack) {
       debugPrint('Uncaught error: $error');
       debugPrint('Stack trace: $stack');
+      
+      // تسجيل الأخطاء غير المعالجة في Crashlytics
+      if (FirebaseInitializer.isCrashlyticsAvailable) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      }
     },
   );
 }
-
 // ==================== دالة جديدة: فحص الإشعار الأولي ====================
 Future<void> _checkInitialNotification() async {
   try {
