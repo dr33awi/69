@@ -1,4 +1,4 @@
-// lib/features/qibla/services/qibla_service.dart - نسخة محسّنة مع معايرة أفضل
+// lib/features/qibla/services/qibla_service.dart - معايرة أسرع ومحسّنة
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
@@ -10,42 +10,47 @@ import '../../../core/infrastructure/services/storage/storage_service.dart';
 import '../../../core/infrastructure/services/permissions/permission_service.dart';
 import '../models/qibla_model.dart';
 
-/// خدمة القبلة مع معايرة محسّنة
+/// خدمة القبلة مع معايرة محسّنة وأسرع
 class QiblaService extends ChangeNotifier {
   final StorageService _storage;
   final PermissionService _permissionService;
 
-  // مفاتيح التخزين
   static const String _qiblaDataKey = 'qibla_data';
   static const String _calibrationDataKey = 'compass_calibration';
 
-  // حالة الخدمة
   QiblaModel? _qiblaData;
   bool _isLoading = false;
   String? _errorMessage;
   bool _disposed = false;
 
-  // البوصلة
   StreamSubscription<CompassEvent>? _compassSubscription;
   double _currentDirection = 0.0;
   double _smoothDirection = 0.0;
   bool _hasCompass = false;
   double _compassAccuracy = 0.0;
 
-  // معايرة محسّنة
+  // معايرة محسّنة وأسرع
   bool _isCalibrated = false;
   bool _isCalibrating = false;
   final List<double> _calibrationReadings = [];
-  int _calibrationProgress = 0; // 0-100
+  int _calibrationProgress = 0;
   String _calibrationMessage = '';
   Timer? _calibrationTimer;
   
-  // تتبع الحركة للتحقق من شكل رقم 8
+  // تتبع محسّن للحركة
   final List<_DirectionSample> _directionSamples = [];
-  bool _hasMovedEnough = false;
-  Set<int> _coveredQuadrants = {}; // الأرباع المغطاة (0-3)
+  Set<int> _coveredQuadrants = {};
+  double _totalRotation = 0.0;
+  double _lastDirection = 0.0;
+  int _significantMovements = 0;
+  
+  // معايير محسّنة للإنجاز السريع
+  static const int _minReadings = 30; // كان 40
+  static const int _minQuadrants = 2; // كان 2
+  static const double _minRotation = 180.0; // الحد الأدنى للدوران الكلي
+  static const int _minSignificantMovements = 8; // عدد الحركات المهمة
+  static const Duration _maxCalibrationTime = Duration(seconds: 15); // كان 30
 
-  // تصفية القراءات
   static const int _filterSize = 10;
   final List<double> _directionHistory = [];
 
@@ -57,7 +62,7 @@ class QiblaService extends ChangeNotifier {
     _init();
   }
 
-  // ==================== الخصائص العامة ====================
+  // ==================== الخصائص ====================
 
   QiblaModel? get qiblaData => _qiblaData;
   bool get isLoading => _isLoading;
@@ -83,6 +88,8 @@ class QiblaService extends ChangeNotifier {
     'smoothDirection': _smoothDirection,
     'calibrationProgress': _calibrationProgress,
     'coveredQuadrants': _coveredQuadrants.length,
+    'totalRotation': _totalRotation,
+    'significantMovements': _significantMovements,
   };
 
   // ==================== التهيئة ====================
@@ -91,7 +98,7 @@ class QiblaService extends ChangeNotifier {
     if (_disposed) return;
 
     try {
-      debugPrint('[QiblaService] بدء تهيئة خدمة القبلة');
+      debugPrint('[QiblaService] بدء التهيئة');
       
       await _loadCalibrationData();
       await _checkCompassAvailability();
@@ -166,7 +173,7 @@ class QiblaService extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ==================== المعايرة المحسّنة ====================
+  // ==================== المعايرة المحسّنة والأسرع ====================
 
   Future<void> startCalibration() async {
     if (_disposed || !_hasCompass || _isCalibrating) return;
@@ -177,19 +184,23 @@ class QiblaService extends ChangeNotifier {
     _directionSamples.clear();
     _coveredQuadrants.clear();
     _calibrationProgress = 0;
-    _hasMovedEnough = false;
-    _calibrationMessage = 'ابدأ بتحريك الجهاز ببطء';
+    _totalRotation = 0.0;
+    _lastDirection = _currentDirection;
+    _significantMovements = 0;
+    _calibrationMessage = 'حرك الجهاز في شكل ∞ (رقم 8)';
     
-    debugPrint('[QiblaService] بدء عملية معايرة البوصلة المحسّنة');
+    debugPrint('[QiblaService] بدء المعايرة السريعة');
     notifyListeners();
 
-    // مؤقت أطول للمعايرة (30 ثانية)
-    _calibrationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    int elapsedSeconds = 0;
+    _calibrationTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
       if (!_disposed && _isCalibrating) {
-        _updateCalibrationProgress(timer.tick);
+        elapsedSeconds++;
+        _updateCalibrationProgress(elapsedSeconds);
         
-        // إنهاء المعايرة بعد 30 ثانية أو عند الاكتمال
-        if (timer.tick >= 30 || _calibrationProgress >= 100) {
+        // التحقق من اكتمال المعايرة مبكراً
+        if (_checkEarlyCompletion() || elapsedSeconds >= 30) { // 15 ثانية
+          debugPrint('[QiblaService] اكتملت المعايرة مبكراً');
           _completeCalibration();
           timer.cancel();
         }
@@ -205,109 +216,96 @@ class QiblaService extends ChangeNotifier {
     // إضافة القراءة
     _calibrationReadings.add(direction);
     
-    // إضافة عينة الاتجاه مع وقتها
+    // حساب الدوران الكلي
+    double diff = _calculateAngleDifference(_lastDirection, direction);
+    if (diff.abs() > 2.0) { // حركة ملحوظة
+      _totalRotation += diff.abs();
+      
+      // عد الحركات المهمة
+      if (diff.abs() > 10.0) {
+        _significantMovements++;
+      }
+    }
+    _lastDirection = direction;
+
+    // إضافة عينة
     _directionSamples.add(_DirectionSample(
       direction: direction,
       timestamp: DateTime.now(),
     ));
 
-    // الاحتفاظ بآخر 100 عينة فقط
-    if (_directionSamples.length > 100) {
+    // الاحتفاظ بآخر 60 عينة
+    if (_directionSamples.length > 60) {
       _directionSamples.removeAt(0);
     }
 
-    // تحديث الأرباع المغطاة
+    // تحديث الأرباع
     final quadrant = (direction ~/ 90) % 4;
     _coveredQuadrants.add(quadrant);
-
-    // التحقق من الحركة الكافية
-    _checkMovementQuality();
   }
 
-  void _checkMovementQuality() {
-    if (_directionSamples.length < 20) return;
-
-    // حساب نطاق الحركة
-    final directions = _directionSamples.map((s) => s.direction).toList();
-    final minDir = directions.reduce(math.min);
-    final maxDir = directions.reduce(math.max);
-    final range = _calculateCircularRange(minDir, maxDir);
-
-    // التحقق من تغطية كافية للاتجاهات
-    _hasMovedEnough = range > 180 && _coveredQuadrants.length >= 3;
-
-    // التحقق من وجود حركة دائرية (شكل 8)
-    if (_directionSamples.length >= 40) {
-      final hasCircularMotion = _detectCircularMotion();
-      if (hasCircularMotion) {
-        _hasMovedEnough = true;
-      }
-    }
-  }
-
-  bool _detectCircularMotion() {
-    if (_directionSamples.length < 40) return false;
-
-    // تحليل آخر 40 عينة
-    final recentSamples = _directionSamples.sublist(_directionSamples.length - 40);
+  bool _checkEarlyCompletion() {
+    // معايير الإنجاز المبكر (أكثر مرونة)
+    final hasEnoughReadings = _calibrationReadings.length >= _minReadings;
+    final hasEnoughQuadrants = _coveredQuadrants.length >= _minQuadrants;
+    final hasEnoughRotation = _totalRotation >= _minRotation;
+    final hasEnoughMovements = _significantMovements >= _minSignificantMovements;
     
-    // حساب التغييرات في الاتجاه
-    int directionChanges = 0;
-    double lastDirection = recentSamples.first.direction;
+    // يكفي تحقيق 3 من 4 معايير
+    int metCriteria = 0;
+    if (hasEnoughReadings) metCriteria++;
+    if (hasEnoughQuadrants) metCriteria++;
+    if (hasEnoughRotation) metCriteria++;
+    if (hasEnoughMovements) metCriteria++;
     
-    for (var sample in recentSamples.skip(1)) {
-      final diff = _calculateAngleDifference(lastDirection, sample.direction);
-      if (diff.abs() > 5) { // تغيير ملحوظ في الاتجاه
-        directionChanges++;
-      }
-      lastDirection = sample.direction;
-    }
-
-    // إذا كان هناك تغييرات كثيرة، فالمستخدم يحرك الجهاز بشكل دائري
-    return directionChanges >= 20;
+    return metCriteria >= 3 && _calibrationProgress >= 60;
   }
 
-  void _updateCalibrationProgress(int seconds) {
-    // حساب التقدم بناءً على عدة عوامل
+  void _updateCalibrationProgress(int halfSeconds) {
     int progress = 0;
 
-    // 1. عامل الوقت (40%)
-    progress += ((seconds / 30.0) * 40).toInt();
+    // 1. عامل الوقت (25%)
+    final timeProgress = math.min(halfSeconds / 30.0, 1.0); // 15 ثانية
+    progress += (timeProgress * 25).toInt();
 
-    // 2. عامل عدد القراءات (30%)
-    final readingsProgress = math.min(_calibrationReadings.length / 100.0, 1.0);
-    progress += (readingsProgress * 30).toInt();
+    // 2. عامل القراءات (20%)
+    final readingsProgress = math.min(_calibrationReadings.length / 50.0, 1.0);
+    progress += (readingsProgress * 20).toInt();
 
-    // 3. عامل تغطية الاتجاهات (20%)
-    final coverageProgress = _coveredQuadrants.length / 4.0;
-    progress += (coverageProgress * 20).toInt();
+    // 3. عامل الأرباع (20%)
+    final quadrantsProgress = _coveredQuadrants.length / 4.0;
+    progress += (quadrantsProgress * 20).toInt();
 
-    // 4. عامل جودة الحركة (10%)
-    if (_hasMovedEnough) {
-      progress += 10;
-    }
+    // 4. عامل الدوران الكلي (20%)
+    final rotationProgress = math.min(_totalRotation / 360.0, 1.0);
+    progress += (rotationProgress * 20).toInt();
+
+    // 5. عامل الحركات المهمة (15%)
+    final movementsProgress = math.min(_significantMovements / _minSignificantMovements, 1.0);
+    progress += (movementsProgress * 15).toInt();
 
     _calibrationProgress = math.min(progress, 100);
 
-    // تحديث الرسالة بناءً على التقدم
-    if (_calibrationProgress < 25) {
-      _calibrationMessage = 'ابدأ بتحريك الجهاز ببطء على شكل رقم 8';
-    } else if (_calibrationProgress < 50) {
-      _calibrationMessage = 'استمر... حرك الجهاز في جميع الاتجاهات';
-    } else if (_calibrationProgress < 75) {
-      _calibrationMessage = 'جيد! تأكد من تغطية جميع الاتجاهات';
-    } else if (_calibrationProgress < 100) {
-      _calibrationMessage = 'ممتاز! أكمل الحركة...';
+    // رسائل محسّنة
+    if (_calibrationProgress < 20) {
+      _calibrationMessage = '🔄 ابدأ بتحريك الجهاز في شكل ∞';
+    } else if (_calibrationProgress < 40) {
+      _calibrationMessage = '↗️ استمر... حرك في جميع الاتجاهات';
+    } else if (_calibrationProgress < 60) {
+      _calibrationMessage = '✨ جيد! غط الاتجاهات المتبقية';
+    } else if (_calibrationProgress < 80) {
+      _calibrationMessage = '🎯 ممتاز! أكمل الحركة...';
     } else {
-      _calibrationMessage = 'اكتملت المعايرة!';
+      _calibrationMessage = '✅ شارفت على الانتهاء!';
     }
 
-    // تحذيرات إذا لم يتحرك المستخدم
-    if (seconds > 5 && !_hasMovedEnough) {
-      _calibrationMessage = '⚠️ حرك الجهاز بشكل أكبر';
-    }
-    if (seconds > 10 && _coveredQuadrants.length < 2) {
-      _calibrationMessage = '⚠️ غط جميع الاتجاهات (الشمال، الجنوب، الشرق، الغرب)';
+    // تحذيرات ذكية
+    if (halfSeconds > 10) { // بعد 5 ثوان
+      if (_totalRotation < 90) {
+        _calibrationMessage = '⚠️ حرك الجهاز أكثر وبشكل أوسع';
+      } else if (_coveredQuadrants.length < 2) {
+        _calibrationMessage = '⚠️ غط جميع الاتجاهات (شمال، جنوب، شرق، غرب)';
+      }
     }
 
     notifyListeners();
@@ -319,34 +317,34 @@ class QiblaService extends ChangeNotifier {
     _isCalibrating = false;
     _calibrationTimer?.cancel();
 
-    // معايير نجاح أكثر مرونة لتجنب الانتظار الطويل
-    final hasEnoughReadings = _calibrationReadings.length >= 40; // تقليل من 60
-    final hasCoveredEnoughQuadrants = _coveredQuadrants.length >= 2; // تقليل من 3
-    final hasGoodMovement = _hasMovedEnough || _calibrationReadings.length >= 50;
+    final hasEnoughReadings = _calibrationReadings.length >= _minReadings;
+    final hasEnoughQuadrants = _coveredQuadrants.length >= _minQuadrants;
+    final hasEnoughRotation = _totalRotation >= _minRotation;
 
-    if (hasEnoughReadings && hasCoveredEnoughQuadrants && hasGoodMovement) {
+    debugPrint('[QiblaService] إحصائيات المعايرة:');
+    debugPrint('  - القراءات: ${_calibrationReadings.length}');
+    debugPrint('  - الأرباع: ${_coveredQuadrants.length}/4');
+    debugPrint('  - الدوران الكلي: ${_totalRotation.toStringAsFixed(1)}°');
+    debugPrint('  - الحركات المهمة: $_significantMovements');
+
+    if (hasEnoughReadings && hasEnoughQuadrants && hasEnoughRotation) {
       // حساب جودة المعايرة
-      final stdDev = _calculateStandardDeviation(_calibrationReadings);
       final variance = _calculateCircularVariance(_calibrationReadings);
+      final coverage = _coveredQuadrants.length / 4.0;
+      final quality = (variance * 0.6) + (coverage * 0.4);
       
-      // معايرة ناجحة بمعايير أكثر مرونة
-      _isCalibrated = stdDev < 25 && variance > 0.2;
+      _isCalibrated = true;
+      _compassAccuracy = math.min(0.6 + (quality * 0.4), 1.0);
+      _calibrationMessage = '✅ تمت المعايرة بنجاح!';
       
-      if (_isCalibrated) {
-        _compassAccuracy = math.max(_compassAccuracy, 0.85);
-        _calibrationMessage = '✅ تمت المعايرة بنجاح!';
-        debugPrint('[QiblaService] معايرة ناجحة - StdDev: $stdDev, Variance: $variance');
-      } else {
-        _calibrationMessage = '⚠️ المعايرة مقبولة';
-        _isCalibrated = true; // قبول المعايرة حتى لو لم تكن مثالية
-        _compassAccuracy = math.max(_compassAccuracy, 0.7);
-        debugPrint('[QiblaService] معايرة مقبولة - StdDev: $stdDev, Variance: $variance');
-      }
+      debugPrint('[QiblaService] معايرة ناجحة - الجودة: ${(quality * 100).toStringAsFixed(1)}%');
     } else {
-      _calibrationMessage = '⚠️ معايرة جزئية - يمكنك المحاولة مرة أخرى';
-      _isCalibrated = true; // قبول المعايرة الجزئية
-      _compassAccuracy = math.max(_compassAccuracy, 0.6);
-      debugPrint('[QiblaService] معايرة جزئية - القراءات: ${_calibrationReadings.length}, الأرباع: ${_coveredQuadrants.length}');
+      // قبول المعايرة الجزئية
+      _isCalibrated = true;
+      _compassAccuracy = math.max(_compassAccuracy, 0.65);
+      _calibrationMessage = '✓ معايرة مقبولة';
+      
+      debugPrint('[QiblaService] معايرة جزئية مقبولة');
     }
 
     _calibrationProgress = 100;
@@ -364,6 +362,8 @@ class QiblaService extends ChangeNotifier {
     _coveredQuadrants.clear();
     _calibrationProgress = 0;
     _compassAccuracy = 0.0;
+    _totalRotation = 0.0;
+    _significantMovements = 0;
     _calibrationTimer?.cancel();
     
     _saveCalibrationData();
@@ -372,19 +372,9 @@ class QiblaService extends ChangeNotifier {
 
   // ==================== حسابات محسّنة ====================
 
-  double _calculateCircularRange(double minDir, double maxDir) {
-    // حساب النطاق مع مراعاة الدائرية
-    double range = maxDir - minDir;
-    if (range > 180) {
-      range = 360 - range;
-    }
-    return range;
-  }
-
   double _calculateCircularVariance(List<double> angles) {
     if (angles.isEmpty) return 0;
     
-    // تحويل الزوايا إلى إحداثيات ديكارتية
     double sumX = 0, sumY = 0;
     for (var angle in angles) {
       final radians = angle * math.pi / 180;
@@ -394,12 +384,8 @@ class QiblaService extends ChangeNotifier {
     
     final avgX = sumX / angles.length;
     final avgY = sumY / angles.length;
-    
-    // طول المتجه الناتج (مقياس التركيز)
     final r = math.sqrt(avgX * avgX + avgY * avgY);
     
-    // التباين الدائري = 1 - r
-    // قيم أعلى تعني توزيع أفضل للقراءات
     return 1 - r;
   }
 
@@ -410,7 +396,7 @@ class QiblaService extends ChangeNotifier {
     return diff;
   }
 
-  // ==================== باقي الكود كما هو ====================
+  // ==================== باقي الكود ====================
 
   Future<void> updateQiblaData({bool forceUpdate = false}) async {
     if (_disposed || _isLoading) return;
@@ -478,8 +464,6 @@ class QiblaService extends ChangeNotifier {
 
   Future<void> forceUpdate() => updateQiblaData(forceUpdate: true);
 
-  // ==================== التخزين ====================
-
   Future<void> _loadStoredQiblaData() async {
     try {
       final qiblaJson = _storage.getMap(_qiblaDataKey);
@@ -524,8 +508,6 @@ class QiblaService extends ChangeNotifier {
     }
   }
 
-  // ==================== الوظائف المساعدة ====================
-
   double _applySmoothing(List<double> readings) {
     if (readings.isEmpty) return 0;
 
@@ -537,16 +519,6 @@ class QiblaService extends ChangeNotifier {
 
     double angle = math.atan2(avgSin, avgCos) * 180 / math.pi;
     return (angle + 360) % 360;
-  }
-
-  double _calculateStandardDeviation(List<double> values) {
-    if (values.isEmpty) return 0;
-    
-    final mean = values.reduce((a, b) => a + b) / values.length;
-    final squaredDiffs = values.map((v) => math.pow(v - mean, 2));
-    final variance = squaredDiffs.reduce((a, b) => a + b) / values.length;
-    
-    return math.sqrt(variance);
   }
 
   double _calculateAccuracy(double rawAccuracy) {
@@ -590,7 +562,7 @@ class QiblaService extends ChangeNotifier {
     if (_disposed) return;
     _disposed = true;
 
-    debugPrint('[QiblaService] بدء تنظيف موارد الخدمة');
+    debugPrint('[QiblaService] تنظيف الموارد');
     
     _compassSubscription?.cancel();
     _calibrationTimer?.cancel();
@@ -602,8 +574,6 @@ class QiblaService extends ChangeNotifier {
     super.dispose();
   }
 }
-
-// ==================== نموذج عينة الاتجاه ====================
 
 class _DirectionSample {
   final double direction;

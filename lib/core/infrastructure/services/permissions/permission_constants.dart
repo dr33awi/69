@@ -1,5 +1,5 @@
 // lib/core/infrastructure/services/permissions/permission_constants.dart
-// مصدر واحد لجميع معلومات الأذونات (منظف)
+// مصدر واحد موحد لجميع معلومات وثوابت الأذونات
 
 import 'package:flutter/material.dart';
 import 'permission_service.dart';
@@ -21,12 +21,34 @@ class PermissionInfo {
   });
 }
 
-/// ثوابت الأذونات - فقط الأذونات المستخدمة فعلياً
+/// ثوابت الأذونات الموحدة - مصدر واحد للحقيقة
 class PermissionConstants {
   // منع إنشاء instance
   PermissionConstants._();
   
-  /// معلومات الأذونات المستخدمة فقط
+  // ==================== ثوابت التوقيت الموحدة ====================
+  /// الحد الأدنى للفترة بين فحص الأذونات
+  static const Duration minCheckInterval = Duration(seconds: 3);
+  
+  /// الحد الأدنى للفترة بين طلبات الأذونات
+  static const Duration minRequestInterval = Duration(seconds: 5);
+  
+  /// مدة صلاحية الكاش
+  static const Duration cacheExpiration = Duration(seconds: 30);
+  
+  /// مدة تأجيل عرض الإشعار بعد رفضه
+  static const Duration dismissalDuration = Duration(hours: 1);
+  
+  /// تأخير الفحص الأولي في main.dart
+  static const Duration initialCheckDelayMain = Duration(milliseconds: 2500);
+  
+  /// تأخير الفحص الأولي في PermissionMonitor
+  static const Duration initialCheckDelayMonitor = Duration(milliseconds: 3000);
+  
+  /// throttle للفحص عند العودة من الخلفية
+  static const Duration resumeCheckThrottle = Duration(seconds: 5);
+  
+  // ==================== معلومات الأذونات ====================
   static const Map<AppPermissionType, PermissionInfo> permissions = {
     AppPermissionType.notification: PermissionInfo(
       name: 'الإشعارات',
@@ -51,7 +73,8 @@ class PermissionConstants {
     ),
   };
   
-  /// قائمة الأذونات الحرجة (فقط الأذونات المستخدمة فعلاً)
+  // ==================== قوائم الأذونات ====================
+  /// قائمة الأذونات الحرجة (المطلوبة لعمل التطبيق)
   static List<AppPermissionType> get criticalPermissions => [
     AppPermissionType.notification,
     AppPermissionType.location,
@@ -60,6 +83,14 @@ class PermissionConstants {
   
   /// قائمة الأذونات الاختيارية (لا توجد حالياً)
   static List<AppPermissionType> get optionalPermissions => [];
+  
+  /// جميع الأذونات
+  static List<AppPermissionType> get allPermissions => [
+    ...criticalPermissions,
+    ...optionalPermissions,
+  ];
+  
+  // ==================== دوال الوصول للمعلومات ====================
   
   /// الحصول على معلومات إذن محدد
   static PermissionInfo getInfo(AppPermissionType permission) {
@@ -92,4 +123,61 @@ class PermissionConstants {
   /// هل الإذن حرج؟
   static bool isCritical(AppPermissionType permission) => 
       getInfo(permission).isCritical;
+  
+  /// هل الإذن اختياري؟
+  static bool isOptional(AppPermissionType permission) => 
+      !isCritical(permission);
+  
+  // ==================== رسائل وتسميات ====================
+  
+  /// رسالة تنبيه عامة للأذونات
+  static const String generalPermissionMessage = 
+      'يحتاج التطبيق لبعض الأذونات لتقديم أفضل تجربة';
+  
+  /// رسالة عند رفض الإذن نهائياً
+  static const String permanentlyDeniedMessage = 
+      'يرجى تفعيل الإذن من إعدادات النظام';
+  
+  /// رسالة النجاح
+  static String getSuccessMessage(AppPermissionType permission) =>
+      'تم تفعيل إذن ${getName(permission)} بنجاح';
+  
+  /// رسالة الخطأ
+  static String getErrorMessage(AppPermissionType permission) =>
+      'فشل في تفعيل إذن ${getName(permission)}';
+  
+  // ==================== معلومات تقنية ====================
+  
+  /// هل الإذن مدعوم على المنصة الحالية
+  static bool isSupported(AppPermissionType permission) {
+    // يمكن تحديث هذا حسب المنصة
+    switch (permission) {
+      case AppPermissionType.batteryOptimization:
+        // فقط على Android
+        return true; // سيتم الفحص الفعلي في Handler
+      default:
+        return true;
+    }
+  }
+  
+  /// الحصول على أولوية الإذن (للترتيب)
+  static int getPriority(AppPermissionType permission) {
+    switch (permission) {
+      case AppPermissionType.notification:
+        return 1; // أعلى أولوية
+      case AppPermissionType.location:
+        return 2;
+      case AppPermissionType.batteryOptimization:
+        return 3;
+      default:
+        return 99;
+    }
+  }
+  
+  /// ترتيب قائمة الأذونات حسب الأولوية
+  static List<AppPermissionType> sortByPriority(List<AppPermissionType> permissions) {
+    final sorted = List<AppPermissionType>.from(permissions);
+    sorted.sort((a, b) => getPriority(a).compareTo(getPriority(b)));
+    return sorted;
+  }
 }

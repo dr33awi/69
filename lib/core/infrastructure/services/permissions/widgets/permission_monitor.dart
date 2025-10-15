@@ -1,4 +1,4 @@
-// lib/features/onboarding/permission/permission_monitor.dart
+// lib/core/infrastructure/services/permissions/widgets/permission_monitor.dart
 
 import 'dart:async';
 import 'dart:ui';
@@ -12,15 +12,17 @@ import '../permission_service.dart';
 import '../permission_constants.dart';
 import '../models/permission_state.dart';
 
-/// مراقب الأذونات بنمط أنيق وبسيط
+/// مراقب الأذونات بنمط أنيق وبسيط - محدث بدون تكرار
 class PermissionMonitor extends StatefulWidget {
   final Widget child;
   final bool showNotifications;
+  final bool skipInitialCheck; // إضافة خيار لتخطي الفحص الأولي
   
   const PermissionMonitor({
     super.key,
     required this.child,
     this.showNotifications = true,
+    this.skipInitialCheck = false, // القيمة الافتراضية
   });
 
   @override
@@ -38,14 +40,19 @@ class _PermissionMonitorState extends State<PermissionMonitor>
   AppPermissionType? _currentPermission;
   bool _isShowingNotification = false;
   bool _isProcessing = false;
-  bool _hasCheckedPermissions = false;
   bool _userWentToSettings = false;
+  
+  // ==================== متغيرات محدثة لمنع التكرار ====================
+  bool _hasPerformedInitialCheck = false;
+  bool _isSubscribedToManager = false;
+  DateTime? _lastResumeCheckTime;
+  static const Duration _resumeCheckThrottle = Duration(seconds: 5);
+  // ========================================================================
   
   final Map<AppPermissionType, DateTime> _dismissedPermissions = {};
   DateTime? _lastCheckTime;
   
   static const Duration _dismissalDuration = Duration(hours: 1);
-  static const Duration _initialCheckDelay = Duration(milliseconds: 500);
   
   @override
   void initState() {
@@ -55,23 +62,40 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     _manager = getIt<UnifiedPermissionManager>();
     _permissionService = getIt<PermissionService>();
     
-    debugPrint('[PermissionMonitor] Initializing...');
+    debugPrint('[PermissionMonitor] 🚀 Initializing...');
+    debugPrint('[PermissionMonitor]   - skipInitialCheck: ${widget.skipInitialCheck}');
+    debugPrint('[PermissionMonitor]   - showNotifications: ${widget.showNotifications}');
     
     _listenToPermissionChanges();
     
-    Future.delayed(_initialCheckDelay, () {
-      _performInitialCheck();
-    });
+    // فحص أولي فقط إذا لم يُطلب تخطيه
+    if (!widget.skipInitialCheck) {
+      Future.delayed(const Duration(milliseconds: 3000), () {
+        _performInitialCheck();
+      });
+    } else {
+      debugPrint('[PermissionMonitor] ℹ️ Skipping initial check as requested');
+      // فقط نستخدم النتيجة الموجودة إن وجدت
+      _useExistingResultIfAvailable();
+    }
   }
   
   void _listenToPermissionChanges() {
+    if (_isSubscribedToManager) return;
+    
+    _isSubscribedToManager = true;
+    
+    debugPrint('[PermissionMonitor] 👂 Subscribing to permission changes');
+    
     _manager.stateStream.listen((result) {
-      debugPrint('[PermissionMonitor] Received state update from manager');
+      debugPrint('[PermissionMonitor] 📨 Received state update from manager');
+      debugPrint('[PermissionMonitor]   - Missing: ${result.missingCount}');
+      debugPrint('[PermissionMonitor]   - Granted: ${result.grantedCount}');
       _processCheckResult(result);
     });
     
     _manager.changeStream.listen((event) {
-      debugPrint('[PermissionMonitor] Permission change event: ${event.permission}');
+      debugPrint('[PermissionMonitor] 🔄 Permission change event: ${event.permission}');
       _handlePermissionChangeEvent(event);
     });
   }
@@ -103,83 +127,42 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     }
   }
   
-  void _performInitialCheck() {
-    if (!mounted || _hasCheckedPermissions) return;
-    
-    debugPrint('[PermissionMonitor] Performing initial check...');
-    
+  // دالة جديدة لاستخدام النتيجة الموجودة
+  void _useExistingResultIfAvailable() {
     if (_manager.lastCheckResult != null) {
-      debugPrint('[PermissionMonitor] Using existing manager result');
+      debugPrint('[PermissionMonitor] ✅ Using existing result from manager');
       _processCheckResult(_manager.lastCheckResult!);
-      _hasCheckedPermissions = true;
     } else {
-      debugPrint('[PermissionMonitor] No existing result, performing new check');
-      _performFreshCheck();
+      debugPrint('[PermissionMonitor] ℹ️ No existing result available');
     }
   }
   
-  Future<void> _performFreshCheck() async {
-    if (_hasCheckedPermissions) return;
-    
-    try {
-      _hasCheckedPermissions = true;
-      
-      debugPrint('[PermissionMonitor] Starting fresh permission check...');
-      
-      final result = await _checkCriticalPermissions();
-      
-      _processCheckResult(result);
-      
-    } catch (e) {
-      debugPrint('[PermissionMonitor] Error in fresh check: $e');
+  void _performInitialCheck() {
+    if (!mounted || _hasPerformedInitialCheck) {
+      debugPrint('[PermissionMonitor] ⚠️ Skipping initial check - already performed');
+      return;
     }
-  }
-  
-  Future<PermissionCheckResult> _checkCriticalPermissions() async {
-    final granted = <AppPermissionType>[];
-    final missing = <AppPermissionType>[];
-    final statuses = <AppPermissionType, AppPermissionStatus>{};
     
-    await Future.wait(
-      PermissionConstants.criticalPermissions.map((permission) async {
-        try {
-          final status = await _permissionService.checkPermissionStatus(permission);
-          statuses[permission] = status;
-          _cachedStatuses[permission] = status;
-          
-          if (status == AppPermissionStatus.granted) {
-            granted.add(permission);
-            debugPrint('[PermissionMonitor] ✅ $permission: GRANTED');
-          } else {
-            missing.add(permission);
-            debugPrint('[PermissionMonitor] ❌ $permission: ${status.toString()}');
-          }
-        } catch (e) {
-          debugPrint('[PermissionMonitor] Error checking $permission: $e');
-          missing.add(permission);
-        }
-      }),
-      eagerError: false,
-    );
+    _hasPerformedInitialCheck = true;
     
-    if (missing.isEmpty) {
-      return PermissionCheckResult.success(
-        granted: granted,
-        statuses: statuses,
-      );
+    debugPrint('[PermissionMonitor] 🔍 Performing initial check...');
+    
+    // استخدام النتيجة الموجودة من Manager بدلاً من فحص جديد
+    if (_manager.lastCheckResult != null) {
+      debugPrint('[PermissionMonitor] ✅ Using existing manager result');
+      _processCheckResult(_manager.lastCheckResult!);
     } else {
-      return PermissionCheckResult.partial(
-        granted: granted,
-        missing: missing,
-        statuses: statuses,
-      );
+      debugPrint('[PermissionMonitor] ℹ️ No existing result, waiting for manager to check');
+      // لا نقوم بفحص جديد، ننتظر النتيجة من Manager عبر Stream
     }
   }
   
   void _processCheckResult(PermissionCheckResult result) {
     if (!mounted) return;
     
-    debugPrint('[PermissionMonitor] Processing result: ${result.missingCount} missing permissions');
+    debugPrint('[PermissionMonitor] 📊 Processing result:');
+    debugPrint('[PermissionMonitor]   - Missing: ${result.missingCount} permissions');
+    debugPrint('[PermissionMonitor]   - Granted: ${result.grantedCount} permissions');
     
     setState(() {
       _missingPermissions = result.missingPermissions
@@ -205,7 +188,7 @@ class _PermissionMonitorState extends State<PermissionMonitor>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.resumed:
-        _onAppResumed();
+        _onAppResumedThrottled();
         break;
       case AppLifecycleState.paused:
         if (_isShowingNotification || _missingPermissions.isNotEmpty) {
@@ -219,77 +202,38 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     }
   }
   
-  void _onAppResumed() {
-    if (!_userWentToSettings) return;
+  // دالة محدثة مع Throttling
+  void _onAppResumedThrottled() {
+    // تطبيق throttling للفحص عند العودة
+    if (_lastResumeCheckTime != null) {
+      final timeSince = DateTime.now().difference(_lastResumeCheckTime!);
+      if (timeSince < _resumeCheckThrottle) {
+        debugPrint('[PermissionMonitor] ⏱️ Resume check throttled (${timeSince.inSeconds}s < ${_resumeCheckThrottle.inSeconds}s)');
+        return;
+      }
+    }
     
-    _userWentToSettings = false;
-    debugPrint('[PermissionMonitor] App resumed from settings - checking permissions...');
+    _lastResumeCheckTime = DateTime.now();
     
-    _recheckPermissionsAfterSettings();
+    if (_userWentToSettings) {
+      _userWentToSettings = false;
+      debugPrint('[PermissionMonitor] 🔄 App resumed from settings - checking permissions');
+      _recheckPermissionsAfterSettings();
+    }
   }
   
   Future<void> _recheckPermissionsAfterSettings() async {
-    if (_lastCheckTime != null) {
-      final timeSince = DateTime.now().difference(_lastCheckTime!);
-      if (timeSince < const Duration(milliseconds: 500)) return;
-    }
-    
-    _lastCheckTime = DateTime.now();
-    
     try {
-      debugPrint('[PermissionMonitor] Rechecking permissions after settings...');
+      debugPrint('[PermissionMonitor] 🔍 Using manager quick check after settings');
       
-      final changedPermissions = <AppPermissionType>[];
+      // استخدام performQuickCheck من Manager بدلاً من فحص مستقل
+      final result = await _manager.performQuickCheck();
       
-      await Future.wait(
-        _missingPermissions.map((permission) async {
-          final oldStatus = _cachedStatuses[permission] ?? AppPermissionStatus.unknown;
-          final newStatus = await _permissionService.checkPermissionStatus(permission);
-          
-          _cachedStatuses[permission] = newStatus;
-          
-          if (newStatus == AppPermissionStatus.granted) {
-            changedPermissions.add(permission);
-            debugPrint('[PermissionMonitor] ✅ Permission granted after settings: $permission');
-          }
-        }),
-        eagerError: false,
-      );
-      
-      if (changedPermissions.isNotEmpty && mounted) {
-        setState(() {
-          for (final permission in changedPermissions) {
-            _missingPermissions.remove(permission);
-            
-            if (_currentPermission == permission) {
-              _hideNotification(success: true);
-            }
-            
-            _showSuccessMessage(permission);
-          }
-        });
-        
-        if (_missingPermissions.isNotEmpty && !_isShowingNotification) {
-          Future.delayed(const Duration(seconds: 1), () {
-            if (mounted && !_isShowingNotification && _missingPermissions.isNotEmpty) {
-              _showNotificationForPermission(_missingPermissions.first);
-            }
-          });
-        }
+      if (mounted) {
+        _processCheckResult(result);
       }
-      
-      if (changedPermissions.isEmpty && 
-          _missingPermissions.isNotEmpty && 
-          !_isShowingNotification) {
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted && !_isShowingNotification && _missingPermissions.isNotEmpty) {
-            _showNotificationForPermission(_missingPermissions.first);
-          }
-        });
-      }
-      
     } catch (e) {
-      debugPrint('[PermissionMonitor] Error rechecking after settings: $e');
+      debugPrint('[PermissionMonitor] ❌ Error in quick check: $e');
     }
   }
   
@@ -297,8 +241,9 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     final dismissedAt = _dismissedPermissions[permission];
     if (dismissedAt != null && 
         DateTime.now().difference(dismissedAt) < _dismissalDuration) {
-      debugPrint('[PermissionMonitor] Permission notification dismissed temporarily: $permission');
+      debugPrint('[PermissionMonitor] ⏰ Permission notification dismissed temporarily: $permission');
       
+      // البحث عن إذن آخر غير مؤجل
       for (final p in _missingPermissions) {
         final otherDismissedAt = _dismissedPermissions[p];
         if (otherDismissedAt == null || 
@@ -325,7 +270,7 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     
     if (dismissed && _currentPermission != null) {
       _dismissedPermissions[_currentPermission!] = DateTime.now();
-      debugPrint('[PermissionMonitor] Permission dismissed: $_currentPermission');
+      debugPrint('[PermissionMonitor] 🚫 Permission dismissed: $_currentPermission');
     }
     
     setState(() {
@@ -444,7 +389,7 @@ class _PermissionMonitorState extends State<PermissionMonitor>
       }
       
     } catch (e) {
-      debugPrint('[PermissionMonitor] Error requesting permission: $e');
+      debugPrint('[PermissionMonitor] ❌ Error requesting permission: $e');
       setState(() => _isProcessing = false);
     }
   }
@@ -495,6 +440,7 @@ class _PermissionMonitorState extends State<PermissionMonitor>
   
   @override
   void dispose() {
+    debugPrint('[PermissionMonitor] 🛑 Disposing...');
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
