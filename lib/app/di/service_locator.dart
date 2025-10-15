@@ -1,9 +1,11 @@
-// lib/app/di/service_locator.dart - محدث ونظيف
+// lib/app/di/service_locator.dart - محدث ونظيف مع خدمات Firebase المتقدمة
 import 'package:athkar_app/app/themes/core/theme_notifier.dart';
 import 'package:athkar_app/core/error/error_handler.dart';
 import 'package:athkar_app/core/infrastructure/firebase/firebase_messaging_service.dart';
 import 'package:athkar_app/core/infrastructure/firebase/remote_config_manager.dart';
 import 'package:athkar_app/core/infrastructure/firebase/remote_config_service.dart';
+import 'package:athkar_app/core/infrastructure/firebase/analytics/analytics_service.dart';
+import 'package:athkar_app/core/infrastructure/firebase/performance/performance_service.dart';
 import 'package:athkar_app/core/infrastructure/services/device/battery/battery_service.dart';
 import 'package:athkar_app/core/infrastructure/services/device/battery/battery_service_impl.dart';
 import 'package:athkar_app/core/infrastructure/services/notifications/notification_manager.dart';
@@ -45,6 +47,7 @@ class ServiceLocator {
   bool _isEssentialInitialized = false;
   bool _isFeatureServicesRegistered = false;
   bool _firebaseAvailable = false;
+  bool _advancedFirebaseInitialized = false;
   
   // مفاتيح التخزين للـ Cache
   static const String _keyLastInitTime = 'last_init_time';
@@ -566,6 +569,79 @@ class ServiceLocator {
     }
   }
 
+  // ==================== Firebase Advanced Services ====================
+
+  /// تهيئة خدمات Firebase المتقدمة (Analytics, Crashlytics, Performance)
+  static Future<void> initializeAdvancedFirebaseServices() async {
+    await _instance._initializeAdvancedFirebase();
+  }
+
+  Future<void> _initializeAdvancedFirebase() async {
+    if (!_firebaseAvailable) {
+      debugPrint('ServiceLocator: Firebase not available, skipping advanced services');
+      return;
+    }
+
+    if (_advancedFirebaseInitialized) {
+      debugPrint('ServiceLocator: Advanced Firebase services already initialized');
+      return;
+    }
+
+    try {
+      debugPrint('🔥 ServiceLocator: Initializing advanced Firebase services...');
+      
+      // تهيئة Analytics Service
+      await _registerAnalyticsService();
+      
+      // تهيئة Performance Service
+      await _registerPerformanceService();
+      
+      // Crashlytics يتم إعداده تلقائياً من FirebaseInitializer
+      
+      _advancedFirebaseInitialized = true;
+      debugPrint('✅ ServiceLocator: Advanced Firebase services initialized');
+      
+    } catch (e) {
+      debugPrint('❌ ServiceLocator: Error initializing advanced Firebase services: $e');
+    }
+  }
+
+  /// تسجيل وتهيئة AnalyticsService
+  Future<void> _registerAnalyticsService() async {
+    try {
+      if (!getIt.isRegistered<AnalyticsService>()) {
+        // تسجيل كـ Singleton
+        getIt.registerSingleton<AnalyticsService>(AnalyticsService());
+        
+        // تهيئة الخدمة
+        final analyticsService = getIt<AnalyticsService>();
+        await analyticsService.initialize();
+        
+        debugPrint('✅ ServiceLocator: AnalyticsService registered and initialized');
+      }
+    } catch (e) {
+      debugPrint('❌ ServiceLocator: Error registering AnalyticsService: $e');
+    }
+  }
+
+  /// تسجيل وتهيئة PerformanceService
+  Future<void> _registerPerformanceService() async {
+    try {
+      if (!getIt.isRegistered<PerformanceService>()) {
+        // تسجيل كـ Singleton
+        getIt.registerSingleton<PerformanceService>(PerformanceService());
+        
+        // تهيئة الخدمة
+        final performanceService = getIt<PerformanceService>();
+        await performanceService.initialize();
+        
+        debugPrint('✅ ServiceLocator: PerformanceService registered and initialized');
+      }
+    } catch (e) {
+      debugPrint('❌ ServiceLocator: Error registering PerformanceService: $e');
+    }
+  }
+
   // ==================== الخدمات المساعدة ====================
 
   /// فحص جاهزية الخدمات الأساسية فقط
@@ -601,6 +677,7 @@ class ServiceLocator {
       if (clearCache) {
         _instance._isFeatureServicesRegistered = false;
         _instance._firebaseAvailable = false;
+        _instance._advancedFirebaseInitialized = false;
       }
       
     } catch (e) {
@@ -665,6 +742,7 @@ class ServiceLocator {
       }
 
       _cleanupFirebaseServices();
+      _cleanupAdvancedFirebaseServices();
 
       debugPrint('ServiceLocator: Resources cleaned up');
     } catch (e) {
@@ -704,6 +782,28 @@ class ServiceLocator {
       debugPrint('ServiceLocator: Firebase services cleaned up');
     } catch (e) {
       debugPrint('ServiceLocator: Error cleaning Firebase services: $e');
+    }
+  }
+
+  void _cleanupAdvancedFirebaseServices() {
+    try {
+      // تنظيف AnalyticsService
+      if (getIt.isRegistered<AnalyticsService>()) {
+        if (_isServiceActuallyInitialized<AnalyticsService>()) {
+          getIt<AnalyticsService>().dispose();
+        }
+      }
+      
+      // تنظيف PerformanceService
+      if (getIt.isRegistered<PerformanceService>()) {
+        if (_isServiceActuallyInitialized<PerformanceService>()) {
+          getIt<PerformanceService>().dispose();
+        }
+      }
+      
+      debugPrint('ServiceLocator: Advanced Firebase services cleaned up');
+    } catch (e) {
+      debugPrint('ServiceLocator: Error cleaning advanced Firebase services: $e');
     }
   }
 
@@ -802,6 +902,101 @@ extension ServiceLocatorExtensions on BuildContext {
           : null;
     } catch (e) {
       return null;
+    }
+  }
+  
+  // ==================== Firebase Advanced Services ====================
+  
+  /// خدمة Firebase Analytics
+  AnalyticsService? get analyticsService {
+    try {
+      return getIt.isRegistered<AnalyticsService>() 
+          ? getIt<AnalyticsService>() 
+          : null;
+    } catch (e) {
+      return null;
+    }
+  }
+  
+  /// خدمة Firebase Performance
+  PerformanceService? get performanceService {
+    try {
+      return getIt.isRegistered<PerformanceService>() 
+          ? getIt<PerformanceService>() 
+          : null;
+    } catch (e) {
+      return null;
+    }
+  }
+  
+  // ==================== Analytics Shortcuts ====================
+  
+  /// تسجيل حدث في Analytics بسرعة
+  Future<void> logAnalyticsEvent(String name, [Map<String, dynamic>? params]) async {
+    try {
+      final service = analyticsService;
+      if (service != null && service.isInitialized) {
+        await service.logEvent(name, params);
+      }
+    } catch (e) {
+      debugPrint('Error logging analytics event: $e');
+    }
+  }
+  
+  /// تسجيل عرض الشاشة
+  Future<void> logScreenView(String screenName, {Map<String, dynamic>? extras}) async {
+    try {
+      final service = analyticsService;
+      if (service != null && service.isInitialized) {
+        await service.logScreenView(screenName, extras: extras);
+      }
+    } catch (e) {
+      debugPrint('Error logging screen view: $e');
+    }
+  }
+  
+  // ==================== Performance Shortcuts ====================
+  
+  /// تتبع أداء عملية
+  Future<T> trackPerformance<T>(
+    String traceName,
+    Future<T> Function() operation, {
+    Map<String, dynamic>? attributes,
+  }) async {
+    try {
+      final service = performanceService;
+      if (service != null && service.isInitialized) {
+        return await service.trackPerformance(traceName, operation, attributes: attributes);
+      }
+    } catch (e) {
+      debugPrint('Error tracking performance: $e');
+    }
+    
+    // Fallback: تنفيذ العملية بدون تتبع
+    return await operation();
+  }
+  
+  /// بدء تتبع أداء
+  void startTrace(String traceName) {
+    try {
+      final service = performanceService;
+      if (service != null && service.isInitialized) {
+        service.startTrace(traceName);
+      }
+    } catch (e) {
+      debugPrint('Error starting trace: $e');
+    }
+  }
+  
+  /// إيقاف تتبع أداء
+  Future<void> stopTrace(String traceName, {Map<String, dynamic>? attributes}) async {
+    try {
+      final service = performanceService;
+      if (service != null && service.isInitialized) {
+        await service.stopTrace(traceName, attributes: attributes);
+      }
+    } catch (e) {
+      debugPrint('Error stopping trace: $e');
     }
   }
   

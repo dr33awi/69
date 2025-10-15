@@ -7,7 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-// Firebase imports (محدث)
+// Firebase imports
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -51,11 +51,6 @@ import 'features/onboarding/screens/permissions_setup_screen.dart';
 // ==================== متغيرات عامة ====================
 NotificationAppLaunchDetails? _notificationAppLaunchDetails;
 NotificationTapEvent? _pendingNotificationEvent;
-
-// خدمات Firebase الجديدة
-late final AnalyticsService _analyticsService;
-late final PerformanceService _performanceService;
-// ========================================================================
 
 /// نقطة دخول التطبيق
 Future<void> main() async {
@@ -108,7 +103,8 @@ Future<void> main() async {
     },
   );
 }
-// ==================== دالة جديدة: فحص الإشعار الأولي ====================
+
+// ==================== فحص الإشعار الأولي ====================
 Future<void> _checkInitialNotification() async {
   try {
     debugPrint('🔍 [Main] فحص الإشعار الأولي عند بدء التطبيق...');
@@ -116,7 +112,6 @@ Future<void> _checkInitialNotification() async {
     final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = 
         FlutterLocalNotificationsPlugin();
     
-    // الحصول على تفاصيل الإشعار الذي فتح التطبيق
     _notificationAppLaunchDetails = await flutterLocalNotificationsPlugin
         .getNotificationAppLaunchDetails();
     
@@ -131,7 +126,6 @@ Future<void> _checkInitialNotification() async {
         if (response != null && response.payload != null) {
           debugPrint('📦 [Main] Payload: ${response.payload}');
           
-          // تحويل الـ payload إلى NotificationTapEvent
           try {
             final payloadData = jsonDecode(response.payload!);
             
@@ -160,12 +154,11 @@ Future<void> _checkInitialNotification() async {
   }
 }
 
-// ==================== تحديث دالة إعداد معالج الإشعارات ====================
+// ==================== إعداد معالج الإشعارات ====================
 Future<void> _setupNotificationHandler() async {
   try {
     debugPrint('🔔 [Main] ========== إعداد معالج الإشعارات ==========');
     
-    // إنشاء معالج الإشعارات
     final handler = NotificationTapHandler(
       navigatorKey: AppRouter.navigatorKey,
     );
@@ -174,12 +167,11 @@ Future<void> _setupNotificationHandler() async {
     if (_pendingNotificationEvent != null) {
       debugPrint('🎯 [Main] معالجة الإشعار المعلق...');
       
-      // تأجيل المعالجة قليلاً للتأكد من جاهزية Navigator
       Future.delayed(const Duration(milliseconds: 1500), () {
         if (_pendingNotificationEvent != null) {
           debugPrint('🚀 [Main] تنفيذ معالجة الإشعار المعلق الآن');
           handler.handleNotificationTap(_pendingNotificationEvent!);
-          _pendingNotificationEvent = null; // مسح الإشعار بعد المعالجة
+          _pendingNotificationEvent = null;
         }
       });
     }
@@ -196,7 +188,6 @@ Future<void> _setupNotificationHandler() async {
         debugPrint('   📌 Payload: ${event.payload}');
         debugPrint('🔔 [Main] ========================================');
         
-        // معالجة النقر على الإشعار
         handler.handleNotificationTap(event);
       },
       onError: (error) {
@@ -206,10 +197,6 @@ Future<void> _setupNotificationHandler() async {
     );
     
     debugPrint('✅ [Main] تم إعداد معالج الإشعارات بنجاح');
-    debugPrint('   - Navigator Key: ${AppRouter.navigatorKey}');
-    debugPrint('   - Handler: Ready');
-    debugPrint('   - Listener: Active');
-    debugPrint('   - Pending Event: ${_pendingNotificationEvent != null ? "Yes" : "No"}');
     
   } catch (e, stackTrace) {
     debugPrint('❌ [Main] خطأ خطير في إعداد معالج الإشعارات: $e');
@@ -217,6 +204,7 @@ Future<void> _setupNotificationHandler() async {
   }
 }
 
+// ==================== Fast Bootstrap ====================
 Future<void> _fastBootstrap() async {
   debugPrint('========== Fast Bootstrap Starting ==========');
   final stopwatch = Stopwatch()..start();
@@ -224,7 +212,10 @@ Future<void> _fastBootstrap() async {
   try {
     DevelopmentConfig.initialize();
     
-    debugPrint('🔥 تهيئة Firebase Core...');
+    // تهيئة Firebase Core مع الخدمات المتقدمة
+    debugPrint('🔥 تهيئة Firebase Core والخدمات المتقدمة...');
+    
+    // 1. تهيئة Firebase Core
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
@@ -232,10 +223,25 @@ Future<void> _fastBootstrap() async {
     if (Firebase.apps.isEmpty) {
       throw Exception('فشل في تهيئة Firebase');
     }
-    debugPrint('✅ Firebase initialized. Apps: ${Firebase.apps.length}');
-        
+    debugPrint('✅ Firebase Core initialized. Apps: ${Firebase.apps.length}');
+    
+    // 2. تهيئة جميع خدمات Firebase (Analytics, Crashlytics, Performance, etc.)
+    final firebaseInitSuccess = await FirebaseInitializer.initialize();
+    if (firebaseInitSuccess) {
+      debugPrint('✅ Firebase Initializer completed successfully');
+      debugPrint('   - Analytics: ${FirebaseInitializer.isAnalyticsAvailable}');
+      debugPrint('   - Crashlytics: ${FirebaseInitializer.isCrashlyticsAvailable}');
+      debugPrint('   - Performance: ${FirebaseInitializer.isPerformanceAvailable}');
+      debugPrint('   - Messaging: ${FirebaseInitializer.isMessagingAvailable}');
+      debugPrint('   - Remote Config: ${FirebaseInitializer.isRemoteConfigAvailable}');
+    } else {
+      debugPrint('⚠️ Firebase Initializer returned false, but continuing...');
+    }
+    
+    // 3. تهيئة Service Locator الأساسي
     await ServiceLocator.initEssential();
     
+    // 4. تهيئة Remote Config مبكراً
     await _initializeRemoteConfigEarly();
     
     if (!ServiceLocator.areEssentialServicesReady()) {
@@ -253,6 +259,7 @@ Future<void> _fastBootstrap() async {
   }
 }
 
+// ==================== تهيئة Remote Config مبكراً ====================
 Future<void> _initializeRemoteConfigEarly() async {
   try {
     debugPrint('🔧 تهيئة Remote Config مبكراً...');
@@ -309,19 +316,39 @@ Future<void> _initializeRemoteConfigEarly() async {
   }
 }
 
+// ==================== Background Initialization ====================
 void _backgroundInitialization() {
   Future.delayed(const Duration(milliseconds: 500), () async {
     try {
       debugPrint('========== Background Initialization Starting ==========');
       final stopwatch = Stopwatch()..start();
       
+      // 1. تسجيل خدمات الميزات
       await ServiceLocator.registerFeatureServices();
       
+      // 2. تهيئة Firebase Services في الخلفية
       try {
         await ServiceLocator.initializeFirebaseInBackground();
         debugPrint('✅ Firebase services initialized in background');
       } catch (e) {
         debugPrint('⚠️ Firebase background init warning: $e');
+      }
+      
+      // 3. تهيئة خدمات Firebase المتقدمة (Analytics, Performance)
+      try {
+        await ServiceLocator.initializeAdvancedFirebaseServices();
+        debugPrint('✅ Advanced Firebase services initialized in background');
+        
+        // تسجيل حدث بدء التطبيق
+        if (getIt.isRegistered<AnalyticsService>()) {
+          final analytics = getIt<AnalyticsService>();
+          if (analytics.isInitialized) {
+            await analytics.logAppOpen();
+            debugPrint('📊 App open event logged to Analytics');
+          }
+        }
+      } catch (e) {
+        debugPrint('⚠️ Advanced Firebase init warning: $e');
       }
       
       stopwatch.stop();
@@ -350,17 +377,12 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     
-    // إضافة observer لمراقبة حالة التطبيق
     WidgetsBinding.instance.addObserver(this);
     
     _permissionManager = getIt<UnifiedPermissionManager>();
     
     _initializeConfigManager();
-    
-    // فحص أولي للأذونات (محسّن لمنع التكرار)
     _scheduleInitialPermissionCheck();
-    
-    // معالجة أي إشعار معلق بعد بناء الواجهة
     _processPendingNotificationIfAny();
   }
   
@@ -375,13 +397,11 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
     debugPrint('🔄 [AthkarApp] App lifecycle state: $state');
     
     if (state == AppLifecycleState.resumed) {
-      // التطبيق عاد للواجهة - فحص إذا كان هناك إشعار معلق
       _processPendingNotificationIfAny();
     }
   }
   
   void _processPendingNotificationIfAny() {
-    // هذه الدالة للتأكد من معالجة أي إشعار معلق
     if (_pendingNotificationEvent != null) {
       debugPrint('🎯 [AthkarApp] وجد إشعار معلق، سيتم معالجته...');
       
@@ -427,9 +447,7 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
     }
   }
 
-  // ==================== دالة محدثة لمنع التكرار في الفحص ====================
   void _scheduleInitialPermissionCheck() {
-    // فحص إذا كان المستخدم تجاوز Onboarding و Permissions Setup
     Future.delayed(const Duration(milliseconds: 2500), () async {
       if (!mounted) return;
       
@@ -438,8 +456,6 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
         final onboardingCompleted = storage.getBool('onboarding_completed') ?? false;
         final permissionsSetupCompleted = storage.getBool('permissions_setup_completed') ?? false;
         
-        // فحص الأذونات فقط إذا تم إكمال الإعداد
-        // وإذا لم يتم الفحص مسبقاً
         if (onboardingCompleted && permissionsSetupCompleted) {
           if (!_permissionManager.hasCheckedThisSession) {
             debugPrint('[AthkarApp] Performing initial permission check (ONCE)');
@@ -461,15 +477,9 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: getIt<ThemeNotifier>(),
       builder: (context, themeMode, child) {
-        // تهيئة ScreenUtil
         return ScreenUtilInit(
-          // حجم التصميم المرجعي - iPhone 11 كمرجع
           designSize: const Size(375, 812),
-          
-          // السماح بتغيير حجم النص ديناميكياً
           minTextAdapt: true,
-          
-          // دعم تقسيم الشاشة
           splitScreenMode: true,
           
           builder: (context, child) {
@@ -489,7 +499,6 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
                 GlobalCupertinoLocalizations.delegate,
               ],
               
-              // استخدام navigatorKey
               navigatorKey: AppRouter.navigatorKey,
               
               home: _buildInitialScreen(),
@@ -512,53 +521,45 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
     );
   }
 
-  // ==================== دالة محدثة لتمرير skipInitialCheck ====================
   Widget _buildInitialScreen() {
     Widget screen;
     bool skipPermissionMonitorCheck = false;
     
     try {
-      // فحص إذا اكتمل Onboarding
       final storage = getIt<StorageService>();
       final onboardingCompleted = storage.getBool('onboarding_completed') ?? false;
       final permissionsSetupCompleted = storage.getBool('permissions_setup_completed') ?? false;
       
       if (!onboardingCompleted) {
-        // المستخدم الجديد - عرض Onboarding
         debugPrint('🎬 Starting with onboarding');
         return const OnboardingScreen();
         
       } else if (!permissionsSetupCompleted) {
-        // Onboarding مكتمل لكن لم يتم إعداد الأذونات
         debugPrint('🔐 Starting with permissions setup');
         return const PermissionsSetupScreen();
         
       } else {
-        // كل شيء مكتمل - عرض الشاشة الرئيسية
         debugPrint('🏠 Starting with home screen');
         
-        // إذا كان قد تم الفحص في main، تخطي الفحص في PermissionMonitor
         skipPermissionMonitorCheck = _permissionManager.hasCheckedThisSession;
         
         debugPrint('[AthkarApp] skipPermissionMonitorCheck: $skipPermissionMonitorCheck');
         
         screen = PermissionMonitor(
           showNotifications: true,
-          skipInitialCheck: skipPermissionMonitorCheck, // تمرير القيمة الصحيحة
+          skipInitialCheck: skipPermissionMonitorCheck,
           child: const HomeScreen(),
         );
       }
     } catch (e) {
       debugPrint('❌ Error determining initial screen: $e');
-      // في حالة الخطأ، عرض الشاشة الرئيسية مع تخطي الفحص
       screen = const PermissionMonitor(
         showNotifications: true,
-        skipInitialCheck: true, // تخطي في حالة الخطأ
+        skipInitialCheck: true,
         child: HomeScreen(),
       );
     }
     
-    // تطبيق AppStatusMonitor إذا كان جاهزاً
     return _wrapWithAppMonitor(screen);
   }
 

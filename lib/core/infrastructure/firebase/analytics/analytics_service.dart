@@ -1,10 +1,10 @@
-// lib/core/infrastructure/firebase/analytics/analytics_service.dart
+// lib/core/infrastructure/firebase/analytics/analytics_service.dart - محدث
 
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import '../utils/firebase_helpers.dart';
 
-/// خدمة Firebase Analytics للتتبع المنظم
+/// خدمة Firebase Analytics المصححة
 class AnalyticsService {
   static final AnalyticsService _instance = AnalyticsService._internal();
   factory AnalyticsService() => _instance;
@@ -14,7 +14,6 @@ class AnalyticsService {
   FirebaseAnalyticsObserver? _observer;
   bool _isInitialized = false;
   
-  // تخزين معلومات الجلسة
   DateTime? _sessionStartTime;
   int _screenViewCount = 0;
   int _eventCount = 0;
@@ -27,13 +26,10 @@ class AnalyticsService {
       _analytics = FirebaseAnalytics.instance;
       _observer = FirebaseAnalyticsObserver(analytics: _analytics!);
       
-      // تفعيل Analytics (معطل في Debug mode)
+      // تفعيل Analytics
       await _analytics!.setAnalyticsCollectionEnabled(true);
       
-      // تعيين خصائص التطبيق الأساسية
       await _setDefaultProperties();
-      
-      // بدء جلسة جديدة
       await _startSession();
       
       _isInitialized = true;
@@ -49,19 +45,16 @@ class AnalyticsService {
     if (_analytics == null) return;
     
     try {
-      // لغة التطبيق
       await _analytics!.setUserProperty(
         name: 'app_language',
         value: 'arabic',
       );
       
-      // نوع المستخدم
       await _analytics!.setUserProperty(
         name: 'user_type',
         value: 'standard',
       );
       
-      // منصة التطبيق
       await _analytics!.setUserProperty(
         name: 'platform',
         value: 'android',
@@ -96,8 +89,6 @@ class AnalyticsService {
     });
   }
   
-  // ==================== Screen Tracking ====================
-  
   /// تتبع فتح شاشة
   Future<void> logScreenView(String screenName, {Map<String, dynamic>? extras}) async {
     if (_analytics == null) return;
@@ -124,9 +115,7 @@ class AnalyticsService {
     }
   }
   
-  // ==================== Event Tracking ====================
-  
-  /// تسجيل حدث عام
+  /// تسجيل حدث عام - مصحح
   Future<void> logEvent(String name, [Map<String, dynamic>? parameters]) async {
     if (_analytics == null) return;
     
@@ -136,19 +125,58 @@ class AnalyticsService {
       // تنظيف اسم الحدث
       final eventName = FirebaseHelpers.sanitizeEventName(name);
       
-      // تحويل المعاملات مع إضافة المعاملات الافتراضية
+      // تحويل المعاملات بشكل صحيح - استخدام Map<String, Object> بدون nullable
       Map<String, Object>? firebaseParams;
       
-      if (parameters != null) {
-        final baseParams = FirebaseHelpers.convertToFirebaseParams(parameters);
-        firebaseParams = FirebaseHelpers.addDefaultEventParams(baseParams);
-      } else {
-        firebaseParams = FirebaseHelpers.addDefaultEventParams(null);
+      if (parameters != null && parameters.isNotEmpty) {
+        firebaseParams = <String, Object>{};
+        
+        parameters.forEach((key, value) {
+          // تنظيف اسم المعامل
+          final cleanKey = FirebaseHelpers.sanitizeParamName(key);
+          
+          // تحويل القيمة للنوع المناسب - تخطي القيم null
+          if (value == null) {
+            // تخطي القيم null تماماً
+            return;
+          } else if (value is String || value is int || value is double || value is bool) {
+            firebaseParams![cleanKey] = value;
+          } else if (value is DateTime) {
+            firebaseParams![cleanKey] = value.millisecondsSinceEpoch;
+          } else if (value is List) {
+            // تحويل القوائم إلى نص
+            final listStr = value.where((e) => e != null).join(',');
+            if (listStr.isNotEmpty) {
+              firebaseParams![cleanKey] = listStr;
+            }
+          } else if (value is Map) {
+            // تحويل الخرائط إلى JSON
+            firebaseParams![cleanKey] = value.toString();
+          } else {
+            // أي نوع آخر يتم تحويله إلى نص
+            firebaseParams![cleanKey] = value.toString();
+          }
+        });
+        
+        // التحقق من عدد المعاملات (الحد الأقصى 25)
+        if (firebaseParams.length > 25) {
+          final limitedParams = <String, Object>{};
+          var count = 0;
+          for (final entry in firebaseParams.entries) {
+            if (count >= 25) break;
+            limitedParams[entry.key] = entry.value;
+            count++;
+          }
+          firebaseParams = limitedParams;
+        }
+        
+        // التحقق من أن المعاملات ليست فارغة
+        if (firebaseParams.isEmpty) {
+          firebaseParams = null;
+        }
       }
       
-      // التحقق من الحدود والتنظيف
-      firebaseParams = FirebaseHelpers.validateAndLimitParams(firebaseParams);
-      
+      // تسجيل الحدث
       await _analytics!.logEvent(
         name: eventName,
         parameters: firebaseParams,
@@ -160,8 +188,6 @@ class AnalyticsService {
       debugPrint('❌ Failed to log event: $e');
     }
   }
-  
-  // ==================== User Tracking ====================
   
   /// تعيين معرف المستخدم
   Future<void> setUserId(String? userId) async {
@@ -187,8 +213,6 @@ class AnalyticsService {
     }
   }
   
-  // ==================== Prayer Tracking ====================
-  
   /// تتبع وقت الصلاة
   Future<void> logPrayerTime(String prayerName, {bool onTime = false}) async {
     await logEvent(AnalyticsEvents.prayerViewed, {
@@ -205,8 +229,6 @@ class AnalyticsService {
       'action': action, // shown, clicked, dismissed
     });
   }
-  
-  // ==================== Athkar Tracking ====================
   
   /// تتبع قراءة الأذكار
   Future<void> logAthkarRead(String category, {int? count}) async {
@@ -226,8 +248,6 @@ class AnalyticsService {
     });
   }
   
-  // ==================== Tasbih Tracking ====================
-  
   /// تتبع التسبيح
   Future<void> logTasbihCount(String dhikr, int count) async {
     await logEvent(AnalyticsEvents.tasbihCounted, {
@@ -245,8 +265,6 @@ class AnalyticsService {
     });
   }
   
-  // ==================== Qibla Tracking ====================
-  
   /// تتبع استخدام القبلة
   Future<void> logQiblaUsed({double? accuracy}) async {
     await logEvent(AnalyticsEvents.qiblaUsed, {
@@ -254,8 +272,6 @@ class AnalyticsService {
       'has_permission': true,
     });
   }
-  
-  // ==================== Settings Tracking ====================
   
   /// تتبع تغيير الإعدادات
   Future<void> logSettingChanged(String settingName, dynamic newValue) async {
@@ -271,11 +287,8 @@ class AnalyticsService {
       'theme': theme,
     });
     
-    // تحديث خاصية المستخدم
     await setUserProperty('preferred_theme', theme);
   }
-  
-  // ==================== Sharing Tracking ====================
   
   /// تتبع المشاركة
   Future<void> logShare(String contentType, String method) async {
@@ -285,8 +298,6 @@ class AnalyticsService {
     });
   }
   
-  // ==================== Error Tracking ====================
-  
   /// تتبع الأخطاء
   Future<void> logError(String errorType, String message) async {
     await logEvent(AnalyticsEvents.errorOccurred, {
@@ -295,8 +306,6 @@ class AnalyticsService {
       'screen': await _getCurrentScreen(),
     });
   }
-  
-  // ==================== App Lifecycle ====================
   
   /// تتبع فتح التطبيق
   Future<void> logAppOpen() async {
@@ -319,9 +328,7 @@ class AnalyticsService {
     });
   }
   
-  // ==================== Helper Methods ====================
-  
-  /// الحصول على وقت اليوم
+  // Helper Methods
   String _getTimeOfDay() {
     final hour = DateTime.now().hour;
     if (hour >= 5 && hour < 12) return 'morning';
@@ -330,18 +337,13 @@ class AnalyticsService {
     return 'night';
   }
   
-  /// الحصول على الشاشة الحالية
   Future<String> _getCurrentScreen() async {
-    // يمكن تحسين هذا باستخدام NavigatorObserver
     return 'unknown';
   }
-  
-  // ==================== Getters ====================
   
   bool get isInitialized => _isInitialized;
   FirebaseAnalyticsObserver? get observer => _observer;
   
-  /// معلومات الجلسة
   Map<String, dynamic> get sessionInfo => {
     'start_time': _sessionStartTime?.toIso8601String(),
     'duration': _sessionStartTime != null 
@@ -351,7 +353,6 @@ class AnalyticsService {
     'events': _eventCount,
   };
   
-  /// تنظيف
   void dispose() {
     endSession();
     _isInitialized = false;
@@ -402,14 +403,11 @@ class AnalyticsEvents {
   static const String permissionDenied = 'permission_denied';
 }
 
-/// Extension للاستخدام السريع
 extension AnalyticsExtension on BuildContext {
-  /// تسجيل عرض الشاشة بسرعة
   Future<void> logScreen(String screenName) async {
     await AnalyticsService().logScreenView(screenName);
   }
   
-  /// تسجيل حدث بسرعة
   Future<void> logEvent(String event, [Map<String, dynamic>? params]) async {
     await AnalyticsService().logEvent(event, params);
   }
