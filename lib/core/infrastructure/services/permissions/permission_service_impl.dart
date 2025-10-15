@@ -7,20 +7,22 @@ import 'package:permission_handler/permission_handler.dart' as handler;
 import '../storage/storage_service.dart';
 import 'permission_service.dart';
 import 'permission_constants.dart';
+import 'permission_coordinator.dart'; // إضافة هذا
 import 'widgets/permission_dialogs.dart';
 import 'handlers/permission_handler_factory.dart';
 
-/// تنفيذ مبسط لخدمة الأذونات بدون مراقبة دورية
+/// تنفيذ مبسط لخدمة الأذونات مع استخدام PermissionCoordinator
 class PermissionServiceImpl implements PermissionService {
   final StorageService _storage;
   final BuildContext? _context;
   
+  // إضافة reference للـ coordinator
+  late final PermissionCoordinator _coordinator;
+  
   // Cache
   final Map<AppPermissionType, AppPermissionStatus> _statusCache = {};
-  final Map<AppPermissionType, DateTime> _lastRequestTime = {};
   DateTime? _lastCacheUpdate;
   static const Duration _cacheExpiration = Duration(seconds: 30);
-  static const Duration _minRequestInterval = Duration(seconds: 5);
   
   // Stream controller
   final StreamController<PermissionChange> _permissionChangeController = 
@@ -31,11 +33,12 @@ class PermissionServiceImpl implements PermissionService {
     BuildContext? context,
   }) : _storage = storage,
        _context = context {
+    _coordinator = PermissionCoordinator(); // استخدام singleton
     _initializeService();
   }
   
   void _initializeService() {
-    _log('Initializing');
+    _log('Initializing with PermissionCoordinator');
     _loadCachedStatuses();
   }
   
@@ -53,13 +56,7 @@ class PermissionServiceImpl implements PermissionService {
   
   @override
   Future<AppPermissionStatus> requestPermission(AppPermissionType permission) async {
-    _log('Requesting permission', {'type': permission.toString()});
-    
-    // Check throttling
-    if (_shouldThrottleRequest(permission)) {
-      _log('Request throttled');
-      return await checkPermissionStatus(permission);
-    }
+    _log('Requesting permission via coordinator', {'type': permission.toString()});
     
     // Check cache first
     final cachedStatus = _getCachedStatus(permission);
@@ -68,46 +65,48 @@ class PermissionServiceImpl implements PermissionService {
       return cachedStatus;
     }
     
-    // Record request time
-    _lastRequestTime[permission] = DateTime.now();
-    
-    // Get appropriate handler
-    final handler = PermissionHandlerFactory.getHandler(permission);
-    if (handler == null) {
-      _logWarning('Unsupported permission type');
-      return AppPermissionStatus.unknown;
-    }
-    
-    try {
-      // Check availability
-      if (!handler.isAvailable) {
-        _logWarning('Permission not available on this platform');
-        return AppPermissionStatus.unknown;
-      }
-      
-      // Request permission
-      final status = await handler.request();
-      
-      // Update cache
-      _updateCache(permission, status);
-      
-      // Notify listeners
-      _notifyPermissionChange(
-        permission, 
-        cachedStatus ?? AppPermissionStatus.unknown,
-        status
-      );
-      
-      _log('Permission request result', {
-        'type': permission.toString(),
-        'status': status.toString(),
-      });
-      
-      return status;
-    } catch (e, s) {
-      _logError('Error requesting permission', e, s);
-      return AppPermissionStatus.unknown;
-    }
+    // استخدام Coordinator بدلاً من الإدارة المحلية
+    return await _coordinator.requestPermission(
+      permission,
+      () async {
+        final handler = PermissionHandlerFactory.getHandler(permission);
+        if (handler == null) {
+          _logWarning('Unsupported permission type');
+          return AppPermissionStatus.unknown;
+        }
+        
+        try {
+          // Check availability
+          if (!handler.isAvailable) {
+            _logWarning('Permission not available on this platform');
+            return AppPermissionStatus.unknown;
+          }
+          
+          // Request permission
+          final status = await handler.request();
+          
+          // Update cache
+          _updateCache(permission, status);
+          
+          // Notify listeners
+          _notifyPermissionChange(
+            permission, 
+            cachedStatus ?? AppPermissionStatus.unknown,
+            status
+          );
+          
+          _log('Permission request result via coordinator', {
+            'type': permission.toString(),
+            'status': status.toString(),
+          });
+          
+          return status;
+        } catch (e) {
+          _logError('Error in permission request', e);
+          return AppPermissionStatus.unknown;
+        }
+      },
+    );
   }
   
   @override
@@ -116,7 +115,7 @@ class PermissionServiceImpl implements PermissionService {
     Function(PermissionProgress)? onProgress,
     bool showExplanationDialog = true,
   }) async {
-    _log('Requesting multiple permissions', {
+    _log('Requesting multiple permissions via coordinator', {
       'permissions': permissions.map((p) => p.toString()).toList()
     });
     
@@ -148,26 +147,21 @@ class PermissionServiceImpl implements PermissionService {
       }
     }
     
-    // Request permissions with progress tracking
-    final results = <AppPermissionType, AppPermissionStatus>{};
+    // استخدام Coordinator للطلبات المتعددة
+    final results = await _coordinator.requestMultiplePermissions(
+      supportedPermissions,
+      (permission) => requestPermission(permission),
+    );
     
-    for (int i = 0; i < supportedPermissions.length; i++) {
-      final permission = supportedPermissions[i];
-      
-      // Send progress update
+    // Send progress updates
+    int i = 0;
+    for (final permission in supportedPermissions) {
+      i++;
       onProgress?.call(PermissionProgress(
-        current: i + 1,
+        current: i,
         total: supportedPermissions.length,
         currentPermission: permission,
       ));
-      
-      // Request permission
-      results[permission] = await requestPermission(permission);
-      
-      // Small delay between requests
-      if (i < supportedPermissions.length - 1) {
-        await Future.delayed(const Duration(milliseconds: 800));
-      }
     }
     
     // Calculate results
@@ -191,30 +185,35 @@ class PermissionServiceImpl implements PermissionService {
       return cachedStatus;
     }
     
-    // Get appropriate handler
-    final handler = PermissionHandlerFactory.getHandler(permission);
-    if (handler == null) {
-      _logWarning('Unsupported permission type for check');
-      return AppPermissionStatus.unknown;
-    }
-    
-    try {
-      // Check availability
-      if (!handler.isAvailable) {
-        return AppPermissionStatus.unknown;
-      }
-      
-      // Check status
-      final status = await handler.check();
-      
-      // Update cache
-      _updateCache(permission, status);
-      
-      return status;
-    } catch (e) {
-      _logError('Error checking permission status', e);
-      return AppPermissionStatus.unknown;
-    }
+    // استخدام Coordinator للفحص
+    return await _coordinator.checkPermission(
+      permission,
+      () async {
+        final handler = PermissionHandlerFactory.getHandler(permission);
+        if (handler == null) {
+          _logWarning('Unsupported permission type for check');
+          return AppPermissionStatus.unknown;
+        }
+        
+        try {
+          // Check availability
+          if (!handler.isAvailable) {
+            return AppPermissionStatus.unknown;
+          }
+          
+          // Check status
+          final status = await handler.check();
+          
+          // Update cache
+          _updateCache(permission, status);
+          
+          return status;
+        } catch (e) {
+          _logError('Error checking permission status', e);
+          return AppPermissionStatus.unknown;
+        }
+      },
+    );
   }
   
   @override
@@ -222,23 +221,13 @@ class PermissionServiceImpl implements PermissionService {
     // فحص الأذونات الحرجة فقط لتحسين الأداء
     final criticalPermissions = PermissionConstants.criticalPermissions;
     
-    _log('Checking critical permissions only');
+    _log('Checking critical permissions via coordinator');
     
-    final results = <AppPermissionType, AppPermissionStatus>{};
-    
-    // Use parallel requests with batch size limit
-    const batchSize = 3;
-    for (int i = 0; i < criticalPermissions.length; i += batchSize) {
-      final batch = criticalPermissions.skip(i).take(batchSize).toList();
-      
-      await Future.wait(
-        batch.map((permission) async {
-          results[permission] = await checkPermissionStatus(permission);
-        }),
-      );
-    }
-    
-    return results;
+    // استخدام coordinator للفحص المتعدد
+    return await _coordinator.checkMultiplePermissions(
+      criticalPermissions,
+      (permission) => checkPermissionStatus(permission),
+    );
   }
   
   @override
@@ -269,9 +258,9 @@ class PermissionServiceImpl implements PermissionService {
   @override
   void clearPermissionCache() {
     _statusCache.clear();
-    _lastRequestTime.clear();
     _lastCacheUpdate = null;
-    _log('Permission cache cleared');
+    _coordinator.reset(); // إعادة تعيين Coordinator أيضاً
+    _log('Permission cache and coordinator cleared');
   }
   
   @override
@@ -282,14 +271,6 @@ class PermissionServiceImpl implements PermissionService {
   }
   
   // ==================== Private Methods ====================
-  
-  bool _shouldThrottleRequest(AppPermissionType permission) {
-    final lastRequest = _lastRequestTime[permission];
-    if (lastRequest == null) return false;
-    
-    final timeSinceLastRequest = DateTime.now().difference(lastRequest);
-    return timeSinceLastRequest < _minRequestInterval;
-  }
   
   AppPermissionStatus? _getCachedStatus(AppPermissionType permission) {
     if (!_isCacheValid()) {

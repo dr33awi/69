@@ -18,17 +18,35 @@ class BatteryOptimizationHandler extends PermissionHandlerBase {
   
   @override
   Future<AppPermissionStatus> request() async {
-    if (!isAvailable) return AppPermissionStatus.unknown;
+    if (!isAvailable) {
+      // على iOS، نعتبره مفعل دائماً لأنه لا يحتاج إذن
+      return Platform.isIOS ? AppPermissionStatus.granted : AppPermissionStatus.unknown;
+    }
     
-    final status = await nativePermission!.request();
-    return mapFromNativeStatus(status);
+    try {
+      final status = await nativePermission!.request();
+      return mapFromNativeStatus(status);
+    } catch (e) {
+      // في حالة الخطأ على Android، نعتبره مفعل لتجنب المشاكل
+      // لأن بعض الأجهزة قد لا تدعم هذا الإذن
+      return AppPermissionStatus.granted;
+    }
   }
   
   @override
   Future<AppPermissionStatus> check() async {
-    if (!isAvailable) return AppPermissionStatus.unknown;
+    if (!isAvailable) {
+      // على iOS، نعتبره مفعل دائماً لأنه لا يحتاج إذن
+      return Platform.isIOS ? AppPermissionStatus.granted : AppPermissionStatus.unknown;
+    }
     
-    final status = await nativePermission!.status;
-    return mapFromNativeStatus(status);
+    try {
+      final status = await nativePermission!.status;
+      return mapFromNativeStatus(status);
+    } catch (e) {
+      // في حالة الخطأ على Android، نعتبره مفعل لتجنب المشاكل
+      // لأن بعض الأجهزة قد لا تدعم هذا الإذن
+      return AppPermissionStatus.granted;
+    }
   }
 }

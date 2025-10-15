@@ -1,4 +1,4 @@
-// lib/main.dart - محدث مع معالجة الإشعارات الكاملة
+// lib/main.dart - محدث مع حل مشكلة التكرار في الفحص
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -335,7 +335,7 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
     
     _initializeConfigManager();
     
-    // فحص أولي للأذونات (فقط إذا تم تجاوز Onboarding)
+    // فحص أولي للأذونات (محسّن لمنع التكرار)
     _scheduleInitialPermissionCheck();
     
     // معالجة أي إشعار معلق بعد بناء الواجهة
@@ -405,9 +405,10 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
     }
   }
 
+  // ==================== دالة محدثة لمنع التكرار في الفحص ====================
   void _scheduleInitialPermissionCheck() {
     // فحص إذا كان المستخدم تجاوز Onboarding و Permissions Setup
-    Future.delayed(const Duration(milliseconds: 1500), () async {
+    Future.delayed(const Duration(milliseconds: 2500), () async {
       if (!mounted) return;
       
       try {
@@ -416,11 +417,16 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
         final permissionsSetupCompleted = storage.getBool('permissions_setup_completed') ?? false;
         
         // فحص الأذونات فقط إذا تم إكمال الإعداد
+        // وإذا لم يتم الفحص مسبقاً
         if (onboardingCompleted && permissionsSetupCompleted) {
           if (!_permissionManager.hasCheckedThisSession) {
-            debugPrint('[AthkarApp] Performing initial permission check');
+            debugPrint('[AthkarApp] Performing initial permission check (ONCE)');
             await _permissionManager.performInitialCheck();
+          } else {
+            debugPrint('[AthkarApp] Initial check already done, skipping');
           }
+        } else {
+          debugPrint('[AthkarApp] Skipping permission check - setup not completed');
         }
       } catch (e) {
         debugPrint('[AthkarApp] Error checking onboarding status: $e');
@@ -484,8 +490,10 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
     );
   }
 
+  // ==================== دالة محدثة لتمرير skipInitialCheck ====================
   Widget _buildInitialScreen() {
     Widget screen;
+    bool skipPermissionMonitorCheck = false;
     
     try {
       // فحص إذا اكتمل Onboarding
@@ -506,16 +514,24 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
       } else {
         // كل شيء مكتمل - عرض الشاشة الرئيسية
         debugPrint('🏠 Starting with home screen');
-        screen = const PermissionMonitor(
+        
+        // إذا كان قد تم الفحص في main، تخطي الفحص في PermissionMonitor
+        skipPermissionMonitorCheck = _permissionManager.hasCheckedThisSession;
+        
+        debugPrint('[AthkarApp] skipPermissionMonitorCheck: $skipPermissionMonitorCheck');
+        
+        screen = PermissionMonitor(
           showNotifications: true,
-          child: HomeScreen(),
+          skipInitialCheck: skipPermissionMonitorCheck, // تمرير القيمة الصحيحة
+          child: const HomeScreen(),
         );
       }
     } catch (e) {
       debugPrint('❌ Error determining initial screen: $e');
-      // في حالة الخطأ، عرض الشاشة الرئيسية
+      // في حالة الخطأ، عرض الشاشة الرئيسية مع تخطي الفحص
       screen = const PermissionMonitor(
         showNotifications: true,
+        skipInitialCheck: true, // تخطي في حالة الخطأ
         child: HomeScreen(),
       );
     }

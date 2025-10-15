@@ -1,76 +1,114 @@
+// android/app/src/main/kotlin/com/example/test_athkar_app/MainActivity.kt
 package com.example.test_athkar_app
 
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import android.os.Build
-import android.os.PowerManager
-import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugin.common.EventChannel
+import android.os.Build
+import android.os.Bundle
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import android.util.Log
 
-class MainActivity: FlutterActivity() {
-    private val DND_CHANNEL = "com.athkar.app/do_not_disturb"
-    private val DND_EVENTS_CHANNEL = "com.athkar.app/do_not_disturb_events"
-    private val BATTERY_CHANNEL = "com.athkar.app/battery_optimization"
-    private var doNotDisturbHandler: DoNotDisturbHandler? = null
+class MainActivity : FlutterActivity() {
+    private val CHANNEL = "com.example.test_athkar_app/permissions"
+    private val TAG = "MainActivity"
+    private val NOTIFICATION_PERMISSION_CODE = 1001
     
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         
-        doNotDisturbHandler = DoNotDisturbHandler(applicationContext)
-        
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, DND_CHANNEL)
-            .setMethodCallHandler(doNotDisturbHandler)
-        
-        EventChannel(flutterEngine.dartExecutor.binaryMessenger, DND_EVENTS_CHANNEL)
-            .setStreamHandler(doNotDisturbHandler?.getDndStreamHandler())
-        
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, BATTERY_CHANNEL)
-            .setMethodCallHandler { call, result ->
-                when (call.method) {
-                    "isBatteryOptimizationEnabled" -> {
-                        result.success(isBatteryOptimizationEnabled())
-                    }
-                    "requestBatteryOptimizationDisable" -> {
-                        result.success(requestBatteryOptimizationDisable())
-                    }
-                    else -> result.notImplemented()
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "getAndroidVersion" -> {
+                    result.success(Build.VERSION.SDK_INT)
+                }
+                "requestNotificationPermission" -> {
+                    requestNotificationPermission(result)
+                }
+                "checkNotificationPermission" -> {
+                    checkNotificationPermission(result)
+                }
+                else -> {
+                    result.notImplemented()
                 }
             }
-        
-        doNotDisturbHandler?.configureNotificationChannelsForDoNotDisturb()
-    }
-    
-    override fun onResume() {
-        super.onResume()
-        doNotDisturbHandler?.notifyDndStatusChange()
-    }
-    
-    private fun isBatteryOptimizationEnabled(): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-            return !powerManager.isIgnoringBatteryOptimizations(packageName)
         }
-        return false
     }
     
-    private fun requestBatteryOptimizationDisable(): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val intent = Intent().apply {
-                action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-                data = Uri.parse("package:$packageName")
+    private fun requestNotificationPermission(result: MethodChannel.Result) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            when {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    Log.d(TAG, "Notification permission already granted")
+                    result.success(true)
+                }
+                ActivityCompat.shouldShowRequestPermissionRationale(
+                    this,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) -> {
+                    Log.d(TAG, "Should show notification permission rationale")
+                    // Request the permission
+                    ActivityCompat.requestPermissions(
+                        this,
+                        arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                        NOTIFICATION_PERMISSION_CODE
+                    )
+                    result.success(null) // Will be handled in onRequestPermissionsResult
+                }
+                else -> {
+                    Log.d(TAG, "Requesting notification permission")
+                    // Request the permission
+                    ActivityCompat.requestPermissions(
+                        this,
+                        arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                        NOTIFICATION_PERMISSION_CODE
+                    )
+                    result.success(null) // Will be handled in onRequestPermissionsResult
+                }
             }
+        } else {
+            // For Android < 13, notifications are enabled by default
+            Log.d(TAG, "Android < 13, notifications enabled by default")
+            result.success(true)
+        }
+    }
+    
+    private fun checkNotificationPermission(result: MethodChannel.Result) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val hasPermission = ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
             
-            return try {
-                startActivity(intent)
-                true
-            } catch (e: Exception) {
-                false
-            }
+            Log.d(TAG, "Notification permission check: $hasPermission")
+            result.success(hasPermission)
+        } else {
+            // For Android < 13, check if notifications are enabled
+            Log.d(TAG, "Android < 13, checking notification settings")
+            result.success(true)
         }
-        return false
+    }
+    
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        
+        if (requestCode == NOTIFICATION_PERMISSION_CODE) {
+            val granted = grantResults.isNotEmpty() && 
+                         grantResults[0] == PackageManager.PERMISSION_GRANTED
+            
+            Log.d(TAG, "Notification permission result: $granted")
+            
+            // You can send the result back to Flutter if needed
+            // through an event channel or by calling a method
+        }
     }
 }

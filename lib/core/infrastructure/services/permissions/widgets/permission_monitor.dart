@@ -139,7 +139,14 @@ class _PermissionMonitorState extends State<PermissionMonitor>
   
   void _performInitialCheck() {
     if (!mounted || _hasPerformedInitialCheck) {
-      debugPrint('[PermissionMonitor] ⚠️ Skipping initial check - already performed');
+      debugPrint('[PermissionMonitor] ⚠️ Skipping initial check - already performed or not mounted');
+      return;
+    }
+    
+    // إضافة فحص إذا كان يجب التخطي
+    if (widget.skipInitialCheck) {
+      debugPrint('[PermissionMonitor] ℹ️ Skipping initial check as requested (double check)');
+      _useExistingResultIfAvailable();
       return;
     }
     
@@ -340,51 +347,50 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     HapticFeedback.lightImpact();
     
     try {
-      final currentStatus = await _permissionService.checkPermissionStatus(_currentPermission!);
+      // استخدام Manager للطلب (الذي يستخدم Coordinator)
+      final granted = await _manager.requestPermissionWithExplanation(
+        context,
+        _currentPermission!,
+        forceRequest: true,
+      );
       
-      if (currentStatus == AppPermissionStatus.permanentlyDenied) {
-        await _permissionService.openAppSettings();
-        _userWentToSettings = true;
+      if (granted) {
+        _cachedStatuses[_currentPermission!] = AppPermissionStatus.granted;
+        _missingPermissions.remove(_currentPermission!);
+        _hideNotification(success: true);
+        _showSuccessMessage(_currentPermission!);
+      } else {
         setState(() => _isProcessing = false);
         
-      } else {
-        final newStatus = await _permissionService.requestPermission(_currentPermission!);
+        // فحص إذا كان مرفوض نهائياً
+        final status = await _permissionService.checkPermissionStatus(_currentPermission!);
         
-        if (newStatus == AppPermissionStatus.granted) {
-          _cachedStatuses[_currentPermission!] = newStatus;
-          _missingPermissions.remove(_currentPermission!);
-          _hideNotification(success: true);
-          _showSuccessMessage(_currentPermission!);
-        } else {
-          setState(() => _isProcessing = false);
-          
-          if (newStatus == AppPermissionStatus.permanentlyDenied && mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'يرجى تفعيل الإذن من إعدادات النظام',
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
+        if (status == AppPermissionStatus.permanentlyDenied && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'يرجى تفعيل الإذن من إعدادات النظام',
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w600,
                 ),
-                backgroundColor: Colors.orange,
-                action: SnackBarAction(
-                  label: 'الإعدادات',
-                  textColor: Colors.white,
-                  onPressed: () {
-                    _permissionService.openAppSettings();
-                    _userWentToSettings = true;
-                  },
-                ),
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                margin: EdgeInsets.all(16.w),
               ),
-            );
-          }
+              backgroundColor: Colors.orange,
+              action: SnackBarAction(
+                label: 'الإعدادات',
+                textColor: Colors.white,
+                onPressed: () {
+                  _permissionService.openAppSettings();
+                  _userWentToSettings = true;
+                },
+              ),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              margin: EdgeInsets.all(16.w),
+            ),
+          );
         }
       }
       

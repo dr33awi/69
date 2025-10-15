@@ -1,5 +1,5 @@
 // lib/core/infrastructure/services/permissions/permission_coordinator.dart
-// منسق مركزي لمنع تضارب وتكرار طلبات الأذونات
+// منسق مركزي لمنع تضارب وتكرار طلبات الأذونات - محدث لحل مشكلة الطلبات
 
 import 'dart:async';
 import 'package:flutter/foundation.dart';
@@ -26,6 +26,9 @@ class PermissionCoordinator {
   final Map<AppPermissionType, DateTime> _lastRequestTime = {};
   final Map<AppPermissionType, DateTime> _lastCheckTime = {};
   
+  // تتبع آخر حالة لكل إذن
+  final Map<AppPermissionType, AppPermissionStatus> _lastKnownStatus = {};
+  
   // عداد للطلبات النشطة
   int _activeRequestsCount = 0;
   int _activeChecksCount = 0;
@@ -41,11 +44,21 @@ class PermissionCoordinator {
     AppPermissionType permission,
     Future<AppPermissionStatus> Function() requestFunction,
   ) async {
-    // التحقق من Throttling
+    // التحقق من Throttling - محسّن للسماح بالطلبات الضرورية
     if (_shouldThrottleRequest(permission)) {
       _log('⏱️ Request throttled for $permission');
-      // إرجاع حالة معلقة للإشارة إلى التأجيل
-      return AppPermissionStatus.denied;
+      
+      // إذا كان الإذن مرفوض، السماح بإعادة المحاولة بعد فترة قصيرة
+      final lastStatus = _lastKnownStatus[permission];
+      if (lastStatus != null && lastStatus != AppPermissionStatus.granted) {
+        // إعادة تعيين وقت الطلب للسماح بمحاولة جديدة
+        _lastRequestTime.remove(permission);
+        _log('🔄 Resetting throttle for denied permission: $permission');
+        // المتابعة مع الطلب
+      } else {
+        // إرجاع الحالة الأخيرة المعروفة
+        return lastStatus ?? AppPermissionStatus.denied;
+      }
     }
     
     // إذا كان هناك طلب معلق، انتظر نتيجته
@@ -76,6 +89,9 @@ class PermissionCoordinator {
       
       final result = await requestFunction();
       
+      // حفظ آخر حالة معروفة
+      _lastKnownStatus[permission] = result;
+      
       _log('✅ Request completed for $permission: ${result.toString().split('.').last}');
       completer.complete(result);
       
@@ -98,11 +114,11 @@ class PermissionCoordinator {
     AppPermissionType permission,
     Future<AppPermissionStatus> Function() checkFunction,
   ) async {
-    // التحقق من Throttling للفحص
+    // التحقق من Throttling للفحص - أكثر تساهلاً من الطلبات
     if (_shouldThrottleCheck(permission)) {
       _log('⏱️ Check throttled for $permission');
       // إرجاع آخر حالة معروفة أو unknown
-      return AppPermissionStatus.unknown;
+      return _lastKnownStatus[permission] ?? AppPermissionStatus.unknown;
     }
     
     // إذا كان هناك فحص معلق، انتظر نتيجته
@@ -132,6 +148,9 @@ class PermissionCoordinator {
       _lastCheckTime[permission] = DateTime.now();
       
       final result = await checkFunction();
+      
+      // حفظ آخر حالة معروفة
+      _lastKnownStatus[permission] = result;
       
       _log('✅ Check completed for $permission: ${result.toString().split('.').last}');
       completer.complete(result);
@@ -163,6 +182,9 @@ class PermissionCoordinator {
     
     for (final permission in sortedPermissions) {
       try {
+        // إعادة تعيين throttle للطلبات المتعددة
+        _lastRequestTime.remove(permission);
+        
         final result = await requestPermission(
           permission,
           () => requestFunction(permission),
@@ -215,12 +237,21 @@ class PermissionCoordinator {
   
   // ==================== دوال مساعدة ====================
   
-  /// التحقق من Throttling للطلب
+  /// التحقق من Throttling للطلب - محسّن
   bool _shouldThrottleRequest(AppPermissionType permission) {
     final lastRequest = _lastRequestTime[permission];
     if (lastRequest == null) return false;
     
     final timeSince = DateTime.now().difference(lastRequest);
+    
+    // إذا كان الإذن مرفوض، استخدم فترة أقصر للسماح بإعادة المحاولة
+    final lastStatus = _lastKnownStatus[permission];
+    if (lastStatus != null && lastStatus != AppPermissionStatus.granted) {
+      // السماح بإعادة المحاولة بعد ثانيتين فقط للأذونات المرفوضة
+      return timeSince < const Duration(seconds: 2);
+    }
+    
+    // للأذونات الممنوحة أو غير المعروفة، استخدم الفترة العادية
     return timeSince < PermissionConstants.minRequestInterval;
   }
   
@@ -255,6 +286,13 @@ class PermissionCoordinator {
     _activeChecksCount = 0;
   }
   
+  /// إعادة تعيين throttle لإذن محدد (للاستخدام عند الضرورة)
+  void resetThrottleForPermission(AppPermissionType permission) {
+    _log('🔄 Resetting throttle for $permission');
+    _lastRequestTime.remove(permission);
+    _lastCheckTime.remove(permission);
+  }
+  
   /// إعادة تعيين المنسق
   void reset() {
     _log('🔄 Resetting coordinator');
@@ -262,6 +300,7 @@ class PermissionCoordinator {
     cancelAllPendingRequests();
     _lastRequestTime.clear();
     _lastCheckTime.clear();
+    _lastKnownStatus.clear();
   }
   
   /// الحصول على معلومات الحالة
@@ -271,6 +310,7 @@ class PermissionCoordinator {
       'pendingChecks': _pendingChecks.keys.map((p) => p.toString()).toList(),
       'activeRequests': _activeRequestsCount,
       'activeChecks': _activeChecksCount,
+      'lastKnownStatuses': _lastKnownStatus.map((k, v) => MapEntry(k.toString(), v.toString())),
     };
   }
   

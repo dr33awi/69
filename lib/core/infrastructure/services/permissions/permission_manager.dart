@@ -1,5 +1,5 @@
 // lib/core/infrastructure/services/permissions/permission_manager.dart
-// محدث: حل مشاكل التكرار والتضارب
+// محدث: حل مشاكل التكرار والتضارب مع استخدام PermissionCoordinator
 
 import 'dart:async';
 import 'package:flutter/foundation.dart';
@@ -12,12 +12,16 @@ import 'models/permission_state.dart';
 import 'widgets/permission_dialogs.dart';
 import '../storage/storage_service.dart';
 
-/// مدير الأذونات الموحد المحسن - بدون تكرار
+/// مدير الأذونات الموحد المحسن - بدون تكرار ومع تنسيق كامل
 class UnifiedPermissionManager {
   final PermissionService _permissionService;
   
   // Singleton instance
   static UnifiedPermissionManager? _instance;
+  
+  // إضافة متغير لتتبع آخر وقت فحص عام
+  static DateTime? _lastGlobalCheckTime;
+  static const Duration _globalCheckThrottle = Duration(seconds: 10);
   
   // آخر نتيجة فحص
   PermissionCheckResult? _lastCheckResult;
@@ -65,7 +69,7 @@ class UnifiedPermissionManager {
   /// التهيئة
   void _initialize() {
     _setupPermissionChangeListener();
-    _log('✅ Initialized (Without Onboarding)');
+    _log('✅ Initialized (Without Onboarding) with Coordinator support');
   }
   
   /// الاستماع لتغييرات الأذونات من PermissionService
@@ -95,8 +99,17 @@ class UnifiedPermissionManager {
   
   // ==================== الدوال الرئيسية ====================
   
-  /// الفحص الأولي - يُستدعى مرة واحدة عند بدء التطبيق
+  /// الفحص الأولي - محسّن لمنع التكرار العام
   Future<PermissionCheckResult> performInitialCheck() async {
+    // فحص throttling عام
+    if (_lastGlobalCheckTime != null) {
+      final timeSince = DateTime.now().difference(_lastGlobalCheckTime!);
+      if (timeSince < _globalCheckThrottle) {
+        _log('⏱️ Global check throttled (${timeSince.inSeconds}s < ${_globalCheckThrottle.inSeconds}s)');
+        return _lastCheckResult ?? PermissionCheckResult.success();
+      }
+    }
+    
     // منع التكرار والفحص المتزامن
     if (_hasCheckedThisSession) {
       _log('⚠️ Already checked this session, returning cached result');
@@ -106,17 +119,26 @@ class UnifiedPermissionManager {
     if (_isCheckInProgress) {
       _log('⏳ Check already in progress, waiting...');
       // انتظار انتهاء الفحص الحالي
-      while (_isCheckInProgress) {
+      int waitCount = 0;
+      while (_isCheckInProgress && waitCount < 50) { // حد أقصى 5 ثوان
         await Future.delayed(const Duration(milliseconds: 100));
+        waitCount++;
       }
+      
+      if (_isCheckInProgress) {
+        _log('⚠️ Check still in progress after timeout');
+        return _lastCheckResult ?? PermissionCheckResult.success();
+      }
+      
       return _lastCheckResult ?? PermissionCheckResult.success();
     }
     
     _isCheckInProgress = true;
     _hasCheckedThisSession = true;
     _lastCheckTime = DateTime.now();
+    _lastGlobalCheckTime = DateTime.now(); // تحديث الوقت العام
     
-    _log('🔍 Performing initial check (ONCE per session)');
+    _log('🔍 Performing initial check (ONCE per session) with Coordinator');
     
     try {
       // فحص الأذونات الحرجة فقط
@@ -162,7 +184,7 @@ class UnifiedPermissionManager {
     
     _isCheckInProgress = true;
     _lastCheckTime = DateTime.now();
-    _log('🔍 Performing quick check');
+    _log('🔍 Performing quick check with Coordinator');
     
     try {
       final result = await _checkCriticalPermissions();
@@ -192,30 +214,22 @@ class UnifiedPermissionManager {
     final missing = <AppPermissionType>[];
     final statuses = <AppPermissionType, AppPermissionStatus>{};
     
-    // فحص الأذونات الحرجة بشكل متوازي
-    final futures = <Future<void>>[];
+    // استخدام checkAllPermissions التي تستخدم Coordinator
+    final allStatuses = await _permissionService.checkAllPermissions();
     
-    for (final permission in criticalPermissions) {
-      futures.add(
-        _checkSinglePermission(permission).then((status) {
-          statuses[permission] = status;
-          if (status == AppPermissionStatus.granted) {
-            granted.add(permission);
-            debugPrint('  ✅ $permission: GRANTED');
-          } else {
-            missing.add(permission);
-            debugPrint('  ❌ $permission: ${status.toString().split('.').last}');
-          }
-        }).catchError((error) {
-          debugPrint('  ⚠️ Error checking $permission: $error');
-          missing.add(permission);
-          statuses[permission] = AppPermissionStatus.unknown;
-        }),
-      );
+    for (final entry in allStatuses.entries) {
+      final permission = entry.key;
+      final status = entry.value;
+      
+      statuses[permission] = status;
+      if (status == AppPermissionStatus.granted) {
+        granted.add(permission);
+        debugPrint('  ✅ $permission: GRANTED');
+      } else {
+        missing.add(permission);
+        debugPrint('  ❌ $permission: ${status.toString().split('.').last}');
+      }
     }
-    
-    // انتظار جميع الفحوصات
-    await Future.wait(futures, eagerError: false);
     
     if (missing.isEmpty) {
       return PermissionCheckResult.success(
@@ -231,102 +245,95 @@ class UnifiedPermissionManager {
     }
   }
   
-  /// فحص إذن واحد
-  Future<AppPermissionStatus> _checkSinglePermission(AppPermissionType permission) async {
-    try {
-      return await _permissionService.checkPermissionStatus(permission);
-    } catch (e) {
-      _logWarning('Failed to check permission', {
-        'permission': permission.toString(), 
-        'error': e.toString()
-      });
-      return AppPermissionStatus.unknown;
-    }
-  }
-  
-  /// طلب إذن محدد مع عرض الشرح
+  /// طلب إذن محدد مع عرض الشرح - محسّن مع Coordinator
   Future<bool> requestPermissionWithExplanation(
     BuildContext context,
     AppPermissionType permission, {
     String? customMessage,
     bool forceRequest = false,
   }) async {
-    _log('📱 Requesting permission', {
+    _log('📱 Requesting permission with coordinator', {
       'permission': permission.toString(),
       'forceRequest': forceRequest,
     });
     
-    // فحص الحالة الحالية
-    final currentStatus = await _permissionService.checkPermissionStatus(permission);
-    
-    if (currentStatus == AppPermissionStatus.granted) {
-      _log('✅ Permission already granted');
-      return true;
-    }
-    
-    // إذا كان مرفوض نهائياً، فتح الإعدادات
-    if (currentStatus == AppPermissionStatus.permanentlyDenied) {
-      if (context.mounted) {
-        await PermissionDialogs.showSettingsDialog(
-          context: context,
-          permissions: [permission],
-          onOpenSettings: () => _permissionService.openAppSettings(),
-        );
-      }
-      return false;
-    }
-    
-    // عرض شرح الإذن
-    if (context.mounted && !forceRequest) {
-      final shouldRequest = await PermissionDialogs.showSinglePermission(
-        context: context,
-        permission: permission,
-        customMessage: customMessage,
-      );
+    try {
+      // فحص الحالة الحالية
+      final currentStatus = await _permissionService.checkPermissionStatus(permission);
       
-      if (!shouldRequest) {
-        _log('❌ User cancelled permission request');
+      if (currentStatus == AppPermissionStatus.granted) {
+        _log('✅ Permission already granted');
+        return true;
+      }
+      
+      // إذا كان مرفوض نهائياً، فتح الإعدادات
+      if (currentStatus == AppPermissionStatus.permanentlyDenied) {
+        if (context.mounted) {
+          await PermissionDialogs.showSettingsDialog(
+            context: context,
+            permissions: [permission],
+            onOpenSettings: () => _permissionService.openAppSettings(),
+          );
+        }
         return false;
       }
-    }
-    
-    // طلب الإذن
-    HapticFeedback.lightImpact();
-    final newStatus = await _permissionService.requestPermission(permission);
-    
-    final granted = newStatus == AppPermissionStatus.granted;
-    
-    _log('📊 Permission request result', {
-      'permission': permission.toString(),
-      'granted': granted,
-      'status': newStatus.toString(),
-    });
-    
-    // إرسال حدث التغيير
-    _changeController.add(PermissionChangeEvent(
-      permission: permission,
-      oldStatus: currentStatus,
-      newStatus: newStatus,
-      wasUserInitiated: true,
-    ));
-    
-    // فحص سريع بعد الطلب
-    if (granted) {
-      Future.delayed(const Duration(milliseconds: 500), () {
-        performQuickCheck();
+      
+      // عرض شرح الإذن
+      if (context.mounted && !forceRequest) {
+        final shouldRequest = await PermissionDialogs.showSinglePermission(
+          context: context,
+          permission: permission,
+          customMessage: customMessage,
+        );
+        
+        if (!shouldRequest) {
+          _log('❌ User cancelled permission request');
+          return false;
+        }
+      }
+      
+      // طلب الإذن عبر PermissionService (التي تستخدم Coordinator)
+      HapticFeedback.lightImpact();
+      final newStatus = await _permissionService.requestPermission(permission);
+      
+      final granted = newStatus == AppPermissionStatus.granted;
+      
+      _log('📊 Permission request result', {
+        'permission': permission.toString(),
+        'granted': granted,
+        'status': newStatus.toString(),
       });
+      
+      // إرسال حدث التغيير
+      _changeController.add(PermissionChangeEvent(
+        permission: permission,
+        oldStatus: currentStatus,
+        newStatus: newStatus,
+        wasUserInitiated: true,
+      ));
+      
+      // فحص سريع بعد الطلب
+      if (granted) {
+        Future.delayed(const Duration(milliseconds: 500), () {
+          performQuickCheck();
+        });
+      }
+      
+      return granted;
+      
+    } catch (e) {
+      _logError('Error requesting permission', e);
+      return false;
     }
-    
-    return granted;
   }
   
-  /// طلب أذونات متعددة
+  /// طلب أذونات متعددة - محسّن مع Coordinator
   Future<PermissionCheckResult> requestMultiplePermissions(
     BuildContext context,
     List<AppPermissionType> permissions, {
     bool showExplanation = true,
   }) async {
-    _log('📱 Requesting multiple permissions', {
+    _log('📱 Requesting multiple permissions with coordinator', {
       'count': permissions.length,
     });
     
@@ -343,36 +350,36 @@ class UnifiedPermissionManager {
       }
     }
     
-    // طلب الأذونات
+    // استخدام PermissionService للطلبات المتعددة (التي تستخدم Coordinator)
+    final batchResult = await _permissionService.requestMultiplePermissions(
+      permissions: permissions,
+      showExplanationDialog: false, // تم عرض الشرح بالفعل
+    );
+    
+    if (batchResult.wasCancelled) {
+      return PermissionCheckResult.error('Request cancelled');
+    }
+    
     final granted = <AppPermissionType>[];
     final missing = <AppPermissionType>[];
-    final statuses = <AppPermissionType, AppPermissionStatus>{};
     
-    for (final permission in permissions) {
-      try {
-        final status = await _permissionService.requestPermission(permission);
-        statuses[permission] = status;
-        
-        if (status == AppPermissionStatus.granted) {
-          granted.add(permission);
-        } else {
-          missing.add(permission);
-        }
-        
-        // تأخير بسيط بين الطلبات
-        await Future.delayed(const Duration(milliseconds: 500));
-      } catch (e) {
-        _logError('Failed to request permission', e);
-        missing.add(permission);
+    for (final entry in batchResult.results.entries) {
+      if (entry.value == AppPermissionStatus.granted) {
+        granted.add(entry.key);
+      } else {
+        missing.add(entry.key);
       }
     }
     
     final result = missing.isEmpty
-        ? PermissionCheckResult.success(granted: granted, statuses: statuses)
+        ? PermissionCheckResult.success(
+            granted: granted,
+            statuses: batchResult.results,
+          )
         : PermissionCheckResult.partial(
             granted: granted,
             missing: missing,
-            statuses: statuses,
+            statuses: batchResult.results,
           );
     
     // عرض النتيجة
@@ -405,8 +412,12 @@ class UnifiedPermissionManager {
     _hasCheckedThisSession = false;
     _isCheckInProgress = false;
     _lastCheckTime = null;
+    _lastGlobalCheckTime = null;
     _lastCheckResult = null;
     _lastEmittedResult = null;
+    
+    // مسح cache الـ PermissionService أيضاً
+    _permissionService.clearPermissionCache();
     
     _log('✅ Reset completed');
   }
