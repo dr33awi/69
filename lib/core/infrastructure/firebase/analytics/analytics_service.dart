@@ -364,8 +364,8 @@ class AnalyticsService {
 /// أحداث Analytics المعرفة مسبقاً
 class AnalyticsEvents {
   // App Lifecycle
-  static const String sessionStart = 'session_start';
-  static const String sessionEnd = 'session_end';
+  static const String sessionStart = 'app_session_start';
+  static const String sessionEnd = 'app_session_end';
   static const String appUpdated = 'app_updated';
   
   // Prayer Events
