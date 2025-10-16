@@ -427,8 +427,7 @@ class ServiceLocator {
     
     debugPrint('ServiceLocator: TRUE LAZY feature services registered ✅');
   }
-
-  // ==================== Firebase Services ====================
+  // ==================== Firebase Services (مُحسّن) ====================
 
   /// تهيئة Firebase في الخلفية (اختياري)
   static Future<void> initializeFirebaseInBackground() async {
@@ -437,93 +436,82 @@ class ServiceLocator {
 
   Future<void> _safeInitializeFirebase() async {
     if (_firebaseAvailable) {
-      debugPrint('ServiceLocator: Firebase already available from cache');
+      debugPrint('✅ Firebase already available from cache');
       return;
     }
 
     try {
-      debugPrint('ServiceLocator: Initializing Firebase in background...');
+      debugPrint('🔥 Checking Firebase availability...');
       
-      // فحص إذا كان Firebase مُهيأ فعلياً
       await _checkFirebaseAvailability();
       
       if (_firebaseAvailable) {
         _registerFirebaseServices();
         await _initializeFirebaseServices();
         await _saveRegistrationState();
-        debugPrint('ServiceLocator: Firebase initialized in background ✅');
+        debugPrint('✅ Firebase initialized in background');
       }
       
     } catch (e) {
-      debugPrint('ServiceLocator: Firebase background init failed: $e');
+      debugPrint('⚠️ Firebase background init failed (non-critical): $e');
       _firebaseAvailable = false;
     }
   }
 
   Future<void> _checkFirebaseAvailability() async {
     try {
-      // فحص حقيقي لـ Firebase
       final List<FirebaseApp> apps = Firebase.apps;
+      
       if (apps.isNotEmpty) {
-        // Firebase مُهيأ
         _firebaseAvailable = true;
-        debugPrint('ServiceLocator: Firebase apps found: ${apps.length}');
-        
-        // فحص خدمات محددة
-        try {
-          final token = await FirebaseMessaging.instance.getToken();
-          debugPrint('ServiceLocator: Firebase Messaging available ✅ (Token: ${token != null})');
-        } catch (e) {
-          debugPrint('ServiceLocator: Firebase Messaging error: $e');
-        }
-        
-        try {
-          await FirebaseRemoteConfig.instance.fetchAndActivate();
-          debugPrint('ServiceLocator: Firebase Remote Config available ✅');
-        } catch (e) {
-          debugPrint('ServiceLocator: Firebase Remote Config error: $e');
-        }
-        
+        debugPrint('✅ Firebase is available (${apps.length} apps)');
       } else {
         _firebaseAvailable = false;
-        debugPrint('ServiceLocator: No Firebase apps found');
+        debugPrint('⚠️ No Firebase apps found');
       }
     } catch (e) {
       _firebaseAvailable = false;
-      debugPrint('ServiceLocator: Firebase check failed: $e');
+      debugPrint('⚠️ Firebase check failed: $e');
     }
   }
 
+  /// تسجيل خدمات Firebase (بدون تهيئة)
   void _registerFirebaseServices() {
     if (!_firebaseAvailable) return;
     
     try {
+      debugPrint('📝 Registering Firebase services...');
+      
+      // Remote Config Service
       if (!getIt.isRegistered<FirebaseRemoteConfigService>()) {
         getIt.registerLazySingleton<FirebaseRemoteConfigService>(
           () => FirebaseRemoteConfigService(),
         );
       }
       
+      // Remote Config Manager
       if (!getIt.isRegistered<RemoteConfigManager>()) {
         getIt.registerLazySingleton<RemoteConfigManager>(
           () => RemoteConfigManager(),
         );
       }
       
+      // Firebase Messaging
       if (!getIt.isRegistered<FirebaseMessagingService>()) {
         getIt.registerLazySingleton<FirebaseMessagingService>(
           () => FirebaseMessagingService(),
         );
       }
       
-      debugPrint('ServiceLocator: Firebase services registered ✅');
+      debugPrint('✅ Firebase services registered');
       
     } catch (e) {
-      debugPrint('ServiceLocator: Firebase services registration error: $e');
+      debugPrint('❌ Firebase registration error: $e');
       _firebaseAvailable = false;
     }
   }
 
+  /// تهيئة خدمات Firebase المسجلة
   Future<void> _initializeFirebaseServices() async {
     if (!_firebaseAvailable) return;
     
@@ -535,18 +523,19 @@ class ServiceLocator {
         try {
           final remoteConfig = getIt<FirebaseRemoteConfigService>();
           await remoteConfig.initialize();
-          debugPrint('ServiceLocator: Remote Config initialized ✅');
+          debugPrint('✅ Remote Config Service initialized');
           
+          // تهيئة Manager
           if (getIt.isRegistered<RemoteConfigManager>()) {
-            final configManager = getIt<RemoteConfigManager>();
-            await configManager.initialize(
+            final manager = getIt<RemoteConfigManager>();
+            await manager.initialize(
               remoteConfig: remoteConfig,
               storage: storage,
             );
-            debugPrint('ServiceLocator: Remote Config Manager initialized ✅');
+            debugPrint('✅ Remote Config Manager initialized');
           }
         } catch (e) {
-          debugPrint('ServiceLocator: Remote Config init failed: $e');
+          debugPrint('⚠️ Remote Config init failed: $e');
         }
       }
       
@@ -558,51 +547,63 @@ class ServiceLocator {
             storage: storage,
             notificationService: getIt<NotificationService>(),
           );
-          debugPrint('ServiceLocator: Firebase Messaging initialized ✅');
+          debugPrint('✅ Firebase Messaging initialized');
         } catch (e) {
-          debugPrint('ServiceLocator: Firebase Messaging init failed: $e');
+          debugPrint('⚠️ Firebase Messaging init failed: $e');
         }
       }
       
     } catch (e) {
-      debugPrint('ServiceLocator: Firebase services init failed: $e');
+      debugPrint('❌ Firebase services init failed: $e');
     }
   }
 
-  // ==================== Firebase Advanced Services ====================
+  // ==================== Advanced Firebase Services ====================
 
-  /// تهيئة خدمات Firebase المتقدمة (Analytics, Crashlytics, Performance)
+  /// تهيئة خدمات Firebase المتقدمة (Analytics, Performance)
   static Future<void> initializeAdvancedFirebaseServices() async {
     await _instance._initializeAdvancedFirebase();
   }
 
   Future<void> _initializeAdvancedFirebase() async {
     if (!_firebaseAvailable) {
-      debugPrint('ServiceLocator: Firebase not available, skipping advanced services');
+      debugPrint('⚠️ Firebase not available, skipping advanced services');
       return;
     }
 
     if (_advancedFirebaseInitialized) {
-      debugPrint('ServiceLocator: Advanced Firebase services already initialized');
+      debugPrint('✅ Advanced Firebase already initialized');
       return;
     }
 
     try {
-      debugPrint('🔥 ServiceLocator: Initializing advanced Firebase services...');
+      debugPrint('🚀 Initializing advanced Firebase services...');
       
-      // تهيئة Analytics Service
-      await _registerAnalyticsService();
+      // Analytics Service
+      if (!getIt.isRegistered<AnalyticsService>()) {
+        getIt.registerSingleton<AnalyticsService>(AnalyticsService());
+        
+        final analytics = getIt<AnalyticsService>();
+        await analytics.initialize();
+        
+        debugPrint('✅ AnalyticsService ready');
+      }
       
-      // تهيئة Performance Service
-      await _registerPerformanceService();
-      
-      // Crashlytics يتم إعداده تلقائياً من FirebaseInitializer
+      // Performance Service
+      if (!getIt.isRegistered<PerformanceService>()) {
+        getIt.registerSingleton<PerformanceService>(PerformanceService());
+        
+        final performance = getIt<PerformanceService>();
+        await performance.initialize();
+        
+        debugPrint('✅ PerformanceService ready');
+      }
       
       _advancedFirebaseInitialized = true;
-      debugPrint('✅ ServiceLocator: Advanced Firebase services initialized');
+      debugPrint('✅ Advanced Firebase services initialized');
       
     } catch (e) {
-      debugPrint('❌ ServiceLocator: Error initializing advanced Firebase services: $e');
+      debugPrint('❌ Advanced Firebase init error: $e');
     }
   }
 

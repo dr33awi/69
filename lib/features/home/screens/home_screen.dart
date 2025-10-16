@@ -83,16 +83,27 @@ class _HomeScreenState extends State<HomeScreen>
     HapticFeedback.mediumImpact();
     
     try {
-      debugPrint('🔄 [HomeScreen] Starting refresh...');
+      debugPrint('🔄 Refreshing...');
       
-      await _refreshRemoteConfig();
+      // ✅ تحديث بسيط من مصدر واحد
+      if (getIt.isRegistered<RemoteConfigManager>()) {
+        final manager = getIt<RemoteConfigManager>();
+        
+        if (manager.isInitialized) {
+          final success = await manager.refreshConfig();
+          
+          if (success) {
+            debugPrint('✅ Config refreshed successfully');
+            debugPrint('   - Maintenance: ${manager.isMaintenanceModeActive}');
+            debugPrint('   - Force Update: ${manager.isForceUpdateRequired}');
+          }
+        }
+      }
       
       await Future.delayed(const Duration(milliseconds: 800));
       
-      debugPrint('✅ [HomeScreen] Refresh completed successfully');
-      
     } catch (e) {
-      debugPrint('❌ [HomeScreen] Refresh error: $e');
+      debugPrint('⚠️ Refresh error: $e');
     } finally {
       if (mounted) {
         setState(() => _isRefreshing = false);
@@ -100,51 +111,6 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  Future<bool> _refreshRemoteConfig() async {
-    try {
-      debugPrint('🔧 [HomeScreen] Fetching Remote Config updates...');
-      
-      if (!getIt.isRegistered<RemoteConfigManager>()) {
-        debugPrint('⚠️ [HomeScreen] RemoteConfigManager not registered');
-        return false;
-      }
-      
-      final configManager = getIt<RemoteConfigManager>();
-      
-      if (!configManager.isInitialized) {
-        debugPrint('⚠️ [HomeScreen] RemoteConfigManager not initialized');
-        return false;
-      }
-      
-      final success = await configManager.refreshConfig();
-      
-      if (success) {
-        debugPrint('✅ [HomeScreen] Remote Config updated successfully');
-        
-        debugPrint('📊 Updated Config Values:');
-        debugPrint('  - Maintenance Mode: ${configManager.isMaintenanceModeActive}');
-        debugPrint('  - Force Update: ${configManager.isForceUpdateRequired}');
-        debugPrint('  - Required Version: ${configManager.requiredAppVersion}');
-        
-        if (configManager.isMaintenanceModeActive) {
-          debugPrint('🔧 App is now in maintenance mode');
-        }
-        
-        if (configManager.isForceUpdateRequired) {
-          debugPrint('🚨 Force update is now required');
-        }
-        
-        return true;
-      } else {
-        debugPrint('⚠️ [HomeScreen] Remote Config update returned false');
-        return false;
-      }
-      
-    } catch (e) {
-      debugPrint('❌ [HomeScreen] Remote Config refresh error: $e');
-      return false;
-    }
-  }
   @override
   Widget build(BuildContext context) {
     super.build(context);
