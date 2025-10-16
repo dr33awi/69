@@ -1,4 +1,5 @@
 // lib/core/infrastructure/firebase/promotional_banners/services/banner_service.dart
+// ✅ مُبسط ومُحدث
 
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
@@ -7,7 +8,6 @@ import '../../remote_config_service.dart';
 import '../../../services/storage/storage_service.dart';
 import '../models/promotional_banner_model.dart';
 
-/// خدمة إدارة البانرات الترويجية
 class BannerService {
   static final BannerService _instance = BannerService._internal();
   factory BannerService() => _instance;
@@ -21,8 +21,6 @@ class BannerService {
   bool _isInitialized = false;
   List<PromotionalBanner> _cachedBanners = [];
   
-  // مفاتيح التخزين
-  static const String _keyBannersData = 'promotional_banners';
   static const String _keyBannerStats = 'banner_statistics';
   static const String _keyLastFetch = 'banners_last_fetch';
   
@@ -50,7 +48,6 @@ class BannerService {
     debugPrint('✅ BannerService initialized with ${_cachedBanners.length} banners');
   }
 
-  /// محاولة الحصول على Remote Config
   FirebaseRemoteConfigService? _tryGetRemoteConfig() {
     try {
       if (_getIt.isRegistered<FirebaseRemoteConfigService>()) {
@@ -62,7 +59,6 @@ class BannerService {
     return null;
   }
 
-  /// محاولة الحصول على Storage
   StorageService? _tryGetStorage() {
     try {
       if (_getIt.isRegistered<StorageService>()) {
@@ -77,37 +73,36 @@ class BannerService {
   /// تحميل البانرات من Remote Config
   Future<void> _loadBanners() async {
     try {
-      // محاولة التحميل من Remote Config
+      // ✅ جلب مباشرة من RemoteConfig
       final bannersData = await _fetchFromRemoteConfig();
       
       if (bannersData != null && bannersData.isNotEmpty) {
         _cachedBanners = _parseBanners(bannersData);
-        await _saveBannersToCache(bannersData);
+        await _storage?.setString(_keyLastFetch, DateTime.now().toIso8601String());
         debugPrint('📊 Loaded ${_cachedBanners.length} banners from Remote Config');
       } else {
-        // التحميل من الكاش المحلي
-        await _loadFromCache();
+        debugPrint('ℹ️ No banners found in Remote Config');
+        _cachedBanners = [];
       }
     } catch (e) {
       debugPrint('❌ Error loading banners: $e');
-      await _loadFromCache();
+      _cachedBanners = [];
     }
   }
 
-  /// جلب من Remote Config
+  /// ✅ جلب من Remote Config
   Future<List<dynamic>?> _fetchFromRemoteConfig() async {
     if (_remoteConfig == null || !_remoteConfig!.isInitialized) {
       return null;
     }
 
     try {
-      final jsonString = _remoteConfig!.getString(_keyBannersData);
-      if (jsonString.isEmpty) return null;
-
-      final decoded = jsonDecode(jsonString);
-      if (decoded is List) {
-        await _storage?.setString(_keyLastFetch, DateTime.now().toIso8601String());
-        return decoded;
+      // ✅ استخدام الـ Getter الجديد
+      final banners = _remoteConfig!.promotionalBanners;
+      
+      if (banners.isNotEmpty) {
+        debugPrint('✅ Found ${banners.length} banners in Remote Config');
+        return banners;
       }
     } catch (e) {
       debugPrint('❌ Error fetching banners from Remote Config: $e');
@@ -131,30 +126,6 @@ class BannerService {
     }
     
     return banners;
-  }
-
-  /// حفظ في الكاش
-  Future<void> _saveBannersToCache(List<dynamic> data) async {
-    try {
-      await _storage?.setString(_keyBannersData, jsonEncode(data));
-    } catch (e) {
-      debugPrint('❌ Error saving banners to cache: $e');
-    }
-  }
-
-  /// تحميل من الكاش
-  Future<void> _loadFromCache() async {
-    try {
-      final cachedData = _storage?.getString(_keyBannersData);
-      if (cachedData != null) {
-        final decoded = jsonDecode(cachedData) as List;
-        _cachedBanners = _parseBanners(decoded);
-        debugPrint('📦 Loaded ${_cachedBanners.length} banners from cache');
-      }
-    } catch (e) {
-      debugPrint('❌ Error loading from cache: $e');
-      _cachedBanners = [];
-    }
   }
 
   /// الحصول على البانرات النشطة
@@ -182,12 +153,10 @@ class BannerService {
   bool _canDisplayBanner(PromotionalBanner banner) {
     final stats = _getBannerStats(banner.id);
     
-    // التحقق من عدد مرات العرض
     if (stats['display_count'] >= banner.maxDisplayCount) {
       return false;
     }
     
-    // التحقق من الفترة الزمنية
     final lastDisplay = stats['last_display'] as DateTime?;
     if (lastDisplay != null) {
       final timeSinceLastDisplay = DateTime.now().difference(lastDisplay);
@@ -291,10 +260,11 @@ class BannerService {
 
   /// الحصول على بانر واحد حسب ID
   PromotionalBanner? getBannerById(String id) {
-    return _cachedBanners.firstWhere(
-      (banner) => banner.id == id,
-      orElse: () => _cachedBanners.first,
-    );
+    try {
+      return _cachedBanners.firstWhere((banner) => banner.id == id);
+    } catch (e) {
+      return null;
+    }
   }
 
   /// مسح الإحصائيات
@@ -318,7 +288,6 @@ class BannerService {
     }).toList(),
   };
 
-  /// التنظيف
   void dispose() {
     _cachedBanners.clear();
     _isInitialized = false;

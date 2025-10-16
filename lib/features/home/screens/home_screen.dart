@@ -1,4 +1,5 @@
-// lib/features/home/screens/home_screen.dart - محسّن للشاشات الصغيرة
+// lib/features/home/screens/home_screen.dart
+// ✅ محدث مع Promotional Banners
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,6 +12,8 @@ import 'package:athkar_app/features/home/widgets/home_prayer_times_card.dart';
 import 'package:athkar_app/app/di/service_locator.dart';
 import 'package:athkar_app/core/infrastructure/firebase/remote_config_manager.dart';
 import 'package:athkar_app/core/infrastructure/firebase/special_event/special_event_card.dart';
+// ✅ إضافة import للبانرات
+import 'package:athkar_app/core/infrastructure/firebase/promotional_banners/utils/banner_helpers.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -36,6 +39,23 @@ class _HomeScreenState extends State<HomeScreen>
     
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _currentTimeNotifier.value = DateTime.now();
+    });
+    
+    // ✅ تهيئة BannerService في الخلفية (اختياري)
+    _initializeBannerService();
+  }
+  
+  /// ✅ تهيئة BannerService
+  Future<void> _initializeBannerService() async {
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      try {
+        final bannerService = context.bannerService;
+        if (bannerService != null && !bannerService.isInitialized) {
+          debugPrint('🎯 Initializing BannerService from HomeScreen');
+        }
+      } catch (e) {
+        debugPrint('⚠️ BannerService init error: $e');
+      }
     });
   }
   
@@ -85,7 +105,7 @@ class _HomeScreenState extends State<HomeScreen>
     try {
       debugPrint('🔄 Refreshing...');
       
-      // ✅ تحديث بسيط من مصدر واحد
+      // ✅ تحديث RemoteConfig
       if (getIt.isRegistered<RemoteConfigManager>()) {
         final manager = getIt<RemoteConfigManager>();
         
@@ -98,6 +118,13 @@ class _HomeScreenState extends State<HomeScreen>
             debugPrint('   - Force Update: ${manager.isForceUpdateRequired}');
           }
         }
+      }
+      
+      // ✅ تحديث البانرات
+      final bannerService = context.bannerService;
+      if (bannerService != null && bannerService.isInitialized) {
+        await bannerService.refresh();
+        debugPrint('✅ Banners refreshed');
       }
       
       await Future.delayed(const Duration(milliseconds: 800));
@@ -161,7 +188,11 @@ class _HomeScreenState extends State<HomeScreen>
                             delegate: SliverChildListDelegate([
                               SizedBox(height: 10.h),
                               
+                              // ✅ 1. Special Event Card (مناسبة واحدة فقط)
                               const SpecialEventCard(),
+                              
+                              // ✅ 2. Promotional Banners (بانرات متعددة)
+                              _buildPromotionalBanners(),
                               
                               const PrayerTimesCard(),
                               
@@ -193,6 +224,34 @@ class _HomeScreenState extends State<HomeScreen>
         ),
       ),
     );
+  }
+
+  /// ✅ عرض البانرات الترويجية
+  Widget _buildPromotionalBanners() {
+    try {
+      // استخدام Extension من BannerHelpers
+      final bannersWidget = context.showBanners(
+        screenName: 'home',
+        maxBanners: 3,
+      );
+      
+      // إذا لم توجد بانرات، لا نعرض شيء
+      if (bannersWidget == null) {
+        return const SizedBox.shrink();
+      }
+      
+      // إضافة مسافة قبل البانرات
+      return Column(
+        children: [
+          SizedBox(height: 12.h),
+          bannersWidget,
+        ],
+      );
+      
+    } catch (e) {
+      debugPrint('⚠️ Error showing banners: $e');
+      return const SizedBox.shrink();
+    }
   }
 
   Widget _buildCustomAppBar(BuildContext context) {

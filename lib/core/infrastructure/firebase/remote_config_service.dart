@@ -1,12 +1,11 @@
 // lib/core/infrastructure/firebase/remote_config_service.dart
-// النسخة الكاملة مع دعم قائمة الميزات وكارد المناسبات
+// ✅ محدث مع دعم Promotional Banners
 
 import 'dart:async';
 import 'dart:convert';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 
-/// خدمة Firebase Remote Config الكاملة
 class FirebaseRemoteConfigService {
   static final FirebaseRemoteConfigService _instance = FirebaseRemoteConfigService._internal();
   factory FirebaseRemoteConfigService() => _instance;
@@ -15,13 +14,14 @@ class FirebaseRemoteConfigService {
   late FirebaseRemoteConfig _remoteConfig;
   bool _isInitialized = false;
   
-  // Cache للقيم المهمة
+  // Cache
   bool? _cachedForceUpdate;
   bool? _cachedMaintenanceMode;
   String? _cachedAppVersion;
   String? _cachedUpdateUrl;
   List<String>? _cachedFeaturesList;
   Map<String, dynamic>? _cachedSpecialEvent;
+  List<dynamic>? _cachedPromotionalBanners; // ✅ جديد
   
   // مفاتيح الإعدادات
   static const String _keyAppVersion = 'app_version';
@@ -30,6 +30,7 @@ class FirebaseRemoteConfigService {
   static const String _keyUpdateUrlAndroid = 'update_url_android';
   static const String _keyUpdateFeaturesList = 'update_features_list';
   static const String _keySpecialEvent = 'special_event_data';
+  static const String _keyPromotionalBanners = 'promotional_banners'; // ✅ جديد
 
   /// تهيئة الخدمة
   Future<void> initialize() async {
@@ -38,19 +39,13 @@ class FirebaseRemoteConfigService {
     try {
       _remoteConfig = FirebaseRemoteConfig.instance;
       
-      // إعدادات الجلب
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(minutes: 1),
         minimumFetchInterval: const Duration(minutes: 5),
       ));
       
-      // القيم الافتراضية
       await _setDefaults();
-      
-      // جلب وتفعيل
       await _fetchAndActivate();
-      
-      // تحديث Cache
       _updateCache();
       
       _isInitialized = true;
@@ -71,25 +66,39 @@ class FirebaseRemoteConfigService {
       _cachedMaintenanceMode = _remoteConfig.getBool(_keyMaintenanceMode);
       _cachedAppVersion = _remoteConfig.getString(_keyAppVersion);
       _cachedUpdateUrl = _remoteConfig.getString(_keyUpdateUrlAndroid);
-      
-      // تحديث cache قائمة الميزات
       _cachedFeaturesList = _parseFeaturesList();
-      
-      // تحديث cache المناسبة الخاصة
       _cachedSpecialEvent = _parseSpecialEvent();
+      _cachedPromotionalBanners = _parsePromotionalBanners(); // ✅ جديد
       
       debugPrint('✅ Cache updated:');
-      debugPrint('  - Force Update: $_cachedForceUpdate');
-      debugPrint('  - Maintenance: $_cachedMaintenanceMode');
-      debugPrint('  - App Version: $_cachedAppVersion');
-      debugPrint('  - Features Count: ${_cachedFeaturesList?.length}');
-      debugPrint('  - Special Event Active: ${_cachedSpecialEvent?['is_active'] ?? false}');
+      debugPrint('  - Promotional Banners: ${_cachedPromotionalBanners?.length ?? 0}');
     } catch (e) {
       debugPrint('⚠️ Error updating cache: $e');
     }
   }
 
-  /// تحليل قائمة الميزات من JSON
+  /// ✅ تحليل البانرات الترويجية
+  List<dynamic> _parsePromotionalBanners() {
+    try {
+      final jsonString = _remoteConfig.getString(_keyPromotionalBanners);
+      if (jsonString.isEmpty) {
+        return [];
+      }
+      
+      final dynamic decoded = jsonDecode(jsonString);
+      if (decoded is List) {
+        debugPrint('✅ Found ${decoded.length} promotional banners');
+        return decoded;
+      }
+      
+      return [];
+    } catch (e) {
+      debugPrint('⚠️ Error parsing promotional banners: $e');
+      return [];
+    }
+  }
+
+  /// تحليل قائمة الميزات
   List<String> _parseFeaturesList() {
     try {
       final jsonString = _remoteConfig.getString(_keyUpdateFeaturesList);
@@ -97,7 +106,6 @@ class FirebaseRemoteConfigService {
         return _getDefaultFeaturesList();
       }
       
-      // محاولة تحليل JSON
       final dynamic decoded = jsonDecode(jsonString);
       if (decoded is List) {
         return decoded.map((e) => e.toString()).toList();
@@ -120,14 +128,12 @@ class FirebaseRemoteConfigService {
       
       final dynamic decoded = jsonDecode(jsonString);
       if (decoded is Map<String, dynamic>) {
-        // التحقق من التواريخ إذا وجدت
         if (decoded['start_date'] != null && decoded['end_date'] != null) {
           try {
             final startDate = DateTime.parse(decoded['start_date']);
             final endDate = DateTime.parse(decoded['end_date']);
             final now = DateTime.now();
             
-            // تحديث حالة النشاط بناءً على التاريخ
             decoded['is_active'] = decoded['is_active'] == true && 
                                   now.isAfter(startDate) && 
                                   now.isBefore(endDate);
@@ -146,7 +152,6 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  /// القائمة الافتراضية للميزات
   List<String> _getDefaultFeaturesList() {
     return [
       'تحسينات الأداء',
@@ -161,7 +166,7 @@ class FirebaseRemoteConfigService {
       _keyAppVersion: '1.0.0',
       _keyForceUpdate: false,
       _keyMaintenanceMode: false,
-      _keyUpdateUrlAndroid: 'https://play.google.com/store/apps/details?id=com.example.test_athkar_app',
+      _keyUpdateUrlAndroid: 'https://play.google.com/store/apps/details?id=com.example.athkar_app',
       _keyUpdateFeaturesList: jsonEncode([
         'تحسينات الأداء',
         'إصلاح الأخطاء',
@@ -179,6 +184,8 @@ class FirebaseRemoteConfigService {
         'end_date': null,
         'background_image': '',
       }),
+      // ✅ قيم افتراضية للبانرات
+      _keyPromotionalBanners: jsonEncode([]),
     });
   }
 
@@ -211,9 +218,8 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  // ==================== Getters الأساسية ====================
+  // ==================== Getters ====================
 
-  /// إصدار التطبيق المطلوب
   String get requiredAppVersion {
     if (_cachedAppVersion != null && _cachedAppVersion!.isNotEmpty) {
       return _cachedAppVersion!;
@@ -227,42 +233,30 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  /// هل يجب فرض التحديث؟
   bool get isForceUpdateRequired {
     if (_cachedForceUpdate != null) {
-      if (_cachedForceUpdate!) {
-        debugPrint('🚨 FORCE UPDATE REQUIRED!');
-        debugPrint('Required version: $requiredAppVersion');
-      }
       return _cachedForceUpdate!;
     }
     
     try {
       return _remoteConfig.getBool(_keyForceUpdate);
     } catch (e) {
-      debugPrint('⚠️ Error reading force update: $e');
       return false;
     }
   }
 
-  /// هل التطبيق في وضع الصيانة؟
   bool get isMaintenanceModeEnabled {
     if (_cachedMaintenanceMode != null) {
-      if (_cachedMaintenanceMode!) {
-        debugPrint('🔧 MAINTENANCE MODE ENABLED!');
-      }
       return _cachedMaintenanceMode!;
     }
     
     try {
       return _remoteConfig.getBool(_keyMaintenanceMode);
     } catch (e) {
-      debugPrint('⚠️ Error reading maintenance mode: $e');
       return false;
     }
   }
 
-  /// رابط التحديث
   String get updateUrl {
     if (_cachedUpdateUrl != null && _cachedUpdateUrl!.isNotEmpty) {
       return _cachedUpdateUrl!;
@@ -276,7 +270,6 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  /// قائمة ميزات التحديث
   List<String> get updateFeaturesList {
     if (_cachedFeaturesList != null && _cachedFeaturesList!.isNotEmpty) {
       return _cachedFeaturesList!;
@@ -285,7 +278,6 @@ class FirebaseRemoteConfigService {
     return _parseFeaturesList();
   }
 
-  /// بيانات المناسبة الخاصة
   Map<String, dynamic>? get specialEventData {
     if (_cachedSpecialEvent != null) {
       return _cachedSpecialEvent;
@@ -294,16 +286,21 @@ class FirebaseRemoteConfigService {
     return _parseSpecialEvent();
   }
 
-  // Alias للتوافق
-  String get updateUrlAndroid => updateUrl;
+  /// ✅ Getter للبانرات الترويجية
+  List<dynamic> get promotionalBanners {
+    if (_cachedPromotionalBanners != null) {
+      return _cachedPromotionalBanners!;
+    }
+    
+    return _parsePromotionalBanners();
+  }
 
-  // ==================== معلومات الحالة ====================
+  String get updateUrlAndroid => updateUrl;
 
   RemoteConfigFetchStatus get lastFetchStatus => _remoteConfig.lastFetchStatus;
   DateTime get lastFetchTime => _remoteConfig.lastFetchTime;
   bool get isInitialized => _isInitialized;
 
-  /// معلومات التصحيح
   Map<String, dynamic> get debugInfo => {
     'is_initialized': _isInitialized,
     'last_fetch_status': lastFetchStatus.toString(),
@@ -314,10 +311,10 @@ class FirebaseRemoteConfigService {
       'app_version': _cachedAppVersion,
       'features_count': _cachedFeaturesList?.length,
       'special_event_active': _cachedSpecialEvent?['is_active'] ?? false,
+      'promotional_banners_count': _cachedPromotionalBanners?.length ?? 0, // ✅ جديد
     },
   };
 
-  /// طباعة معلومات التصحيح
   void _printDebugInfo() {
     try {
       debugPrint('========== Remote Config Info ==========');
@@ -329,6 +326,7 @@ class FirebaseRemoteConfigService {
       debugPrint('Maintenance Mode: $_cachedMaintenanceMode');
       debugPrint('App Version: $_cachedAppVersion');
       debugPrint('Features List: $_cachedFeaturesList');
+      debugPrint('Promotional Banners: ${_cachedPromotionalBanners?.length ?? 0}'); // ✅ جديد
       if (_cachedSpecialEvent != null) {
         debugPrint('Special Event:');
         debugPrint('  - Active: ${_cachedSpecialEvent!['is_active']}');
@@ -340,16 +338,12 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  // ==================== للاختبار فقط ====================
-
-  /// فرض التحديث للاختبار
   Future<void> forceRefreshForTesting() async {
     if (!_isInitialized) return;
     
     try {
       debugPrint('🧪 FORCE REFRESH FOR TESTING...');
       
-      // إزالة قيود الوقت للاختبار
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(seconds: 30),
         minimumFetchInterval: Duration.zero,
@@ -361,7 +355,6 @@ class FirebaseRemoteConfigService {
       debugPrint('🧪 Force refresh result: $result');
       _printDebugInfo();
       
-      // إعادة الإعدادات الطبيعية
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(minutes: 1),
         minimumFetchInterval: const Duration(minutes: 5),
@@ -372,7 +365,6 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  /// إعادة التهيئة
   Future<void> reinitialize() async {
     _isInitialized = false;
     _cachedForceUpdate = null;
@@ -381,10 +373,10 @@ class FirebaseRemoteConfigService {
     _cachedUpdateUrl = null;
     _cachedFeaturesList = null;
     _cachedSpecialEvent = null;
+    _cachedPromotionalBanners = null;
     await initialize();
   }
 
-  /// تنظيف الموارد
   void dispose() {
     _isInitialized = false;
     _cachedForceUpdate = null;
@@ -393,6 +385,7 @@ class FirebaseRemoteConfigService {
     _cachedUpdateUrl = null;
     _cachedFeaturesList = null;
     _cachedSpecialEvent = null;
+    _cachedPromotionalBanners = null;
     debugPrint('FirebaseRemoteConfigService disposed');
   }
 }

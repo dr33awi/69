@@ -1,4 +1,4 @@
-// lib/app/di/service_locator.dart - محدث ونظيف مع خدمات Firebase المتقدمة
+// lib/app/di/service_locator.dart - محدث ونظيف مع خدمات Firebase المتقدمة + BannerService
 import 'package:athkar_app/app/themes/core/theme_notifier.dart';
 import 'package:athkar_app/core/error/error_handler.dart';
 import 'package:athkar_app/core/infrastructure/firebase/firebase_messaging_service.dart';
@@ -6,6 +6,7 @@ import 'package:athkar_app/core/infrastructure/firebase/remote_config_manager.da
 import 'package:athkar_app/core/infrastructure/firebase/remote_config_service.dart';
 import 'package:athkar_app/core/infrastructure/firebase/analytics/analytics_service.dart';
 import 'package:athkar_app/core/infrastructure/firebase/performance/performance_service.dart';
+import 'package:athkar_app/core/infrastructure/firebase/promotional_banners/services/banner_service.dart';
 import 'package:athkar_app/core/infrastructure/services/device/battery/battery_service.dart';
 import 'package:athkar_app/core/infrastructure/services/device/battery/battery_service_impl.dart';
 import 'package:athkar_app/core/infrastructure/services/notifications/notification_manager.dart';
@@ -425,8 +426,39 @@ class ServiceLocator {
       );
     }
     
+    // ✅ خدمة البانرات الترويجية - Lazy Singleton
+    if (!getIt.isRegistered<BannerService>()) {
+      getIt.registerLazySingleton<BannerService>(
+        () {
+          debugPrint('🔄 ACTUAL LAZY LOADING: BannerService initialized NOW');
+          final service = BannerService();
+          
+          // تهيئة تلقائية إذا كانت الخدمات متوفرة
+          try {
+            final remoteConfig = getServiceSafe<FirebaseRemoteConfigService>();
+            final storage = getServiceSafe<StorageService>();
+            
+            if (remoteConfig != null && storage != null) {
+              service.initialize(
+                remoteConfig: remoteConfig,
+                storage: storage,
+              );
+              debugPrint('✅ BannerService initialized with services');
+            } else {
+              debugPrint('⚠️ BannerService registered but services not ready yet');
+            }
+          } catch (e) {
+            debugPrint('⚠️ BannerService init warning: $e');
+          }
+          
+          return service;
+        },
+      );
+    }
+    
     debugPrint('ServiceLocator: TRUE LAZY feature services registered ✅');
   }
+  
   // ==================== Firebase Services (مُحسّن) ====================
 
   /// تهيئة Firebase في الخلفية (اختياري)
@@ -742,6 +774,17 @@ class ServiceLocator {
         await getIt<PermissionService>().dispose();
       }
 
+      // ✅ تنظيف BannerService
+      if (getIt.isRegistered<BannerService>()) {
+        try {
+          if (_isServiceActuallyInitialized<BannerService>()) {
+            getIt<BannerService>().dispose();
+          }
+        } catch (e) {
+          debugPrint('ServiceLocator: BannerService cleanup error: $e');
+        }
+      }
+
       _cleanupFirebaseServices();
       _cleanupAdvancedFirebaseServices();
 
@@ -873,6 +916,18 @@ extension ServiceLocatorExtensions on BuildContext {
   SettingsServicesManager get settingsManager {
     debugPrint('🔄 Accessing SettingsServicesManager - will initialize if not already done');
     return getIt<SettingsServicesManager>();
+  }
+  
+  // ✅ خدمة البانرات الترويجية
+  BannerService? get bannerService {
+    try {
+      return getIt.isRegistered<BannerService>() 
+          ? getIt<BannerService>() 
+          : null;
+    } catch (e) {
+      debugPrint('⚠️ Error getting BannerService: $e');
+      return null;
+    }
   }
   
   // Firebase Services (Safe Access)

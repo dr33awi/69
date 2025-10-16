@@ -7,6 +7,7 @@ import '../../../../../app/themes/app_theme.dart';
 import '../models/promotional_banner_model.dart';
 import '../services/banner_service.dart';
 import '../services/banner_analytics_service.dart';
+import '../../special_event/modals/special_event_model.dart';
 import '../../special_event/services/event_navigation_handler.dart';
 
 /// ويدجت البانر الترويجي
@@ -62,6 +63,20 @@ class _BannerWidgetState extends State<BannerWidget> {
     _analytics.trackBannerDismiss(widget.banner, widget.screenName);
     
     widget.onDismiss?.call();
+  }
+
+  /// ✅ تحويل البانر لموديل المناسبة (للتوافق مع EventNavigationHandler)
+  SpecialEventModel _convertToEventModel() {
+    return SpecialEventModel(
+      isActive: true,
+      title: widget.banner.title,
+      description: widget.banner.description,
+      icon: widget.banner.icon,
+      backgroundImage: widget.banner.imageUrl,
+      gradientColors: widget.banner.gradientColors,
+      actionText: widget.banner.actionText,
+      actionUrl: widget.banner.actionUrl,
+    );
   }
 
   @override
@@ -288,11 +303,5 @@ class _BannerWidgetState extends State<BannerWidget> {
         ),
       ),
     );
-  }
-
-  // تحويل البانر لموديل المناسبة (للتوافق مع EventNavigationHandler)
-  dynamic _convertToEventModel() {
-    // استخدم نفس الموديل أو أنشئ wrapper بسيط
-    return null; // يمكن تحسينها لاحقاً
   }
 }

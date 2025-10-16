@@ -7,6 +7,7 @@ import '../../../../../app/themes/app_theme.dart';
 import '../models/promotional_banner_model.dart';
 import '../services/banner_service.dart';
 import '../services/banner_analytics_service.dart';
+import '../../special_event/modals/special_event_model.dart';
 import '../../special_event/services/event_navigation_handler.dart';
 
 /// Dialog للبانرات العاجلة
@@ -100,7 +101,7 @@ class _BannerDialogState extends State<BannerDialog>
     EventNavigationHandler.handle(
       context: context,
       url: widget.banner.actionUrl,
-      event: null,
+      event: _convertToEventModel(),
     );
   }
 
@@ -110,6 +111,20 @@ class _BannerDialogState extends State<BannerDialog>
     _analytics.trackBannerDismiss(widget.banner, widget.screenName);
     
     Navigator.pop(context);
+  }
+
+  /// ✅ تحويل البانر لموديل المناسبة (للتوافق مع EventNavigationHandler)
+  SpecialEventModel _convertToEventModel() {
+    return SpecialEventModel(
+      isActive: true,
+      title: widget.banner.title,
+      description: widget.banner.description,
+      icon: widget.banner.icon,
+      backgroundImage: widget.banner.imageUrl,
+      gradientColors: widget.banner.gradientColors,
+      actionText: widget.banner.actionText,
+      actionUrl: widget.banner.actionUrl,
+    );
   }
 
   @override
