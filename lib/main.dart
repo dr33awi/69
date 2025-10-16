@@ -165,7 +165,7 @@ void _backgroundInitialization() {
       await ServiceLocator.registerFeatureServices();
       debugPrint('✅ [1/3] Feature services registered (lazy)');
       
-      // 2. Firebase Services في الخلفية
+      // 2. Firebase Services في الخلفية - تهيئة فقط!
       await ServiceLocator.initializeFirebaseInBackground();
       debugPrint('✅ [2/3] Firebase background services initialized');
       
@@ -181,7 +181,6 @@ void _backgroundInitialization() {
     }
   });
 }
-
 // ==================== فحص الإشعار الأولي ====================
 Future<void> _checkInitialNotification() async {
   try {

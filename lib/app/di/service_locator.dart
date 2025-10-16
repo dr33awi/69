@@ -92,6 +92,13 @@ class ServiceLocator {
       // 2. تحميل الحالة المحفوظة
       await _loadSavedState();
       
+      // ✅ 2.5 فحص وتسجيل Firebase Services مبكراً
+      await _checkFirebaseAvailability();
+      if (_firebaseAvailable) {
+        _registerFirebaseServices();
+        debugPrint('✅ Firebase services registered in Essential Init');
+      }
+      
       // 3. خدمات التطوير والمراقبة
       _registerDevelopmentServices();
       
@@ -469,6 +476,15 @@ class ServiceLocator {
   Future<void> _safeInitializeFirebase() async {
     if (_firebaseAvailable) {
       debugPrint('✅ Firebase already available from cache');
+      
+      // ✅ تهيئة الخدمات حتى لو كانت متاحة
+      if (getIt.isRegistered<FirebaseRemoteConfigService>()) {
+        await _initializeFirebaseServices();
+      } else {
+        debugPrint('⚠️ FirebaseRemoteConfigService not registered, registering now...');
+        _registerFirebaseServices();
+        await _initializeFirebaseServices();
+      }
       return;
     }
 
@@ -509,81 +525,121 @@ class ServiceLocator {
 
   /// تسجيل خدمات Firebase (بدون تهيئة)
   void _registerFirebaseServices() {
-    if (!_firebaseAvailable) return;
+    if (!_firebaseAvailable) {
+      debugPrint('⚠️ Firebase not available, skipping service registration');
+      return;
+    }
     
     try {
       debugPrint('📝 Registering Firebase services...');
       
-      // Remote Config Service
+      // ✅ 1. Remote Config Service (الأهم!)
       if (!getIt.isRegistered<FirebaseRemoteConfigService>()) {
         getIt.registerLazySingleton<FirebaseRemoteConfigService>(
-          () => FirebaseRemoteConfigService(),
+          () {
+            debugPrint('🔄 Creating FirebaseRemoteConfigService instance');
+            return FirebaseRemoteConfigService();
+          },
         );
+        debugPrint('  ✅ FirebaseRemoteConfigService registered');
+      } else {
+        debugPrint('  ℹ️ FirebaseRemoteConfigService already registered');
       }
       
-      // Remote Config Manager
+      // 2. Remote Config Manager
       if (!getIt.isRegistered<RemoteConfigManager>()) {
         getIt.registerLazySingleton<RemoteConfigManager>(
-          () => RemoteConfigManager(),
+          () {
+            debugPrint('🔄 Creating RemoteConfigManager instance');
+            return RemoteConfigManager();
+          },
         );
+        debugPrint('  ✅ RemoteConfigManager registered');
       }
       
-      // Firebase Messaging
+      // 3. Firebase Messaging
       if (!getIt.isRegistered<FirebaseMessagingService>()) {
         getIt.registerLazySingleton<FirebaseMessagingService>(
-          () => FirebaseMessagingService(),
+          () {
+            debugPrint('🔄 Creating FirebaseMessagingService instance');
+            return FirebaseMessagingService();
+          },
         );
+        debugPrint('  ✅ FirebaseMessagingService registered');
       }
       
-      debugPrint('✅ Firebase services registered');
+      debugPrint('✅ All Firebase services registered successfully');
       
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('❌ Firebase registration error: $e');
+      debugPrint('Stack: $stackTrace');
       _firebaseAvailable = false;
     }
   }
 
   /// تهيئة خدمات Firebase المسجلة
   Future<void> _initializeFirebaseServices() async {
-    if (!_firebaseAvailable) return;
+    if (!_firebaseAvailable) {
+      debugPrint('⚠️ Firebase not available, skipping initialization');
+      return;
+    }
     
     try {
+      debugPrint('🔄 Initializing Firebase services...');
       final storage = getIt<StorageService>();
       
-      // تهيئة Remote Config
+      // ✅ 1. تهيئة Remote Config أولاً (الأهم!)
       if (getIt.isRegistered<FirebaseRemoteConfigService>()) {
         try {
           final remoteConfig = getIt<FirebaseRemoteConfigService>();
-          await remoteConfig.initialize();
-          debugPrint('✅ Remote Config Service initialized');
+          
+          if (!remoteConfig.isInitialized) {
+            debugPrint('  🔄 Initializing FirebaseRemoteConfigService...');
+            await remoteConfig.initialize();
+            debugPrint('  ✅ FirebaseRemoteConfigService initialized');
+          } else {
+            debugPrint('  ℹ️ FirebaseRemoteConfigService already initialized');
+          }
           
           // تهيئة Manager
           if (getIt.isRegistered<RemoteConfigManager>()) {
             final manager = getIt<RemoteConfigManager>();
-            await manager.initialize(
-              remoteConfig: remoteConfig,
-              storage: storage,
-            );
-            debugPrint('✅ Remote Config Manager initialized');
+            
+            if (!manager.isInitialized) {
+              debugPrint('  🔄 Initializing RemoteConfigManager...');
+              await manager.initialize(
+                remoteConfig: remoteConfig,
+                storage: storage,
+              );
+              debugPrint('  ✅ RemoteConfigManager initialized');
+            }
           }
         } catch (e) {
-          debugPrint('⚠️ Remote Config init failed: $e');
+          debugPrint('  ⚠️ Remote Config init failed: $e');
         }
+      } else {
+        debugPrint('  ❌ FirebaseRemoteConfigService not registered!');
       }
       
-      // تهيئة Firebase Messaging
+      // 2. تهيئة Firebase Messaging
       if (getIt.isRegistered<FirebaseMessagingService>()) {
         try {
           final messaging = getIt<FirebaseMessagingService>();
-          await messaging.initialize(
-            storage: storage,
-            notificationService: getIt<NotificationService>(),
-          );
-          debugPrint('✅ Firebase Messaging initialized');
+          
+          if (!messaging.isInitialized) {
+            debugPrint('  🔄 Initializing FirebaseMessagingService...');
+            await messaging.initialize(
+              storage: storage,
+              notificationService: getIt<NotificationService>(),
+            );
+            debugPrint('  ✅ FirebaseMessagingService initialized');
+          }
         } catch (e) {
-          debugPrint('⚠️ Firebase Messaging init failed: $e');
+          debugPrint('  ⚠️ Firebase Messaging init failed: $e');
         }
       }
+      
+      debugPrint('✅ Firebase services initialization completed');
       
     } catch (e) {
       debugPrint('❌ Firebase services init failed: $e');
@@ -636,42 +692,6 @@ class ServiceLocator {
       
     } catch (e) {
       debugPrint('❌ Advanced Firebase init error: $e');
-    }
-  }
-
-  /// تسجيل وتهيئة AnalyticsService
-  Future<void> _registerAnalyticsService() async {
-    try {
-      if (!getIt.isRegistered<AnalyticsService>()) {
-        // تسجيل كـ Singleton
-        getIt.registerSingleton<AnalyticsService>(AnalyticsService());
-        
-        // تهيئة الخدمة
-        final analyticsService = getIt<AnalyticsService>();
-        await analyticsService.initialize();
-        
-        debugPrint('✅ ServiceLocator: AnalyticsService registered and initialized');
-      }
-    } catch (e) {
-      debugPrint('❌ ServiceLocator: Error registering AnalyticsService: $e');
-    }
-  }
-
-  /// تسجيل وتهيئة PerformanceService
-  Future<void> _registerPerformanceService() async {
-    try {
-      if (!getIt.isRegistered<PerformanceService>()) {
-        // تسجيل كـ Singleton
-        getIt.registerSingleton<PerformanceService>(PerformanceService());
-        
-        // تهيئة الخدمة
-        final performanceService = getIt<PerformanceService>();
-        await performanceService.initialize();
-        
-        debugPrint('✅ ServiceLocator: PerformanceService registered and initialized');
-      }
-    } catch (e) {
-      debugPrint('❌ ServiceLocator: Error registering PerformanceService: $e');
     }
   }
 
