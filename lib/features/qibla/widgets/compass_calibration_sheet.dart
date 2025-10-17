@@ -1,4 +1,4 @@
-// lib/features/qibla/widgets/compass_calibration_sheet.dart - واجهة محسّنة
+// lib/features/qibla/widgets/compass_calibration_sheet.dart - نسخة مصغرة
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -55,9 +55,9 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
     
     return Container(
       constraints: BoxConstraints(
-        maxHeight: 0.85.sh,
+        maxHeight: 0.7.sh, // تصغير من 0.85 إلى 0.7
       ),
-      padding: EdgeInsets.all(14.w),
+      padding: EdgeInsets.all(12.w), // تصغير من 14 إلى 12
       decoration: BoxDecoration(
         color: context.backgroundColor,
         borderRadius: BorderRadius.vertical(
@@ -72,19 +72,19 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
             Container(
               width: 36.w,
               height: 3.h,
-              margin: EdgeInsets.only(bottom: 10.h),
+              margin: EdgeInsets.only(bottom: 8.h), // تصغير من 10 إلى 8
               decoration: BoxDecoration(
                 color: context.dividerColor,
                 borderRadius: BorderRadius.circular(2.r),
               ),
             ),
             
-            // Title
+            // Title - مدمج ومصغر
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding: EdgeInsets.all(8.r),
+                  padding: EdgeInsets.all(6.r), // تصغير من 8 إلى 6
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
@@ -97,10 +97,10 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                   child: Icon(
                     FlutterIslamicIcons.solidQibla,
                     color: Colors.white,
-                    size: 20.sp,
+                    size: 16.sp, // تصغير من 20 إلى 16
                   ),
                 ),
-                SizedBox(width: 10.w),
+                SizedBox(width: 8.w), // تصغير من 10 إلى 8
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -108,14 +108,14 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                       'معايرة البوصلة',
                       style: TextStyle(
                         fontWeight: ThemeConstants.bold,
-                        fontSize: 17.sp,
+                        fontSize: 15.sp, // تصغير من 17 إلى 15
                       ),
                     ),
                     Text(
-                      'تستغرق 10-15 ثانية فقط',
+                      '10-15 ثانية',
                       style: TextStyle(
                         color: ThemeConstants.success,
-                        fontSize: 10.sp,
+                        fontSize: 9.sp, // تصغير من 10 إلى 9
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -124,11 +124,11 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
               ],
             ),
             
-            SizedBox(height: 16.h),
+            SizedBox(height: 12.h), // تصغير من 16 إلى 12
             
-            // Animated demo
+            // Animated demo - مصغر
             Container(
-              height: 140.h,
+              height: 110.h, // تصغير من 140 إلى 110
               width: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -139,7 +139,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                     ThemeConstants.primaryLight.withOpacity(0.05),
                   ],
                 ),
-                borderRadius: BorderRadius.circular(16.r),
+                borderRadius: BorderRadius.circular(12.r), // تصغير من 16 إلى 12
                 border: Border.all(
                   color: ThemeConstants.primary.withOpacity(0.2),
                 ),
@@ -149,7 +149,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                 children: [
                   // Figure-8 path
                   CustomPaint(
-                    size: Size(180.w, 90.h),
+                    size: Size(140.w, 70.h), // تصغير من 180x90 إلى 140x70
                     painter: Figure8BackgroundPainter(
                       color: ThemeConstants.primary.withOpacity(0.4),
                     ),
@@ -160,8 +160,8 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                     animation: _figure8Animation,
                     builder: (context, child) {
                       final t = _figure8Animation.value;
-                      final x = math.sin(t) * 50.w;
-                      final y = math.sin(2 * t) * 30.h;
+                      final x = math.sin(t) * 40.w; // تصغير من 50 إلى 40
+                      final y = math.sin(2 * t) * 24.h; // تصغير من 30 إلى 24
                       final tilt = math.sin(t) * 0.25;
                       
                       return Transform.translate(
@@ -177,59 +177,24 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                     },
                   ),
                   
-                  // Instruction overlay
-                  Positioned(
-                    bottom: 12.h,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12.w,
-                        vertical: 6.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.7),
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            '∞',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20.sp,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(width: 6.w),
-                          Text(
-                            'حرك الجهاز في شكل رقم 8',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 11.sp,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+
                 ],
               ),
             ),
             
-            SizedBox(height: 20.h),
+            SizedBox(height: 12.h), // تصغير من 20 إلى 12
             
-            // Quick steps
+            // Quick steps - مصغر
             _buildQuickSteps(),
             
-            SizedBox(height: 20.h),
+            SizedBox(height: 10.h), // تصغير من 20 إلى 10
             
-            // Tips
+            // Tips - مصغر ومختصر
             Container(
-              padding: EdgeInsets.all(12.w),
+              padding: EdgeInsets.all(10.w), // تصغير من 12 إلى 10
               decoration: BoxDecoration(
                 color: ThemeConstants.info.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(10.r), // تصغير من 12 إلى 10
                 border: Border.all(
                   color: ThemeConstants.info.withOpacity(0.3),
                 ),
@@ -240,30 +205,29 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                   Icon(
                     Icons.tips_and_updates,
                     color: ThemeConstants.info,
-                    size: 20.sp,
+                    size: 16.sp, // تصغير من 20 إلى 16
                   ),
-                  SizedBox(width: 8.w),
+                  SizedBox(width: 6.w), // تصغير من 8 إلى 6
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'نصائح سريعة:',
+                          'نصائح:',
                           style: TextStyle(
                             fontWeight: ThemeConstants.semiBold,
                             color: ThemeConstants.info,
-                            fontSize: 12.sp,
+                            fontSize: 11.sp, // تصغير من 12 إلى 11
                           ),
                         ),
-                        SizedBox(height: 4.h),
+                        SizedBox(height: 2.h), // تصغير من 4 إلى 2
                         Text(
-                          '• ابتعد عن المعادن والأجهزة الإلكترونية\n'
-                          '• حرك الجهاز ببطء وبشكل سلس\n'
-                          '• غط جميع الاتجاهات (شمال، جنوب، شرق، غرب)',
+                          '• ابتعد عن المعادن\n'
+                          '• حرك الجهاز ببطء',
                           style: TextStyle(
                             color: context.textSecondaryColor,
-                            fontSize: 10.sp,
-                            height: 1.5,
+                            fontSize: 9.sp, // تصغير من 10 إلى 9
+                            height: 1.4,
                           ),
                         ),
                       ],
@@ -273,28 +237,28 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
               ),
             ),
             
-            SizedBox(height: 20.h),
+            SizedBox(height: 12.h), // تصغير من 20 إلى 12
             
-            // Action buttons
+            // Action buttons - مصغر
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(),
                     style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                      padding: EdgeInsets.symmetric(vertical: 10.h), // تصغير من 12 إلى 10
                       side: BorderSide(color: context.dividerColor),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r),
+                        borderRadius: BorderRadius.circular(10.r), // تصغير من 12 إلى 10
                       ),
                     ),
                     child: Text(
                       'إلغاء',
-                      style: TextStyle(fontSize: 13.sp),
+                      style: TextStyle(fontSize: 12.sp), // تصغير من 13 إلى 12
                     ),
                   ),
                 ),
-                SizedBox(width: 12.w),
+                SizedBox(width: 10.w), // تصغير من 12 إلى 10
                 Expanded(
                   flex: 2,
                   child: ElevatedButton.icon(
@@ -305,18 +269,18 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: ThemeConstants.primary,
-                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                      padding: EdgeInsets.symmetric(vertical: 10.h), // تصغير من 12 إلى 10
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r),
+                        borderRadius: BorderRadius.circular(10.r), // تصغير من 12 إلى 10
                       ),
                       elevation: 2,
                     ),
-                    icon: Icon(Icons.play_arrow, size: 20.sp, color: Colors.white),
+                    icon: Icon(Icons.play_arrow, size: 18.sp, color: Colors.white), // تصغير من 20 إلى 18
                     label: Text(
                       'بدء المعايرة',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 14.sp,
+                        fontSize: 13.sp, // تصغير من 14 إلى 13
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -325,7 +289,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
               ],
             ),
             
-            SizedBox(height: MediaQuery.of(context).padding.bottom + 6.h),
+            SizedBox(height: MediaQuery.of(context).padding.bottom + 4.h), // تصغير من 6 إلى 4
           ],
         ),
       ),
@@ -337,12 +301,12 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(right: 4.w, bottom: 10.h),
+          padding: EdgeInsets.only(right: 4.w, bottom: 8.h), // تصغير من 10 إلى 8
           child: Text(
             'خطوات سريعة:',
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 14.sp,
+              fontSize: 12.sp, // تصغير من 14 إلى 12
             ),
           ),
         ),
@@ -357,7 +321,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
         _buildStepItem(
           number: '2',
           icon: Icons.all_inclusive,
-          text: 'ارسم شكل ∞ (رقم 8) في الهواء',
+          text: 'ارسم شكل ∞ في الهواء',
           color: ThemeConstants.primary,
         ),
         
@@ -384,8 +348,8 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
         Column(
           children: [
             Container(
-              width: 32.r,
-              height: 32.r,
+              width: 28.r, // تصغير من 32 إلى 28
+              height: 28.r,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [color, color.withOpacity(0.7)],
@@ -394,7 +358,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                 boxShadow: [
                   BoxShadow(
                     color: color.withOpacity(0.3),
-                    blurRadius: 4.r,
+                    blurRadius: 3.r, // تصغير من 4 إلى 3
                     offset: Offset(0, 2.h),
                   ),
                 ],
@@ -405,7 +369,7 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
-                    fontSize: 14.sp,
+                    fontSize: 12.sp, // تصغير من 14 إلى 12
                   ),
                 ),
               ),
@@ -413,8 +377,8 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
             if (!isLast)
               Container(
                 width: 2.w,
-                height: 30.h,
-                margin: EdgeInsets.symmetric(vertical: 4.h),
+                height: 24.h, // تصغير من 30 إلى 24
+                margin: EdgeInsets.symmetric(vertical: 3.h), // تصغير من 4 إلى 3
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
@@ -428,14 +392,14 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
               ),
           ],
         ),
-        SizedBox(width: 12.w),
+        SizedBox(width: 10.w), // تصغير من 12 إلى 10
         Expanded(
           child: Container(
-            margin: EdgeInsets.only(bottom: isLast ? 0 : 34.h),
-            padding: EdgeInsets.all(12.w),
+            margin: EdgeInsets.only(bottom: isLast ? 0 : 27.h), // تصغير من 34 إلى 27
+            padding: EdgeInsets.all(10.w), // تصغير من 12 إلى 10
             decoration: BoxDecoration(
               color: context.cardColor,
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(8.r), // تصغير من 10 إلى 8
               border: Border.all(
                 color: context.dividerColor.withOpacity(0.3),
               ),
@@ -444,15 +408,15 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
               children: [
                 Icon(
                   icon,
-                  size: 20.sp,
+                  size: 16.sp, // تصغير من 20 إلى 16
                   color: color,
                 ),
-                SizedBox(width: 10.w),
+                SizedBox(width: 8.w), // تصغير من 10 إلى 8
                 Expanded(
                   child: Text(
                     text,
                     style: TextStyle(
-                      fontSize: 12.sp,
+                      fontSize: 11.sp, // تصغير من 12 إلى 11
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -466,15 +430,15 @@ class _CompassCalibrationSheetState extends State<CompassCalibrationSheet>
   }
 }
 
-// Phone Widget
+// Phone Widget - مصغر
 class PhoneAnimationWidget extends StatelessWidget {
   const PhoneAnimationWidget({super.key});
   
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 55.w,
-      height: 48.h,
+      width: 45.w, // تصغير من 55 إلى 45
+      height: 40.h, // تصغير من 48 إلى 40
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -484,12 +448,12 @@ class PhoneAnimationWidget extends StatelessWidget {
             ThemeConstants.primaryDark,
           ],
         ),
-        borderRadius: BorderRadius.circular(8.r),
+        borderRadius: BorderRadius.circular(6.r), // تصغير من 8 إلى 6
         boxShadow: [
           BoxShadow(
             color: ThemeConstants.primary.withOpacity(0.5),
-            blurRadius: 12.r,
-            offset: Offset(0, 6.h),
+            blurRadius: 10.r, // تصغير من 12 إلى 10
+            offset: Offset(0, 4.h), // تصغير من 6 إلى 4
           ),
         ],
       ),
@@ -497,20 +461,20 @@ class PhoneAnimationWidget extends StatelessWidget {
         children: [
           // Screen
           Positioned(
-            top: 8.h,
-            left: 8.w,
-            right: 8.w,
-            bottom: 8.h,
+            top: 6.h, // تصغير من 8 إلى 6
+            left: 6.w,
+            right: 6.w,
+            bottom: 6.h,
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(4.r),
+                borderRadius: BorderRadius.circular(3.r), // تصغير من 4 إلى 3
               ),
               child: Center(
                 child: Icon(
                   Icons.explore,
                   color: ThemeConstants.primary,
-                  size: 20.sp,
+                  size: 16.sp, // تصغير من 20 إلى 16
                 ),
               ),
             ),
@@ -532,7 +496,7 @@ class Figure8BackgroundPainter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.0
+      ..strokeWidth = 2.5 // تصغير من 3.0 إلى 2.5
       ..strokeCap = StrokeCap.round;
     
     final path = Path();
@@ -586,7 +550,7 @@ class Figure8BackgroundPainter extends CustomPainter {
     ];
     
     for (var point in points) {
-      canvas.drawCircle(point, 3.r, dotPaint);
+      canvas.drawCircle(point, 2.5.r, dotPaint); // تصغير من 3 إلى 2.5
     }
   }
   

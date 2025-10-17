@@ -1,5 +1,5 @@
 // lib/core/infrastructure/firebase/remote_config_service.dart
-// ✅ محدث مع دعم Promotional Banners
+// ✅ نسخة محسّنة لجلب البيانات بشكل أسرع
 
 import 'dart:async';
 import 'dart:convert';
@@ -13,15 +13,10 @@ class FirebaseRemoteConfigService {
 
   late FirebaseRemoteConfig _remoteConfig;
   bool _isInitialized = false;
+  DateTime? _lastFetchTime;
   
-  // Cache
-  bool? _cachedForceUpdate;
-  bool? _cachedMaintenanceMode;
-  String? _cachedAppVersion;
-  String? _cachedUpdateUrl;
-  List<String>? _cachedFeaturesList;
-  Map<String, dynamic>? _cachedSpecialEvent;
-  List<dynamic>? _cachedPromotionalBanners; // ✅ جديد
+  // Cache محسّن
+  Map<String, dynamic> _cachedValues = {};
   
   // مفاتيح الإعدادات
   static const String _keyAppVersion = 'app_version';
@@ -30,134 +25,123 @@ class FirebaseRemoteConfigService {
   static const String _keyUpdateUrlAndroid = 'update_url_android';
   static const String _keyUpdateFeaturesList = 'update_features_list';
   static const String _keySpecialEvent = 'special_event_data';
-  static const String _keyPromotionalBanners = 'promotional_banners'; // ✅ جديد
+  static const String _keyPromotionalBanners = 'promotional_banners';
 
-  /// تهيئة الخدمة
+  /// تهيئة الخدمة - محسّنة للسرعة
   Future<void> initialize() async {
-    if (_isInitialized) return;
+    if (_isInitialized) {
+      debugPrint('✅ FirebaseRemoteConfigService already initialized');
+      return;
+    }
     
     try {
+      debugPrint('🔄 Initializing FirebaseRemoteConfigService...');
+      final stopwatch = Stopwatch()..start();
+      
       _remoteConfig = FirebaseRemoteConfig.instance;
       
+      // ✅ إعدادات محسّنة للسرعة
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
-        fetchTimeout: const Duration(minutes: 1),
-        minimumFetchInterval: const Duration(minutes: 5),
+        fetchTimeout: const Duration(seconds: 10), // تقليل من 60 إلى 10 ثواني
+        minimumFetchInterval: kDebugMode 
+          ? Duration.zero  // في وضع التطوير: بدون انتظار
+          : const Duration(minutes: 5), // في الإنتاج: 5 دقائق فقط
       ));
       
+      // تعيين القيم الافتراضية
       await _setDefaults();
-      await _fetchAndActivate();
-      _updateCache();
+      
+      // ✅ جلب وتفعيل بشكل متزامن
+      final fetchResult = await _fetchAndActivateWithRetry();
+      
+      // تحديث Cache
+      _updateAllCache();
       
       _isInitialized = true;
-      debugPrint('✅ FirebaseRemoteConfigService initialized');
+      _lastFetchTime = DateTime.now();
+      
+      stopwatch.stop();
+      debugPrint('✅ FirebaseRemoteConfigService initialized in ${stopwatch.elapsedMilliseconds}ms');
       _printDebugInfo();
       
     } catch (e) {
       debugPrint('❌ Error initializing Firebase Remote Config: $e');
       _isInitialized = false;
-      throw Exception('Failed to initialize Firebase Remote Config: $e');
+      
+      // استخدام القيم الافتراضية في حالة الفشل
+      _loadDefaultValues();
     }
   }
 
-  /// تحديث Cache
-  void _updateCache() {
+  /// جلب وتفعيل مع إعادة المحاولة
+  Future<bool> _fetchAndActivateWithRetry() async {
     try {
-      _cachedForceUpdate = _remoteConfig.getBool(_keyForceUpdate);
-      _cachedMaintenanceMode = _remoteConfig.getBool(_keyMaintenanceMode);
-      _cachedAppVersion = _remoteConfig.getString(_keyAppVersion);
-      _cachedUpdateUrl = _remoteConfig.getString(_keyUpdateUrlAndroid);
-      _cachedFeaturesList = _parseFeaturesList();
-      _cachedSpecialEvent = _parseSpecialEvent();
-      _cachedPromotionalBanners = _parsePromotionalBanners(); // ✅ جديد
+      // المحاولة الأولى
+      debugPrint('🔄 Fetching remote config (attempt 1)...');
+      bool result = await _remoteConfig.fetchAndActivate();
       
-      debugPrint('✅ Cache updated:');
-      debugPrint('  - Promotional Banners: ${_cachedPromotionalBanners?.length ?? 0}');
+      if (result) {
+        debugPrint('✅ Remote config fetched successfully on first attempt');
+        return true;
+      }
+      
+      // إذا فشلت المحاولة الأولى، جرب مرة أخرى
+      debugPrint('🔄 Retrying fetch (attempt 2)...');
+      await Future.delayed(const Duration(milliseconds: 500));
+      result = await _remoteConfig.fetchAndActivate();
+      
+      debugPrint(result 
+        ? '✅ Remote config fetched on retry' 
+        : '⚠️ Using cached/default values');
+      
+      return result;
+      
+    } catch (e) {
+      debugPrint('❌ Error fetching remote config: $e');
+      
+      // في حالة الخطأ، حاول تفعيل القيم المخزنة
+      try {
+        await _remoteConfig.activate();
+        debugPrint('✅ Activated cached values');
+        return false;
+      } catch (_) {
+        return false;
+      }
+    }
+  }
+
+  /// تحديث كل Cache دفعة واحدة
+  void _updateAllCache() {
+    try {
+      _cachedValues = {
+        _keyForceUpdate: _remoteConfig.getBool(_keyForceUpdate),
+        _keyMaintenanceMode: _remoteConfig.getBool(_keyMaintenanceMode),
+        _keyAppVersion: _remoteConfig.getString(_keyAppVersion),
+        _keyUpdateUrlAndroid: _remoteConfig.getString(_keyUpdateUrlAndroid),
+        _keyUpdateFeaturesList: _parseFeaturesList(),
+        _keySpecialEvent: _parseSpecialEvent(),
+        _keyPromotionalBanners: _parsePromotionalBanners(),
+      };
+      
+      debugPrint('✅ Cache updated successfully');
     } catch (e) {
       debugPrint('⚠️ Error updating cache: $e');
     }
   }
 
-  /// ✅ تحليل البانرات الترويجية
-  List<dynamic> _parsePromotionalBanners() {
-    try {
-      final jsonString = _remoteConfig.getString(_keyPromotionalBanners);
-      if (jsonString.isEmpty) {
-        return [];
-      }
-      
-      final dynamic decoded = jsonDecode(jsonString);
-      if (decoded is List) {
-        debugPrint('✅ Found ${decoded.length} promotional banners');
-        return decoded;
-      }
-      
-      return [];
-    } catch (e) {
-      debugPrint('⚠️ Error parsing promotional banners: $e');
-      return [];
-    }
-  }
-
-  /// تحليل قائمة الميزات
-  List<String> _parseFeaturesList() {
-    try {
-      final jsonString = _remoteConfig.getString(_keyUpdateFeaturesList);
-      if (jsonString.isEmpty) {
-        return _getDefaultFeaturesList();
-      }
-      
-      final dynamic decoded = jsonDecode(jsonString);
-      if (decoded is List) {
-        return decoded.map((e) => e.toString()).toList();
-      }
-      
-      return _getDefaultFeaturesList();
-    } catch (e) {
-      debugPrint('⚠️ Error parsing update features list: $e');
-      return _getDefaultFeaturesList();
-    }
-  }
-
-  /// تحليل بيانات المناسبة الخاصة
-  Map<String, dynamic>? _parseSpecialEvent() {
-    try {
-      final jsonString = _remoteConfig.getString(_keySpecialEvent);
-      if (jsonString.isEmpty) {
-        return null;
-      }
-      
-      final dynamic decoded = jsonDecode(jsonString);
-      if (decoded is Map<String, dynamic>) {
-        if (decoded['start_date'] != null && decoded['end_date'] != null) {
-          try {
-            final startDate = DateTime.parse(decoded['start_date']);
-            final endDate = DateTime.parse(decoded['end_date']);
-            final now = DateTime.now();
-            
-            decoded['is_active'] = decoded['is_active'] == true && 
-                                  now.isAfter(startDate) && 
-                                  now.isBefore(endDate);
-          } catch (e) {
-            debugPrint('⚠️ Error parsing event dates: $e');
-          }
-        }
-        
-        return decoded;
-      }
-      
-      return null;
-    } catch (e) {
-      debugPrint('⚠️ Error parsing special event data: $e');
-      return null;
-    }
-  }
-
-  List<String> _getDefaultFeaturesList() {
-    return [
-      'تحسينات الأداء',
-      'إصلاح الأخطاء', 
-      'ميزات جديدة'
-    ];
+  /// تحميل القيم الافتراضية في حالة الفشل
+  void _loadDefaultValues() {
+    _cachedValues = {
+      _keyForceUpdate: false,
+      _keyMaintenanceMode: false,
+      _keyAppVersion: '1.0.0',
+      _keyUpdateUrlAndroid: 'https://play.google.com/store/apps/details?id=com.example.athkar_app',
+      _keyUpdateFeaturesList: ['تحسينات الأداء', 'إصلاح الأخطاء', 'ميزات جديدة'],
+      _keySpecialEvent: null,
+      _keyPromotionalBanners: [],
+    };
+    
+    debugPrint('⚠️ Using default values due to fetch failure');
   }
 
   /// تعيين القيم الافتراضية
@@ -178,39 +162,38 @@ class FirebaseRemoteConfigService {
         'description': '',
         'icon': '🌙',
         'gradient_colors': ['#9C27B0', '#673AB7'],
-        'action_text': '',
-        'action_url': '',
-        'start_date': null,
-        'end_date': null,
-        'background_image': '',
       }),
-      // ✅ قيم افتراضية للبانرات
       _keyPromotionalBanners: jsonEncode([]),
     });
   }
 
-  /// جلب وتفعيل الإعدادات
-  Future<bool> _fetchAndActivate() async {
-    try {
-      final fetchResult = await _remoteConfig.fetchAndActivate();
-      debugPrint('Remote config fetch result: $fetchResult');
-      return fetchResult;
-    } catch (e) {
-      debugPrint('❌ Error fetching remote config: $e');
-      return false;
-    }
-  }
-
-  /// تحديث الإعدادات يدوياً
+  /// تحديث الإعدادات يدوياً - محسّن
   Future<bool> refresh() async {
-    if (!_isInitialized) return false;
+    if (!_isInitialized) {
+      await initialize();
+      return _isInitialized;
+    }
     
     try {
-      final result = await _fetchAndActivate();
+      debugPrint('🔄 Refreshing remote config...');
+      
+      // فحص إذا كان يمكن التحديث (تجنب التحديثات المتكررة)
+      if (_lastFetchTime != null) {
+        final timeSinceLastFetch = DateTime.now().difference(_lastFetchTime!);
+        if (timeSinceLastFetch.inSeconds < 30 && !kDebugMode) {
+          debugPrint('⚠️ Too soon to refresh (${timeSinceLastFetch.inSeconds}s since last fetch)');
+          return false;
+        }
+      }
+      
+      final result = await _fetchAndActivateWithRetry();
+      
       if (result) {
-        _updateCache();
+        _updateAllCache();
+        _lastFetchTime = DateTime.now();
         _printDebugInfo();
       }
+      
       return result;
     } catch (e) {
       debugPrint('❌ Error refreshing config: $e');
@@ -218,15 +201,16 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  // ==================== Getters ====================
+  // ==================== Optimized Getters ====================
 
   String get requiredAppVersion {
-    if (_cachedAppVersion != null && _cachedAppVersion!.isNotEmpty) {
-      return _cachedAppVersion!;
+    if (_cachedValues.containsKey(_keyAppVersion)) {
+      return _cachedValues[_keyAppVersion] ?? '1.0.0';
     }
     
     try {
       final version = _remoteConfig.getString(_keyAppVersion);
+      _cachedValues[_keyAppVersion] = version;
       return version.isNotEmpty ? version : '1.0.0';
     } catch (e) {
       return '1.0.0';
@@ -234,36 +218,41 @@ class FirebaseRemoteConfigService {
   }
 
   bool get isForceUpdateRequired {
-    if (_cachedForceUpdate != null) {
-      return _cachedForceUpdate!;
+    if (_cachedValues.containsKey(_keyForceUpdate)) {
+      return _cachedValues[_keyForceUpdate] ?? false;
     }
     
     try {
-      return _remoteConfig.getBool(_keyForceUpdate);
+      final value = _remoteConfig.getBool(_keyForceUpdate);
+      _cachedValues[_keyForceUpdate] = value;
+      return value;
     } catch (e) {
       return false;
     }
   }
 
   bool get isMaintenanceModeEnabled {
-    if (_cachedMaintenanceMode != null) {
-      return _cachedMaintenanceMode!;
+    if (_cachedValues.containsKey(_keyMaintenanceMode)) {
+      return _cachedValues[_keyMaintenanceMode] ?? false;
     }
     
     try {
-      return _remoteConfig.getBool(_keyMaintenanceMode);
+      final value = _remoteConfig.getBool(_keyMaintenanceMode);
+      _cachedValues[_keyMaintenanceMode] = value;
+      return value;
     } catch (e) {
       return false;
     }
   }
 
   String get updateUrl {
-    if (_cachedUpdateUrl != null && _cachedUpdateUrl!.isNotEmpty) {
-      return _cachedUpdateUrl!;
+    if (_cachedValues.containsKey(_keyUpdateUrlAndroid)) {
+      return _cachedValues[_keyUpdateUrlAndroid] ?? 'https://play.google.com/store/apps/details?id=com.example.athkar_app';
     }
     
     try {
       final url = _remoteConfig.getString(_keyUpdateUrlAndroid);
+      _cachedValues[_keyUpdateUrlAndroid] = url;
       return url.isNotEmpty ? url : 'https://play.google.com/store/apps/details?id=com.example.athkar_app';
     } catch (e) {
       return 'https://play.google.com/store/apps/details?id=com.example.athkar_app';
@@ -271,47 +260,119 @@ class FirebaseRemoteConfigService {
   }
 
   List<String> get updateFeaturesList {
-    if (_cachedFeaturesList != null && _cachedFeaturesList!.isNotEmpty) {
-      return _cachedFeaturesList!;
+    if (_cachedValues.containsKey(_keyUpdateFeaturesList)) {
+      return _cachedValues[_keyUpdateFeaturesList] ?? _getDefaultFeaturesList();
     }
     
-    return _parseFeaturesList();
+    final features = _parseFeaturesList();
+    _cachedValues[_keyUpdateFeaturesList] = features;
+    return features;
   }
 
   Map<String, dynamic>? get specialEventData {
-    if (_cachedSpecialEvent != null) {
-      return _cachedSpecialEvent;
+    if (_cachedValues.containsKey(_keySpecialEvent)) {
+      return _cachedValues[_keySpecialEvent];
     }
     
-    return _parseSpecialEvent();
+    final event = _parseSpecialEvent();
+    _cachedValues[_keySpecialEvent] = event;
+    return event;
   }
 
-  /// ✅ Getter للبانرات الترويجية
   List<dynamic> get promotionalBanners {
-    if (_cachedPromotionalBanners != null) {
-      return _cachedPromotionalBanners!;
+    if (_cachedValues.containsKey(_keyPromotionalBanners)) {
+      return _cachedValues[_keyPromotionalBanners] ?? [];
     }
     
-    return _parsePromotionalBanners();
+    final banners = _parsePromotionalBanners();
+    _cachedValues[_keyPromotionalBanners] = banners;
+    return banners;
   }
 
-  String get updateUrlAndroid => updateUrl;
+  // ==================== Parsing Methods ====================
+
+  List<String> _parseFeaturesList() {
+    try {
+      final jsonString = _remoteConfig.getString(_keyUpdateFeaturesList);
+      if (jsonString.isEmpty) return _getDefaultFeaturesList();
+      
+      final dynamic decoded = jsonDecode(jsonString);
+      if (decoded is List) {
+        return decoded.map((e) => e.toString()).toList();
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error parsing features list: $e');
+    }
+    return _getDefaultFeaturesList();
+  }
+
+  Map<String, dynamic>? _parseSpecialEvent() {
+    try {
+      final jsonString = _remoteConfig.getString(_keySpecialEvent);
+      if (jsonString.isEmpty) return null;
+      
+      final dynamic decoded = jsonDecode(jsonString);
+      if (decoded is Map<String, dynamic>) {
+        // فحص التواريخ
+        if (decoded['start_date'] != null && decoded['end_date'] != null) {
+          try {
+            final startDate = DateTime.parse(decoded['start_date']);
+            final endDate = DateTime.parse(decoded['end_date']);
+            final now = DateTime.now();
+            
+            decoded['is_active'] = decoded['is_active'] == true && 
+                                  now.isAfter(startDate) && 
+                                  now.isBefore(endDate);
+          } catch (_) {}
+        }
+        return decoded;
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error parsing special event: $e');
+    }
+    return null;
+  }
+
+  List<dynamic> _parsePromotionalBanners() {
+    try {
+      final jsonString = _remoteConfig.getString(_keyPromotionalBanners);
+      if (jsonString.isEmpty) return [];
+      
+      final dynamic decoded = jsonDecode(jsonString);
+      if (decoded is List) {
+        debugPrint('✅ Found ${decoded.length} promotional banners');
+        return decoded;
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error parsing promotional banners: $e');
+    }
+    return [];
+  }
+
+  List<String> _getDefaultFeaturesList() {
+    return ['تحسينات الأداء', 'إصلاح الأخطاء', 'ميزات جديدة'];
+  }
+
+  // ==================== Status & Debug ====================
 
   RemoteConfigFetchStatus get lastFetchStatus => _remoteConfig.lastFetchStatus;
-  DateTime get lastFetchTime => _remoteConfig.lastFetchTime;
+  DateTime get lastFetchTime => _lastFetchTime ?? _remoteConfig.lastFetchTime;
   bool get isInitialized => _isInitialized;
 
   Map<String, dynamic> get debugInfo => {
     'is_initialized': _isInitialized,
     'last_fetch_status': lastFetchStatus.toString(),
     'last_fetch_time': lastFetchTime.toIso8601String(),
+    'time_since_last_fetch': _lastFetchTime != null 
+      ? '${DateTime.now().difference(_lastFetchTime!).inSeconds}s ago'
+      : 'never',
     'cached_values': {
-      'force_update': _cachedForceUpdate,
-      'maintenance_mode': _cachedMaintenanceMode,
-      'app_version': _cachedAppVersion,
-      'features_count': _cachedFeaturesList?.length,
-      'special_event_active': _cachedSpecialEvent?['is_active'] ?? false,
-      'promotional_banners_count': _cachedPromotionalBanners?.length ?? 0, // ✅ جديد
+      'force_update': isForceUpdateRequired,
+      'maintenance_mode': isMaintenanceModeEnabled,
+      'app_version': requiredAppVersion,
+      'features_count': updateFeaturesList.length,
+      'special_event_active': specialEventData?['is_active'] ?? false,
+      'promotional_banners_count': promotionalBanners.length,
     },
   };
 
@@ -320,17 +381,18 @@ class FirebaseRemoteConfigService {
       debugPrint('========== Remote Config Info ==========');
       debugPrint('Is initialized: $_isInitialized');
       debugPrint('Last fetch status: ${_remoteConfig.lastFetchStatus}');
-      debugPrint('Last fetch time: ${_remoteConfig.lastFetchTime}');
+      debugPrint('Last fetch time: ${lastFetchTime}');
       debugPrint('--- Current Values ---');
-      debugPrint('Force Update: $_cachedForceUpdate');
-      debugPrint('Maintenance Mode: $_cachedMaintenanceMode');
-      debugPrint('App Version: $_cachedAppVersion');
-      debugPrint('Features List: $_cachedFeaturesList');
-      debugPrint('Promotional Banners: ${_cachedPromotionalBanners?.length ?? 0}'); // ✅ جديد
-      if (_cachedSpecialEvent != null) {
+      debugPrint('Force Update: ${isForceUpdateRequired}');
+      debugPrint('Maintenance Mode: ${isMaintenanceModeEnabled}');
+      debugPrint('App Version: ${requiredAppVersion}');
+      debugPrint('Features List: ${updateFeaturesList}');
+      debugPrint('Promotional Banners: ${promotionalBanners.length}');
+      
+      if (specialEventData != null) {
         debugPrint('Special Event:');
-        debugPrint('  - Active: ${_cachedSpecialEvent!['is_active']}');
-        debugPrint('  - Title: ${_cachedSpecialEvent!['title']}');
+        debugPrint('  - Active: ${specialEventData!['is_active']}');
+        debugPrint('  - Title: ${specialEventData!['title']}');
       }
       debugPrint('========================================');
     } catch (e) {
@@ -338,25 +400,33 @@ class FirebaseRemoteConfigService {
     }
   }
 
+  /// فرض التحديث للاختبار - محسّن
   Future<void> forceRefreshForTesting() async {
-    if (!_isInitialized) return;
+    if (!_isInitialized) {
+      await initialize();
+      return;
+    }
     
     try {
       debugPrint('🧪 FORCE REFRESH FOR TESTING...');
       
+      // تغيير الإعدادات مؤقتاً للاختبار
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
-        fetchTimeout: const Duration(seconds: 30),
+        fetchTimeout: const Duration(seconds: 5),
         minimumFetchInterval: Duration.zero,
       ));
       
+      // جلب وتفعيل
       final result = await _remoteConfig.fetchAndActivate();
-      _updateCache();
+      _updateAllCache();
+      _lastFetchTime = DateTime.now();
       
       debugPrint('🧪 Force refresh result: $result');
       _printDebugInfo();
       
+      // إعادة الإعدادات الأصلية
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
-        fetchTimeout: const Duration(minutes: 1),
+        fetchTimeout: const Duration(seconds: 10),
         minimumFetchInterval: const Duration(minutes: 5),
       ));
       
@@ -365,27 +435,20 @@ class FirebaseRemoteConfigService {
     }
   }
 
+  /// إعادة التهيئة الكاملة
   Future<void> reinitialize() async {
+    debugPrint('🔄 Reinitializing FirebaseRemoteConfigService...');
     _isInitialized = false;
-    _cachedForceUpdate = null;
-    _cachedMaintenanceMode = null;
-    _cachedAppVersion = null;
-    _cachedUpdateUrl = null;
-    _cachedFeaturesList = null;
-    _cachedSpecialEvent = null;
-    _cachedPromotionalBanners = null;
+    _cachedValues.clear();
+    _lastFetchTime = null;
     await initialize();
   }
 
+  /// تنظيف الموارد
   void dispose() {
     _isInitialized = false;
-    _cachedForceUpdate = null;
-    _cachedMaintenanceMode = null;
-    _cachedAppVersion = null;
-    _cachedUpdateUrl = null;
-    _cachedFeaturesList = null;
-    _cachedSpecialEvent = null;
-    _cachedPromotionalBanners = null;
-    debugPrint('FirebaseRemoteConfigService disposed');
+    _cachedValues.clear();
+    _lastFetchTime = null;
+    debugPrint('🧹 FirebaseRemoteConfigService disposed');
   }
 }

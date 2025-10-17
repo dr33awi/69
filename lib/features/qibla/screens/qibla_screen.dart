@@ -14,6 +14,7 @@ import '../services/qibla_service.dart';
 import '../widgets/qibla_compass.dart';
 import '../widgets/qibla_info_card.dart';
 import '../widgets/compass_calibration_sheet.dart';
+import '../widgets/calibration_progress_dialog.dart'; // الملف الجديد
 
 /// شاشة القبلة - محسنة للشاشات الصغيرة
 class QiblaScreen extends StatefulWidget {
@@ -106,7 +107,11 @@ class _QiblaScreenState extends State<QiblaScreen>
         await _qiblaService.startCalibration();
         
         if (mounted) {
-          _showCalibrationProgressDialog();
+          // استخدام الدالة المساعدة من الملف الجديد
+          showCalibrationProgressDialog(
+            context: context,
+            qiblaService: _qiblaService,
+          );
         }
       },
       initialAccuracy: _qiblaService.compassAccuracy,
@@ -127,23 +132,6 @@ class _QiblaScreenState extends State<QiblaScreen>
         initialAccuracy: initialAccuracy,
       ),
     );
-  }
-
-  void _showCalibrationProgressDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => ChangeNotifierProvider.value(
-        value: _qiblaService,
-        child: _CalibrationProgressDialog(
-          qiblaService: _qiblaService,
-        ),
-      ),
-    ).then((_) {
-      if (_qiblaService.isCalibrated) {
-        _showSuccessSnackbar(_qiblaService.calibrationMessage);
-      }
-    });
   }
 
   void _showErrorSnackbar(String message) {
@@ -226,13 +214,13 @@ class _QiblaScreenState extends State<QiblaScreen>
                               _buildMainContent(service),
                               SizedBox(height: 12.h),
                               
-if (service.qiblaData != null) ...[
-  QiblaInfoCard(
-    qiblaData: service.qiblaData!,
-    currentDirection: service.currentDirection,
-  ),
-  SizedBox(height: 12.h),
-],
+                              if (service.qiblaData != null) ...[
+                                QiblaInfoCard(
+                                  qiblaData: service.qiblaData!,
+                                  currentDirection: service.currentDirection,
+                                ),
+                                SizedBox(height: 12.h),
+                              ],
                               
                               SizedBox(height: 20.h),
                             ],
@@ -760,175 +748,6 @@ if (service.qiblaData != null) ...[
           ],
         ),
       ),
-    );
-  }
-}
-
-// Calibration Progress Dialog Widget
-class _CalibrationProgressDialog extends StatefulWidget {
-  final QiblaService qiblaService;
-  
-  const _CalibrationProgressDialog({
-    required this.qiblaService,
-  });
-  
-  @override
-  State<_CalibrationProgressDialog> createState() => __CalibrationProgressDialogState();
-}
-
-class __CalibrationProgressDialogState extends State<_CalibrationProgressDialog>
-    with SingleTickerProviderStateMixin {
-  
-  late AnimationController _animationController;
-  bool _hasCompleted = false;
-  
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat();
-  }
-  
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-  
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<QiblaService>(
-      builder: (context, service, child) {
-        if (service.calibrationProgress >= 100 && 
-            !service.isCalibrating && 
-            !_hasCompleted) {
-          
-          _hasCompleted = true;
-          
-          Future.delayed(const Duration(milliseconds: 1500), () {
-            if (mounted) {
-              Navigator.of(context).pop();
-            }
-          });
-        }
-        
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                service.calibrationProgress >= 100
-                    ? Icons.check_circle_outline
-                    : Icons.compass_calibration,
-                color: service.calibrationProgress >= 100
-                    ? ThemeConstants.success
-                    : ThemeConstants.primary,
-                size: 20.sp,
-              ),
-              SizedBox(width: 6.w),
-              Text(
-                service.calibrationProgress >= 100
-                    ? 'اكتملت المعايرة!'
-                    : 'جاري المعايرة...',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14.sp),
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                height: 100.h,
-                width: 200.w,
-                decoration: BoxDecoration(
-                  color: context.cardColor.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(8.r),
-                ),
-                child: Center(
-                  child: service.isCalibrating
-                      ? RotationTransition(
-                          turns: _animationController,
-                          child: Icon(
-                            Icons.explore,
-                            size: 42.sp,
-                            color: ThemeConstants.primary,
-                          ),
-                        )
-                      : Icon(
-                          Icons.check_circle,
-                          size: 42.sp,
-                          color: ThemeConstants.success,
-                        ),
-                ),
-              ),
-              
-              SizedBox(height: 12.h),
-              
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: Text(
-                  service.calibrationMessage,
-                  key: ValueKey(service.calibrationMessage),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontWeight: service.calibrationProgress >= 100
-                        ? ThemeConstants.bold
-                        : ThemeConstants.medium,
-                    color: service.calibrationProgress >= 100
-                        ? ThemeConstants.success
-                        : context.textPrimaryColor,
-                    fontSize: 12.sp,
-                  ),
-                ),
-              ),
-              
-              SizedBox(height: 8.h),
-              
-              LinearProgressIndicator(
-                value: service.calibrationProgress / 100,
-                backgroundColor: context.dividerColor.withOpacity(0.3),
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  service.calibrationProgress >= 100
-                      ? ThemeConstants.success
-                      : ThemeConstants.primary,
-                ),
-                minHeight: 3.h,
-              ),
-            ],
-          ),
-          actions: [
-            if (service.isCalibrating)
-              TextButton(
-                onPressed: () {
-                  service.resetCalibration();
-                  Navigator.of(context).pop();
-                },
-                child: Text('إلغاء', style: TextStyle(fontSize: 12.sp)),
-              ),
-            
-            if (!service.isCalibrating && service.calibrationProgress >= 100)
-              ElevatedButton.icon(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: Icon(Icons.check, size: 14.sp),
-                label: Text('تم', style: TextStyle(fontSize: 12.sp)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: ThemeConstants.success,
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6.r),
-                  ),
-                ),
-              ),
-          ],
-        );
-      },
     );
   }
 }

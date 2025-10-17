@@ -11,15 +11,15 @@ class PromotionalBanner {
   final String actionUrl;
   final String actionText;
   final BannerPriority priority;
-  final BannerType type;
+  final BannerType type; // ✅ سيكون دائماً dialog
   final DateTime startDate;
   final DateTime endDate;
   final List<String> targetScreens;
   final List<String> targetCountries;
   final List<Color> gradientColors;
   final String icon;
-  final int maxDisplayCount; // عدد مرات العرض القصوى
-  final Duration minDisplayInterval; // الحد الأدنى بين العروض
+  final int maxDisplayCount;
+  final Duration minDisplayInterval;
   
   const PromotionalBanner({
     required this.id,
@@ -29,7 +29,7 @@ class PromotionalBanner {
     this.actionUrl = '',
     this.actionText = 'اكتشف المزيد',
     this.priority = BannerPriority.normal,
-    this.type = BannerType.card,
+    this.type = BannerType.dialog, // ✅ افتراضي dialog
     required this.startDate,
     required this.endDate,
     this.targetScreens = const [],
@@ -69,11 +69,11 @@ class PromotionalBanner {
     final remaining = endDate.difference(now);
     
     if (remaining.inDays <= 1) {
-      score += 50; // ينتهي اليوم!
+      score += 50;
     } else if (remaining.inDays <= 3) {
-      score += 30; // ينتهي قريباً
+      score += 30;
     } else if (remaining.inDays <= 7) {
-      score += 10; // أقل من أسبوع
+      score += 10;
     }
     
     return score;
@@ -96,7 +96,7 @@ class PromotionalBanner {
       actionUrl: map['action_url']?.toString() ?? '',
       actionText: map['action_text']?.toString() ?? 'اكتشف المزيد',
       priority: BannerPriority.fromString(map['priority']?.toString()),
-      type: BannerType.fromString(map['type']?.toString()),
+      type: BannerType.dialog, // ✅ دائماً dialog
       startDate: _parseDate(map['start_date']) ?? DateTime.now(),
       endDate: _parseDate(map['end_date']) ?? DateTime.now().add(const Duration(days: 7)),
       targetScreens: _parseStringList(map['target_screens']),
@@ -120,7 +120,7 @@ class PromotionalBanner {
       'action_url': actionUrl,
       'action_text': actionText,
       'priority': priority.name,
-      'type': type.name,
+      'type': 'dialog', // ✅ دائماً dialog
       'start_date': startDate.toIso8601String(),
       'end_date': endDate.toIso8601String(),
       'target_screens': targetScreens,
@@ -209,21 +209,11 @@ enum BannerPriority {
   }
 }
 
-/// أنواع البانر
+/// أنواع البانر (فقط dialog)
 enum BannerType {
-  card,      // كارد عادي
-  carousel,  // سلايدر متعدد
-  dialog,    // نافذة منبثقة
-  inline,    // مدمج في المحتوى
-  sticky;    // ثابت في الأعلى
+  dialog; // ✅ نوع واحد فقط
 
   static BannerType fromString(String? value) {
-    switch (value?.toLowerCase()) {
-      case 'carousel': return BannerType.carousel;
-      case 'dialog': return BannerType.dialog;
-      case 'inline': return BannerType.inline;
-      case 'sticky': return BannerType.sticky;
-      default: return BannerType.card;
-    }
+    return BannerType.dialog; // ✅ دائماً dialog
   }
 }

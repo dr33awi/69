@@ -1,6 +1,7 @@
 // lib/main.dart - النسخة المُحسّنة والنهائية
 import 'dart:async';
 import 'dart:convert';
+import 'package:athkar_app/core/infrastructure/firebase/remote_config_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -106,10 +107,10 @@ Future<void> _unifiedBootstrap() async {
   try {
     // 1. Development Config
     DevelopmentConfig.initialize();
-    debugPrint('✅ [1/4] Development Config initialized');
+    debugPrint('✅ [1/5] Development Config initialized');
     
-    // 2. Firebase Core (مرة واحدة فقط)
-    debugPrint('🔥 [2/4] Initializing Firebase Core...');
+    // 2. Firebase Core
+    debugPrint('🔥 [2/5] Initializing Firebase Core...');
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
@@ -118,30 +119,30 @@ Future<void> _unifiedBootstrap() async {
       throw Exception('❌ No Firebase apps found after initialization');
     }
     
-    debugPrint('✅ [2/4] Firebase Core initialized (${Firebase.apps.length} apps)');
+    debugPrint('✅ [2/5] Firebase Core initialized (${Firebase.apps.length} apps)');
     
-    // 3. Firebase Services (Analytics, Crashlytics, Performance, etc.)
-    debugPrint('🔥 [3/4] Initializing Firebase Services...');
-    final firebaseSuccess = await FirebaseInitializer.initialize();
-    
-    if (firebaseSuccess) {
-      debugPrint('✅ [3/4] Firebase Services initialized:');
-      debugPrint('   📊 Analytics: ${FirebaseInitializer.isAnalyticsAvailable}');
-      debugPrint('   🐛 Crashlytics: ${FirebaseInitializer.isCrashlyticsAvailable}');
-      debugPrint('   ⚡ Performance: ${FirebaseInitializer.isPerformanceAvailable}');
-      debugPrint('   ☁️ Messaging: ${FirebaseInitializer.isMessagingAvailable}');
-      debugPrint('   ⚙️ Remote Config: ${FirebaseInitializer.isRemoteConfigAvailable}');
-    }
-    
-    // 4. Service Locator (الخدمات الأساسية)
-    debugPrint('📦 [4/4] Initializing Service Locator...');
+    // 3. Service Locator (الخدمات الأساسية)
+    debugPrint('📦 [3/5] Initializing Service Locator...');
     await ServiceLocator.initEssential();
     
     if (!ServiceLocator.areEssentialServicesReady()) {
       throw Exception('❌ Essential services not ready');
     }
     
-    debugPrint('✅ [4/4] Service Locator initialized');
+    debugPrint('✅ [3/5] Service Locator initialized');
+    
+    // 4. ✅ تهيئة Remote Config مبكراً (هام جداً!)
+    debugPrint('⚙️ [4/5] Initializing Remote Config Service...');
+    await _initializeRemoteConfigEarly();
+    debugPrint('✅ [4/5] Remote Config Service ready');
+    
+    // 5. Firebase Services الأخرى
+    debugPrint('🔥 [5/5] Initializing Other Firebase Services...');
+    final firebaseSuccess = await FirebaseInitializer.initialize();
+    
+    if (firebaseSuccess) {
+      debugPrint('✅ [5/5] Firebase Services initialized');
+    }
     
     stopwatch.stop();
     debugPrint('⚡ ========== Bootstrap Completed in ${stopwatch.elapsedMilliseconds}ms ========== ⚡');
@@ -154,7 +155,48 @@ Future<void> _unifiedBootstrap() async {
   }
 }
 
-// ==================== Background Initialization ====================
+/// ✅ تهيئة Remote Config مبكراً وبشكل منفصل
+Future<void> _initializeRemoteConfigEarly() async {
+  try {
+    // تسجيل FirebaseRemoteConfigService
+    if (!getIt.isRegistered<FirebaseRemoteConfigService>()) {
+      getIt.registerSingleton<FirebaseRemoteConfigService>(
+        FirebaseRemoteConfigService(),
+      );
+    }
+    
+    // تهيئة الخدمة
+    final remoteConfig = getIt<FirebaseRemoteConfigService>();
+    await remoteConfig.initialize();
+    
+    // تسجيل RemoteConfigManager
+    if (!getIt.isRegistered<RemoteConfigManager>()) {
+      getIt.registerSingleton<RemoteConfigManager>(
+        RemoteConfigManager(),
+      );
+    }
+    
+    // تهيئة Manager
+    final configManager = getIt<RemoteConfigManager>();
+    final storage = getIt<StorageService>();
+    
+    await configManager.initialize(
+      remoteConfig: remoteConfig,
+      storage: storage,
+    );
+    
+    debugPrint('✅ Remote Config fully initialized:');
+    debugPrint('  - Force Update: ${configManager.isForceUpdateRequired}');
+    debugPrint('  - Maintenance: ${configManager.isMaintenanceModeActive}');
+    debugPrint('  - App Version: ${configManager.requiredAppVersion}');
+    
+  } catch (e) {
+    debugPrint('⚠️ Remote Config init failed (non-critical): $e');
+    // لا نوقف التطبيق، نستمر مع القيم الافتراضية
+  }
+}
+
+// ✅ تعديل _backgroundInitialization لتجنب التكرار
 void _backgroundInitialization() {
   Future.delayed(const Duration(milliseconds: 500), () async {
     try {
@@ -165,9 +207,19 @@ void _backgroundInitialization() {
       await ServiceLocator.registerFeatureServices();
       debugPrint('✅ [1/3] Feature services registered (lazy)');
       
-      // 2. Firebase Services في الخلفية - تهيئة فقط!
-      await ServiceLocator.initializeFirebaseInBackground();
-      debugPrint('✅ [2/3] Firebase background services initialized');
+      // 2. ✅ تحديث Firebase Services (بدون إعادة تهيئة Remote Config)
+      if (getIt.isRegistered<FirebaseRemoteConfigService>()) {
+        final remoteConfig = getIt<FirebaseRemoteConfigService>();
+        
+        // تحديث فقط إذا لم تكن محدثة
+        if (remoteConfig.isInitialized) {
+          final timeSinceLastFetch = DateTime.now().difference(remoteConfig.lastFetchTime);
+          if (timeSinceLastFetch.inMinutes > 5) {
+            await remoteConfig.refresh();
+            debugPrint('✅ [2/3] Remote Config refreshed in background');
+          }
+        }
+      }
       
       // 3. Advanced Firebase (Analytics, Performance)
       await ServiceLocator.initializeAdvancedFirebaseServices();

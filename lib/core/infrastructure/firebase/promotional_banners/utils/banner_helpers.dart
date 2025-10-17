@@ -3,96 +3,58 @@
 import 'package:flutter/material.dart';
 import '../models/promotional_banner_model.dart';
 import '../services/banner_service.dart';
-import '../widgets/banner_widget.dart';
-import '../widgets/banner_carousel.dart';
 import '../widgets/banner_dialog.dart';
 
-/// مساعدات لعرض البانرات
+/// مساعدات لعرض البانرات (Dialog فقط)
 class BannerHelpers {
   
   /// عرض البانرات في شاشة معينة
-  static Widget? showBannersForScreen({
+  static void showBannersForScreen({
     required BuildContext context,
     required String screenName,
     String? countryCode,
-    int maxBanners = 3,
   }) {
     final bannerService = BannerService();
     
     if (!bannerService.isInitialized) {
-      return null;
+      return;
     }
     
     final banners = bannerService.getActiveBanners(
       screenName: screenName,
       countryCode: countryCode,
+      type: BannerType.dialog, // ✅ فقط Dialog
     );
     
     if (banners.isEmpty) {
-      return null;
+      return;
     }
     
-    // عرض البانرات حسب النوع
-    final cardBanners = banners
-        .where((b) => b.type == BannerType.card || b.type == BannerType.inline)
-        .take(maxBanners)
-        .toList();
-    
-    final carouselBanners = banners
-        .where((b) => b.type == BannerType.carousel)
-        .take(maxBanners)
-        .toList();
-    
-    // عرض Dialog للبانرات العاجلة
+    // عرض Dialog للبانرات
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _showUrgentDialogs(context, banners, screenName);
+      _showDialogs(context, banners, screenName);
     });
-    
-    // عرض الكاروسيل إذا وجد
-    if (carouselBanners.isNotEmpty) {
-      return BannerCarousel(
-        banners: carouselBanners,
-        screenName: screenName,
-      );
-    }
-    
-    // عرض البانرات العادية
-    if (cardBanners.isEmpty) {
-      return null;
-    }
-    
-    return Column(
-      children: cardBanners.map((banner) {
-        return BannerWidget(
-          banner: banner,
-          screenName: screenName,
-        );
-      }).toList(),
-    );
   }
   
-  /// عرض Dialog للبانرات العاجلة
-  static void _showUrgentDialogs(
+  /// عرض Dialog للبانرات
+  static void _showDialogs(
     BuildContext context,
     List<PromotionalBanner> banners,
     String screenName,
   ) {
-    final urgentDialogs = banners
-        .where((b) => b.type == BannerType.dialog && b.priority == BannerPriority.urgent)
-        .toList();
+    if (banners.isEmpty) return;
     
-    if (urgentDialogs.isEmpty) return;
-    
-    // عرض أول بانر عاجل فقط
+    // عرض أول بانر فقط (الأعلى أولوية)
     BannerDialog.show(
       context: context,
-      banner: urgentDialogs.first,
+      banner: banners.first,
       screenName: screenName,
     );
   }
   
   /// عرض بانر واحد
-  static Widget? showSingleBanner({
+  static void showSingleBanner({
+    required BuildContext context,
     required String screenName,
     String? countryCode,
     BannerPriority? minPriority,
@@ -100,12 +62,13 @@ class BannerHelpers {
     final bannerService = BannerService();
     
     if (!bannerService.isInitialized) {
-      return null;
+      return;
     }
     
     var banners = bannerService.getActiveBanners(
       screenName: screenName,
       countryCode: countryCode,
+      type: BannerType.dialog, // ✅ فقط Dialog
     );
     
     if (minPriority != null) {
@@ -115,13 +78,17 @@ class BannerHelpers {
     }
     
     if (banners.isEmpty) {
-      return null;
+      return;
     }
     
-    return BannerWidget(
-      banner: banners.first,
-      screenName: screenName,
-    );
+    // عرض Dialog
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      BannerDialog.show(
+        context: context,
+        banner: banners.first,
+        screenName: screenName,
+      );
+    });
   }
   
   /// الحصول على عدد البانرات النشطة
@@ -138,6 +105,7 @@ class BannerHelpers {
     return bannerService.getActiveBanners(
       screenName: screenName,
       countryCode: countryCode,
+      type: BannerType.dialog, // ✅ فقط Dialog
     ).length;
   }
   
@@ -155,6 +123,7 @@ class BannerHelpers {
     final banners = bannerService.getActiveBanners(
       screenName: screenName,
       countryCode: countryCode,
+      type: BannerType.dialog, // ✅ فقط Dialog
     );
     
     return banners.any((b) => b.priority == BannerPriority.urgent);
@@ -164,23 +133,22 @@ class BannerHelpers {
 /// Extension للاستخدام السريع
 extension BannerContextExtension on BuildContext {
   /// عرض البانرات في الشاشة الحالية
-  Widget? showBanners({
+  void showBanners({
     required String screenName,
-    int maxBanners = 3,
   }) {
-    return BannerHelpers.showBannersForScreen(
+    BannerHelpers.showBannersForScreen(
       context: this,
       screenName: screenName,
-      maxBanners: maxBanners,
     );
   }
   
   /// عرض بانر واحد فقط
-  Widget? showSingleBanner({
+  void showSingleBanner({
     required String screenName,
     BannerPriority? minPriority,
   }) {
-    return BannerHelpers.showSingleBanner(
+    BannerHelpers.showSingleBanner(
+      context: this,
       screenName: screenName,
       minPriority: minPriority,
     );
