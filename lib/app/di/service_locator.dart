@@ -24,7 +24,7 @@ import 'package:athkar_app/core/infrastructure/services/share/share_service.dart
 import 'package:athkar_app/features/athkar/services/athkar_service.dart';
 import 'package:athkar_app/features/dua/services/dua_service.dart';
 import 'package:athkar_app/features/prayer_times/services/prayer_times_service.dart';
-import 'package:athkar_app/features/qibla/services/qibla_service.dart';
+import 'package:athkar_app/features/qibla/services/qibla_service_v2.dart';
 import 'package:athkar_app/features/settings/services/settings_services_manager.dart';
 import 'package:athkar_app/features/tasbih/services/tasbih_service.dart';
 import 'package:flutter/material.dart';
@@ -407,11 +407,11 @@ class ServiceLocator {
     }
     
     // خدمة القبلة - Factory
-    if (!getIt.isRegistered<QiblaService>()) {
-      getIt.registerFactory<QiblaService>(
+    if (!getIt.isRegistered<QiblaServiceV2>()) {
+      getIt.registerFactory<QiblaServiceV2>(
         () {
-          debugPrint('🔄 FACTORY: New QiblaService instance created');
-          return QiblaService(
+          debugPrint('🔄 FACTORY: New QiblaServiceV2 instance created');
+          return QiblaServiceV2(
             storage: getIt<StorageService>(),
             permissionService: getIt<PermissionService>(),
           );
@@ -931,7 +931,7 @@ extension ServiceLocatorExtensions on BuildContext {
   }
   
   TasbihService get tasbihService => getIt<TasbihService>();
-  QiblaService get qiblaService => getIt<QiblaService>();
+  QiblaServiceV2 get qiblaService => getIt<QiblaServiceV2>();
   
   SettingsServicesManager get settingsManager {
     debugPrint('🔄 Accessing SettingsServicesManager - will initialize if not already done');

@@ -1,7 +1,6 @@
-// lib/features/qibla/screens/qibla_screen.dart - محسن للشاشات الصغيرة
+// lib/features/qibla/screens/qibla_screen.dart - محسن مع الخدمة الجديدة V2
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -10,11 +9,9 @@ import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../../../core/infrastructure/services/storage/storage_service.dart';
 import '../../../core/infrastructure/services/permissions/permission_service.dart';
-import '../services/qibla_service.dart';
+import '../services/qibla_service_v2.dart'; // الخدمة المحسنة
 import '../widgets/qibla_compass.dart';
 import '../widgets/qibla_info_card.dart';
-import '../widgets/compass_calibration_sheet.dart';
-import '../widgets/calibration_progress_dialog.dart'; // الملف الجديد
 
 /// شاشة القبلة - محسنة للشاشات الصغيرة
 class QiblaScreen extends StatefulWidget {
@@ -27,7 +24,7 @@ class QiblaScreen extends StatefulWidget {
 class _QiblaScreenState extends State<QiblaScreen>
     with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   
-  late final QiblaService _qiblaService;
+  late final QiblaServiceV2 _qiblaService;
   late final AnimationController _refreshController;
   
   bool _disposed = false;
@@ -41,7 +38,7 @@ class _QiblaScreenState extends State<QiblaScreen>
 
   Future<void> _initializeScreen() async {
     try {      
-      _qiblaService = QiblaService(
+      _qiblaService = QiblaServiceV2(
         storage: getIt<StorageService>(),
         permissionService: getIt<PermissionService>(),
       );
@@ -96,44 +93,6 @@ class _QiblaScreenState extends State<QiblaScreen>
     }
   }
 
-  void _startCalibration() async {
-    if (_disposed) return;
-    
-    HapticFeedback.lightImpact();
-    
-    _showCompassCalibrationSheet(
-      context: context,
-      onStartCalibration: () async {
-        await _qiblaService.startCalibration();
-        
-        if (mounted) {
-          // استخدام الدالة المساعدة من الملف الجديد
-          showCalibrationProgressDialog(
-            context: context,
-            qiblaService: _qiblaService,
-          );
-        }
-      },
-      initialAccuracy: _qiblaService.compassAccuracy,
-    );
-  }
-
-  void _showCompassCalibrationSheet({
-    required BuildContext context,
-    required VoidCallback onStartCalibration,
-    double initialAccuracy = 0.0,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => CompassCalibrationSheet(
-        onStartCalibration: onStartCalibration,
-        initialAccuracy: initialAccuracy,
-      ),
-    );
-  }
-
   void _showErrorSnackbar(String message) {
     if (!mounted) return;
     
@@ -146,18 +105,6 @@ class _QiblaScreenState extends State<QiblaScreen>
           onPressed: () => _updateQiblaData(forceUpdate: true),
           textColor: Colors.white,
         ),
-      ),
-    );
-  }
-
-  void _showSuccessSnackbar(String message) {
-    if (!mounted) return;
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: TextStyle(fontSize: 12.sp)),
-        backgroundColor: ThemeConstants.success,
-        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -192,7 +139,7 @@ class _QiblaScreenState extends State<QiblaScreen>
       backgroundColor: context.backgroundColor,
       body: ChangeNotifierProvider.value(
         value: _qiblaService,
-        child: Consumer<QiblaService>(
+        child: Consumer<QiblaServiceV2>(
           builder: (context, service, _) {
             return SafeArea(
               child: Column(
@@ -238,7 +185,7 @@ class _QiblaScreenState extends State<QiblaScreen>
     );
   }
 
-  Widget _buildCustomAppBar(BuildContext context, QiblaService service) {
+  Widget _buildCustomAppBar(BuildContext context, QiblaServiceV2 service) {
     const gradient = LinearGradient(
       colors: [ThemeConstants.primary, ThemeConstants.primaryLight],
       begin: Alignment.topLeft,
@@ -309,11 +256,6 @@ class _QiblaScreenState extends State<QiblaScreen>
                 : () => _updateQiblaData(forceUpdate: true),
             isLoading: service.isLoading,
           ),
-          
-          _buildActionButton(
-            icon: Icons.compass_calibration_outlined,
-            onTap: _startCalibration,
-          ),
         ],
       ),
     );
@@ -369,7 +311,7 @@ class _QiblaScreenState extends State<QiblaScreen>
     );
   }
 
-  String _getStatusText(QiblaService service) {
+  String _getStatusText(QiblaServiceV2 service) {
     if (service.isLoading) {
       return 'جاري التحديث...';
     } else if (service.errorMessage != null) {
@@ -380,14 +322,14 @@ class _QiblaScreenState extends State<QiblaScreen>
     return 'البوصلة الذكية';
   }
 
-  Color _getStatusColor(QiblaService service) {
+  Color _getStatusColor(QiblaServiceV2 service) {
     if (service.isLoading) return ThemeConstants.warning;
     if (service.errorMessage != null) return ThemeConstants.error;
     if (service.qiblaData != null) return context.primaryColor;
     return context.textSecondaryColor;
   }
 
-  Widget _buildMainContent(QiblaService service) {
+  Widget _buildMainContent(QiblaServiceV2 service) {
     if (service.qiblaData != null) {
       return _buildCompassView(service);
     }
@@ -407,7 +349,7 @@ class _QiblaScreenState extends State<QiblaScreen>
     return _buildInitialState();
   }
 
-  Widget _buildCompassView(QiblaService service) {
+  Widget _buildCompassView(QiblaServiceV2 service) {
     return Container(
       constraints: BoxConstraints(
         minHeight: 240.h,
@@ -421,8 +363,7 @@ class _QiblaScreenState extends State<QiblaScreen>
               qiblaDirection: service.qiblaData!.qiblaDirection,
               currentDirection: service.currentDirection,
               accuracy: service.compassAccuracy,
-              isCalibrated: service.isCalibrated,
-              onCalibrate: _startCalibration,
+              isCalibrated: true, // المعايرة تلقائية الآن
             ),
           ),
           
@@ -518,7 +459,7 @@ class _QiblaScreenState extends State<QiblaScreen>
     );
   }
 
-  Widget _buildErrorState(QiblaService service) {
+  Widget _buildErrorState(QiblaServiceV2 service) {
     return Container(
       constraints: BoxConstraints(
         minHeight: 220.h,
@@ -591,7 +532,7 @@ class _QiblaScreenState extends State<QiblaScreen>
     );
   }
 
-  Widget _buildNoCompassState(QiblaService service) {
+  Widget _buildNoCompassState(QiblaServiceV2 service) {
     return Container(
       constraints: BoxConstraints(
         minHeight: 240.h,
