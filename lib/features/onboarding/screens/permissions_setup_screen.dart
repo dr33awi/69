@@ -110,6 +110,31 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
     }
   }
 
+  Future<void> _requestAllPermissions() async {
+    // منع النقر المتكرر
+    if (_isProcessingMap.values.any((isProcessing) => isProcessing)) return;
+
+    HapticFeedback.mediumImpact();
+
+    // طلب جميع الأذونات واحدة تلو الأخرى
+    for (final permission in _criticalPermissions) {
+      // تخطي الأذونات التي تم منحها بالفعل
+      if (_permissionStatuses[permission] == AppPermissionStatus.granted) {
+        continue;
+      }
+
+      await _requestPermission(permission);
+      
+      // انتظار قصير بين الطلبات
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+
+    // إعطاء تغذية راجعة للمستخدم
+    if (mounted && _allPermissionsGranted) {
+      HapticFeedback.heavyImpact();
+    }
+  }
+
   bool get _allPermissionsGranted {
     return _criticalPermissions.every((permission) =>
         _permissionStatuses[permission] == AppPermissionStatus.granted);
@@ -411,10 +436,54 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
     final double statusTextSize = isSmallScreen ? 10.sp : 11.sp;
     final double statusIconSize = isSmallScreen ? 13.sp : 14.sp;
     final double spacing = isSmallScreen ? 8.h : 10.h;
-    final double skipButtonTextSize = isSmallScreen ? 11.sp : 12.sp;
     
     return Column(
       children: [
+        // زر منح جميع الأذونات (يظهر فقط عند وجود أذونات غير مفعلة)
+        if (!_allPermissionsGranted)
+          SizedBox(
+            width: double.infinity,
+            height: buttonHeight,
+            child: ElevatedButton(
+              onPressed: _requestAllPermissions,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: ThemeConstants.primary,
+                elevation: 8,
+                shadowColor: Colors.black.withOpacity(0.3),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(buttonRadius),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.verified_user_rounded,
+                    size: iconSize,
+                  ),
+                  SizedBox(width: 8.w),
+                  Flexible(
+                    child: Text(
+                      'منح جميع الأذونات',
+                      style: TextStyle(
+                        fontSize: buttonTextSize,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.3,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+        if (!_allPermissionsGranted)
+          SizedBox(height: spacing),
+
         // Main Button - ابدأ الآن
         SizedBox(
           width: double.infinity,
@@ -422,11 +491,13 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
           child: ElevatedButton(
             onPressed: !_isCompletingSetup ? _completeSetup : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
+              backgroundColor: _allPermissionsGranted 
+                  ? Colors.white 
+                  : Colors.white.withOpacity(0.85),
               foregroundColor: ThemeConstants.primary,
               disabledBackgroundColor: Colors.white.withOpacity(0.5),
               disabledForegroundColor: ThemeConstants.primary.withOpacity(0.7),
-              elevation: 8,
+              elevation: _allPermissionsGranted ? 8 : 4,
               shadowColor: Colors.black.withOpacity(0.3),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(buttonRadius),
@@ -449,7 +520,7 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
                     children: [
                       Flexible(
                         child: Text(
-                          'ابدأ الآن',
+                          _allPermissionsGranted ? 'ابدأ الآن' : 'المتابعة بدون أذونات',
                           style: TextStyle(
                             fontSize: buttonTextSize,
                             fontWeight: FontWeight.bold,
@@ -471,31 +542,6 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
 
         SizedBox(height: spacing),
 
-        // Skip Button - يظهر فقط عند عدم اكتمال الأذونات
-        if (!_allPermissionsGranted && !_isCompletingSetup)
-          TextButton(
-            onPressed: _completeSetup,
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.w,
-                vertical: 8.h,
-              ),
-            ),
-            child: Text(
-              'تخطي الآن',
-              style: TextStyle(
-                fontSize: skipButtonTextSize,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.2,
-                decoration: TextDecoration.underline,
-                decorationColor: Colors.white.withOpacity(0.7),
-              ),
-            ),
-          ),
-
-        SizedBox(height: spacing),
-
         // Status Text
         if (_allPermissionsGranted)
           Row(
@@ -508,7 +554,7 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
               ),
               SizedBox(width: 6.w),
               Text(
-                'جميع الأذونات مفعلة',
+                'جميع الأذونات مفعلة! جاهز للبدء',
                 style: TextStyle(
                   fontSize: statusTextSize,
                   color: Colors.white.withOpacity(0.95),
@@ -527,7 +573,7 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
           )
         else
           Text(
-            'يمكنك تفعيلها لاحقاً من الإعدادات',
+            'يمكنك تفعيل الأذونات لاحقاً من الإعدادات',
             style: TextStyle(
               fontSize: statusTextSize,
               color: Colors.white.withOpacity(0.85),

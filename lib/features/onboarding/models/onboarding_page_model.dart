@@ -21,12 +21,16 @@ class OnboardingPageModel {
   /// قائمة الميزات (اختيارية)
   final List<String>? features;
   
+  /// مسار الرسوم المتحركة (اختياري)
+  final String? animationPath;
+  
   const OnboardingPageModel({
     required this.title,
     required this.description,
     required this.primaryColor,
     required this.secondaryColor,
     this.features,
+    this.animationPath,
   });
 
   /// إنشاء نسخة من الموديل مع إمكانية تعديل بعض القيم
@@ -36,6 +40,7 @@ class OnboardingPageModel {
     Color? primaryColor,
     Color? secondaryColor,
     List<String>? features,
+    String? animationPath,
   }) {
     return OnboardingPageModel(
       title: title ?? this.title,
@@ -43,6 +48,7 @@ class OnboardingPageModel {
       primaryColor: primaryColor ?? this.primaryColor,
       secondaryColor: secondaryColor ?? this.secondaryColor,
       features: features ?? this.features,
+      animationPath: animationPath ?? this.animationPath,
     );
   }
 }
@@ -53,7 +59,7 @@ class OnboardingPages {
   // منع إنشاء instance من الكلاس
   OnboardingPages._();
   
-  /// قائمة جميع صفحات Onboarding
+  /// قائمة جميع صفحات Onboarding (مُحسَّنة إلى 4 صفحات)
   static final List<OnboardingPageModel> pages = [
     // ═══════════════════════════════════════════════════════
     // الصفحة الأولى - الترحيب والمقدمة
@@ -71,91 +77,50 @@ class OnboardingPages {
     ),
     
     // ═══════════════════════════════════════════════════════
-    // الصفحة الثانية - الأذكار اليومية
+    // الصفحة الثانية - الأذكار والأدعية
     // ═══════════════════════════════════════════════════════
     OnboardingPageModel(
-      title: 'أذكار المسلم',
-      description: 'أذكار لكل وقت من أوقات يومك',
+      title: 'أذكار وأدعية المسلم',
+      description: 'أذكار وأدعية لكل وقت من أوقات يومك من القرآن والسنة',
       primaryColor: AppColors.athkarColor,
       secondaryColor: AppColors.accentLight,
       features: [
         'أذكار الصباح والمساء والنوم والصلاة والسفر',
+        'أدعية من القرآن والسنة موثقة المصادر',
         'تنبيهات ذكية تذكرك بالأذكار في أوقاتها',
         'تتبع تقدمك مع عداد ذكي لكل ذكر',
       ],
     ),
     
     // ═══════════════════════════════════════════════════════
-    // الصفحة الثالثة - مواقيت الصلاة
+    // الصفحة الثالثة - الصلاة والقبلة
     // ═══════════════════════════════════════════════════════
     OnboardingPageModel(
-      title: 'مواقيت الصلاة',
-      description: 'مواقيت صلاة دقيقة أينما كنت ترافقك في كل سفر ومكان',
+      title: 'مواقيت الصلاة والقبلة',
+      description: 'مواقيت دقيقة وبوصلة ذكية لتحديد اتجاه القبلة أينما كنت',
       primaryColor: AppColors.prayerTimesColor,
       secondaryColor: AppColors.primarySoft,
       features: [
         'حساب دقيق للمواقيت بطرق حساب متعددة',
         'تنبيهات قابلة للتخصيص قبل كل أذان',
-        'عدّاد زمني يُظهر الوقت المتبقي للصلاة التالية',
-      ],
-    ),
-    
-    // ═══════════════════════════════════════════════════════
-    // الصفحة الرابعة - أسماء الله الحسنى
-    // ═══════════════════════════════════════════════════════
-    OnboardingPageModel(
-      title: 'أسماء الله الحسنى',
-      description: 'تأمّل جمال الأسماء الحسنى، وتعرّف على معانيها العظيمة',
-      primaryColor: AppColors.asmaAllahColor,
-      secondaryColor: AppColors.tertiaryLight,
-      features: [
-        'عرض جميع الأسماء الحسنى التسعة والتسعين',
-        'شرح مبسط ومعبر لكل اسم',
-        'تصميم إسلامي راقي مع خطوط عربية أنيقة',
-      ],
-    ),
-    
-    // ═══════════════════════════════════════════════════════
-    // الصفحة الخامسة - اتجاه القبلة
-    // ═══════════════════════════════════════════════════════
-    OnboardingPageModel(
-      title: 'اتجاه القبلة',
-      description: 'اعرف وجهتك نحو القبلة بسهولة ودقّة أينما كنت',
-      primaryColor: AppColors.qiblaColor,
-      secondaryColor: AppColors.primary,
-      features: [
         'بوصلة ذكية لتحديد اتجاه الكعبة المشرفة',
-        'معايرة تلقائية باستخدام حساسات الجهاز',
         'عرض المسافة والاتجاه إلى مكة المكرمة',
       ],
     ),
     
     // ═══════════════════════════════════════════════════════
-    // الصفحة السادسة - المسبحة الرقمية
+    // الصفحة الرابعة - المسبحة وأسماء الله
     // ═══════════════════════════════════════════════════════
     OnboardingPageModel(
-      title: 'المسبحة الرقمية',
-      description: 'سبّح واذكر الله في كل حين',
+      title: 'المسبحة وأسماء الله الحسنى',
+      description: 'سبّح واذكر الله وتأمّل جمال أسمائه الحسنى',
       primaryColor: AppColors.tasbihColor,
-      secondaryColor: AppColors.accent,
-      features: [
-        'عداد ذكي مع 6 أنماط للتسبيح والذكر',
-        'إحصاءات دقيقة لتقدّمك اليومي',
-        'أهداف تسبيح مخصصة تلهمك للاستمرار',
-      ],
-    ),
-    
-    // ═══════════════════════════════════════════════════════
-    // الصفحة السابعة - الأدعية الإسلامية
-    // ═══════════════════════════════════════════════════════
-    OnboardingPageModel(
-      title: 'الأدعية الإسلامية',
-      description: 'أدعية من القرآن والسنة',
-      primaryColor: AppColors.duaColor,
       secondaryColor: AppColors.tertiaryLight,
       features: [
-        'أدعية مصنفة حسب الموضوع',
-        'أدعية من القرآن والسنة: أدعية صحيحة موثقة المصادر',
+        'عداد ذكي مع 6 أنماط للتسبيح والذكر',
+        'إحصاءات دقيقة وأهداف مخصصة للتسبيح',
+        'أسماء الله الحسنى التسعة والتسعين',
+        'شرح مبسط ومعبر لكل اسم مع تصميم إسلامي راقي',
       ],
     ),
   ];

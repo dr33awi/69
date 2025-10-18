@@ -9,6 +9,7 @@ import '../../../app/di/service_locator.dart';
 import '../../../app/routes/app_router.dart';
 import '../../../core/infrastructure/services/storage/storage_service.dart';
 import '../models/onboarding_page_model.dart';
+import '../constants/onboarding_constants.dart';
 
 /// شاشة Onboarding محسّنة لجميع أحجام الشاشات
 class OnboardingScreen extends StatefulWidget {
@@ -59,8 +60,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    final isSmallScreen = screenHeight < 600;
-    final isMediumScreen = screenHeight >= 600 && screenHeight < 800;
     
     return Scaffold(
       body: Stack(
@@ -77,22 +76,77 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 page: _pages[index],
                 pageIndex: index,
                 totalPages: _pages.length,
-                isSmallScreen: isSmallScreen,
-                isMediumScreen: isMediumScreen,
+                screenHeight: screenHeight,
               );
             },
             onFinish: _completeOnboarding,
             curve: Curves.easeInOut,
-            duration: const Duration(milliseconds: 1500),
-            opacityFactor: 2.0,
-            scaleFactor: 0.3,
-            verticalPosition: 0.75,
+            duration: OnboardingConstants.pageTransitionDuration,
+            opacityFactor: OnboardingConstants.concentricOpacityFactor,
+            scaleFactor: OnboardingConstants.concentricScaleFactor,
+            verticalPosition: OnboardingConstants.concentricVerticalPosition,
             direction: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
           ),
 
+          // زر التخطي (Skip)
           Positioned(
-            bottom: isSmallScreen ? 24.h : 40.h,
+            top: 40.h,
+            right: 20.w,
+            child: SafeArea(
+              child: TextButton(
+                onPressed: _completeOnboarding,
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.white.withOpacity(0.2),
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20.r),
+                  ),
+                ),
+                child: Text(
+                  'تخطي',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Page Indicators (النقاط)
+          Positioned(
+            top: 40.h,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(
+                    _pages.length,
+                    (index) => AnimatedContainer(
+                      duration: OnboardingConstants.indicatorAnimationDuration,
+                      margin: EdgeInsets.symmetric(horizontal: 4.w),
+                      width: _currentPage == index ? 24.w : 8.w,
+                      height: 8.h,
+                      decoration: BoxDecoration(
+                        color: _currentPage == index
+                            ? Colors.white
+                            : Colors.white.withOpacity(0.4),
+                        borderRadius: BorderRadius.circular(4.r),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // تلميح التمرير في الأسفل
+          Positioned(
+            bottom: OnboardingConstants.isSmallScreen(screenHeight) ? 24.h : 40.h,
             left: 0,
             right: 0,
             child: Center(
@@ -104,7 +158,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ? Icons.check_circle_outline
                         : Icons.swipe,
                     color: Colors.white,
-                    size: isSmallScreen ? 16.sp : 20.sp,
+                    size: OnboardingConstants.isSmallScreen(screenHeight) ? 16.sp : 20.sp,
                   ),
                   SizedBox(width: 8.w),
                   Text(
@@ -113,8 +167,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         : 'اسحب للمتابعة',
                     style: TextStyle(
                       fontSize: _currentPage == _pages.length - 1 
-                          ? (isSmallScreen ? 14.sp : 16.sp)
-                          : (isSmallScreen ? 12.sp : 14.sp),
+                          ? (OnboardingConstants.isSmallScreen(screenHeight) ? 14.sp : 16.sp)
+                          : (OnboardingConstants.isSmallScreen(screenHeight) ? 12.sp : 14.sp),
                       fontWeight: _currentPage == _pages.length - 1
                           ? FontWeight.bold
                           : FontWeight.w500,
@@ -135,22 +189,20 @@ class _ResponsivePageView extends StatelessWidget {
   final OnboardingPageModel page;
   final int pageIndex;
   final int totalPages;
-  final bool isSmallScreen;
-  final bool isMediumScreen;
+  final double screenHeight;
 
   const _ResponsivePageView({
     required this.page,
     required this.pageIndex,
     required this.totalPages,
-    required this.isSmallScreen,
-    required this.isMediumScreen,
+    required this.screenHeight,
   });
 
   @override
   Widget build(BuildContext context) {
-    final double topSpace = isSmallScreen ? 30.h : (isMediumScreen ? 45.h : 60.h);
-    final double bottomSpace = isSmallScreen ? 80.h : (isMediumScreen ? 110.h : 140.h);
-    final double horizontalPadding = isSmallScreen ? 24.w : 32.w;
+    final double topSpace = OnboardingConstants.getTopSpacing(screenHeight);
+    final double bottomSpace = OnboardingConstants.getBottomSpacing(screenHeight);
+    final double horizontalPadding = OnboardingConstants.getHorizontalPadding(screenHeight);
     
     return Container(
       width: double.infinity,
@@ -170,14 +222,14 @@ class _ResponsivePageView extends StatelessWidget {
                       SizedBox(height: topSpace),
 
                       Expanded(
-                        flex: isSmallScreen ? 1 : 2,
+                        flex: OnboardingConstants.isSmallScreen(screenHeight) ? 1 : 2,
                         child: Container(),
                       ),
 
                       _buildMainContent(),
 
                       Expanded(
-                        flex: isSmallScreen ? 1 : 2,
+                        flex: OnboardingConstants.isSmallScreen(screenHeight) ? 1 : 2,
                         child: Container(),
                       ),
 
@@ -194,52 +246,59 @@ class _ResponsivePageView extends StatelessWidget {
   }
 
   Widget _buildMainContent() {
-    final double titleSize = isSmallScreen ? 22.sp : (isMediumScreen ? 25.sp : 28.sp);
-    final double descSize = isSmallScreen ? 14.sp : (isMediumScreen ? 15.sp : 16.sp);
-    final double featureSize = isSmallScreen ? 12.sp : (isMediumScreen ? 13.sp : 14.sp);
+    final double titleSize = OnboardingConstants.getTitleSize(screenHeight);
+    final double descSize = OnboardingConstants.getDescSize(screenHeight);
+    final double featureSize = OnboardingConstants.getFeatureSize(screenHeight);
     
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         // Title
-        Text(
-          page.title,
-          style: TextStyle(
-            fontSize: titleSize,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            height: 1.3,
-            shadows: [
-              Shadow(
-                color: Colors.black.withOpacity(0.15),
-                offset: const Offset(0, 2),
-                blurRadius: 8,
-              ),
-            ],
+        Semantics(
+          header: true,
+          label: 'عنوان الصفحة: ${page.title}',
+          child: Text(
+            page.title,
+            style: TextStyle(
+              fontSize: titleSize,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              height: 1.3,
+              shadows: [
+                Shadow(
+                  color: Colors.black.withOpacity(0.15),
+                  offset: const Offset(0, 2),
+                  blurRadius: 8,
+                ),
+              ],
+            ),
+            textAlign: TextAlign.center,
           ),
-          textAlign: TextAlign.center,
         ),
 
-        SizedBox(height: isSmallScreen ? 8.h : 12.h),
+        SizedBox(height: OnboardingConstants.isSmallScreen(screenHeight) ? 8.h : 12.h),
 
         // Description
         if (page.description.isNotEmpty)
           Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: isSmallScreen ? 12.w : 20.w,
+              horizontal: OnboardingConstants.isSmallScreen(screenHeight) ? 12.w : 20.w,
             ),
-            child: Text(
-              page.description,
-              style: TextStyle(
-                fontSize: descSize,
-                color: Colors.white.withOpacity(0.92),
-                height: 1.6,
+            child: Semantics(
+              label: 'وصف: ${page.description}',
+              child: Text(
+                page.description,
+                style: TextStyle(
+                  fontSize: descSize,
+                  color: Colors.white.withOpacity(0.92),
+                  height: 1.6,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
             ),
           ),
 
-        SizedBox(height: isSmallScreen ? 20.h : 32.h),
+        SizedBox(height: OnboardingConstants.isSmallScreen(screenHeight) ? 20.h : 32.h),
 
         // Features
         if (page.features != null && page.features!.isNotEmpty)
@@ -249,10 +308,10 @@ class _ResponsivePageView extends StatelessWidget {
   }
 
   Widget _buildResponsiveFeaturesList(double fontSize) {
-    final double padding = isSmallScreen ? 14.w : 18.w;
-    final double borderRadius = isSmallScreen ? 14.r : 18.r;
-    final double verticalPadding = isSmallScreen ? 8.h : 10.h;
-    final double bulletSize = isSmallScreen ? 7.w : 8.w;
+    final double padding = OnboardingConstants.isSmallScreen(screenHeight) ? 14.w : 18.w;
+    final double borderRadius = OnboardingConstants.getBorderRadius(screenHeight);
+    final double verticalPadding = OnboardingConstants.isSmallScreen(screenHeight) ? 8.h : 10.h;
+    final double bulletSize = OnboardingConstants.isSmallScreen(screenHeight) ? 7.w : 8.w;
     
     return Container(
       padding: EdgeInsets.all(padding),
