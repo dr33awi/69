@@ -9,9 +9,10 @@ import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../../../core/infrastructure/services/storage/storage_service.dart';
 import '../../../core/infrastructure/services/permissions/permission_service.dart';
-import '../services/qibla_service_v2.dart'; // الخدمة المحسنة
+import '../services/qibla_service_v3.dart'; // الخدمة المحسنة V3 مع flutter_qiblah
 import '../widgets/qibla_compass.dart';
 import '../widgets/qibla_info_card.dart';
+import '../widgets/phone_calibration_animation.dart';
 
 /// شاشة القبلة - محسنة للشاشات الصغيرة
 class QiblaScreen extends StatefulWidget {
@@ -23,8 +24,8 @@ class QiblaScreen extends StatefulWidget {
 
 class _QiblaScreenState extends State<QiblaScreen>
     with WidgetsBindingObserver, SingleTickerProviderStateMixin {
-  
-  late final QiblaServiceV2 _qiblaService;
+
+  late final QiblaServiceV3 _qiblaService;
   late final AnimationController _refreshController;
   
   bool _disposed = false;
@@ -38,7 +39,7 @@ class _QiblaScreenState extends State<QiblaScreen>
 
   Future<void> _initializeScreen() async {
     try {      
-      _qiblaService = QiblaServiceV2(
+      _qiblaService = QiblaServiceV3(
         storage: getIt<StorageService>(),
         permissionService: getIt<PermissionService>(),
       );
@@ -139,7 +140,7 @@ class _QiblaScreenState extends State<QiblaScreen>
       backgroundColor: context.backgroundColor,
       body: ChangeNotifierProvider.value(
         value: _qiblaService,
-        child: Consumer<QiblaServiceV2>(
+        child: Consumer<QiblaServiceV3>(
           builder: (context, service, _) {
             return SafeArea(
               child: Column(
@@ -165,6 +166,7 @@ class _QiblaScreenState extends State<QiblaScreen>
                                 QiblaInfoCard(
                                   qiblaData: service.qiblaData!,
                                   currentDirection: service.currentDirection,
+                                  compassAccuracy: service.compassAccuracy,
                                 ),
                                 SizedBox(height: 12.h),
                               ],
@@ -185,7 +187,7 @@ class _QiblaScreenState extends State<QiblaScreen>
     );
   }
 
-  Widget _buildCustomAppBar(BuildContext context, QiblaServiceV2 service) {
+  Widget _buildCustomAppBar(BuildContext context, QiblaServiceV3 service) {
     const gradient = LinearGradient(
       colors: [ThemeConstants.primary, ThemeConstants.primaryLight],
       begin: Alignment.topLeft,
@@ -248,6 +250,12 @@ class _QiblaScreenState extends State<QiblaScreen>
           ),
           
           _buildActionButton(
+            icon: Icons.explore,
+            onTap: () => _showCalibrationDialog(context, service),
+            tooltip: 'معايرة البوصلة',
+          ),
+          
+          _buildActionButton(
             icon: service.isLoading
                 ? Icons.hourglass_empty
                 : Icons.refresh_rounded,
@@ -255,6 +263,7 @@ class _QiblaScreenState extends State<QiblaScreen>
                 ? null 
                 : () => _updateQiblaData(forceUpdate: true),
             isLoading: service.isLoading,
+            tooltip: 'تحديث البيانات',
           ),
         ],
       ),
@@ -266,6 +275,7 @@ class _QiblaScreenState extends State<QiblaScreen>
     VoidCallback? onTap,
     bool isLoading = false,
     bool isSecondary = false,
+    String? tooltip,
   }) {
     return Container(
       margin: EdgeInsets.only(left: 4.w),
@@ -311,7 +321,7 @@ class _QiblaScreenState extends State<QiblaScreen>
     );
   }
 
-  String _getStatusText(QiblaServiceV2 service) {
+  String _getStatusText(QiblaServiceV3 service) {
     if (service.isLoading) {
       return 'جاري التحديث...';
     } else if (service.errorMessage != null) {
@@ -322,14 +332,14 @@ class _QiblaScreenState extends State<QiblaScreen>
     return 'البوصلة الذكية';
   }
 
-  Color _getStatusColor(QiblaServiceV2 service) {
+  Color _getStatusColor(QiblaServiceV3 service) {
     if (service.isLoading) return ThemeConstants.warning;
     if (service.errorMessage != null) return ThemeConstants.error;
     if (service.qiblaData != null) return context.primaryColor;
     return context.textSecondaryColor;
   }
 
-  Widget _buildMainContent(QiblaServiceV2 service) {
+  Widget _buildMainContent(QiblaServiceV3 service) {
     if (service.qiblaData != null) {
       return _buildCompassView(service);
     }
@@ -349,7 +359,7 @@ class _QiblaScreenState extends State<QiblaScreen>
     return _buildInitialState();
   }
 
-  Widget _buildCompassView(QiblaServiceV2 service) {
+  Widget _buildCompassView(QiblaServiceV3 service) {
     return Container(
       constraints: BoxConstraints(
         minHeight: 240.h,
@@ -459,7 +469,7 @@ class _QiblaScreenState extends State<QiblaScreen>
     );
   }
 
-  Widget _buildErrorState(QiblaServiceV2 service) {
+  Widget _buildErrorState(QiblaServiceV3 service) {
     return Container(
       constraints: BoxConstraints(
         minHeight: 220.h,
@@ -532,7 +542,7 @@ class _QiblaScreenState extends State<QiblaScreen>
     );
   }
 
-  Widget _buildNoCompassState(QiblaServiceV2 service) {
+  Widget _buildNoCompassState(QiblaServiceV3 service) {
     return Container(
       constraints: BoxConstraints(
         minHeight: 240.h,
@@ -688,6 +698,219 @@ class _QiblaScreenState extends State<QiblaScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// عرض نافذة معايرة البوصلة
+  void _showCalibrationDialog(BuildContext context, QiblaServiceV3 service) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        title: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(8.w),
+              decoration: BoxDecoration(
+                color: ThemeConstants.info.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.explore,
+                color: ThemeConstants.info,
+                size: 24.sp,
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                'معايرة البوصلة',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: ThemeConstants.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: EdgeInsets.all(12.w),
+                decoration: BoxDecoration(
+                  color: ThemeConstants.info.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(
+                    color: ThemeConstants.info.withOpacity(0.2),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: ThemeConstants.info,
+                      size: 20.sp,
+                    ),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: Text(
+                        'للحصول على أفضل دقة في تحديد اتجاه القبلة',
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          color: ThemeConstants.info,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 16.h),
+              
+              // أنيميشن شكل 8
+              Container(
+                height: 140.h,
+                decoration: BoxDecoration(
+                  color: context.primaryColor.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(
+                    color: context.primaryColor.withOpacity(0.2),
+                  ),
+                ),
+                child: PhoneCalibrationAnimation(
+                  primaryColor: context.primaryColor,
+                  width: double.infinity,
+                  height: 140.h,
+                  amplitudeX: 60.w,
+                  amplitudeY: 35.h,
+                  duration: const Duration(seconds: 4),
+                ),
+              ),
+              
+              SizedBox(height: 16.h),
+              Text(
+                'خطوات المعايرة:',
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: ThemeConstants.semiBold,
+                  color: context.primaryColor,
+                ),
+              ),
+              SizedBox(height: 12.h),
+              _buildCalibrationStepDialog('1', 'امسك الهاتف بشكل مريح', Icons.phone_android),
+              _buildCalibrationStepDialog('2', 'ارسم شكل ∞ في الهواء', Icons.all_inclusive),
+              _buildCalibrationStepDialog('3', 'ابتعد عن الأجهزة الإلكترونية والمعادن', Icons.devices_other),
+              _buildCalibrationStepDialog('4', 'كرر رسم رقم ∞ عدة مرات حتى تستقر القراءات', Icons.repeat),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(
+              'إغلاق',
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: context.textSecondaryColor,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              _showCalibrationStartMessage(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: context.primaryColor,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+            ),
+            child: Text(
+              'ابدأ المعايرة',
+              style: TextStyle(fontSize: 13.sp),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCalibrationStepDialog(String number, String title, IconData icon) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 12.h),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 32.w,
+            height: 32.w,
+            decoration: BoxDecoration(
+              color: context.primaryColor,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                number,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: ThemeConstants.bold,
+                  fontSize: 14.sp,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  size: 16.sp,
+                  color: context.primaryColor,
+                ),
+                SizedBox(width: 6.w),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: ThemeConstants.semiBold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCalibrationStartMessage(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.all_inclusive, color: Colors.white, size: 20.sp),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                'ابدأ برسم رقم ∞ في الهواء بالهاتف',
+                style: TextStyle(fontSize: 12.sp),
+              ),
+            ),
+          ],
+        ),
+        duration: const Duration(seconds: 4),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: ThemeConstants.info,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
       ),
     );
   }

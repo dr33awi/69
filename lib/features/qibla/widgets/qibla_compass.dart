@@ -37,11 +37,13 @@ class _QiblaCompassState extends State<QiblaCompass>
   late AnimationController _pulseController;
   late AnimationController _qiblaFoundController;
   late AnimationController _accuracyController;
+  late AnimationController _pointerController; // للمؤشر المحسّن
   
   late Animation<double> _rotationAnimation;
   late Animation<double> _pulseAnimation;
   late Animation<double> _qiblaFoundAnimation;
   late Animation<double> _accuracyAnimation;
+  late Animation<double> _pointerAnimation; // للمؤشر المحسّن
   late Animation<Color?> _qiblaColorAnimation;
 
   double _previousDirection = 0.0;
@@ -49,8 +51,8 @@ class _QiblaCompassState extends State<QiblaCompass>
   bool _isPointingToQibla = false;
   Timer? _hapticTimer;
 
-  static const Duration _animationDuration = Duration(milliseconds: 300);
-  static const double _qiblaThreshold = 5.0;
+  static const Duration _animationDuration = Duration(milliseconds: 250); // أسرع قليلاً
+  static const double _qiblaThreshold = 3.0; // أدق - من 5 إلى 3 درجات
 
   @override
   void initState() {
@@ -60,7 +62,7 @@ class _QiblaCompassState extends State<QiblaCompass>
   }
 
   void _initializeAnimations() {
-    // Animation للدوران
+    // Animation للدوران - محسّن
     _rotationController = AnimationController(
       duration: _animationDuration,
       vsync: this,
@@ -71,7 +73,7 @@ class _QiblaCompassState extends State<QiblaCompass>
       end: widget.currentDirection,
     ).animate(CurvedAnimation(
       parent: _rotationController,
-      curve: Curves.easeOutCubic,
+      curve: Curves.easeOutCubic, // منحنى سلس
     ));
 
     _pulseController = AnimationController(
@@ -88,13 +90,13 @@ class _QiblaCompassState extends State<QiblaCompass>
     ));
 
     _qiblaFoundController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 600), // أسرع
       vsync: this,
     );
 
     _qiblaFoundAnimation = Tween<double>(
       begin: 1.0,
-      end: 1.2,
+      end: 1.15, // تكبير أقل
     ).animate(CurvedAnimation(
       parent: _qiblaFoundController,
       curve: Curves.elasticOut,
@@ -119,6 +121,20 @@ class _QiblaCompassState extends State<QiblaCompass>
     ));
 
     _accuracyController.forward();
+    
+    // Animation للمؤشر المحسّن
+    _pointerController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    
+    _pointerAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.1,
+    ).animate(CurvedAnimation(
+      parent: _pointerController,
+      curve: Curves.easeOut,
+    ));
   }
 
   @override
@@ -145,12 +161,15 @@ class _QiblaCompassState extends State<QiblaCompass>
   }
 
   void _updateRotation(double from, double to) {
-    // حساب أقصر مسار للدوران
+    // حساب أقصر مسار للدوران (محسّن)
     double diff = to - from;
     
     // تطبيع الفرق ليكون بين -180 و 180
     while (diff > 180) diff -= 360;
     while (diff < -180) diff += 360;
+    
+    // تجاهل التغييرات الصغيرة جداً لتقليل الاهتزاز
+    if (diff.abs() < 0.5) return;
     
     final targetAngle = from + diff;
     
@@ -159,7 +178,7 @@ class _QiblaCompassState extends State<QiblaCompass>
       end: targetAngle,
     ).animate(CurvedAnimation(
       parent: _rotationController,
-      curve: Curves.easeOutCubic,
+      curve: Curves.easeOutCubic, // منحنى سلس
     ));
     
     _rotationController.forward(from: 0).then((_) {
@@ -216,6 +235,7 @@ class _QiblaCompassState extends State<QiblaCompass>
     _pulseController.dispose();
     _qiblaFoundController.dispose();
     _accuracyController.dispose();
+    _pointerController.dispose(); // تنظيف المؤشر
     super.dispose();
   }
 
@@ -315,8 +335,17 @@ class _QiblaCompassState extends State<QiblaCompass>
 
   Widget _buildQiblaIndicator(double size, double qiblaAngle) {
     return AnimatedBuilder(
-      animation: Listenable.merge([_qiblaFoundAnimation, _qiblaColorAnimation]),
+      animation: Listenable.merge([_qiblaFoundAnimation, _qiblaColorAnimation, _pointerAnimation]),
       builder: (context, child) {
+        // تحريك المؤشر عند الاقتراب من القبلة
+        final isNearQibla = qiblaAngle.abs() <= 15.0;
+        if (isNearQibla && !_pointerController.isAnimating) {
+          _pointerController.repeat(reverse: true);
+        } else if (!isNearQibla && _pointerController.isAnimating) {
+          _pointerController.stop();
+          _pointerController.reset();
+        }
+        
         return Transform.rotate(
           angle: qiblaAngle * (math.pi / 180),
           child: Transform.scale(
@@ -328,51 +357,68 @@ class _QiblaCompassState extends State<QiblaCompass>
               child: Stack(
                 alignment: Alignment.topCenter,
                 children: [
+                  // المؤشر المحسّن
                   Positioned(
                     top: 0,
-                    child: SizedBox(
-                      width: 50.w,
-                      height: size * 0.38,
-                      child: CustomPaint(
-                        painter: QiblaArrowPainter(
-                          color: _qiblaColorAnimation.value ?? context.primaryColor,
-                          isPointingToQibla: _isPointingToQibla,
-                          glowIntensity: widget.accuracy,
+                    child: Transform.scale(
+                      scale: _pointerAnimation.value,
+                      alignment: Alignment.bottomCenter,
+                      child: SizedBox(
+                        width: 55.w, // أعرض قليلاً
+                        height: size * 0.40, // أطول
+                        child: CustomPaint(
+                          painter: QiblaArrowPainter(
+                            color: _qiblaColorAnimation.value ?? context.primaryColor,
+                            isPointingToQibla: _isPointingToQibla,
+                            glowIntensity: widget.accuracy,
+                            isNearQibla: isNearQibla, // إضافة حالة الاقتراب
+                          ),
                         ),
                       ),
                     ),
                   ),
                   
+                  // علامة القبلة
                   Positioned(
                     top: size * 0.08,
                     child: AnimatedContainer(
                       duration: _animationDuration,
                       padding: EdgeInsets.symmetric(
-                        horizontal: _isPointingToQibla ? 12.w : 10.w,
-                        vertical: _isPointingToQibla ? 6.h : 4.h,
+                        horizontal: _isPointingToQibla ? 14.w : 12.w,
+                        vertical: _isPointingToQibla ? 7.h : 5.h,
                       ),
                       decoration: BoxDecoration(
                         color: _qiblaColorAnimation.value ?? context.primaryColor,
                         borderRadius: BorderRadius.circular(
-                          _isPointingToQibla ? 12.r : 10.r
+                          _isPointingToQibla ? 14.r : 12.r
                         ),
                         boxShadow: _isPointingToQibla ? [
                           BoxShadow(
-                            color: (context.primaryColor).withOpacity(0.3),
-                            blurRadius: 6.r,
-                            offset: Offset(0, 2.h),
+                            color: (context.primaryColor).withOpacity(0.4),
+                            blurRadius: 8.r,
+                            offset: Offset(0, 3.h),
                           ),
                         ] : null,
                       ),
-                      child: Text(
-                        'قبلة',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: _isPointingToQibla 
-                              ? ThemeConstants.bold 
-                              : ThemeConstants.semiBold,
-                          fontSize: _isPointingToQibla ? 12.sp : 11.sp,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '🕋',
+                            style: TextStyle(fontSize: 14.sp),
+                          ),
+                          SizedBox(width: 4.w),
+                          Text(
+                            'القبلة',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: _isPointingToQibla 
+                                  ? ThemeConstants.bold 
+                                  : ThemeConstants.semiBold,
+                              fontSize: _isPointingToQibla ? 13.sp : 12.sp,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -388,49 +434,85 @@ class _QiblaCompassState extends State<QiblaCompass>
   Widget _buildCenterDot() {
     return AnimatedContainer(
       duration: _animationDuration,
-      width: _isPointingToQibla ? 28.w : 22.w,
-      height: _isPointingToQibla ? 28.w : 22.w,
+      width: _isPointingToQibla ? 32.w : 26.w,
+      height: _isPointingToQibla ? 32.w : 26.w,
       decoration: BoxDecoration(
         color: _isPointingToQibla ? ThemeConstants.success : context.primaryColor,
         shape: BoxShape.circle,
         border: Border.all(
           color: context.cardColor,
-          width: 2.5.w,
+          width: 3.w,
         ),
         boxShadow: [
           BoxShadow(
             color: (_isPointingToQibla ? ThemeConstants.success : context.primaryColor)
-                .withOpacity(0.3),
-            blurRadius: _isPointingToQibla ? 6.r : 3.r,
+                .withOpacity(0.4),
+            blurRadius: _isPointingToQibla ? 8.r : 4.r,
             offset: const Offset(0, 0),
           ),
+          // ظل خارجي
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4.r,
+            offset: Offset(0, 2.h),
+          ),
         ],
+      ),
+      child: Center(
+        child: Container(
+          width: _isPointingToQibla ? 12.w : 10.w,
+          height: _isPointingToQibla ? 12.w : 10.w,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            shape: BoxShape.circle,
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildDeviceIndicator(double size) {
     return Positioned(
-      top: (size * 0.05),
+      top: (size * 0.04), // أقرب قليلاً للحافة
       child: AnimatedContainer(
         duration: _animationDuration,
-        width: 0,
-        height: 0,
-        decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(
-              width: _isPointingToQibla ? 10.w : 8.w, 
-              color: Colors.transparent
+        child: Column(
+          children: [
+            // المثلث الرئيسي
+            Container(
+              width: 0,
+              height: 0,
+              decoration: BoxDecoration(
+                border: Border(
+                  left: BorderSide(
+                    width: _isPointingToQibla ? 12.w : 10.w, 
+                    color: Colors.transparent
+                  ),
+                  right: BorderSide(
+                    width: _isPointingToQibla ? 12.w : 10.w, 
+                    color: Colors.transparent
+                  ),
+                  bottom: BorderSide(
+                    width: _isPointingToQibla ? 24.h : 20.h, 
+                    color: _isPointingToQibla 
+                        ? ThemeConstants.success.withOpacity(0.9)
+                        : ThemeConstants.error.withOpacity(0.8)
+                  ),
+                ),
+              ),
             ),
-            right: BorderSide(
-              width: _isPointingToQibla ? 10.w : 8.w, 
-              color: Colors.transparent
-            ),
-            bottom: BorderSide(
-              width: _isPointingToQibla ? 20.h : 16.h, 
-              color: _isPointingToQibla ? ThemeConstants.success : ThemeConstants.error
-            ),
-          ),
+            // ظل المثلث
+            if (_isPointingToQibla)
+              Container(
+                margin: EdgeInsets.only(top: 2.h),
+                width: 3.w,
+                height: 8.h,
+                decoration: BoxDecoration(
+                  color: ThemeConstants.success.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2.r),
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -582,8 +664,9 @@ class _QiblaCompassState extends State<QiblaCompass>
   }
 
   String _getAccuracyText() {
-    if (widget.accuracy >= 0.8) return 'دقة عالية';
-    if (widget.accuracy >= 0.5) return 'دقة متوسطة';
+    if (widget.accuracy >= 0.85) return 'دقة ممتازة';
+    if (widget.accuracy >= 0.70) return 'دقة جيدة جداً';
+    if (widget.accuracy >= 0.50) return 'دقة متوسطة';
     return 'دقة منخفضة';
   }
 }
@@ -739,11 +822,13 @@ class QiblaArrowPainter extends CustomPainter {
   final Color color;
   final bool isPointingToQibla;
   final double glowIntensity;
+  final bool isNearQibla; // جديد
 
   QiblaArrowPainter({
     required this.color,
     this.isPointingToQibla = false,
     this.glowIntensity = 1.0,
+    this.isNearQibla = false, // جديد
   });
 
   @override
@@ -752,39 +837,52 @@ class QiblaArrowPainter extends CustomPainter {
       ..color = color
       ..style = PaintingStyle.fill;
 
-    if (isPointingToQibla) {
+    // توهج محسّن
+    if (isPointingToQibla || isNearQibla) {
+      final glowIntensityFinal = isPointingToQibla ? 0.5 : 0.25;
       final glowPaint = Paint()
-        ..color = color.withOpacity(0.3 * glowIntensity)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 6.r);
+        ..color = color.withOpacity(glowIntensityFinal * glowIntensity)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, isPointingToQibla ? 10.r : 6.r);
       
       _drawArrowPath(canvas, size, glowPaint);
     }
 
     _drawArrowPath(canvas, size, paint);
 
+    // تأثير لامع
     final glossPaint = Paint()
       ..shader = LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.center,
         colors: [
-          Colors.white.withOpacity(isPointingToQibla ? 0.4 : 0.2),
+          Colors.white.withOpacity(isPointingToQibla ? 0.5 : 0.3),
           Colors.white.withOpacity(0.0),
         ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height * 0.5));
 
     _drawArrowPath(canvas, size, glossPaint);
+    
+    // حدود للوضوح
+    if (isPointingToQibla) {
+      final borderPaint = Paint()
+        ..color = Colors.white.withOpacity(0.3)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5.w;
+      _drawArrowPath(canvas, size, borderPaint);
+    }
   }
 
   void _drawArrowPath(Canvas canvas, Size size, Paint paint) {
     final path = Path();
 
-    path.moveTo(size.width / 2, 0);
-    path.lineTo(size.width * 0.75, size.height * 0.3);
-    path.lineTo(size.width * 0.65, size.height * 0.3);
-    path.lineTo(size.width * 0.65, size.height * 0.85);
-    path.lineTo(size.width * 0.35, size.height * 0.85);
-    path.lineTo(size.width * 0.35, size.height * 0.3);
-    path.lineTo(size.width * 0.25, size.height * 0.3);
+    // شكل سهم محسّن وأوضح
+    path.moveTo(size.width / 2, 0); // القمة
+    path.lineTo(size.width * 0.78, size.height * 0.32); // يمين رأس السهم
+    path.lineTo(size.width * 0.68, size.height * 0.32); // يمين الجسم
+    path.lineTo(size.width * 0.68, size.height * 0.88); // يمين القاعدة
+    path.lineTo(size.width * 0.32, size.height * 0.88); // يسار القاعدة
+    path.lineTo(size.width * 0.32, size.height * 0.32); // يسار الجسم
+    path.lineTo(size.width * 0.22, size.height * 0.32); // يسار رأس السهم
     path.close();
 
     canvas.drawPath(path, paint);
@@ -794,7 +892,8 @@ class QiblaArrowPainter extends CustomPainter {
   bool shouldRepaint(covariant QiblaArrowPainter oldDelegate) {
     return oldDelegate.color != color ||
            oldDelegate.isPointingToQibla != isPointingToQibla ||
-           oldDelegate.glowIntensity != glowIntensity;
+           oldDelegate.glowIntensity != glowIntensity ||
+           oldDelegate.isNearQibla != isNearQibla;
   }
 }
 

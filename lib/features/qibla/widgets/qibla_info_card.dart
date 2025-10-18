@@ -1,13 +1,14 @@
-// lib/features/qibla/widgets/qibla_info_card.dart - للشاشات الصغيرة
+// lib/features/qibla/widgets/qibla_info_card.dart - محسّن
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../app/themes/app_theme.dart';
 import '../models/qibla_model.dart';
 
 class QiblaInfoCard extends StatefulWidget {
   final QiblaModel qiblaData;
   final double currentDirection;
+  final double compassAccuracy; // إضافة دقة البوصلة
   final bool showDetailedInfo;
   final bool enableInteraction;
 
@@ -15,6 +16,7 @@ class QiblaInfoCard extends StatefulWidget {
     super.key,
     required this.qiblaData,
     required this.currentDirection,
+    this.compassAccuracy = 0.8, // قيمة افتراضية
     this.showDetailedInfo = true,
     this.enableInteraction = true,
   });
@@ -27,7 +29,6 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
     with SingleTickerProviderStateMixin {
   
   late AnimationController _expandController;
-  bool _isExpanded = false;
 
   @override
   void initState() {
@@ -117,48 +118,6 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
               ],
             ),
           ),
-          _buildQualityIndicator(context),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQualityIndicator(BuildContext context) {
-    final hasGoodQuality = widget.qiblaData.hasGoodQuality;
-    
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 6.w,
-        vertical: 3.h,
-      ),
-      decoration: BoxDecoration(
-        color: hasGoodQuality 
-            ? ThemeConstants.success.withOpacity(0.1)
-            : ThemeConstants.warning.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(
-          color: hasGoodQuality 
-              ? ThemeConstants.success.withOpacity(0.3)
-              : ThemeConstants.warning.withOpacity(0.3),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            hasGoodQuality ? Icons.verified : Icons.warning_amber,
-            size: 16.sp,
-            color: hasGoodQuality ? ThemeConstants.success : ThemeConstants.warning,
-          ),
-          SizedBox(width: 3.w),
-          Text(
-            hasGoodQuality ? 'موثوق' : 'محدود',
-            style: TextStyle(
-              color: hasGoodQuality ? ThemeConstants.success : ThemeConstants.warning,
-              fontWeight: ThemeConstants.semiBold,
-              fontSize: 10.sp,
-            ),
-          ),
         ],
       ),
     );
@@ -201,13 +160,16 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
               ),
             ],
           ),
+          
+          SizedBox(height: 8.h),
+          
+          // المسافة إلى الكعبة
+          _buildDistanceToKaaba(context),
 
         ],
       ),
     );
   }
-
-
 
   Widget _buildWarnings(BuildContext context) {
     final warnings = <Widget>[];
@@ -296,8 +258,6 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
     );
   }
 
-
-
   Widget _buildWarningCard({
     required BuildContext context,
     required IconData icon,
@@ -381,19 +341,6 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
     return ThemeConstants.error;
   }
 
-  IconData _getAccuracyIcon() {
-    if (widget.qiblaData.hasHighAccuracy) return Icons.gps_fixed;
-    if (widget.qiblaData.hasMediumAccuracy) return Icons.gps_not_fixed;
-    return Icons.gps_off;
-  }
-
-  Color _getAgeColor() {
-    if (widget.qiblaData.isFresh) return ThemeConstants.success;
-    if (widget.qiblaData.isStale) return ThemeConstants.warning;
-    if (widget.qiblaData.isVeryStale) return ThemeConstants.error;
-    return context.textSecondaryColor;
-  }
-
   String _getDirectionName(double direction) {
     if (direction >= 337.5 || direction < 22.5) return 'شمال';
     if (direction >= 22.5 && direction < 67.5) return 'شمال شرق';
@@ -423,7 +370,6 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildDetailItem('الاتجاه', '${widget.qiblaData.qiblaDirection.toStringAsFixed(2)}°'),
-            _buildDetailItem('الاتجاه المغناطيسي', '${widget.qiblaData.magneticQiblaDirection.toStringAsFixed(2)}°'),
             _buildDetailItem('الوصف', widget.qiblaData.detailedDirectionDescription),
           ],
         ),
@@ -437,7 +383,7 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
     );
   }
 
-Widget _buildDetailItem(String label, String value) {
+  Widget _buildDetailItem(String label, String value) {
     return Padding(
       padding: EdgeInsets.only(bottom: 6.h),
       child: Column(
@@ -460,5 +406,86 @@ Widget _buildDetailItem(String label, String value) {
         ],
       ),
     );
+  }
+
+  /// المسافة إلى الكعبة
+  Widget _buildDistanceToKaaba(BuildContext context) {
+    final distance = _calculateDistanceToKaaba();
+    
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 12.w),
+      padding: EdgeInsets.all(10.w),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            ThemeConstants.accent.withOpacity(0.1),
+            ThemeConstants.accent.withOpacity(0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: ThemeConstants.accent.withOpacity(0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(8.w),
+            decoration: BoxDecoration(
+              color: ThemeConstants.accent.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              '🕋',
+              style: TextStyle(fontSize: 18.sp),
+            ),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'المسافة إلى الكعبة',
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    color: context.textSecondaryColor,
+                  ),
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  distance >= 1000 
+                      ? '${(distance / 1000).toStringAsFixed(1)} ألف كم'
+                      : '${distance.toStringAsFixed(0)} كم',
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    fontWeight: ThemeConstants.bold,
+                    color: ThemeConstants.accent,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.route,
+            color: ThemeConstants.accent.withOpacity(0.5),
+            size: 24.sp,
+          ),
+        ],
+      ),
+    );
+  }
+
+  double _calculateDistanceToKaaba() {
+    // إحداثيات الكعبة المشرفة
+    const kaabaLat = 21.4225;
+    const kaabaLon = 39.8262;
+    
+    return Geolocator.distanceBetween(
+      widget.qiblaData.latitude,
+      widget.qiblaData.longitude,
+      kaabaLat,
+      kaabaLon,
+    ) / 1000; // تحويل لكيلومتر
   }
 }

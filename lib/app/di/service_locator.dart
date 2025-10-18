@@ -24,7 +24,7 @@ import 'package:athkar_app/core/infrastructure/services/share/share_service.dart
 import 'package:athkar_app/features/athkar/services/athkar_service.dart';
 import 'package:athkar_app/features/dua/services/dua_service.dart';
 import 'package:athkar_app/features/prayer_times/services/prayer_times_service.dart';
-import 'package:athkar_app/features/qibla/services/qibla_service_v2.dart';
+import 'package:athkar_app/features/qibla/services/qibla_service_v3.dart'; // تحديث إلى V3
 import 'package:athkar_app/features/settings/services/settings_services_manager.dart';
 import 'package:athkar_app/features/tasbih/services/tasbih_service.dart';
 import 'package:flutter/material.dart';
@@ -33,8 +33,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 final getIt = GetIt.instance;
 
@@ -406,12 +404,12 @@ class ServiceLocator {
       );
     }
     
-    // خدمة القبلة - Factory
-    if (!getIt.isRegistered<QiblaServiceV2>()) {
-      getIt.registerFactory<QiblaServiceV2>(
+    // خدمة القبلة - Factory (V3 مع flutter_qiblah)
+    if (!getIt.isRegistered<QiblaServiceV3>()) {
+      getIt.registerFactory<QiblaServiceV3>(
         () {
-          debugPrint('🔄 FACTORY: New QiblaServiceV2 instance created');
-          return QiblaServiceV2(
+          debugPrint('🔄 FACTORY: New QiblaServiceV3 instance created');
+          return QiblaServiceV3(
             storage: getIt<StorageService>(),
             permissionService: getIt<PermissionService>(),
           );
@@ -931,7 +929,7 @@ extension ServiceLocatorExtensions on BuildContext {
   }
   
   TasbihService get tasbihService => getIt<TasbihService>();
-  QiblaServiceV2 get qiblaService => getIt<QiblaServiceV2>();
+  QiblaServiceV3 get qiblaService => getIt<QiblaServiceV3>(); // تحديث إلى V3
   
   SettingsServicesManager get settingsManager {
     debugPrint('🔄 Accessing SettingsServicesManager - will initialize if not already done');
