@@ -209,37 +209,68 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
   Widget build(BuildContext context) {
     super.build(context);
     
+    // حماية من البيانات الفارغة
+    if (_categories.isEmpty || _categories.length < 6) {
+      return const SliverToBoxAdapter(
+        child: SizedBox.shrink(),
+      );
+    }
+    
     return SliverPadding(
       padding: EdgeInsets.symmetric(horizontal: 12.w),
       sliver: SliverList(
-        delegate: SliverChildListDelegate([
-          _buildRow([_categories[0], _categories[1]]),
-          
-          SizedBox(height: 12.h),
-          
-          Row(
-            children: [
-              Expanded(
-                flex: 3,
-                child: _buildWideCard(context, _categories[2]),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                flex: 2,
-                child: _buildStandardCard(context, _categories[3]),
-              ),
-            ],
-          ),
-          
-          SizedBox(height: 12.h),
-          
-          _buildRow([_categories[4], _categories[5]]),
-        ]),
+        delegate: SliverChildBuilderDelegate(
+          (BuildContext context, int index) {
+            try {
+              switch (index) {
+                case 0:
+                  return _buildRow([_categories[0], _categories[1]]);
+                case 1:
+                  return SizedBox(height: 12.h);
+                case 2:
+                  return Row(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: _buildWideCard(context, _categories[2]),
+                      ),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        flex: 2,
+                        child: _buildStandardCard(context, _categories[3]),
+                      ),
+                    ],
+                  );
+                case 3:
+                  return SizedBox(height: 12.h);
+                case 4:
+                  return _buildRow([_categories[4], _categories[5]]);
+                default:
+                  return null;
+              }
+            } catch (e) {
+              // تسجيل الخطأ وإرجاع widget فارغ
+              debugPrint('Error building category at index $index: $e');
+              return const SizedBox.shrink();
+            }
+          },
+          childCount: 5, // 3 صفوف + 2 spacers
+        ),
       ),
     );
   }
 
   Widget _buildRow(List<CategoryItem> categories) {
+    // حماية من null - التأكد من وجود عنصرين على الأقل
+    if (categories.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    
+    // إذا كان هناك عنصر واحد فقط
+    if (categories.length == 1) {
+      return _buildStandardCard(context, categories[0]);
+    }
+    
     return Row(
       children: [
         Expanded(
@@ -253,7 +284,12 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
     );
   }
 
-  Widget _buildStandardCard(BuildContext context, CategoryItem category) {
+  Widget _buildStandardCard(BuildContext context, CategoryItem? category) {
+    // حماية من null
+    if (category == null) {
+      return const SizedBox.shrink();
+    }
+    
     final gradient = _getGradient(category.id, category.isInDevelopment);
     
     return RepaintBoundary(
@@ -371,7 +407,12 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
     );
   }
 
-  Widget _buildWideCard(BuildContext context, CategoryItem category) {
+  Widget _buildWideCard(BuildContext context, CategoryItem? category) {
+    // حماية من null
+    if (category == null) {
+      return const SizedBox.shrink();
+    }
+    
     final gradient = _getGradient(category.id, category.isInDevelopment);
     
     return RepaintBoundary(

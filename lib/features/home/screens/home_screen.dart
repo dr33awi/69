@@ -1,19 +1,17 @@
 // lib/features/home/screens/home_screen.dart
-// ✅ محدث مع Promotional Banners (Dialog Only)
+// ✅ نسخة نظيفة بدون أزرار الاختبار
 
+import 'package:athkar_app/core/firebase/special_event/special_event_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:async';
 import '../../../app/themes/app_theme.dart';
+import '../../../app/di/service_locator.dart';
 import '../widgets/category_grid.dart';
-import 'package:athkar_app/features/home/daily_quotes/daily_quotes_card.dart';
-import 'package:athkar_app/features/home/widgets/home_prayer_times_card.dart';
-import 'package:athkar_app/app/di/service_locator.dart';
-import 'package:athkar_app/core/infrastructure/firebase/remote_config_manager.dart';
-import 'package:athkar_app/core/infrastructure/firebase/special_event/special_event_card.dart';
-// ✅ إضافة import للبانرات
-import 'package:athkar_app/core/infrastructure/firebase/promotional_banners/utils/banner_helpers.dart';
+import '../daily_quotes/daily_quotes_card.dart';
+import '../widgets/home_prayer_times_card.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -45,12 +43,15 @@ class _HomeScreenState extends State<HomeScreen>
     _showPromotionalBanners();
   }
   
-  /// ✅ عرض البانرات الترويجية كـ Dialog
+  /// ✅ عرض البانرات الترويجية
   void _showPromotionalBanners() {
-    // تأخير بسيط للسماح للشاشة بالبناء أولاً
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // ✅ انتظار أطول للسماح بتهيئة Firebase Services
+      await Future.delayed(const Duration(seconds: 2));
+      
+      if (!mounted) return;
+      
       try {
-        // استخدام Extension من BannerHelpers
         context.showBanners(screenName: 'home');
       } catch (e) {
         debugPrint('⚠️ Error showing banners: $e');
@@ -104,18 +105,16 @@ class _HomeScreenState extends State<HomeScreen>
     try {
       debugPrint('🔄 Refreshing...');
       
-      // ✅ تحديث RemoteConfig
-      if (getIt.isRegistered<RemoteConfigManager>()) {
-        final manager = getIt<RemoteConfigManager>();
+      // ✅ تحديث Remote Config والبانرات
+      if (context.mounted) {
+        final refreshed = await context.refreshRemoteConfig();
         
-        if (manager.isInitialized) {
-          final success = await manager.refreshConfig();
+        if (refreshed) {
+          debugPrint('✅ Config refreshed successfully');
           
-          if (success) {
-            debugPrint('✅ Config refreshed successfully');
-            debugPrint('   - Maintenance: ${manager.isMaintenanceModeActive}');
-            debugPrint('   - Force Update: ${manager.isForceUpdateRequired}');
-          }
+          // تحديث البانرات
+          await context.refreshBanners();
+          debugPrint('✅ Banners refreshed');
         }
       }
       
@@ -180,16 +179,15 @@ class _HomeScreenState extends State<HomeScreen>
                             delegate: SliverChildListDelegate([
                               SizedBox(height: 10.h),
                               
-                              // ✅ Special Event Card (مناسبة واحدة فقط)
+                              // Special Event Card
                               const SpecialEventCard(),
                               
-                              // ❌ تم إزالة _buildPromotionalBanners()
-                              // لأن البانرات الآن تظهر كـ Dialog تلقائياً
-                              
+                              // Prayer Times Card
                               const PrayerTimesCard(),
                               
                               SizedBox(height: 16.h),
                               
+                              // Daily Quotes Card
                               const DailyQuotesCard(),
                               
                               SizedBox(height: 20.h),
@@ -215,6 +213,7 @@ class _HomeScreenState extends State<HomeScreen>
           ],
         ),
       ),
+      // ✅ تم إزالة أزرار الاختبار
     );
   }
 
@@ -262,6 +261,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
           
+          // زر الإعدادات
           Material(
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(10.r),

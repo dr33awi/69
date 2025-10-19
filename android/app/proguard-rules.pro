@@ -43,7 +43,6 @@
 
 # ==================== Notification Classes ====================
 -keep class com.dexterous.flutterlocalnotifications.** { *; }
--keep class dev.fluttercommunity.plus.androidalarmmanager.** { *; }
 -dontwarn com.dexterous.flutterlocalnotifications.**
 
 # ==================== App Specific Classes ====================

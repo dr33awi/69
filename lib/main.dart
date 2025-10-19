@@ -1,7 +1,7 @@
 // lib/main.dart - النسخة المُحسّنة والنهائية
 import 'dart:async';
 import 'dart:convert';
-import 'package:athkar_app/core/infrastructure/firebase/remote_config_service.dart';
+import 'package:athkar_app/core/firebase/remote_config_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -14,7 +14,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'firebase_options.dart';
 
 // Firebase Services
-import 'core/infrastructure/firebase/firebase_initializer.dart';
+import 'core/firebase/firebase_initializer.dart';
 
 // Service Locator والخدمات
 import 'app/di/service_locator.dart';
@@ -33,8 +33,8 @@ import 'core/infrastructure/config/development_config.dart';
 import 'core/infrastructure/services/preview/device_preview_config.dart';
 
 // Firebase UI
-import 'core/infrastructure/firebase/remote_config_manager.dart';
-import 'core/infrastructure/firebase/widgets/app_status_monitor.dart';
+import 'core/firebase/remote_config_manager.dart';
+import 'core/firebase/widgets/app_status_monitor.dart';
 
 // الثيمات والمسارات
 import 'app/themes/app_theme.dart';
@@ -309,9 +309,22 @@ class AthkarApp extends StatefulWidget {
 }
 
 class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
-  late final UnifiedPermissionManager _permissionManager;
   RemoteConfigManager? _configManager;
   bool _configManagerReady = false;
+  late final UnifiedPermissionManager _permissionManager;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _processPendingNotificationIfAny();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -324,20 +337,7 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
     _scheduleInitialPermissionCheck();
     _processPendingNotificationIfAny();
   }
-  
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-  
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _processPendingNotificationIfAny();
-    }
-  }
-  
+
   void _processPendingNotificationIfAny() {
     if (_pendingNotificationEvent != null) {
       Future.delayed(const Duration(milliseconds: 500), () {
@@ -393,48 +393,6 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<ThemeMode>(
-      valueListenable: getIt<ThemeNotifier>(),
-      builder: (context, themeMode, _) {
-        return ScreenUtilInit(
-          designSize: const Size(375, 812),
-          minTextAdapt: true,
-          splitScreenMode: true,
-          builder: (context, _) {
-            return MaterialApp(
-              title: 'حصن المسلم',
-              debugShowCheckedModeBanner: false,
-              
-              theme: AppTheme.lightTheme,
-              darkTheme: AppTheme.darkTheme,
-              themeMode: themeMode,
-              
-              locale: const Locale('ar'),
-              supportedLocales: const [Locale('ar')],
-              localizationsDelegates: const [
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-              ],
-              
-              navigatorKey: AppRouter.navigatorKey,
-              home: _buildInitialScreen(),
-              onGenerateRoute: AppRouter.onGenerateRoute,
-              
-              builder: (context, child) {
-                return child ?? const Scaffold(
-                  body: Center(child: CircularProgressIndicator()),
-                );
-              },
-            );
-          },
-        );
-      },
-    );
-  }
-
   Widget _buildInitialScreen() {
     Widget screen;
     bool skipPermissionCheck = false;
@@ -477,14 +435,56 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
     }
     return screen;
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: getIt<ThemeNotifier>(),
+      builder: (context, themeMode, _) {
+        return ScreenUtilInit(
+          designSize: const Size(375, 812),
+          minTextAdapt: true,
+          splitScreenMode: true,
+          builder: (context, _) {
+            return MaterialApp(
+              title: 'حصن المسلم',
+              debugShowCheckedModeBanner: false,
+              
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: themeMode,
+              
+              locale: const Locale('ar'),
+              supportedLocales: const [Locale('ar')],
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              
+              navigatorKey: AppRouter.navigatorKey,
+              home: _buildInitialScreen(),
+              onGenerateRoute: AppRouter.onGenerateRoute,
+              
+              builder: (context, child) {
+                return child ?? const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
 }
 
 // ==================== شاشة الخطأ ====================
 class _ErrorApp extends StatelessWidget {
-  final String error;
-  
   const _ErrorApp({required this.error});
-  
+
+  final String error;
+
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(

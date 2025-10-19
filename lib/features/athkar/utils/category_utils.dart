@@ -10,20 +10,20 @@ class CategoryUtils {
       // ===== أذكار الأوقات =====
       case 'morning':
       case 'الصباح':
-        return FlutterIslamicIcons.solidPrayer; // صلاة الصباح
+        return Icons.wb_sunny; // صلاة الصباح
         
       case 'evening':
       case 'المساء':
-        return FlutterIslamicIcons.solidCrescentMoon; // هلال المساء
+        return Icons.nights_stay; // هلال المساء
         
       case 'sleep':
       case 'النوم':
-        return FlutterIslamicIcons.crescentMoon; // هلال النوم (خطي)
+        return Icons.bedtime; // هلال النوم (خطي)
         
       case 'wakeup':
       case 'wake_up':
       case 'الاستيقاظ':
-        return FlutterIslamicIcons.solidPrayingPerson; // شخص يصلي
+        return Icons.wb_twilight; // شخص يصلي
       
       // ===== أذكار المنزل =====
       case 'leaving_home':
@@ -43,10 +43,10 @@ class CategoryUtils {
         
       case 'after_prayer':
       case 'بعد الصلاة':
-        return FlutterIslamicIcons.solidTasbih2; // مسبحة مملوءة
+        return FlutterIslamicIcons.solidPrayingPerson; // مسبحة مملوءة
         
       default:
-        return FlutterIslamicIcons.solidTasbih2; // الأيقونة الافتراضية
+        return FlutterIslamicIcons.solidPrayingPerson; // الأيقونة الافتراضية
     }
   }
 
@@ -169,6 +169,9 @@ class CategoryUtils {
       'المساء',
       'sleep',
       'النوم',
+      'wakeup',
+      'wake_up',
+      'الاستيقاظ',
     };
     return !hiddenTimeCategories.contains(categoryId.toLowerCase());
   }

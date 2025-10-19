@@ -57,7 +57,7 @@ class _LocationHeaderState extends State<LocationHeader>
   }
 
   Future<void> _updateLocation() async {
-    if (_isUpdating) return;
+    if (_isUpdating || !mounted) return;
     
     setState(() {
       _isUpdating = true;

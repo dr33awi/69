@@ -117,6 +117,8 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   }
 
   Future<void> _requestLocation() async {
+    if (!mounted) return;
+    
     setState(() {
       _isRetryingLocation = true;
     });
@@ -158,7 +160,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   }
 
   Future<void> _refreshPrayerTimes() async {
-    if (_isRefreshing) return;
+    if (_isRefreshing || !mounted) return;
     
     setState(() {
       _isRefreshing = true;
