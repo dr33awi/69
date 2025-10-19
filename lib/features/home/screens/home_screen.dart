@@ -1,7 +1,10 @@
 // lib/features/home/screens/home_screen.dart
-// ✅ نسخة نظيفة بدون أزرار الاختبار
+// ✅ نسخة محسّنة مع تهيئة سريعة للبانرات
 
+import 'package:athkar_app/core/firebase/promotional_banners/promotional_banner_manager.dart';
+import 'package:athkar_app/core/firebase/remote_config_service.dart';
 import 'package:athkar_app/core/firebase/special_event/special_event_card.dart';
+import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -11,7 +14,6 @@ import '../../../app/di/service_locator.dart';
 import '../widgets/category_grid.dart';
 import '../daily_quotes/daily_quotes_card.dart';
 import '../widgets/home_prayer_times_card.dart';
-
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -30,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen>
   final ValueNotifier<DateTime> _currentTimeNotifier = ValueNotifier(DateTime.now());
   
   bool _isRefreshing = false;
+  bool _bannersShown = false;
 
   @override
   void initState() {
@@ -38,25 +41,17 @@ class _HomeScreenState extends State<HomeScreen>
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _currentTimeNotifier.value = DateTime.now();
     });
-    
-    // ✅ عرض البانرات عند فتح الشاشة
-    _showPromotionalBanners();
   }
   
-  /// ✅ عرض البانرات الترويجية
-  void _showPromotionalBanners() {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // ✅ انتظار أطول للسماح بتهيئة Firebase Services
-      await Future.delayed(const Duration(seconds: 2));
-      
-      if (!mounted) return;
-      
-      try {
-        context.showBanners(screenName: 'home');
-      } catch (e) {
-        debugPrint('⚠️ Error showing banners: $e');
-      }
-    });
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    // ✅ عرض البانرات مرة واحدة فقط بعد بناء الشاشة
+    if (!_bannersShown) {
+      _showPromotionalBanners();
+      _bannersShown = true;
+    }
   }
   
   @override
@@ -64,6 +59,106 @@ class _HomeScreenState extends State<HomeScreen>
     _timer.cancel();
     _currentTimeNotifier.dispose();
     super.dispose();
+  }
+
+  /// ✅ عرض البانرات الترويجية - محسّن للسرعة
+  void _showPromotionalBanners() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      
+      try {
+        // ✅ استراتيجية ذكية للانتظار
+        const maxWaitTime = Duration(seconds: 3);
+        const checkInterval = Duration(milliseconds: 300);
+        final stopwatch = Stopwatch()..start();
+        
+        while (stopwatch.elapsed < maxWaitTime) {
+          // فحص جاهزية BannerManager
+          final bannerManager = context.bannerManager;
+          
+          if (bannerManager != null && bannerManager.isInitialized) {
+            stopwatch.stop();
+            debugPrint('✅ BannerManager ready after ${stopwatch.elapsedMilliseconds}ms');
+            
+            // طباعة معلومات البانرات
+            final activeCount = bannerManager.activeBannersCount;
+            debugPrint('📊 Active banners: $activeCount');
+            
+            if (activeCount > 0) {
+              // عرض البانرات
+              await context.showBanners(screenName: 'home');
+            } else {
+              debugPrint('⚠️ No active banners to show');
+              debugPrint('💡 Check Firebase Console: Remote Config > promotional_banners');
+            }
+            
+            return;
+          }
+          
+          // انتظار قبل المحاولة التالية
+          await Future.delayed(checkInterval);
+        }
+        
+        stopwatch.stop();
+        debugPrint('⚠️ BannerManager not ready after ${stopwatch.elapsedMilliseconds}ms');
+        
+        // ✅ محاولة أخيرة: تهيئة قسرية
+        await _forceInitializeBanners();
+        
+      } catch (e, stackTrace) {
+        debugPrint('❌ Error showing banners: $e');
+        debugPrint('Stack: $stackTrace');
+      }
+    });
+  }
+  
+  /// ✅ تهيئة قسرية للبانرات
+  Future<void> _forceInitializeBanners() async {
+    try {
+      debugPrint('🔄 Attempting force initialization...');
+      
+      if (!getIt.isRegistered<PromotionalBannerManager>()) {
+        debugPrint('❌ BannerManager not registered');
+        return;
+      }
+      
+      final bannerManager = getIt<PromotionalBannerManager>();
+      
+      if (!bannerManager.isInitialized) {
+        debugPrint('  🔄 Initializing BannerManager...');
+        
+        final storage = getIt<StorageService>();
+        final remoteConfig = getIt<FirebaseRemoteConfigService>();
+        
+        // تأكد من تهيئة RemoteConfig أولاً
+        if (!remoteConfig.isInitialized) {
+          debugPrint('  🔄 Initializing RemoteConfig first...');
+          await remoteConfig.initialize();
+          await Future.delayed(const Duration(milliseconds: 300));
+        }
+        
+        // تهيئة BannerManager
+        await bannerManager.initialize(
+          remoteConfig: remoteConfig,
+          storage: storage,
+        );
+        
+        if (bannerManager.isInitialized) {
+          debugPrint('  ✅ Force initialization successful!');
+          
+          final activeCount = bannerManager.activeBannersCount;
+          debugPrint('  📊 Active banners: $activeCount');
+          
+          if (activeCount > 0 && mounted) {
+            await context.showBanners(screenName: 'home');
+          }
+        } else {
+          debugPrint('  ❌ Force initialization failed');
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ Force initialization error: $e');
+    }
   }
 
   Map<String, dynamic> _getMessage() {
@@ -103,18 +198,24 @@ class _HomeScreenState extends State<HomeScreen>
     HapticFeedback.mediumImpact();
     
     try {
-      debugPrint('🔄 Refreshing...');
+      debugPrint('🔄 Refreshing home screen...');
       
-      // ✅ تحديث Remote Config والبانرات
+      // تحديث Remote Config والبانرات
       if (context.mounted) {
         final refreshed = await context.refreshRemoteConfig();
         
         if (refreshed) {
-          debugPrint('✅ Config refreshed successfully');
+          debugPrint('✅ Config refreshed');
           
           // تحديث البانرات
           await context.refreshBanners();
           debugPrint('✅ Banners refreshed');
+          
+          // إعادة عرض البانرات إذا كانت هناك بانرات جديدة
+          final activeCount = context.activeBannersCount;
+          if (activeCount > 0) {
+            debugPrint('📊 $activeCount active banner(s) available');
+          }
         }
       }
       
@@ -179,15 +280,11 @@ class _HomeScreenState extends State<HomeScreen>
                             delegate: SliverChildListDelegate([
                               SizedBox(height: 10.h),
                               
-                              // Special Event Card
                               const SpecialEventCard(),
-                              
-                              // Prayer Times Card
                               const PrayerTimesCard(),
                               
                               SizedBox(height: 16.h),
                               
-                              // Daily Quotes Card
                               const DailyQuotesCard(),
                               
                               SizedBox(height: 20.h),
@@ -213,7 +310,6 @@ class _HomeScreenState extends State<HomeScreen>
           ],
         ),
       ),
-      // ✅ تم إزالة أزرار الاختبار
     );
   }
 
@@ -261,7 +357,6 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
           
-          // زر الإعدادات
           Material(
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(10.r),

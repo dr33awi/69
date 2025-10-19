@@ -1,5 +1,5 @@
-// lib/core/infrastructure/firebase/remote_config_service.dart
-// ✅ نسخة محسّنة لجلب البيانات بشكل أسرع
+// lib/core/firebase/remote_config_service.dart
+// ✅ نسخة محسّنة مع إصلاح مشكلة Fetch
 
 import 'dart:async';
 import 'dart:convert';
@@ -15,10 +15,8 @@ class FirebaseRemoteConfigService {
   bool _isInitialized = false;
   DateTime? _lastFetchTime;
   
-  // Cache محسّن
   Map<String, dynamic> _cachedValues = {};
   
-  // مفاتيح الإعدادات
   static const String _keyAppVersion = 'app_version';
   static const String _keyForceUpdate = 'force_update';
   static const String _keyMaintenanceMode = 'maintenance_mode';
@@ -27,7 +25,7 @@ class FirebaseRemoteConfigService {
   static const String _keySpecialEvent = 'special_event_data';
   static const String _keyPromotionalBanners = 'promotional_banners';
 
-  /// تهيئة الخدمة - محسّنة للسرعة
+  /// ✅ تهيئة محسّنة مع Fetch أفضل
   Future<void> initialize() async {
     if (_isInitialized) {
       debugPrint('✅ FirebaseRemoteConfigService already initialized');
@@ -40,21 +38,44 @@ class FirebaseRemoteConfigService {
       
       _remoteConfig = FirebaseRemoteConfig.instance;
       
-      // ✅ إعدادات محسّنة للسرعة
+      // ✅ إعدادات محسّنة
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
-        fetchTimeout: const Duration(seconds: 10), // تقليل من 60 إلى 10 ثواني
+        fetchTimeout: const Duration(seconds: 10),
         minimumFetchInterval: kDebugMode 
-          ? Duration.zero  // في وضع التطوير: بدون انتظار
-          : const Duration(minutes: 5), // في الإنتاج: 5 دقائق فقط
+          ? Duration.zero  // في التطوير: جلب فوري
+          : const Duration(hours: 1), // في الإنتاج: كل ساعة
       ));
       
       // تعيين القيم الافتراضية
       await _setDefaults();
       
-      // ✅ جلب وتفعيل بشكل متزامن
-      final fetchResult = await _fetchAndActivateWithRetry();
+      // ✅ جلب وتفعيل
+      bool fetchSuccess = false;
       
-      // تحديث Cache
+      try {
+        // المحاولة الأولى
+        debugPrint('🔄 Fetching from Firebase (attempt 1)...');
+        fetchSuccess = await _remoteConfig.fetchAndActivate();
+        
+        if (fetchSuccess) {
+          debugPrint('✅ Fresh data fetched successfully');
+        } else {
+          debugPrint('ℹ️ No new data, using cached values');
+        }
+      } catch (e) {
+        debugPrint('⚠️ Fetch failed, trying activate cached: $e');
+        
+        // محاولة تفعيل القيم المخزنة
+        try {
+          await _remoteConfig.activate();
+          debugPrint('✅ Activated cached values');
+        } catch (activateError) {
+          debugPrint('⚠️ Activate failed: $activateError');
+        }
+      }
+      
+      // ✅ تحديث Cache بعد التفعيل
+      await Future.delayed(const Duration(milliseconds: 200));
       _updateAllCache();
       
       _isInitialized = true;
@@ -67,50 +88,72 @@ class FirebaseRemoteConfigService {
     } catch (e) {
       debugPrint('❌ Error initializing Firebase Remote Config: $e');
       _isInitialized = false;
-      
-      // استخدام القيم الافتراضية في حالة الفشل
       _loadDefaultValues();
     }
   }
 
-  /// جلب وتفعيل مع إعادة المحاولة
-  Future<bool> _fetchAndActivateWithRetry() async {
+  /// ✅ تحديث محسّن
+  Future<bool> refresh() async {
+    if (!_isInitialized) {
+      await initialize();
+      return _isInitialized;
+    }
+    
     try {
-      // المحاولة الأولى
-      debugPrint('🔄 Fetching remote config (attempt 1)...');
-      bool result = await _remoteConfig.fetchAndActivate();
+      debugPrint('🔄 Refreshing remote config...');
       
-      if (result) {
-        debugPrint('✅ Remote config fetched successfully on first attempt');
-        return true;
+      // ✅ السماح بـ Fetch حتى لو كان قريب
+      await _remoteConfig.setConfigSettings(RemoteConfigSettings(
+        fetchTimeout: const Duration(seconds: 10),
+        minimumFetchInterval: Duration.zero, // السماح بالتحديث الفوري
+      ));
+      
+      bool result = false;
+      
+      try {
+        debugPrint('🔄 Fetching remote config (attempt 1)...');
+        result = await _remoteConfig.fetchAndActivate();
+        
+        if (result) {
+          debugPrint('✅ Fetched fresh data successfully');
+        } else {
+          debugPrint('ℹ️ No new data available');
+        }
+      } catch (e) {
+        debugPrint('⚠️ Fetch error, trying activate: $e');
+        
+        try {
+          await _remoteConfig.activate();
+          debugPrint('✅ Activated cached values');
+          result = false; // لم نحصل على بيانات جديدة
+        } catch (activateError) {
+          debugPrint('⚠️ Activate failed: $activateError');
+          return false;
+        }
       }
       
-      // إذا فشلت المحاولة الأولى، جرب مرة أخرى
-      debugPrint('🔄 Retrying fetch (attempt 2)...');
-      await Future.delayed(const Duration(milliseconds: 500));
-      result = await _remoteConfig.fetchAndActivate();
+      // ✅ تحديث Cache
+      await Future.delayed(const Duration(milliseconds: 200));
+      _updateAllCache();
+      _lastFetchTime = DateTime.now();
       
-      debugPrint(result 
-        ? '✅ Remote config fetched on retry' 
-        : '⚠️ Using cached/default values');
+      // ✅ إعادة الإعدادات الطبيعية
+      await _remoteConfig.setConfigSettings(RemoteConfigSettings(
+        fetchTimeout: const Duration(seconds: 10),
+        minimumFetchInterval: kDebugMode 
+          ? Duration.zero 
+          : const Duration(hours: 1),
+      ));
       
-      return result;
+      _printDebugInfo();
+      return true; // نجحت العملية حتى لو لم تكن هناك بيانات جديدة
       
     } catch (e) {
-      debugPrint('❌ Error fetching remote config: $e');
-      
-      // في حالة الخطأ، حاول تفعيل القيم المخزنة
-      try {
-        await _remoteConfig.activate();
-        debugPrint('✅ Activated cached values');
-        return false;
-      } catch (_) {
-        return false;
-      }
+      debugPrint('❌ Error refreshing config: $e');
+      return false;
     }
   }
 
-  /// تحديث كل Cache دفعة واحدة
   void _updateAllCache() {
     try {
       _cachedValues = {
@@ -123,13 +166,12 @@ class FirebaseRemoteConfigService {
         _keyPromotionalBanners: _parsePromotionalBanners(),
       };
       
-      debugPrint('✅ Cache updated successfully');
+      debugPrint('✅ Cache updated with ${_cachedValues.length} values');
     } catch (e) {
       debugPrint('⚠️ Error updating cache: $e');
     }
   }
 
-  /// تحميل القيم الافتراضية في حالة الفشل
   void _loadDefaultValues() {
     _cachedValues = {
       _keyForceUpdate: false,
@@ -141,10 +183,9 @@ class FirebaseRemoteConfigService {
       _keyPromotionalBanners: [],
     };
     
-    debugPrint('⚠️ Using default values due to fetch failure');
+    debugPrint('⚠️ Using default values');
   }
 
-  /// تعيين القيم الافتراضية
   Future<void> _setDefaults() async {
     await _remoteConfig.setDefaults({
       _keyAppVersion: '1.0.0',
@@ -167,41 +208,7 @@ class FirebaseRemoteConfigService {
     });
   }
 
-  /// تحديث الإعدادات يدوياً - محسّن
-  Future<bool> refresh() async {
-    if (!_isInitialized) {
-      await initialize();
-      return _isInitialized;
-    }
-    
-    try {
-      debugPrint('🔄 Refreshing remote config...');
-      
-      // فحص إذا كان يمكن التحديث (تجنب التحديثات المتكررة)
-      if (_lastFetchTime != null) {
-        final timeSinceLastFetch = DateTime.now().difference(_lastFetchTime!);
-        if (timeSinceLastFetch.inSeconds < 30 && !kDebugMode) {
-          debugPrint('⚠️ Too soon to refresh (${timeSinceLastFetch.inSeconds}s since last fetch)');
-          return false;
-        }
-      }
-      
-      final result = await _fetchAndActivateWithRetry();
-      
-      if (result) {
-        _updateAllCache();
-        _lastFetchTime = DateTime.now();
-        _printDebugInfo();
-      }
-      
-      return result;
-    } catch (e) {
-      debugPrint('❌ Error refreshing config: $e');
-      return false;
-    }
-  }
-
-  // ==================== Optimized Getters ====================
+  // ==================== Getters ====================
 
   String get requiredAppVersion {
     if (_cachedValues.containsKey(_keyAppVersion)) {
@@ -289,7 +296,7 @@ class FirebaseRemoteConfigService {
     return banners;
   }
 
-  // ==================== Parsing Methods ====================
+  // ==================== Parsing ====================
 
   List<String> _parseFeaturesList() {
     try {
@@ -313,7 +320,6 @@ class FirebaseRemoteConfigService {
       
       final dynamic decoded = jsonDecode(jsonString);
       if (decoded is Map<String, dynamic>) {
-        // فحص التواريخ
         if (decoded['start_date'] != null && decoded['end_date'] != null) {
           try {
             final startDate = DateTime.parse(decoded['start_date']);
@@ -336,15 +342,24 @@ class FirebaseRemoteConfigService {
   List<dynamic> _parsePromotionalBanners() {
     try {
       final jsonString = _remoteConfig.getString(_keyPromotionalBanners);
-      if (jsonString.isEmpty) return [];
+      
+      if (jsonString.isEmpty) {
+        debugPrint('⚠️ promotional_banners is empty in Remote Config');
+        return [];
+      }
+      
+      debugPrint('📄 Raw promotional_banners JSON: ${jsonString.substring(0, jsonString.length > 100 ? 100 : jsonString.length)}...');
       
       final dynamic decoded = jsonDecode(jsonString);
+      
       if (decoded is List) {
-        debugPrint('✅ Found ${decoded.length} promotional banners');
+        debugPrint('✅ Found ${decoded.length} promotional banners in config');
         return decoded;
+      } else {
+        debugPrint('⚠️ promotional_banners is not a list: ${decoded.runtimeType}');
       }
     } catch (e) {
-      debugPrint('⚠️ Error parsing promotional banners: $e');
+      debugPrint('❌ Error parsing promotional banners: $e');
     }
     return [];
   }
@@ -353,7 +368,7 @@ class FirebaseRemoteConfigService {
     return ['تحسينات الأداء', 'إصلاح الأخطاء', 'ميزات جديدة'];
   }
 
-  // ==================== Status & Debug ====================
+  // ==================== Status ====================
 
   RemoteConfigFetchStatus get lastFetchStatus => _remoteConfig.lastFetchStatus;
   DateTime get lastFetchTime => _lastFetchTime ?? _remoteConfig.lastFetchTime;
@@ -389,6 +404,23 @@ class FirebaseRemoteConfigService {
       debugPrint('Features List: ${updateFeaturesList}');
       debugPrint('Promotional Banners: ${promotionalBanners.length}');
       
+      if (promotionalBanners.isNotEmpty) {
+        debugPrint('--- Banner Details ---');
+        for (var i = 0; i < promotionalBanners.length; i++) {
+          final banner = promotionalBanners[i];
+          if (banner is Map) {
+            debugPrint('  Banner ${i + 1}:');
+            debugPrint('    - ID: ${banner['id']}');
+            debugPrint('    - Title: ${banner['title']}');
+            debugPrint('    - Active: ${banner['is_active']}');
+          }
+        }
+      } else {
+        debugPrint('⚠️ No promotional banners found!');
+        debugPrint('💡 Add banners to Firebase Console:');
+        debugPrint('   Remote Config > promotional_banners (JSON)');
+      }
+      
       if (specialEventData != null) {
         debugPrint('Special Event:');
         debugPrint('  - Active: ${specialEventData!['is_active']}');
@@ -400,7 +432,7 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  /// فرض التحديث للاختبار - محسّن
+  /// ✅ فرض التحديث للاختبار
   Future<void> forceRefreshForTesting() async {
     if (!_isInitialized) {
       await initialize();
@@ -410,24 +442,22 @@ class FirebaseRemoteConfigService {
     try {
       debugPrint('🧪 FORCE REFRESH FOR TESTING...');
       
-      // تغيير الإعدادات مؤقتاً للاختبار
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(seconds: 5),
         minimumFetchInterval: Duration.zero,
       ));
       
-      // جلب وتفعيل
       final result = await _remoteConfig.fetchAndActivate();
+      await Future.delayed(const Duration(milliseconds: 200));
       _updateAllCache();
       _lastFetchTime = DateTime.now();
       
       debugPrint('🧪 Force refresh result: $result');
       _printDebugInfo();
       
-      // إعادة الإعدادات الأصلية
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(seconds: 10),
-        minimumFetchInterval: const Duration(minutes: 5),
+        minimumFetchInterval: kDebugMode ? Duration.zero : const Duration(hours: 1),
       ));
       
     } catch (e) {
@@ -435,7 +465,6 @@ class FirebaseRemoteConfigService {
     }
   }
 
-  /// إعادة التهيئة الكاملة
   Future<void> reinitialize() async {
     debugPrint('🔄 Reinitializing FirebaseRemoteConfigService...');
     _isInitialized = false;
@@ -444,7 +473,6 @@ class FirebaseRemoteConfigService {
     await initialize();
   }
 
-  /// تنظيف الموارد
   void dispose() {
     _isInitialized = false;
     _cachedValues.clear();

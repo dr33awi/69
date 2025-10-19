@@ -1,6 +1,7 @@
-// lib/main.dart - النسخة المُحسّنة والنهائية
+// lib/main.dart - محسّن مع تهيئة سريعة للبانرات
 import 'dart:async';
 import 'dart:convert';
+import 'package:athkar_app/core/firebase/promotional_banners/promotional_banner_manager.dart';
 import 'package:athkar_app/core/firebase/remote_config_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,48 +9,38 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-// Firebase imports
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'firebase_options.dart';
 
-// Firebase Services
 import 'core/firebase/firebase_initializer.dart';
 
-// Service Locator والخدمات
 import 'app/di/service_locator.dart';
 import 'app/themes/core/theme_notifier.dart';
 import 'core/infrastructure/services/permissions/permission_manager.dart';
 import 'core/infrastructure/services/permissions/widgets/permission_monitor.dart';
 import 'core/infrastructure/services/storage/storage_service.dart';
 
-// خدمات الإشعارات
 import 'core/infrastructure/services/notifications/notification_manager.dart';
 import 'core/infrastructure/services/notifications/notification_tap_handler.dart';
 import 'core/infrastructure/services/notifications/models/notification_models.dart';
 
-// خدمات التطوير
 import 'core/infrastructure/config/development_config.dart';
 import 'core/infrastructure/services/preview/device_preview_config.dart';
 
-// Firebase UI
 import 'core/firebase/remote_config_manager.dart';
 import 'core/firebase/widgets/app_status_monitor.dart';
 
-// الثيمات والمسارات
 import 'app/themes/app_theme.dart';
 import 'app/routes/app_router.dart';
 
-// الشاشات
 import 'features/home/screens/home_screen.dart';
 import 'features/onboarding/screens/onboarding_screen.dart';
 import 'features/onboarding/screens/permissions_setup_screen.dart';
 
-// ==================== متغيرات عامة ====================
 NotificationAppLaunchDetails? _notificationAppLaunchDetails;
 NotificationTapEvent? _pendingNotificationEvent;
 
-/// نقطة دخول التطبيق
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -58,7 +49,6 @@ Future<void> main() async {
     DeviceOrientation.portraitDown,
   ]);
   
-  // فحص الإشعار الأولي
   await _checkInitialNotification();
   
   runZonedGuarded(
@@ -66,17 +56,13 @@ Future<void> main() async {
       try {
         debugPrint('🚀 ========== App Starting ========== 🚀');
         
-        // تهيئة سريعة وموحدة
         await _unifiedBootstrap();
-        
-        // إعداد معالج الإشعارات
         await _setupNotificationHandler();
         
         final app = const AthkarApp();
         final wrappedApp = DevicePreviewConfig.wrapApp(app);
         runApp(wrappedApp ?? app);
         
-        // تهيئة الخدمات غير الحرجة في الخلفية
         _backgroundInitialization();
         
         debugPrint('✅ ========== App Started Successfully ========== ✅');
@@ -86,9 +72,7 @@ Future<void> main() async {
         debugPrint('Error: $e');
         debugPrint('Stack: $s');
         
-        // تسجيل الخطأ في Crashlytics
         FirebaseCrashlytics.instance.recordError(e, s, fatal: true);
-        
         runApp(_ErrorApp(error: e.toString()));
       }
     },
@@ -107,10 +91,10 @@ Future<void> _unifiedBootstrap() async {
   try {
     // 1. Development Config
     DevelopmentConfig.initialize();
-    debugPrint('✅ [1/5] Development Config initialized');
+    debugPrint('✅ [1/4] Development Config initialized');
     
     // 2. Firebase Core
-    debugPrint('🔥 [2/5] Initializing Firebase Core...');
+    debugPrint('🔥 [2/4] Initializing Firebase Core...');
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
@@ -119,30 +103,22 @@ Future<void> _unifiedBootstrap() async {
       throw Exception('❌ No Firebase apps found after initialization');
     }
     
-    debugPrint('✅ [2/5] Firebase Core initialized (${Firebase.apps.length} apps)');
+    debugPrint('✅ [2/4] Firebase Core initialized (${Firebase.apps.length} apps)');
     
     // 3. Service Locator (الخدمات الأساسية)
-    debugPrint('📦 [3/5] Initializing Service Locator...');
+    debugPrint('📦 [3/4] Initializing Service Locator...');
     await ServiceLocator.initEssential();
     
     if (!ServiceLocator.areEssentialServicesReady()) {
       throw Exception('❌ Essential services not ready');
     }
     
-    debugPrint('✅ [3/5] Service Locator initialized');
+    debugPrint('✅ [3/4] Service Locator initialized');
     
-    // 4. ✅ تهيئة Remote Config مبكراً (هام جداً!)
-    debugPrint('⚙️ [4/5] Initializing Remote Config Service...');
-    await _initializeRemoteConfigEarly();
-    debugPrint('✅ [4/5] Remote Config Service ready');
-    
-    // 5. Firebase Services الأخرى
-    debugPrint('🔥 [5/5] Initializing Other Firebase Services...');
-    final firebaseSuccess = await FirebaseInitializer.initialize();
-    
-    if (firebaseSuccess) {
-      debugPrint('✅ [5/5] Firebase Services initialized');
-    }
+    // 4. ✅ تهيئة Firebase Services مبكراً (مهم للبانرات!)
+    debugPrint('🔥 [4/4] Initializing Firebase Services...');
+    await _initializeFirebaseServicesEarly();
+    debugPrint('✅ [4/4] Firebase Services ready');
     
     stopwatch.stop();
     debugPrint('⚡ ========== Bootstrap Completed in ${stopwatch.elapsedMilliseconds}ms ========== ⚡');
@@ -155,75 +131,58 @@ Future<void> _unifiedBootstrap() async {
   }
 }
 
-/// ✅ تهيئة Remote Config مبكراً وبشكل منفصل
-Future<void> _initializeRemoteConfigEarly() async {
+/// ✅ تهيئة Firebase Services مبكراً (محسّن للبانرات)
+Future<void> _initializeFirebaseServicesEarly() async {
   try {
-    // تسجيل FirebaseRemoteConfigService
-    if (!getIt.isRegistered<FirebaseRemoteConfigService>()) {
-      getIt.registerSingleton<FirebaseRemoteConfigService>(
-        FirebaseRemoteConfigService(),
-      );
+    final stopwatch = Stopwatch()..start();
+    
+    // تهيئة Firebase الأساسية
+    final firebaseSuccess = await FirebaseInitializer.initialize();
+    
+    if (!firebaseSuccess) {
+      debugPrint('⚠️ Firebase initialization returned false');
+      return;
     }
     
-    // تهيئة الخدمة
-    final remoteConfig = getIt<FirebaseRemoteConfigService>();
-    await remoteConfig.initialize();
-    
-    // تسجيل RemoteConfigManager
-    if (!getIt.isRegistered<RemoteConfigManager>()) {
-      getIt.registerSingleton<RemoteConfigManager>(
-        RemoteConfigManager(),
-      );
+    // ✅ تهيئة Firebase Services من ServiceLocator
+    if (ServiceLocator.isFirebaseAvailable) {
+      await ServiceLocator.initializeFirebaseInBackground();
+      
+      stopwatch.stop();
+      debugPrint('✅ Firebase Services initialized in ${stopwatch.elapsedMilliseconds}ms');
+      
+      // طباعة حالة البانرات
+      if (getIt.isRegistered<PromotionalBannerManager>()) {
+        final bannerManager = getIt<PromotionalBannerManager>();
+        if (bannerManager.isInitialized) {
+          debugPrint('📊 Banners Status:');
+          debugPrint('  - Total: ${bannerManager.allBanners.length}');
+          debugPrint('  - Active: ${bannerManager.activeBannersCount}');
+        }
+      }
+    } else {
+      debugPrint('⚠️ Firebase not available');
     }
-    
-    // تهيئة Manager
-    final configManager = getIt<RemoteConfigManager>();
-    final storage = getIt<StorageService>();
-    
-    await configManager.initialize(
-      remoteConfig: remoteConfig,
-      storage: storage,
-    );
-    
-    debugPrint('✅ Remote Config fully initialized:');
-    debugPrint('  - Force Update: ${configManager.isForceUpdateRequired}');
-    debugPrint('  - Maintenance: ${configManager.isMaintenanceModeActive}');
-    debugPrint('  - App Version: ${configManager.requiredAppVersion}');
     
   } catch (e) {
-    debugPrint('⚠️ Remote Config init failed (non-critical): $e');
-    // لا نوقف التطبيق، نستمر مع القيم الافتراضية
+    debugPrint('⚠️ Firebase Services init warning: $e');
   }
 }
 
-// ✅ تعديل _backgroundInitialization لتجنب التكرار
+// ✅ تحديث _backgroundInitialization
 void _backgroundInitialization() {
   Future.delayed(const Duration(milliseconds: 500), () async {
     try {
       debugPrint('🌟 ========== Background Init Starting ========== 🌟');
       final stopwatch = Stopwatch()..start();
       
-      // 1. تسجيل خدمات الميزات (Lazy)
+      // 1. تسجيل خدمات الميزات
       await ServiceLocator.registerFeatureServices();
-      debugPrint('✅ [1/3] Feature services registered (lazy)');
+      debugPrint('✅ [1/2] Feature services registered');
       
-      // 2. ✅ تحديث Firebase Services (بدون إعادة تهيئة Remote Config)
-      if (getIt.isRegistered<FirebaseRemoteConfigService>()) {
-        final remoteConfig = getIt<FirebaseRemoteConfigService>();
-        
-        // تحديث فقط إذا لم تكن محدثة
-        if (remoteConfig.isInitialized) {
-          final timeSinceLastFetch = DateTime.now().difference(remoteConfig.lastFetchTime);
-          if (timeSinceLastFetch.inMinutes > 5) {
-            await remoteConfig.refresh();
-            debugPrint('✅ [2/3] Remote Config refreshed in background');
-          }
-        }
-      }
-      
-      // 3. Advanced Firebase (Analytics, Performance)
+      // 2. Advanced Firebase (Analytics, Performance)
       await ServiceLocator.initializeAdvancedFirebaseServices();
-      debugPrint('✅ [3/3] Advanced Firebase services initialized');
+      debugPrint('✅ [2/2] Advanced Firebase services initialized');
       
       stopwatch.stop();
       debugPrint('🌟 ========== Background Init Completed in ${stopwatch.elapsedMilliseconds}ms ========== 🌟');
@@ -233,7 +192,7 @@ void _backgroundInitialization() {
     }
   });
 }
-// ==================== فحص الإشعار الأولي ====================
+
 Future<void> _checkInitialNotification() async {
   try {
     debugPrint('🔍 Checking initial notification...');
@@ -266,7 +225,6 @@ Future<void> _checkInitialNotification() async {
   }
 }
 
-// ==================== إعداد معالج الإشعارات ====================
 Future<void> _setupNotificationHandler() async {
   try {
     debugPrint('🔔 Setting up notification handler...');
@@ -275,7 +233,6 @@ Future<void> _setupNotificationHandler() async {
       navigatorKey: AppRouter.navigatorKey,
     );
     
-    // معالجة الإشعار المعلق
     if (_pendingNotificationEvent != null) {
       Future.delayed(const Duration(milliseconds: 1500), () {
         if (_pendingNotificationEvent != null) {
@@ -285,7 +242,6 @@ Future<void> _setupNotificationHandler() async {
       });
     }
     
-    // الاستماع للإشعارات الجديدة
     NotificationManager.instance.onTap.listen(
       handler.handleNotificationTap,
       onError: (error) => debugPrint('❌ Notification handler error: $error'),

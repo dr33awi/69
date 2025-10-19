@@ -1,4 +1,4 @@
-// lib/app/di/service_locator.dart - محدث ونظيف مع خدمات Firebase المتقدمة والبانرات الترويجية
+// lib/app/di/service_locator.dart - محدث مع تهيئة سريعة للبانرات
 import 'package:athkar_app/app/themes/core/theme_notifier.dart';
 import 'package:athkar_app/core/error/error_handler.dart';
 import 'package:athkar_app/core/firebase/firebase_messaging_service.dart';
@@ -26,7 +26,6 @@ import 'package:athkar_app/features/prayer_times/services/prayer_times_service.d
 import 'package:athkar_app/features/qibla/services/qibla_service_v3.dart';
 import 'package:athkar_app/features/settings/services/settings_services_manager.dart';
 import 'package:athkar_app/features/tasbih/services/tasbih_service.dart';
-// ✅ إضافة import للبانرات الترويجية
 import 'package:athkar_app/core/firebase/promotional_banners/promotional_banner_manager.dart';
 import 'package:athkar_app/core/firebase/promotional_banners/utils/banner_helpers.dart';
 import 'package:flutter/material.dart';
@@ -38,19 +37,17 @@ import 'package:firebase_core/firebase_core.dart';
 
 final getIt = GetIt.instance;
 
-/// Service Locator محسن مع Lazy Loading حقيقي
+/// Service Locator محسن مع تهيئة سريعة للبانرات
 class ServiceLocator {
   static final ServiceLocator _instance = ServiceLocator._internal();
   factory ServiceLocator() => _instance;
   ServiceLocator._internal();
 
-  // حالة التهيئة
   bool _isEssentialInitialized = false;
   bool _isFeatureServicesRegistered = false;
   bool _firebaseAvailable = false;
   bool _advancedFirebaseInitialized = false;
   
-  // مفاتيح التخزين للـ Cache
   static const String _keyLastInitTime = 'last_init_time';
   static const String _keyFeatureServicesRegistered = 'feature_services_registered';
   static const String _keyFirebaseAvailable = 'firebase_available';
@@ -60,21 +57,16 @@ class ServiceLocator {
     await _instance._initializeEssentialOnly();
   }
 
-  /// تسجيل خدمات الميزات (بدون تهيئة)
+  /// تسجيل خدمات الميزات
   static Future<void> registerFeatureServices() async {
     await _instance._registerFeatureServicesIfNeeded();
   }
 
-  /// فحص إذا كانت الخدمات الأساسية جاهزة
   static bool get isEssentialReady => _instance._isEssentialInitialized;
-
-  /// فحص إذا كانت خدمات الميزات مسجلة (بدون تهيئة فعلية)
   static bool get areFeatureServicesRegistered => _instance._isFeatureServicesRegistered;
-
-  /// فحص توفر Firebase
   static bool get isFirebaseAvailable => _instance._firebaseAvailable;
 
-  /// تهيئة الخدمات الأساسية فقط (سريعة جداً)
+  /// تهيئة الخدمات الأساسية
   Future<void> _initializeEssentialOnly() async {
     if (_isEssentialInitialized) {
       debugPrint('ServiceLocator: Essential services already ready ⚡');
@@ -85,34 +77,24 @@ class ServiceLocator {
       debugPrint('ServiceLocator: Fast initialization starting...');
       final stopwatch = Stopwatch()..start();
 
-      // 1. الخدمات الأساسية المطلوبة فوراً
       await _registerCoreServices();
       await _registerStorageServices();
-      
-      // 2. تحميل الحالة المحفوظة
       await _loadSavedState();
       
-      // ✅ 2.5 فحص وتسجيل Firebase Services مبكراً
+      // ✅ فحص وتسجيل Firebase مبكراً
       await _checkFirebaseAvailability();
       if (_firebaseAvailable) {
         _registerFirebaseServices();
         debugPrint('✅ Firebase services registered in Essential Init');
       }
       
-      // 3. خدمات التطوير والمراقبة
       _registerDevelopmentServices();
-      
-      // 4. باقي الخدمات الأساسية
       _registerThemeServices();
       _registerPermissionServices();
       await _registerNotificationServices();
       _registerDeviceServices();
       _registerErrorHandler();
-      
-      // 5. تسجيل ShareService
       _registerShareService();
-      
-      // ✅ 6. تسجيل PrayerTimesService في Essential (للشاشة الرئيسية)
       _registerPrayerTimesService();
 
       _isEssentialInitialized = true;
@@ -127,7 +109,6 @@ class ServiceLocator {
     }
   }
 
-  /// تسجيل خدمات الميزات (بدون تهيئة فعلية)
   Future<void> _registerFeatureServicesIfNeeded() async {
     if (_isFeatureServicesRegistered) {
       debugPrint('ServiceLocator: Feature services already registered');
@@ -136,26 +117,18 @@ class ServiceLocator {
 
     try {
       debugPrint('ServiceLocator: Registering feature services lazily...');
-      
       _registerFeatureServicesLazy();
       _isFeatureServicesRegistered = true;
-      
-      // حفظ الحالة
       await _saveRegistrationState();
-      
       debugPrint('ServiceLocator: Feature services registered successfully ✅');
-      
     } catch (e) {
       debugPrint('ServiceLocator: Feature services registration failed: $e');
     }
   }
 
-  /// تحميل الحالة المحفوظة
   Future<void> _loadSavedState() async {
     try {
       final prefs = getIt<SharedPreferences>();
-      
-      // فحص آخر وقت تهيئة (إعادة تعيين بعد يوم)
       final lastInitTime = prefs.getInt(_keyLastInitTime) ?? 0;
       final now = DateTime.now().millisecondsSinceEpoch;
       final dayInMillis = 24 * 60 * 60 * 1000;
@@ -165,15 +138,9 @@ class ServiceLocator {
         return;
       }
 
-      // تحميل الحالة
       _isFeatureServicesRegistered = prefs.getBool(_keyFeatureServicesRegistered) ?? false;
       _firebaseAvailable = prefs.getBool(_keyFirebaseAvailable) ?? false;
       
-      debugPrint('ServiceLocator: Loaded cached state:');
-      debugPrint('  - Feature Services Registered: $_isFeatureServicesRegistered');
-      debugPrint('  - Firebase Available: $_firebaseAvailable');
-      
-      // إعادة تسجيل خدمات الميزات إذا كانت مسجلة من قبل
       if (_isFeatureServicesRegistered) {
         _registerFeatureServicesLazy();
         debugPrint('ServiceLocator: Feature services re-registered from cache');
@@ -185,36 +152,25 @@ class ServiceLocator {
     }
   }
 
-  /// حفظ حالة التسجيل
   Future<void> _saveRegistrationState() async {
     try {
       final prefs = getIt<SharedPreferences>();
-      
       await prefs.setInt(_keyLastInitTime, DateTime.now().millisecondsSinceEpoch);
       await prefs.setBool(_keyFeatureServicesRegistered, _isFeatureServicesRegistered);
       await prefs.setBool(_keyFirebaseAvailable, _firebaseAvailable);
-      
-      debugPrint('ServiceLocator: Registration state saved');
-      
     } catch (e) {
       debugPrint('ServiceLocator: Error saving registration state: $e');
     }
   }
 
-  /// إعادة تعيين الحالة المحفوظة
   Future<void> _resetSavedState() async {
     try {
       final prefs = getIt<SharedPreferences>();
-      
       await prefs.remove(_keyLastInitTime);
       await prefs.remove(_keyFeatureServicesRegistered);
       await prefs.remove(_keyFirebaseAvailable);
-      
       _isFeatureServicesRegistered = false;
       _firebaseAvailable = false;
-      
-      debugPrint('ServiceLocator: Saved state reset');
-      
     } catch (e) {
       debugPrint('ServiceLocator: Error resetting saved state: $e');
     }
@@ -318,24 +274,20 @@ class ServiceLocator {
     }
   }
 
-  /// تسجيل خدمات التطوير والمراقبة
   void _registerDevelopmentServices() {
     debugPrint('ServiceLocator: Registering development services...');
     
     try {
-      // Logger - Singleton
       if (!getIt.isRegistered<AppLogger>()) {
         getIt.registerSingleton<AppLogger>(AppLogger.instance);
         AppLogger.info('AppLogger service registered');
       }
 
-      // Performance Monitor - Singleton
       if (!getIt.isRegistered<PerformanceMonitor>()) {
         getIt.registerSingleton<PerformanceMonitor>(PerformanceMonitor.instance);
         AppLogger.info('PerformanceMonitor service registered');
       }
 
-      // Leak Tracker Service - Singleton
       if (!getIt.isRegistered<LeakTrackerService>()) {
         getIt.registerSingleton<LeakTrackerService>(LeakTrackerService.instance);
         LeakTrackerService.instance.initialize();
@@ -348,7 +300,6 @@ class ServiceLocator {
     }
   }
 
-  /// تسجيل ShareService
   void _registerShareService() {
     debugPrint('ServiceLocator: Registering share service...');
     
@@ -362,7 +313,6 @@ class ServiceLocator {
     }
   }
 
-  /// ✅ تسجيل PrayerTimesService في Essential Init
   void _registerPrayerTimesService() {
     if (!getIt.isRegistered<PrayerTimesService>()) {
       getIt.registerLazySingleton<PrayerTimesService>(
@@ -378,11 +328,9 @@ class ServiceLocator {
     }
   }
 
-  /// تسجيل خدمات الميزات كـ Lazy (لن تُهيئ حتى الاستخدام الفعلي)
   void _registerFeatureServicesLazy() {
     debugPrint('ServiceLocator: Registering feature services as TRUE LAZY...');
     
-    // خدمة الأذكار - Lazy Singleton
     if (!getIt.isRegistered<AthkarService>()) {
       getIt.registerLazySingleton<AthkarService>(
         () {
@@ -392,7 +340,6 @@ class ServiceLocator {
       );
     }
 
-    // خدمة الأدعية - Lazy Singleton
     if (!getIt.isRegistered<DuaService>()) {
       getIt.registerLazySingleton<DuaService>(
         () {
@@ -402,7 +349,6 @@ class ServiceLocator {
       );
     }
 
-    // خدمة التسبيح - Factory
     if (!getIt.isRegistered<TasbihService>()) {
       getIt.registerFactory<TasbihService>(
         () {
@@ -412,7 +358,6 @@ class ServiceLocator {
       );
     }
     
-    // خدمة القبلة - Factory (V3 مع flutter_qiblah)
     if (!getIt.isRegistered<QiblaServiceV3>()) {
       getIt.registerFactory<QiblaServiceV3>(
         () {
@@ -425,7 +370,6 @@ class ServiceLocator {
       );
     }
 
-    // خدمات الإعدادات - Lazy Singleton
     if (!getIt.isRegistered<SettingsServicesManager>()) {
       getIt.registerLazySingleton<SettingsServicesManager>(
         () {
@@ -442,9 +386,8 @@ class ServiceLocator {
     debugPrint('ServiceLocator: TRUE LAZY feature services registered ✅');
   }
   
-  // ==================== Firebase Services (مُحسّن) ====================
+  // ==================== Firebase Services ====================
 
-  /// تهيئة Firebase في الخلفية (اختياري)
   static Future<void> initializeFirebaseInBackground() async {
     await _instance._safeInitializeFirebase();
   }
@@ -453,7 +396,6 @@ class ServiceLocator {
     if (_firebaseAvailable) {
       debugPrint('✅ Firebase already available from cache');
       
-      // ✅ تهيئة الخدمات حتى لو كانت متاحة
       if (getIt.isRegistered<FirebaseRemoteConfigService>()) {
         await _initializeFirebaseServices();
       } else {
@@ -466,7 +408,6 @@ class ServiceLocator {
 
     try {
       debugPrint('🔥 Checking Firebase availability...');
-      
       await _checkFirebaseAvailability();
       
       if (_firebaseAvailable) {
@@ -499,7 +440,6 @@ class ServiceLocator {
     }
   }
 
-  /// تسجيل خدمات Firebase (بدون تهيئة)
   void _registerFirebaseServices() {
     if (!_firebaseAvailable) {
       debugPrint('⚠️ Firebase not available, skipping service registration');
@@ -509,7 +449,6 @@ class ServiceLocator {
     try {
       debugPrint('📝 Registering Firebase services...');
       
-      // ✅ 1. Remote Config Service (الأهم!)
       if (!getIt.isRegistered<FirebaseRemoteConfigService>()) {
         getIt.registerLazySingleton<FirebaseRemoteConfigService>(
           () {
@@ -518,11 +457,8 @@ class ServiceLocator {
           },
         );
         debugPrint('  ✅ FirebaseRemoteConfigService registered');
-      } else {
-        debugPrint('  ℹ️ FirebaseRemoteConfigService already registered');
       }
       
-      // 2. Remote Config Manager
       if (!getIt.isRegistered<RemoteConfigManager>()) {
         getIt.registerLazySingleton<RemoteConfigManager>(
           () {
@@ -533,7 +469,6 @@ class ServiceLocator {
         debugPrint('  ✅ RemoteConfigManager registered');
       }
       
-      // ✅ 3. Promotional Banner Manager
       if (!getIt.isRegistered<PromotionalBannerManager>()) {
         getIt.registerLazySingleton<PromotionalBannerManager>(
           () {
@@ -544,7 +479,6 @@ class ServiceLocator {
         debugPrint('  ✅ PromotionalBannerManager registered');
       }
       
-      // 4. Firebase Messaging
       if (!getIt.isRegistered<FirebaseMessagingService>()) {
         getIt.registerLazySingleton<FirebaseMessagingService>(
           () {
@@ -564,7 +498,7 @@ class ServiceLocator {
     }
   }
 
-  /// تهيئة خدمات Firebase المسجلة
+  /// ✅ تهيئة سريعة ومحسّنة للبانرات
   Future<void> _initializeFirebaseServices() async {
     if (!_firebaseAvailable) {
       debugPrint('⚠️ Firebase not available, skipping initialization');
@@ -572,8 +506,9 @@ class ServiceLocator {
     }
     
     try {
-      debugPrint('🔄 Initializing Firebase services...');
+      debugPrint('🔄 Initializing Firebase services (FAST MODE)...');
       final storage = getIt<StorageService>();
+      final stopwatch = Stopwatch()..start();
       
       // ✅ 1. تهيئة Remote Config أولاً (الأهم!)
       if (getIt.isRegistered<FirebaseRemoteConfigService>()) {
@@ -581,61 +516,68 @@ class ServiceLocator {
           final remoteConfig = getIt<FirebaseRemoteConfigService>();
           
           if (!remoteConfig.isInitialized) {
-            debugPrint('  🔄 Initializing FirebaseRemoteConfigService...');
+            debugPrint('  🔄 Initializing RemoteConfig...');
             await remoteConfig.initialize();
-            debugPrint('  ✅ FirebaseRemoteConfigService initialized');
-          } else {
-            debugPrint('  ℹ️ FirebaseRemoteConfigService already initialized');
+            debugPrint('  ✅ RemoteConfig ready (${stopwatch.elapsedMilliseconds}ms)');
           }
           
-          // تهيئة Manager
+          // ✅ 2. تهيئة Manager
           if (getIt.isRegistered<RemoteConfigManager>()) {
             final manager = getIt<RemoteConfigManager>();
             
             if (!manager.isInitialized) {
-              debugPrint('  🔄 Initializing RemoteConfigManager...');
+              debugPrint('  🔄 Initializing ConfigManager...');
               await manager.initialize(
                 remoteConfig: remoteConfig,
                 storage: storage,
               );
-              debugPrint('  ✅ RemoteConfigManager initialized');
+              debugPrint('  ✅ ConfigManager ready');
             }
           }
           
-          // ✅ تهيئة Promotional Banner Manager
+          // ✅ 3. تهيئة Banner Manager (الأهم!)
           if (getIt.isRegistered<PromotionalBannerManager>()) {
             final bannerManager = getIt<PromotionalBannerManager>();
             
             if (!bannerManager.isInitialized) {
-              debugPrint('  🔄 Initializing PromotionalBannerManager...');
+              debugPrint('  🔄 Initializing BannerManager...');
+              
               await bannerManager.initialize(
                 remoteConfig: remoteConfig,
                 storage: storage,
               );
-              debugPrint('  ✅ PromotionalBannerManager initialized');
+              
+              stopwatch.stop();
+              
+              debugPrint('  ✅ BannerManager ready (${stopwatch.elapsedMilliseconds}ms total)');
               debugPrint('  📊 Active banners: ${bannerManager.activeBannersCount}');
+              
+              // طباعة حالة البانرات
+              if (bannerManager.activeBannersCount > 0) {
+                bannerManager.printStatus();
+              } else {
+                debugPrint('  ⚠️ No active banners found!');
+                debugPrint('  💡 Check Firebase Remote Config: promotional_banners');
+              }
             }
           }
           
         } catch (e) {
           debugPrint('  ⚠️ Remote Config/Banners init failed: $e');
         }
-      } else {
-        debugPrint('  ❌ FirebaseRemoteConfigService not registered!');
       }
       
-      // 2. تهيئة Firebase Messaging
+      // 4. Firebase Messaging (اختياري)
       if (getIt.isRegistered<FirebaseMessagingService>()) {
         try {
           final messaging = getIt<FirebaseMessagingService>();
           
           if (!messaging.isInitialized) {
-            debugPrint('  🔄 Initializing FirebaseMessagingService...');
             await messaging.initialize(
               storage: storage,
               notificationService: getIt<NotificationService>(),
             );
-            debugPrint('  ✅ FirebaseMessagingService initialized');
+            debugPrint('  ✅ FirebaseMessaging initialized');
           }
         } catch (e) {
           debugPrint('  ⚠️ Firebase Messaging init failed: $e');
@@ -649,9 +591,8 @@ class ServiceLocator {
     }
   }
 
-  // ==================== Advanced Firebase Services ====================
+  // ==================== Advanced Firebase ====================
 
-  /// تهيئة خدمات Firebase المتقدمة (Analytics, Performance)
   static Future<void> initializeAdvancedFirebaseServices() async {
     await _instance._initializeAdvancedFirebase();
   }
@@ -670,23 +611,17 @@ class ServiceLocator {
     try {
       debugPrint('🚀 Initializing advanced Firebase services...');
       
-      // Analytics Service
       if (!getIt.isRegistered<AnalyticsService>()) {
         getIt.registerSingleton<AnalyticsService>(AnalyticsService());
-        
         final analytics = getIt<AnalyticsService>();
         await analytics.initialize();
-        
         debugPrint('✅ AnalyticsService ready');
       }
       
-      // Performance Service
       if (!getIt.isRegistered<PerformanceService>()) {
         getIt.registerSingleton<PerformanceService>(PerformanceService());
-        
         final performance = getIt<PerformanceService>();
         await performance.initialize();
-        
         debugPrint('✅ PerformanceService ready');
       }
       
@@ -700,7 +635,6 @@ class ServiceLocator {
 
   // ==================== الخدمات المساعدة ====================
 
-  /// فحص جاهزية الخدمات الأساسية فقط
   static bool areEssentialServicesReady() {
     return _instance._isEssentialInitialized &&
            getIt.isRegistered<StorageService>() &&
@@ -711,12 +645,10 @@ class ServiceLocator {
            getIt.isRegistered<ShareService>();
   }
 
-  /// فحص أن التطبيق جاهز للعمل (بدون إجبار تهيئة الخدمات)
   static bool isAppReadyToRun() {
     return areEssentialServicesReady() && areFeatureServicesRegistered;
   }
 
-  /// إعادة تعيين
   static Future<void> reset({bool clearCache = false}) async {
     debugPrint('ServiceLocator: Resetting (clearCache: $clearCache)...');
     
@@ -804,7 +736,6 @@ class ServiceLocator {
     }
   }
 
-  /// فحص إذا كانت الخدمة مُهيئة فعلياً (وليس مجرد مسجلة)
   bool _isServiceActuallyInitialized<T extends Object>() {
     try {
       return getIt.isRegistered<T>() && getIt.isReadySync<T>();
@@ -827,7 +758,6 @@ class ServiceLocator {
         }
       }
       
-      // ✅ تنظيف PromotionalBannerManager
       if (getIt.isRegistered<PromotionalBannerManager>()) {
         if (_isServiceActuallyInitialized<PromotionalBannerManager>()) {
           getIt<PromotionalBannerManager>().dispose();
@@ -889,13 +819,12 @@ T? getServiceSafe<T extends Object>() {
   }
 }
 
-// ==================== Extension methods للوصول السريع للخدمات ====================
+// ==================== Extension methods ====================
 
 extension ServiceLocatorExtensions on BuildContext {
   T getService<T extends Object>() => getIt<T>();
   bool hasService<T extends Object>() => getIt.isRegistered<T>();
   
-  // الخدمات الأساسية (آمنة دائماً)
   StorageService get storageService => getIt<StorageService>();
   NotificationService get notificationService => getIt<NotificationService>();
   PermissionService get permissionService => getIt<PermissionService>();
@@ -905,31 +834,13 @@ extension ServiceLocatorExtensions on BuildContext {
   ThemeNotifier get themeNotifier => getIt<ThemeNotifier>();
   ShareService get shareService => getIt<ShareService>();
   
-  // خدمات الميزات (ستُهيئ عند أول استخدام)
-  PrayerTimesService get prayerTimesService {
-    debugPrint('🔄 Accessing PrayerTimesService - will initialize if not already done');
-    return getIt<PrayerTimesService>();
-  }
-  
-  AthkarService get athkarService {
-    debugPrint('🔄 Accessing AthkarService - will initialize if not already done');
-    return getIt<AthkarService>();
-  }
-  
-  DuaService get duaService {
-    debugPrint('🔄 Accessing DuaService - will initialize if not already done');
-    return getIt<DuaService>();
-  }
-  
+  PrayerTimesService get prayerTimesService => getIt<PrayerTimesService>();
+  AthkarService get athkarService => getIt<AthkarService>();
+  DuaService get duaService => getIt<DuaService>();
   TasbihService get tasbihService => getIt<TasbihService>();
   QiblaServiceV3 get qiblaService => getIt<QiblaServiceV3>();
+  SettingsServicesManager get settingsManager => getIt<SettingsServicesManager>();
   
-  SettingsServicesManager get settingsManager {
-    debugPrint('🔄 Accessing SettingsServicesManager - will initialize if not already done');
-    return getIt<SettingsServicesManager>();
-  }
-  
-  // Firebase Services (Safe Access)
   FirebaseRemoteConfigService? get firebaseRemoteConfig {
     try {
       return ServiceLocator.isFirebaseAvailable && getIt.isRegistered<FirebaseRemoteConfigService>() 
@@ -960,9 +871,6 @@ extension ServiceLocatorExtensions on BuildContext {
     }
   }
   
-  // ==================== Promotional Banners ====================
-  
-  /// مدير البانرات الترويجية
   PromotionalBannerManager? get bannerManager {
     try {
       return ServiceLocator.isFirebaseAvailable && 
@@ -975,7 +883,6 @@ extension ServiceLocatorExtensions on BuildContext {
     }
   }
   
-  /// عرض البانرات لشاشة معينة
   Future<void> showBanners({required String screenName}) async {
     try {
       final manager = bannerManager;
@@ -993,7 +900,6 @@ extension ServiceLocatorExtensions on BuildContext {
     }
   }
   
-  /// عرض بانر محدد
   Future<void> showSpecificBanner(String bannerId) async {
     try {
       await BannerHelpers.showBannerById(
@@ -1005,16 +911,6 @@ extension ServiceLocatorExtensions on BuildContext {
     }
   }
   
-  /// عرض جميع البانرات (للاختبار)
-  Future<void> showAllBannersTest() async {
-    try {
-      await BannerHelpers.showAllBanners(context: this);
-    } catch (e) {
-      debugPrint('Error showing all banners: $e');
-    }
-  }
-  
-  /// تحديث البانرات يدوياً
   Future<void> refreshBanners() async {
     try {
       final manager = bannerManager;
@@ -1027,21 +923,17 @@ extension ServiceLocatorExtensions on BuildContext {
     }
   }
   
-  /// الحصول على عدد البانرات النشطة
   int get activeBannersCount {
     final manager = bannerManager;
     return manager?.activeBannersCount ?? 0;
   }
   
-  /// الحصول على إحصائيات بانر
   Map<String, dynamic>? getBannerStats(String bannerId) {
     final manager = bannerManager;
     if (manager == null || !manager.isInitialized) return null;
-    
     return manager.getBannerStats(bannerId);
   }
   
-  /// مسح بيانات البانرات (للاختبار)
   Future<void> clearAllBannerData() async {
     final manager = bannerManager;
     if (manager != null && manager.isInitialized) {
@@ -1050,7 +942,6 @@ extension ServiceLocatorExtensions on BuildContext {
     }
   }
   
-  /// طباعة حالة البانرات (للتصحيح)
   void printBannerStatus() {
     final manager = bannerManager;
     if (manager != null && manager.isInitialized) {
@@ -1059,8 +950,6 @@ extension ServiceLocatorExtensions on BuildContext {
       debugPrint('⚠️ BannerManager not available or not initialized');
     }
   }
-  
-  // ==================== Firebase Advanced Services ====================
   
   AnalyticsService? get analyticsService {
     try {
@@ -1081,8 +970,6 @@ extension ServiceLocatorExtensions on BuildContext {
       return null;
     }
   }
-  
-  // ==================== Analytics Shortcuts ====================
   
   Future<void> logAnalyticsEvent(String name, [Map<String, dynamic>? params]) async {
     try {
@@ -1105,8 +992,6 @@ extension ServiceLocatorExtensions on BuildContext {
       debugPrint('Error logging screen view: $e');
     }
   }
-  
-  // ==================== Performance Shortcuts ====================
   
   Future<T> trackPerformance<T>(
     String traceName,
@@ -1147,8 +1032,6 @@ extension ServiceLocatorExtensions on BuildContext {
     }
   }
   
-  // ==================== Remote Config Status ====================
-  
   bool get isMaintenanceModeActive {
     final manager = remoteConfigManager;
     return manager?.isMaintenanceModeActive ?? false;
@@ -1183,8 +1066,6 @@ extension ServiceLocatorExtensions on BuildContext {
     final manager = remoteConfigManager;
     return manager?.configStatus;
   }
-  
-  // ==================== Permission Helpers ====================
   
   Future<bool> requestPermission(
     AppPermissionType permission, {
