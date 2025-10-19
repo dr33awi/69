@@ -1,5 +1,4 @@
 // lib/features/settings/screens/main_settings_screen.dart
-// محدث: مبسط باستخدام الـ widgets المنفصلة
 
 import 'package:athkar_app/core/infrastructure/services/share/share_extensions.dart';
 import 'package:athkar_app/features/settings/widgets/dialogs/about_dialog.dart';
@@ -7,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:in_app_review/in_app_review.dart';
 
 import '../../../app/di/service_locator.dart';
 import '../../../app/themes/app_theme.dart';
@@ -41,9 +39,6 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
   Map<AppPermissionType, AppPermissionStatus> _permissionStatuses = {};
   PermissionCheckResult? _permissionResult;
   bool _isLoading = false;
-
-  // للتحكم في المراجعة داخل التطبيق
-  final InAppReview _inAppReview = InAppReview.instance;
   
   List<AppPermissionType> get _criticalPermissions => 
       PermissionConstants.criticalPermissions;
@@ -239,14 +234,24 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
     context.shareApp();
   }
 
+  /// تقييم التطبيق باستخدام النظام الجديد الذكي
   Future<void> _rateApp() async {
-    if (await _inAppReview.isAvailable()) {
-      await _inAppReview.requestReview();
-    } else {
-      final url = Uri.parse('https://play.google.com/store/apps/details?id=com.yourapp.athkar');
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
-      }
+    HapticFeedback.lightImpact();
+    
+    try {
+      final reviewManager = context.reviewManager;
+      
+      // طلب التقييم مباشرة (يتجاوز شروط العرض التلقائي)
+      await reviewManager.requestReviewDirect(context);
+      
+      debugPrint('[Settings] Review requested from settings');
+      
+      // رسالة شكر بعد طلب التقييم
+      _showSuccessMessage('شكراً لك! نقدر وقتك ورأيك 💚');
+      
+    } catch (e) {
+      debugPrint('[Settings] Error requesting review: $e');
+      _showErrorMessage('حدث خطأ أثناء فتح صفحة التقييم');
     }
   }
 

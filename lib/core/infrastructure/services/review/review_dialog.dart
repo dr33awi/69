@@ -61,7 +61,7 @@ class ReviewDialog extends StatelessWidget {
               style: TextStyle(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
-                color: context.textColor,
+                color: context.textPrimaryColor,
                 fontFamily: 'Cairo',
               ),
               textAlign: TextAlign.center,
@@ -74,7 +74,7 @@ class ReviewDialog extends StatelessWidget {
               'سعادتك تهمنا! ساعدنا في تحسين التطبيق بتقييمك',
               style: TextStyle(
                 fontSize: 14.sp,
-                color: context.textColor.withOpacity(0.7),
+                color: context.textSecondaryColor,
                 fontFamily: 'Cairo',
                 height: 1.5,
               ),
@@ -108,7 +108,7 @@ class ReviewDialog extends StatelessWidget {
                 'ربما لاحقاً',
                 style: TextStyle(
                   fontSize: 13.sp,
-                  color: context.textColor.withOpacity(0.5),
+                  color: context.textSecondaryColor.withOpacity(0.5),
                   fontFamily: 'Cairo',
                 ),
               ),

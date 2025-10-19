@@ -114,9 +114,11 @@ class ReviewService {
   }
 
   /// طلب التقييم من المستخدم (نافذة النظام الأصلية)
-  Future<void> requestReview() async {
+  /// 
+  /// [forceRequest] إذا كان true، يتجاوز التحقق من الشروط (للاستخدام من الإعدادات)
+  Future<void> requestReview({bool forceRequest = false}) async {
     try {
-      if (!shouldRequestReview()) {
+      if (!forceRequest && !shouldRequestReview()) {
         debugPrint('[ReviewService] Review request conditions not met');
         return;
       }
@@ -166,7 +168,7 @@ class ReviewService {
   Future<void> _openStorePageFallback() async {
     try {
       final Uri storeUrl = Uri.parse(
-        'https://play.google.com/store/apps/details?id=$_androidPackageName',
+        'https://play.google.com/store/apps/details?id=com.gof.global&pcampaignid=merch_published_cluster_promotion_battlestar_featured_games',
       );
       
       if (await canLaunchUrl(storeUrl)) {

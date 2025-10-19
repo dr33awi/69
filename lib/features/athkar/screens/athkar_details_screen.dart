@@ -375,16 +375,8 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
   }
 
   Widget _buildCustomAppBar(BuildContext context, String title, {AthkarCategory? category}) {
-    // جلب اللون من CategoryUtils بناءً على الفئة
-    final categoryColor = category != null 
-        ? CategoryUtils.getCategoryThemeColor(category.id)
-        : ThemeConstants.primary;
-    
-    final gradient = LinearGradient(
-      colors: [
-        categoryColor,
-        categoryColor.lighten(0.1),
-      ],
+    const gradient = LinearGradient(
+      colors: [ThemeConstants.primary, ThemeConstants.primaryLight],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     );
@@ -406,7 +398,7 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
               borderRadius: BorderRadius.circular(10.r),
               boxShadow: [
                 BoxShadow(
-                  color: categoryColor.withOpacity(0.25),
+                  color: ThemeConstants.primary.withOpacity(0.25),
                   blurRadius: 6.r,
                   offset: Offset(0, 3.h),
                 ),

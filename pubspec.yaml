@@ -99,6 +99,7 @@ flutter:
 
 
   fonts:
+    # خط القاهرة - الخط الأساسي للواجهة
     - family: Cairo
       fonts:
         - asset: assets/fonts/Cairo-Regular.ttf
@@ -110,7 +111,17 @@ flutter:
           weight: 500
         - asset: assets/fonts/Cairo-Light.ttf
           weight: 300
+    
+    # خط أميري - للنصوص الدينية العامة
     - family: Amiri
       fonts:
+        - asset: assets/fonts/Amiri-Regular.ttf
         - asset: assets/fonts/Amiri-Bold.ttf
           weight: 700
+    
+    # خط أميري قرآن - مُحسّن للآيات القرآنية
+    - family: AmiriQuran
+      fonts:
+        - asset: assets/fonts/AmiriQuran.ttf
+          weight: 400
+    

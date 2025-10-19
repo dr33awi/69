@@ -21,6 +21,8 @@ import 'package:athkar_app/core/infrastructure/services/logger/app_logger.dart';
 import 'package:athkar_app/core/infrastructure/services/performance/performance_monitor.dart';
 import 'package:athkar_app/core/infrastructure/services/memory/leak_tracker_service.dart';
 import 'package:athkar_app/core/infrastructure/services/share/share_service.dart';
+import 'package:athkar_app/core/infrastructure/services/review/review_service.dart';
+import 'package:athkar_app/core/infrastructure/services/review/review_manager.dart';
 import 'package:athkar_app/features/athkar/services/athkar_service.dart';
 import 'package:athkar_app/features/dua/services/dua_service.dart';
 import 'package:athkar_app/features/prayer_times/services/prayer_times_service.dart';
@@ -96,6 +98,7 @@ class ServiceLocator {
       _registerDeviceServices();
       _registerErrorHandler();
       _registerShareService();
+      _registerReviewServices();
       _registerPrayerTimesService();
 
       _isEssentialInitialized = true;
@@ -311,6 +314,28 @@ class ServiceLocator {
       }
     } catch (e) {
       debugPrint('❌ Error registering ShareService: $e');
+    }
+  }
+
+  void _registerReviewServices() {
+    debugPrint('ServiceLocator: Registering review services...');
+    
+    try {
+      if (!getIt.isRegistered<ReviewService>()) {
+        getIt.registerLazySingleton<ReviewService>(
+          () => ReviewService(prefs: getIt<SharedPreferences>()),
+        );
+        debugPrint('✅ ReviewService registered successfully');
+      }
+      
+      if (!getIt.isRegistered<ReviewManager>()) {
+        getIt.registerLazySingleton<ReviewManager>(
+          () => ReviewManager(reviewService: getIt<ReviewService>()),
+        );
+        debugPrint('✅ ReviewManager registered successfully');
+      }
+    } catch (e) {
+      debugPrint('❌ Error registering Review services: $e');
     }
   }
 
@@ -851,6 +876,8 @@ extension ServiceLocatorExtensions on BuildContext {
   BatteryService get batteryService => getIt<BatteryService>();
   ThemeNotifier get themeNotifier => getIt<ThemeNotifier>();
   ShareService get shareService => getIt<ShareService>();
+  ReviewService get reviewService => getIt<ReviewService>();
+  ReviewManager get reviewManager => getIt<ReviewManager>();
   
   PrayerTimesService get prayerTimesService => getIt<PrayerTimesService>();
   AthkarService get athkarService => getIt<AthkarService>();
