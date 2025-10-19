@@ -1,4 +1,4 @@
-// lib/app/di/service_locator.dart - محدث مع تهيئة سريعة للبانرات
+// lib/app/di/service_locator.dart - محدث مع تهيئة سريعة للبانرات و In-App Messaging
 import 'package:athkar_app/app/themes/core/theme_notifier.dart';
 import 'package:athkar_app/core/error/error_handler.dart';
 import 'package:athkar_app/core/firebase/firebase_messaging_service.dart';
@@ -6,6 +6,7 @@ import 'package:athkar_app/core/firebase/remote_config_manager.dart';
 import 'package:athkar_app/core/firebase/remote_config_service.dart';
 import 'package:athkar_app/core/firebase/analytics/analytics_service.dart';
 import 'package:athkar_app/core/firebase/performance/performance_service.dart';
+import 'package:athkar_app/core/firebase/messaging/in_app_messaging_service.dart';
 import 'package:athkar_app/core/infrastructure/services/device/battery/battery_service.dart';
 import 'package:athkar_app/core/infrastructure/services/device/battery/battery_service_impl.dart';
 import 'package:athkar_app/core/infrastructure/services/notifications/notification_manager.dart';
@@ -37,7 +38,7 @@ import 'package:firebase_core/firebase_core.dart';
 
 final getIt = GetIt.instance;
 
-/// Service Locator محسن مع تهيئة سريعة للبانرات
+/// Service Locator محسن مع تهيئة سريعة للبانرات و In-App Messaging
 class ServiceLocator {
   static final ServiceLocator _instance = ServiceLocator._internal();
   factory ServiceLocator() => _instance;
@@ -611,6 +612,7 @@ class ServiceLocator {
     try {
       debugPrint('🚀 Initializing advanced Firebase services...');
       
+      // Analytics Service
       if (!getIt.isRegistered<AnalyticsService>()) {
         getIt.registerSingleton<AnalyticsService>(AnalyticsService());
         final analytics = getIt<AnalyticsService>();
@@ -618,11 +620,20 @@ class ServiceLocator {
         debugPrint('✅ AnalyticsService ready');
       }
       
+      // Performance Service
       if (!getIt.isRegistered<PerformanceService>()) {
         getIt.registerSingleton<PerformanceService>(PerformanceService());
         final performance = getIt<PerformanceService>();
         await performance.initialize();
         debugPrint('✅ PerformanceService ready');
+      }
+      
+      // ✅ In-App Messaging Service - جديد!
+      if (!getIt.isRegistered<InAppMessagingService>()) {
+        getIt.registerSingleton<InAppMessagingService>(InAppMessagingService());
+        final inAppMessaging = getIt<InAppMessagingService>();
+        await inAppMessaging.initialize();
+        debugPrint('✅ InAppMessagingService ready');
       }
       
       _advancedFirebaseInitialized = true;
@@ -790,6 +801,13 @@ class ServiceLocator {
         }
       }
       
+      // تنظيف In-App Messaging
+      if (getIt.isRegistered<InAppMessagingService>()) {
+        if (_isServiceActuallyInitialized<InAppMessagingService>()) {
+          getIt<InAppMessagingService>().dispose();
+        }
+      }
+      
       debugPrint('ServiceLocator: Advanced Firebase services cleaned up');
     } catch (e) {
       debugPrint('ServiceLocator: Error cleaning advanced Firebase services: $e');
@@ -883,6 +901,19 @@ extension ServiceLocatorExtensions on BuildContext {
     }
   }
   
+  // ✅ إضافة In-App Messaging Service
+  InAppMessagingService? get inAppMessaging {
+    try {
+      return ServiceLocator.isFirebaseAvailable && 
+             getIt.isRegistered<InAppMessagingService>() 
+          ? getIt<InAppMessagingService>() 
+          : null;
+    } catch (e) {
+      debugPrint('Error accessing InAppMessagingService: $e');
+      return null;
+    }
+  }
+  
   Future<void> showBanners({required String screenName}) async {
     try {
       final manager = bannerManager;
@@ -949,6 +980,31 @@ extension ServiceLocatorExtensions on BuildContext {
     } else {
       debugPrint('⚠️ BannerManager not available or not initialized');
     }
+  }
+  
+  // ✅ وظائف In-App Messaging
+  Future<void> triggerInAppMessage(String eventName) async {
+    final service = inAppMessaging;
+    if (service != null && service.isInitialized) {
+      await service.triggerEvent(eventName);
+    } else {
+      debugPrint('⚠️ InAppMessagingService not available');
+    }
+  }
+  
+  void suppressInAppMessages(bool suppress) {
+    final service = inAppMessaging;
+    if (service != null && service.isInitialized) {
+      service.suppressMessages(suppress);
+    }
+  }
+  
+  Map<String, dynamic>? getInAppMessagingStats() {
+    final service = inAppMessaging;
+    if (service != null && service.isInitialized) {
+      return service.getStatistics();
+    }
+    return null;
   }
   
   AnalyticsService? get analyticsService {
