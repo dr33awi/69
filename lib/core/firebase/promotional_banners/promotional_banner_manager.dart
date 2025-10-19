@@ -1,5 +1,5 @@
 // lib/core/infrastructure/firebase/promotional_banners/promotional_banner_manager.dart
-// ✅ نسخة محسّنة مع معالجة أفضل للأخطاء
+// ✅ ملف كامل مع تتبع التحديثات وجميع الميزات
 
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
 import 'package:flutter/foundation.dart';
@@ -173,7 +173,7 @@ class PromotionalBannerManager {
     return bannersToShow;
   }
 
-  /// هل يجب عرض البانر؟ (حسب التكرار)
+  /// هل يجب عرض البانر؟ (حسب التكرار والإخفاء)
   Future<bool> _shouldShowBanner(PromotionalBanner banner) async {
     // ✅ التحقق من Storage
     if (_storage == null) {
@@ -182,6 +182,18 @@ class PromotionalBannerManager {
     }
     
     try {
+      // ✅ التحقق من الإخفاء النهائي
+      if (isBannerDismissedForever(banner.id)) {
+        debugPrint('🚫 Banner ${banner.id} is dismissed forever');
+        return false;
+      }
+      
+      // ✅ بالنسبة لبانرات التحديث، التحقق من النقر
+      if (banner.bannerType == BannerType.update && isUpdateBannerActioned(banner.id)) {
+        debugPrint('✅ Update banner ${banner.id} already actioned');
+        return false;
+      }
+      
       final lastShownKey = 'banner_last_shown_${banner.id}';
       final lastShownString = _storage!.getString(lastShownKey);
       
@@ -253,6 +265,90 @@ class PromotionalBannerManager {
     }
   }
 
+  /// ✅ إخفاء البانر نهائياً
+  Future<void> dismissBannerForever(String bannerId) async {
+    if (_storage == null) {
+      debugPrint('❌ Storage is null, cannot dismiss banner forever');
+      return;
+    }
+    
+    try {
+      final key = 'banner_dismissed_forever_$bannerId';
+      await _storage!.setBool(key, true);
+      
+      debugPrint('🚫 Banner $bannerId dismissed forever');
+      
+    } catch (e) {
+      debugPrint('❌ Error dismissing banner forever: $e');
+    }
+  }
+
+  /// ✅ التحقق من أن البانر مُخفى نهائياً
+  bool isBannerDismissedForever(String bannerId) {
+    if (_storage == null) return false;
+    
+    try {
+      final key = 'banner_dismissed_forever_$bannerId';
+      return _storage!.getBool(key) ?? false;
+    } catch (e) {
+      debugPrint('❌ Error checking dismissed forever: $e');
+      return false;
+    }
+  }
+
+  /// ✅ تسجيل أن المستخدم نقر على زر التحديث
+  Future<void> markUpdateBannerAsActioned(String bannerId) async {
+    if (_storage == null) {
+      debugPrint('❌ Storage is null');
+      return;
+    }
+    
+    try {
+      final key = 'banner_update_actioned_$bannerId';
+      await _storage!.setBool(key, true);
+      await _storage!.setString(
+        'banner_update_actioned_time_$bannerId',
+        DateTime.now().toIso8601String(),
+      );
+      
+      debugPrint('✅ Update banner $bannerId marked as actioned');
+      
+    } catch (e) {
+      debugPrint('❌ Error marking update banner: $e');
+    }
+  }
+
+  /// ✅ التحقق من أن المستخدم نقر على التحديث
+  bool isUpdateBannerActioned(String bannerId) {
+    if (_storage == null) return false;
+    
+    try {
+      final key = 'banner_update_actioned_$bannerId';
+      return _storage!.getBool(key) ?? false;
+    } catch (e) {
+      debugPrint('❌ Error checking update actioned: $e');
+      return false;
+    }
+  }
+
+  /// ✅ استعادة بانر مُخفى (للاختبار)
+  Future<void> restoreBanner(String bannerId) async {
+    if (_storage == null) {
+      debugPrint('❌ Storage is null');
+      return;
+    }
+    
+    try {
+      await _storage!.remove('banner_dismissed_forever_$bannerId');
+      await _storage!.remove('banner_update_actioned_$bannerId');
+      await _storage!.remove('banner_update_actioned_time_$bannerId');
+      
+      debugPrint('♻️ Banner $bannerId restored');
+    } catch (e) {
+      debugPrint('❌ Error restoring banner: $e');
+    }
+  }
+
   /// الحصول على إحصائيات البانر
   Map<String, dynamic> getBannerStats(String bannerId) {
     // ✅ التحقق من Storage
@@ -265,6 +361,8 @@ class PromotionalBannerManager {
       final showCount = _storage!.getInt('banner_show_count_$bannerId') ?? 0;
       final clickCount = _storage!.getInt('banner_click_count_$bannerId') ?? 0;
       final lastShownString = _storage!.getString('banner_last_shown_$bannerId');
+      final isDismissed = isBannerDismissedForever(bannerId);
+      final isActioned = isUpdateBannerActioned(bannerId);
       
       return {
         'banner_id': bannerId,
@@ -272,6 +370,8 @@ class PromotionalBannerManager {
         'click_count': clickCount,
         'last_shown': lastShownString,
         'click_rate': showCount > 0 ? (clickCount / showCount * 100).toStringAsFixed(1) : '0.0',
+        'is_dismissed_forever': isDismissed,
+        'is_update_actioned': isActioned,
       };
     } catch (e) {
       debugPrint('⚠️ Error getting banner stats: $e');
@@ -291,6 +391,10 @@ class PromotionalBannerManager {
       await _storage!.remove('banner_last_shown_$bannerId');
       await _storage!.remove('banner_show_count_$bannerId');
       await _storage!.remove('banner_click_count_$bannerId');
+      await _storage!.remove('banner_dismissed_forever_$bannerId');
+      await _storage!.remove('banner_update_actioned_$bannerId');
+      await _storage!.remove('banner_update_actioned_time_$bannerId');
+      
       debugPrint('🧹 Banner data cleared for: $bannerId');
     } catch (e) {
       debugPrint('❌ Error clearing banner data: $e');
@@ -341,6 +445,7 @@ class PromotionalBannerManager {
       'banners': _cachedBanners.map((b) => {
         'id': b.id,
         'title': b.title,
+        'type': b.bannerType.displayName,
         'priority': b.priority.displayName,
         'is_active': b.isCurrentlyActive,
         'target_screens': b.targetScreens,
@@ -369,6 +474,7 @@ class PromotionalBannerManager {
     
     for (final banner in _cachedBanners) {
       debugPrint('  - ${banner.title} (${banner.id})');
+      debugPrint('    Type: ${banner.bannerType.displayName}');
       debugPrint('    Priority: ${banner.priority.displayName}');
       debugPrint('    Active: ${banner.isCurrentlyActive}');
       debugPrint('    Screens: ${banner.targetScreens.join(", ")}');
@@ -376,6 +482,10 @@ class PromotionalBannerManager {
       if (_storage != null) {
         final stats = getBannerStats(banner.id);
         debugPrint('    Stats: ${stats["show_count"]} shows, ${stats["click_count"]} clicks');
+        debugPrint('    Dismissed: ${stats["is_dismissed_forever"]}');
+        if (banner.bannerType == BannerType.update) {
+          debugPrint('    Update Actioned: ${stats["is_update_actioned"]}');
+        }
       }
     }
     debugPrint('====================================================');

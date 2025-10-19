@@ -1,5 +1,5 @@
 // lib/core/infrastructure/firebase/special_event/widgets/event_card_content.dart
-// ✅ محدث - الكارد قابل للنقر فقط إذا كان هناك action_url
+// ✅ محدث - تمرير حقل isGif للخلفية
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,7 +18,6 @@ class EventCardContent extends StatelessWidget {
   });
   
   void _handleTap(BuildContext context) {
-    // ✅ فقط إذا كان هناك actionUrl
     if (event.actionUrl.isEmpty) {
       debugPrint('ℹ️ [EventCard] No action URL - ignoring tap');
       return;
@@ -34,7 +33,6 @@ class EventCardContent extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    // ✅ تحديد ما إذا كان الكارد قابل للنقر
     final bool isInteractive = event.actionUrl.isNotEmpty;
     
     return Container(
@@ -64,7 +62,7 @@ class EventCardContent extends StatelessWidget {
                 splashColor: Colors.white.withOpacity(0.2),
                 child: _buildContent(context),
               )
-            : _buildContent(context), // ✅ بدون InkWell إذا لم يكن تفاعلي
+            : _buildContent(context),
         ),
       ),
     );
@@ -72,15 +70,17 @@ class EventCardContent extends StatelessWidget {
   
   /// بناء المحتوى الداخلي
   Widget _buildContent(BuildContext context) {
-    // ✅ التحقق من وجود وصف
     final hasDescription = event.descriptionLines.isNotEmpty && 
                            event.descriptionLines.any((line) => line.trim().isNotEmpty);
     
     return Stack(
       children: [
-        // خلفية الصورة
+        // ✅ خلفية الصورة مع دعم GIF
         if (event.backgroundImage.isNotEmpty)
-          EventBackground(imageUrl: event.backgroundImage),
+          EventBackground(
+            imageUrl: event.backgroundImage,
+            isGif: event.isGif, // ✅ تمرير حقل isGif
+          ),
         
         // المحتوى الرئيسي
         Container(
@@ -88,16 +88,13 @@ class EventCardContent extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // الهيدر
               EventHeader(event: event),
               
-              // ✅ الوصف - يظهر فقط إذا كان موجوداً
               if (hasDescription) ...[
                 SizedBox(height: 12.h),
                 EventDescription(event: event),
               ],
               
-              // ✅ زر الإجراء - يظهر فقط إذا كان هناك actionText و actionUrl
               if (event.actionText.isNotEmpty && event.actionUrl.isNotEmpty) ...[
                 SizedBox(height: 16.h),
                 EventActionButton(

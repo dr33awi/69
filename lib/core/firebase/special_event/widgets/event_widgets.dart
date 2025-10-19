@@ -1,4 +1,5 @@
 // lib/core/infrastructure/firebase/special_event/widgets/event_widgets.dart
+// ✅ محدث - دعم GIF
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -19,20 +20,16 @@ class EventHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        // حاوي الأيقونة - سيختفي إذا كانت فارغة
         _buildIconContainer(),
         
-        // المسافة - تظهر فقط إذا كانت هناك أيقونة
         if (event.icon.isNotEmpty) SizedBox(width: 12.w),
         
-        // النص والوقت المتبقي
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildTitle(context),
               
-              // شارة الوقت المتبقي
               if (event.remainingTime != null)
                 EventRemainingBadge(duration: event.remainingTime!),
             ],
@@ -43,7 +40,6 @@ class EventHeader extends StatelessWidget {
   }
   
   Widget _buildIconContainer() {
-    // إذا كانت الأيقونة فارغة، لا نعرض شيء
     if (event.icon.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -89,8 +85,6 @@ class EventHeader extends StatelessWidget {
     );
   }
 }
-
-// ==================== وصف المناسبة (معدل لدعم نصوص متعددة) ====================
 
 /// ويدجت عرض وصف المناسبة - يدعم نصوص متعددة
 class EventDescription extends StatelessWidget {
@@ -164,8 +158,6 @@ class EventDescription extends StatelessWidget {
   }
 }
 
-// ==================== زر الإجراء ====================
-
 /// زر الإجراء مع السهم
 class EventActionButton extends StatelessWidget {
   final String text;
@@ -229,15 +221,17 @@ class EventActionButton extends StatelessWidget {
   }
 }
 
-// ==================== خلفية الصورة ====================
+// ==================== خلفية الصورة مع دعم GIF ====================
 
-/// خلفية الصورة مع شفافية
+/// خلفية الصورة مع شفافية ودعم GIF
 class EventBackground extends StatelessWidget {
   final String imageUrl;
+  final bool isGif;
   
   const EventBackground({
     super.key,
     required this.imageUrl,
+    this.isGif = false,
   });
   
   @override
@@ -248,14 +242,43 @@ class EventBackground extends StatelessWidget {
         child: Image.network(
           imageUrl,
           fit: BoxFit.cover,
+          // ✅ تفعيل الحركة للـ GIF
+          gaplessPlayback: true,
+          // ✅ عدم الحفظ في الكاش للـ GIF للتأكد من الحركة
+          cacheWidth: isGif ? null : 800,
+          cacheHeight: isGif ? null : 800,
           errorBuilder: (context, error, stackTrace) {
-            debugPrint('⚠️ [EventBackground] Failed to load image: $error');
+            debugPrint('⚠️ [EventBackground] Failed to load ${isGif ? 'GIF' : 'image'}: $error');
             return const SizedBox.shrink();
           },
           loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
+            if (loadingProgress == null) {
+              // ✅ عرض مؤشر للـ GIF
+              if (isGif) {
+                debugPrint('✅ [EventBackground] GIF loaded and animating');
+              }
+              return child;
+            }
+            
+            // عرض مؤشر التحميل
             return Container(
               color: Colors.white.withOpacity(0.05),
+              child: Center(
+                child: SizedBox(
+                  width: 24.r,
+                  height: 24.r,
+                  child: CircularProgressIndicator(
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                            loadingProgress.expectedTotalBytes!
+                        : null,
+                    strokeWidth: 2.w,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Colors.white.withOpacity(0.5),
+                    ),
+                  ),
+                ),
+              ),
             );
           },
         ),
@@ -263,8 +286,6 @@ class EventBackground extends StatelessWidget {
     );
   }
 }
-
-// ==================== شارة الوقت المتبقي ====================
 
 /// شارة عرض الوقت المتبقي للمناسبة
 class EventRemainingBadge extends StatelessWidget {

@@ -1,5 +1,5 @@
 // lib/core/infrastructure/firebase/widgets/force_update_screen.dart
-// شاشة التحديث الإجباري الكاملة مع قائمة الميزات من Firebase
+// مع تسجيل المشاهدة لمنع الظهور بعد التحديث
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,10 +10,9 @@ import 'package:get_it/get_it.dart';
 import '../remote_config_service.dart';
 import '../remote_config_manager.dart';
 
-// تعريف getIt محلياً
 final GetIt getIt = GetIt.instance;
 
-/// شاشة التحديث الإجباري - Android Only
+/// شاشة التحديث الإجباري - مع منع الظهور بعد التحديث
 class ForceUpdateScreen extends StatefulWidget {
   final FirebaseRemoteConfigService? remoteConfig;
   
@@ -36,7 +35,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
   String _currentVersion = 'جاري التحميل...';
   String _targetVersion = 'جاري التحميل...';
   String _updateUrl = '';
-  List<String> _featuresList = []; // قائمة الميزات من Firebase
+  List<String> _featuresList = [];
   bool _isLoading = false;
   bool _isLoadingVersions = true;
 
@@ -76,38 +75,46 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
     });
     
     _loadVersionInfo();
+    _acknowledgeUpdateScreen();
   }
 
-  /// تحميل معلومات الإصدار وقائمة الميزات من Firebase
+  /// تسجيل أن المستخدم شاهد شاشة التحديث
+  Future<void> _acknowledgeUpdateScreen() async {
+    try {
+      if (getIt.isRegistered<RemoteConfigManager>()) {
+        final manager = getIt<RemoteConfigManager>();
+        await manager.acknowledgeUpdateShown();
+        debugPrint('✅ Update screen acknowledgement saved');
+      }
+    } catch (e) {
+      debugPrint('❌ Error acknowledging update screen: $e');
+    }
+  }
+
   Future<void> _loadVersionInfo() async {
     try {
       setState(() => _isLoadingVersions = true);
       
-      // 1. جلب الإصدار الحالي من PackageInfo
       final packageInfo = await PackageInfo.fromPlatform();
       final currentVersion = packageInfo.version;
       
       debugPrint('📱 Package Version: $currentVersion');
       
-      // 2. جلب البيانات من Remote Config
       String targetVersion = '';
       String updateUrl = '';
       List<String> features = [];
       
-      // محاولة من widget.remoteConfig أولاً
       if (widget.remoteConfig != null && widget.remoteConfig!.isInitialized) {
         targetVersion = widget.remoteConfig!.requiredAppVersion;
         updateUrl = widget.remoteConfig!.updateUrl;
         features = widget.remoteConfig!.updateFeaturesList;
         debugPrint('✅ Got data from widget.remoteConfig');
       } 
-      // محاولة من RemoteConfigManager
       else if (getIt.isRegistered<RemoteConfigManager>()) {
         final manager = getIt<RemoteConfigManager>();
         if (manager.isInitialized) {
           targetVersion = manager.requiredAppVersion;
           updateUrl = manager.updateUrl;
-          // نحتاج لجلب الميزات من FirebaseRemoteConfigService
           if (getIt.isRegistered<FirebaseRemoteConfigService>()) {
             final service = getIt<FirebaseRemoteConfigService>();
             features = service.updateFeaturesList;
@@ -115,7 +122,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
           debugPrint('✅ Got data from RemoteConfigManager');
         }
       }
-      // محاولة من FirebaseRemoteConfigService مباشرة
       else if (getIt.isRegistered<FirebaseRemoteConfigService>()) {
         final service = getIt<FirebaseRemoteConfigService>();
         if (service.isInitialized) {
@@ -126,7 +132,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
         }
       }
       
-      // إذا لم نحصل على قيم، استخدم الافتراضية
       if (targetVersion.isEmpty) {
         targetVersion = '2.0.0';
         debugPrint('⚠️ Using default target version');
@@ -205,7 +210,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                   children: [
                     SizedBox(height: 20.h),
                     
-                    // أيقونة التحديث
                     ScaleTransition(
                       scale: _bounceAnimation,
                       child: Container(
@@ -236,7 +240,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                     
                     SizedBox(height: 24.h),
                     
-                    // العنوان
                     FadeTransition(
                       opacity: _fadeAnimation,
                       child: Text(
@@ -253,7 +256,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                     
                     SizedBox(height: 12.h),
                     
-                    // الوصف
                     FadeTransition(
                       opacity: _fadeAnimation,
                       child: Text(
@@ -270,7 +272,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                     
                     SizedBox(height: 32.h),
                     
-                    // معلومات الإصدار
                     ScaleTransition(
                       scale: _bounceAnimation,
                       child: Container(
@@ -312,7 +313,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                     
                     SizedBox(height: 24.h),
                     
-                    // مميزات التحديث (من Firebase)
                     FadeTransition(
                       opacity: _fadeAnimation,
                       child: Container(
@@ -359,7 +359,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                     
                     SizedBox(height: 32.h),
                     
-                    // الأزرار
                     _buildActionButtons(),
                     
                     SizedBox(height: 16.h),
@@ -419,9 +418,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
     );
   }
   
-  /// بناء قائمة الميزات من Firebase
   List<Widget> _buildFeaturesList() {
-    // استخدم القائمة المحفوظة من Firebase
     final features = _featuresList.isNotEmpty 
         ? _featuresList 
         : ['تحسينات الأداء', 'إصلاح الأخطاء', 'ميزات جديدة'];
@@ -461,7 +458,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
   Widget _buildActionButtons() {
     return Column(
       children: [
-        // زر التحديث
         ScaleTransition(
           scale: _bounceAnimation,
           child: SizedBox(
@@ -501,7 +497,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
         
         SizedBox(height: 12.h),
         
-        // زر إغلاق
         FadeTransition(
           opacity: _fadeAnimation,
           child: TextButton.icon(
@@ -525,7 +520,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
     );
   }
   
-  /// تحديث التطبيق - فتح المتجر أو الرابط
   Future<void> _updateApp() async {
     if (_isLoading) return;
     
@@ -533,7 +527,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
     HapticFeedback.mediumImpact();
     
     try {
-      // استخدم الرابط المحدث
       String storeUrl = _updateUrl.isNotEmpty 
           ? _updateUrl 
           : 'https://play.google.com/store/apps/details?id=com.example.athkar_app';
@@ -547,6 +540,9 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
           url,
           mode: LaunchMode.externalApplication,
         );
+        
+        // بعد فتح المتجر، تسجيل أن المستخدم قام بمحاولة التحديث
+        debugPrint('✅ Store opened - User initiated update');
       } else {
         _showErrorSnackBar('لا يمكن فتح الرابط');
       }

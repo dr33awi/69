@@ -2,7 +2,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:athkar_app/core/firebase/promotional_banners/promotional_banner_manager.dart';
-import 'package:athkar_app/core/firebase/remote_config_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';

@@ -1,5 +1,5 @@
 // lib/core/infrastructure/firebase/special_event/modals/special_event_model.dart
-// ✅ محدث - استخدام الألوان الافتراضية من ThemeConstants
+// ✅ محدث - إضافة دعم GIF
 
 import 'package:flutter/material.dart';
 import '../../../../app/themes/app_theme.dart';
@@ -8,9 +8,10 @@ import '../../../../app/themes/app_theme.dart';
 class SpecialEventModel {
   final bool isActive;
   final String title;
-  final dynamic description; // يمكن أن يكون String أو List<String>
+  final dynamic description;
   final String icon;
   final String backgroundImage;
+  final bool isGif; // ✅ جديد - للتحقق من نوع الصورة
   final List<Color> gradientColors;
   final String actionText;
   final String actionUrl;
@@ -23,6 +24,7 @@ class SpecialEventModel {
     required this.description,
     required this.icon,
     required this.backgroundImage,
+    this.isGif = false, // ✅ افتراضي false
     required this.gradientColors,
     required this.actionText,
     required this.actionUrl,
@@ -32,12 +34,15 @@ class SpecialEventModel {
 
   /// إنشاء من Map (Firebase)
   factory SpecialEventModel.fromMap(Map<String, dynamic> map) {
+    final backgroundImage = map['background_image']?.toString() ?? '';
+    
     return SpecialEventModel(
       isActive: map['is_active'] ?? false,
       title: map['title']?.toString() ?? '',
-      description: map['description'], // احتفظ بالنوع الأصلي
+      description: map['description'],
       icon: map['icon']?.toString() ?? '',
-      backgroundImage: map['background_image']?.toString() ?? '',
+      backgroundImage: backgroundImage,
+      isGif: map['is_gif'] ?? _isGifUrl(backgroundImage), // ✅ من Firebase أو تلقائي
       gradientColors: _parseGradientColors(map['gradient_colors']),
       actionText: map['action_text']?.toString() ?? '',
       actionUrl: map['action_url']?.toString() ?? '',
@@ -54,10 +59,18 @@ class SpecialEventModel {
       description: '',
       icon: '',
       backgroundImage: '',
-      gradientColors: _getDefaultColors(), // ✅ استخدام الدالة الافتراضية
+      isGif: false,
+      gradientColors: _getDefaultColors(),
       actionText: '',
       actionUrl: '',
     );
+  }
+
+  /// ✅ التحقق تلقائياً من امتداد الرابط
+  static bool _isGifUrl(String url) {
+    if (url.isEmpty) return false;
+    final lowerUrl = url.toLowerCase();
+    return lowerUrl.endsWith('.gif') || lowerUrl.contains('.gif?');
   }
 
   /// getter للحصول على قائمة النصوص
@@ -69,7 +82,6 @@ class SpecialEventModel {
           .toList();
     } else if (description is String) {
       final text = description as String;
-      // التحقق من وجود فواصل
       if (text.contains('\n')) {
         return text.split('\n').where((line) => line.trim().isNotEmpty).toList();
       } else if (text.contains('|')) {
@@ -93,10 +105,8 @@ class SpecialEventModel {
     
     final now = DateTime.now();
     
-    // إذا لم تكن هناك تواريخ، المناسبة نشطة دائماً
     if (startDate == null && endDate == null) return true;
     
-    // التحقق من التواريخ
     if (startDate != null && now.isBefore(startDate!)) return false;
     if (endDate != null && now.isAfter(endDate!)) return false;
     
@@ -111,7 +121,7 @@ class SpecialEventModel {
     return endDate!.difference(now);
   }
 
-  /// ✅ دالة للحصول على الألوان الافتراضية من ThemeConstants
+  /// دالة للحصول على الألوان الافتراضية من ThemeConstants
   static List<Color> _getDefaultColors() {
     return [
       ThemeConstants.primary,
@@ -122,7 +132,7 @@ class SpecialEventModel {
   /// تحويل الألوان من HEX
   static List<Color> _parseGradientColors(dynamic colorsData) {
     if (colorsData == null || colorsData is! List || colorsData.isEmpty) {
-      return _getDefaultColors(); // ✅ استخدام الألوان من ThemeConstants
+      return _getDefaultColors();
     }
 
     try {
@@ -133,7 +143,7 @@ class SpecialEventModel {
           .toList();
 
       if (colors.isEmpty) {
-        return _getDefaultColors(); // ✅ استخدام الألوان من ThemeConstants
+        return _getDefaultColors();
       } else if (colors.length == 1) {
         colors.add(colors.first.withOpacity(0.7));
       }
@@ -141,7 +151,7 @@ class SpecialEventModel {
       return colors;
     } catch (e) {
       debugPrint('⚠️ Error parsing gradient colors: $e');
-      return _getDefaultColors(); // ✅ استخدام الألوان من ThemeConstants
+      return _getDefaultColors();
     }
   }
 
@@ -190,6 +200,7 @@ class SpecialEventModel {
       'description': description,
       'icon': icon,
       'background_image': backgroundImage,
+      'is_gif': isGif, // ✅ إضافة الحقل الجديد
       'gradient_colors': gradientColors.map((c) => '#${c.value.toRadixString(16).substring(2)}').toList(),
       'action_text': actionText,
       'action_url': actionUrl,
@@ -205,6 +216,7 @@ class SpecialEventModel {
     dynamic description,
     String? icon,
     String? backgroundImage,
+    bool? isGif,
     List<Color>? gradientColors,
     String? actionText,
     String? actionUrl,
@@ -217,6 +229,7 @@ class SpecialEventModel {
       description: description ?? this.description,
       icon: icon ?? this.icon,
       backgroundImage: backgroundImage ?? this.backgroundImage,
+      isGif: isGif ?? this.isGif,
       gradientColors: gradientColors ?? this.gradientColors,
       actionText: actionText ?? this.actionText,
       actionUrl: actionUrl ?? this.actionUrl,
@@ -227,7 +240,7 @@ class SpecialEventModel {
 
   @override
   String toString() {
-    return 'SpecialEventModel(title: $title, isActive: $isActive, isValid: $isValid)';
+    return 'SpecialEventModel(title: $title, isActive: $isActive, isValid: $isValid, isGif: $isGif)';
   }
 
   @override
@@ -239,6 +252,7 @@ class SpecialEventModel {
         other.title == title &&
         other.icon == icon &&
         other.backgroundImage == backgroundImage &&
+        other.isGif == isGif &&
         other.actionText == actionText &&
         other.actionUrl == actionUrl &&
         other.startDate == startDate &&
@@ -252,6 +266,7 @@ class SpecialEventModel {
       title,
       icon,
       backgroundImage,
+      isGif,
       actionText,
       actionUrl,
       startDate,

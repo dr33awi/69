@@ -1,10 +1,13 @@
 // lib/core/infrastructure/firebase/promotional_banners/utils/banner_helpers.dart
+// ✅ الملف الكامل مع تتبع التحديثات
 
 import 'package:athkar_app/core/firebase/remote_config_service.dart';
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../promotional_banner_manager.dart';
 import '../widgets/promotional_banner_dialog.dart';
+import '../models/promotional_banner_model.dart';
 import '../../../../app/di/service_locator.dart';
 
 /// مساعدات لعرض البانرات
@@ -89,14 +92,27 @@ class BannerHelpers {
         await PromotionalBannerDialog.show(
           context: context,
           banner: banner,
-          onDismiss: () {
-            // تسجيل العرض
-            bannerManager.markBannerAsShown(banner.id);
+          onDismiss: () async {
+            // ✅ تسجيل الإغلاق
+            await bannerManager.markBannerAsShown(banner.id);
+            
+            // ✅ إذا كان dismiss_forever، إخفاء نهائياً
+            if (banner.dismissForever) {
+              await bannerManager.dismissBannerForever(banner.id);
+              debugPrint('🚫 Banner ${banner.id} dismissed forever');
+            }
+            
             debugPrint('✅ Banner ${banner.id} dismissed');
           },
-          onActionPressed: () {
-            // تسجيل النقر
-            bannerManager.trackBannerClick(banner.id);
+          onActionPressed: () async {
+            // ✅ تسجيل النقر
+            await bannerManager.trackBannerClick(banner.id);
+            
+            // ✅ إذا كان بانر تحديث، التحقق من النسخة وإخفاءه نهائياً
+            if (banner.bannerType == BannerType.update) {
+              await _handleUpdateBannerAction(banner);
+            }
+            
             debugPrint('👆 Banner ${banner.id} action pressed');
           },
         );
@@ -112,6 +128,87 @@ class BannerHelpers {
     } catch (e, stackTrace) {
       debugPrint('❌ Error showing banners: $e');
       debugPrint('Stack trace: $stackTrace');
+    }
+  }
+
+  /// ✅ معالجة نقر بانر التحديث
+  static Future<void> _handleUpdateBannerAction(PromotionalBanner banner) async {
+    try {
+      final bannerManager = getIt<PromotionalBannerManager>();
+      
+      // حفظ معلومات أن المستخدم نقر على التحديث
+      await bannerManager.markUpdateBannerAsActioned(banner.id);
+      
+      debugPrint('✅ Update banner ${banner.id} marked as actioned');
+      
+      // بعد فترة، التحقق من النسخة وإخفاء البانر
+      Future.delayed(const Duration(seconds: 30), () async {
+        final shouldHide = await _shouldHideUpdateBanner(banner);
+        if (shouldHide) {
+          await bannerManager.dismissBannerForever(banner.id);
+          debugPrint('🎉 User updated! Banner ${banner.id} hidden forever');
+        }
+      });
+      
+    } catch (e) {
+      debugPrint('❌ Error handling update banner action: $e');
+    }
+  }
+
+  /// ✅ التحقق من أن المستخدم قام بالتحديث
+  static Future<bool> _shouldHideUpdateBanner(PromotionalBanner banner) async {
+    try {
+      // إذا لم يكن هناك min_app_version، لا نخفي
+      if (banner.minAppVersion == null || banner.minAppVersion!.isEmpty) {
+        return false;
+      }
+      
+      // الحصول على نسخة التطبيق الحالية
+      final packageInfo = await PackageInfo.fromPlatform();
+      final currentVersion = packageInfo.version;
+      
+      debugPrint('📱 Current version: $currentVersion');
+      debugPrint('🎯 Required version: ${banner.minAppVersion}');
+      
+      // مقارنة النسخ
+      final isUpdated = _compareVersions(currentVersion, banner.minAppVersion!);
+      
+      return isUpdated;
+      
+    } catch (e) {
+      debugPrint('❌ Error checking app version: $e');
+      return false;
+    }
+  }
+
+  /// ✅ مقارنة نسخ التطبيق
+  static bool _compareVersions(String current, String required) {
+    try {
+      final currentParts = current.split('.').map(int.parse).toList();
+      final requiredParts = required.split('.').map(int.parse).toList();
+      
+      // التأكد من أن كلا الإصدارين لهما نفس عدد الأجزاء
+      while (currentParts.length < requiredParts.length) {
+        currentParts.add(0);
+      }
+      while (requiredParts.length < currentParts.length) {
+        requiredParts.add(0);
+      }
+      
+      // مقارنة كل جزء
+      for (int i = 0; i < currentParts.length; i++) {
+        if (currentParts[i] > requiredParts[i]) {
+          return true; // النسخة الحالية أعلى
+        } else if (currentParts[i] < requiredParts[i]) {
+          return false; // النسخة الحالية أقل
+        }
+      }
+      
+      return true; // النسخ متساوية
+      
+    } catch (e) {
+      debugPrint('❌ Error comparing versions: $e');
+      return false;
     }
   }
 
@@ -229,7 +326,7 @@ class BannerHelpers {
     } catch (e, stackTrace) {
       debugPrint('❌ Error showing all banners: $e');
       debugPrint('Stack trace: $stackTrace');
-      rethrow; // إعادة رفع الخطأ للسماح بمعالجته في UI
+      rethrow;
     }
   }
 }
