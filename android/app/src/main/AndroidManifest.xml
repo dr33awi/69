@@ -5,7 +5,6 @@
   <!-- ==================== أذونات الموقع ==================== -->
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-  <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
   <!-- ==================== أذونات الاستشعار ==================== -->
   <uses-permission android:name="android.permission.ACCESS_MAGNETOMETER" />
@@ -18,8 +17,7 @@
   <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-  <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
   
   <!-- ==================== أذونات Firebase Cloud Messaging ==================== -->
   <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
@@ -56,7 +54,7 @@
       <!-- ==================== خدمات Firebase Cloud Messaging ==================== -->
       
       <service
-          android:name="com.example.test_athkar_app.MyFirebaseMessagingService"
+          android:name="com.dhakarani.app.MyFirebaseMessagingService"
           android:exported="false"
           android:directBootAware="true">
           <intent-filter>
@@ -71,7 +69,7 @@
           android:permission="com.google.android.c2dm.permission.SEND">
           <intent-filter>
               <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-              <category android:name="com.example.test_athkar_app" />
+              <category android:name="com.dhakarani.app" />
           </intent-filter>
       </receiver>
 
@@ -92,7 +90,7 @@
 
       <!-- ==================== خدمة الموقع في الخلفية ==================== -->
       <service
-          android:name="com.example.test_athkar_app.LocationBackgroundService"
+          android:name="com.dhakarani.app.LocationBackgroundService"
           android:enabled="true"
           android:exported="false"
           android:foregroundServiceType="location" />

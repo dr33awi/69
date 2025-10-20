@@ -156,14 +156,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   Icon(
                     _currentPage == _pages.length - 1
                         ? Icons.check_circle_outline
-                        : Icons.swipe,
+                        : Icons.arrow_back_ios_rounded,
                     color: Colors.white,
                     size: OnboardingConstants.isSmallScreen(screenHeight) ? 16.sp : 20.sp,
                   ),
                   SizedBox(width: 8.w),
                   Text(
                     _currentPage == _pages.length - 1
-                        ? 'اضغط للبدء'
+                        ? '🚀 ابدأ الآن'
                         : 'اسحب للمتابعة',
                     style: TextStyle(
                       fontSize: _currentPage == _pages.length - 1 

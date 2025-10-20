@@ -51,24 +51,17 @@ class PermissionConstants {
   // ==================== معلومات الأذونات ====================
   static const Map<AppPermissionType, PermissionInfo> permissions = {
     AppPermissionType.notification: PermissionInfo(
-      name: 'الإشعارات',
-      description: 'لإرسال تنبيهات الصلاة والأذكار في أوقاتها',
+      name: '🔔 الإشعارات',
+      description: 'لتذكيرك بمواقيت الصلاة والأذكار اليومية',
       icon: Icons.notifications_active,
       color: Colors.blue,
       isCritical: true,
     ),
     AppPermissionType.location: PermissionInfo(
-      name: 'الموقع',
-      description: 'لحساب أوقات الصلاة بدقة واتجاه القبلة',
+      name: '📍 الموقع',
+      description: 'لحساب مواقيت الصلاة بدقة وتحديد اتجاه القبلة',
       icon: Icons.location_on,
       color: Colors.green,
-      isCritical: true,
-    ),
-    AppPermissionType.batteryOptimization: PermissionInfo(
-      name: 'تحسين البطارية',
-      description: 'لضمان عمل التذكيرات في الخلفية',
-      icon: Icons.battery_charging_full,
-      color: Colors.orange,
       isCritical: true,
     ),
   };
@@ -78,7 +71,6 @@ class PermissionConstants {
   static List<AppPermissionType> get criticalPermissions => [
     AppPermissionType.notification,
     AppPermissionType.location,
-    AppPermissionType.batteryOptimization,
   ];
   
   /// قائمة الأذونات الاختيارية (لا توجد حالياً)
@@ -132,32 +124,26 @@ class PermissionConstants {
   
   /// رسالة تنبيه عامة للأذونات
   static const String generalPermissionMessage = 
-      'يحتاج التطبيق لبعض الأذونات لتقديم أفضل تجربة';
+      'نحتاج بعض الأذونات لنقدم لك تجربة مثالية 🌟';
   
   /// رسالة عند رفض الإذن نهائياً
   static const String permanentlyDeniedMessage = 
-      'يرجى تفعيل الإذن من إعدادات النظام';
+      'يمكنك تفعيل الإذن من ⚙️ إعدادات النظام';
   
   /// رسالة النجاح
   static String getSuccessMessage(AppPermissionType permission) =>
-      'تم تفعيل إذن ${getName(permission)} بنجاح';
+      'تم تفعيل ${getName(permission)} بنجاح ✅';
   
   /// رسالة الخطأ
   static String getErrorMessage(AppPermissionType permission) =>
-      'فشل في تفعيل إذن ${getName(permission)}';
+      'لم يتم تفعيل ${getName(permission)} ⚠️';
   
   // ==================== معلومات تقنية ====================
   
   /// هل الإذن مدعوم على المنصة الحالية
   static bool isSupported(AppPermissionType permission) {
-    // يمكن تحديث هذا حسب المنصة
-    switch (permission) {
-      case AppPermissionType.batteryOptimization:
-        // فقط على Android
-        return true; // سيتم الفحص الفعلي في Handler
-      default:
-        return true;
-    }
+    // جميع الأذونات الحالية مدعومة على جميع المنصات
+    return true;
   }
   
   /// الحصول على أولوية الإذن (للترتيب)
@@ -167,10 +153,6 @@ class PermissionConstants {
         return 1; // أعلى أولوية
       case AppPermissionType.location:
         return 2;
-      case AppPermissionType.batteryOptimization:
-        return 3;
-      default:
-        return 99;
     }
   }
   

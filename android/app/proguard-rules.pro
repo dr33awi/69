@@ -46,10 +46,10 @@
 -dontwarn com.dexterous.flutterlocalnotifications.**
 
 # ==================== App Specific Classes ====================
--keep class com.example.test_athkar_app.** { *; }
--keep class com.example.test_athkar_app.MainActivity { *; }
--keep class com.example.test_athkar_app.MyFirebaseMessagingService { *; }
--keep class com.example.test_athkar_app.DoNotDisturbHandler { *; }
+-keep class com.dhakarani.app.** { *; }
+-keep class com.dhakarani.app.MainActivity { *; }
+-keep class com.dhakarani.app.MyFirebaseMessagingService { *; }
+-keep class com.dhakarani.app.DoNotDisturbHandler { *; }
 
 # ==================== Kotlin Rules ====================
 -keep class kotlin.** { *; }

@@ -1,4 +1,4 @@
-package com.example.test_athkar_app
+package com.dhakarani.app
 
 import android.app.NotificationChannel
 import android.app.NotificationManager

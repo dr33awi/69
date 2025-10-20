@@ -258,7 +258,7 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
                     style: context.titleMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: ThemeConstants.bold,
-                      fontSize: 14.sp,
+                      fontSize: 16.sp,
                     ),
                   ),
                 ],
@@ -282,7 +282,7 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
                       style: context.titleSmall?.copyWith(
                         color: PrayerUtils.getPrayerColor(_nextPrayer?.type ?? PrayerType.fajr),
                         fontWeight: ThemeConstants.bold,
-                        fontSize: 11.sp,
+                        fontSize: 13.sp,
                       ),
                     ),
                   ),
@@ -300,7 +300,8 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
                         : 'غير محدد',
                       style: context.labelSmall?.copyWith(
                         color: Colors.white.withOpacity(0.8),
-                        fontSize: 10.sp,
+                        fontWeight: ThemeConstants.semiBold,
+                        fontSize: 11.sp,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -402,8 +403,8 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
             prayer.nameAr,
             style: context.labelSmall?.copyWith(
               color: Colors.white.withOpacity(isActive ? 1.0 : 0.7),
-              fontWeight: isActive ? ThemeConstants.semiBold : ThemeConstants.regular,
-              fontSize: 9.sp,
+              fontWeight: isActive ? ThemeConstants.bold : ThemeConstants.medium,
+              fontSize: 10.sp,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -413,7 +414,8 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
             prayer.formattedTime,
             style: context.labelSmall?.copyWith(
               color: Colors.white.withOpacity(isActive ? 0.9 : 0.6),
-              fontSize: 8.sp,
+              fontWeight: ThemeConstants.semiBold,
+              fontSize: 9.sp,
             ),
           ),
         ],

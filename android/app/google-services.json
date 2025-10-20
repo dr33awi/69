@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:627917894269:android:0a6d4b051a641d69b7b714",
+        "mobilesdk_app_id": "1:627917894269:android:6c68ccf9bf03088eb7b714",
         "android_client_info": {
-          "package_name": "com.example.test_athkar_app"
+          "package_name": "com.dhakarani.app"
         }
       },
       "oauth_client": [],

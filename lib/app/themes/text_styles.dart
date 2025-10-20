@@ -9,112 +9,127 @@ class AppTextStyles {
 
   // ===== أنماط العناوين مع ScreenUtil =====
   static TextStyle get h1 => TextStyle(
-    fontSize: 28.sp,
+    fontSize: 32.sp,
     fontWeight: FontWeight.bold,
-    height: 1.3,
+    height: 1.4,
     fontFamily: 'Cairo',
+    letterSpacing: 0.5,
   );
 
   static TextStyle get h2 => TextStyle(
-    fontSize: 24.sp,
-    fontWeight: FontWeight.w600,
-    height: 1.3,
+    fontSize: 28.sp,
+    fontWeight: FontWeight.w700,
+    height: 1.4,
     fontFamily: 'Cairo',
+    letterSpacing: 0.4,
   );
 
   static TextStyle get h3 => TextStyle(
-    fontSize: 20.sp,
-    fontWeight: FontWeight.w600,
-    height: 1.4,
-    fontFamily: 'Cairo',
-  );
-
-  static TextStyle get h4 => TextStyle(
-    fontSize: 18.sp,
-    fontWeight: FontWeight.w600,
-    height: 1.4,
-    fontFamily: 'Cairo',
-  );
-
-  static TextStyle get h5 => TextStyle(
-    fontSize: 16.sp,
+    fontSize: 24.sp,
     fontWeight: FontWeight.w600,
     height: 1.5,
     fontFamily: 'Cairo',
+    letterSpacing: 0.3,
+  );
+
+  static TextStyle get h4 => TextStyle(
+    fontSize: 20.sp,
+    fontWeight: FontWeight.w600,
+    height: 1.5,
+    fontFamily: 'Cairo',
+    letterSpacing: 0.2,
+  );
+
+  static TextStyle get h5 => TextStyle(
+    fontSize: 18.sp,
+    fontWeight: FontWeight.w600,
+    height: 1.6,
+    fontFamily: 'Cairo',
+    letterSpacing: 0.1,
   );
 
   // ===== أنماط النص الأساسي مع ScreenUtil =====
   static TextStyle get body1 => TextStyle(
-    fontSize: 16.sp,
-    fontWeight: FontWeight.normal,
-    height: 1.6,
+    fontSize: 18.sp,
+    fontWeight: FontWeight.w500,
+    height: 1.8,
     fontFamily: 'Cairo',
+    letterSpacing: 0.15,
   );
 
   static TextStyle get body2 => TextStyle(
-    fontSize: 14.sp,
-    fontWeight: FontWeight.normal,
-    height: 1.6,
+    fontSize: 16.sp,
+    fontWeight: FontWeight.w500,
+    height: 1.7,
     fontFamily: 'Cairo',
+    letterSpacing: 0.1,
   );
 
   // ===== أنماط التسميات مع ScreenUtil =====
   static TextStyle get label1 => TextStyle(
-    fontSize: 14.sp,
-    fontWeight: FontWeight.w500,
-    height: 1.4,
+    fontSize: 16.sp,
+    fontWeight: FontWeight.w600,
+    height: 1.5,
     fontFamily: 'Cairo',
+    letterSpacing: 0.1,
   );
 
   static TextStyle get label2 => TextStyle(
-    fontSize: 12.sp,
-    fontWeight: FontWeight.w500,
-    height: 1.4,
+    fontSize: 14.sp,
+    fontWeight: FontWeight.w600,
+    height: 1.5,
     fontFamily: 'Cairo',
+    letterSpacing: 0.1,
   );
 
   static TextStyle get caption => TextStyle(
-    fontSize: 11.sp,
-    fontWeight: FontWeight.normal,
-    height: 1.4,
+    fontSize: 13.sp,
+    fontWeight: FontWeight.w500,
+    height: 1.5,
     fontFamily: 'Cairo',
+    letterSpacing: 0.1,
   );
 
   // ===== أنماط الأزرار مع ScreenUtil =====
   static TextStyle get button => TextStyle(
-    fontSize: 16.sp,
-    fontWeight: FontWeight.w600,
-    height: 1.2,
+    fontSize: 18.sp,
+    fontWeight: FontWeight.w700,
+    height: 1.3,
     fontFamily: 'Cairo',
+    letterSpacing: 0.3,
   );
 
   static TextStyle get buttonSmall => TextStyle(
-    fontSize: 14.sp,
+    fontSize: 16.sp,
     fontWeight: FontWeight.w600,
-    height: 1.2,
+    height: 1.3,
     fontFamily: 'Cairo',
+    letterSpacing: 0.2,
   );
 
   // ===== أنماط خاصة بالمحتوى الإسلامي مع ScreenUtil =====
   static TextStyle get quran => TextStyle(
-    fontSize: 22.sp,
-    fontWeight: FontWeight.normal,
-    height: 2.0,
+    fontSize: 26.sp,
+    fontWeight: FontWeight.w500,
+    height: 2.2,
     fontFamily: 'Amiri',
+    letterSpacing: 0.3,
   );
 
   static TextStyle get athkar => TextStyle(
-    fontSize: 18.sp,
-    fontWeight: FontWeight.normal,
-    height: 1.8,
+    fontSize: 22.sp,
+    fontWeight: FontWeight.w500,
+    height: 2.0,
     fontFamily: 'Cairo',
+    letterSpacing: 0.2,
   );
 
   static TextStyle get dua => TextStyle(
-    fontSize: 16.sp,
-    fontWeight: FontWeight.normal,
-    height: 1.7,
+    fontSize: 20.sp,
+    fontWeight: FontWeight.w500,
+    height: 1.9,
     fontFamily: 'Cairo',
+    letterSpacing: 0.15,
   );
 
   // ===== إنشاء TextTheme للتطبيق =====
@@ -231,59 +246,67 @@ class AppTextStyles {
   
   // أحجام الخط للقرآن
   static TextStyle get quranSmall => TextStyle(
-    fontSize: 18.sp,
-    fontWeight: FontWeight.normal,
-    height: 1.8,
+    fontSize: 22.sp,
+    fontWeight: FontWeight.w500,
+    height: 2.0,
     fontFamily: 'Amiri',
+    letterSpacing: 0.2,
   );
 
   static TextStyle get quranMedium => TextStyle(
-    fontSize: 22.sp,
-    fontWeight: FontWeight.normal,
-    height: 2.0,
+    fontSize: 26.sp,
+    fontWeight: FontWeight.w500,
+    height: 2.2,
     fontFamily: 'Amiri',
+    letterSpacing: 0.3,
   );
 
   static TextStyle get quranLarge => TextStyle(
-    fontSize: 26.sp,
-    fontWeight: FontWeight.normal,
-    height: 2.2,
+    fontSize: 30.sp,
+    fontWeight: FontWeight.w500,
+    height: 2.4,
     fontFamily: 'Amiri',
+    letterSpacing: 0.4,
   );
 
   static TextStyle get quranExtraLarge => TextStyle(
-    fontSize: 30.sp,
-    fontWeight: FontWeight.normal,
-    height: 2.4,
+    fontSize: 34.sp,
+    fontWeight: FontWeight.w500,
+    height: 2.5,
     fontFamily: 'Amiri',
+    letterSpacing: 0.5,
   );
 
   // أحجام الخط للأذكار
   static TextStyle get athkarSmall => TextStyle(
-    fontSize: 16.sp,
-    fontWeight: FontWeight.normal,
-    height: 1.6,
+    fontSize: 20.sp,
+    fontWeight: FontWeight.w500,
+    height: 1.9,
     fontFamily: 'Cairo',
+    letterSpacing: 0.15,
   );
 
   static TextStyle get athkarMedium => TextStyle(
-    fontSize: 18.sp,
-    fontWeight: FontWeight.normal,
-    height: 1.8,
+    fontSize: 22.sp,
+    fontWeight: FontWeight.w500,
+    height: 2.0,
     fontFamily: 'Cairo',
+    letterSpacing: 0.2,
   );
 
   static TextStyle get athkarLarge => TextStyle(
-    fontSize: 20.sp,
-    fontWeight: FontWeight.normal,
-    height: 2.0,
+    fontSize: 24.sp,
+    fontWeight: FontWeight.w500,
+    height: 2.1,
     fontFamily: 'Cairo',
+    letterSpacing: 0.25,
   );
 
   static TextStyle get athkarExtraLarge => TextStyle(
-    fontSize: 24.sp,
-    fontWeight: FontWeight.normal,
+    fontSize: 28.sp,
+    fontWeight: FontWeight.w500,
     height: 2.2,
     fontFamily: 'Cairo',
+    letterSpacing: 0.3,
   );
 }

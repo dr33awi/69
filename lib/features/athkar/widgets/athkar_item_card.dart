@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
+import '../../../app/di/service_locator.dart';
 import '../models/athkar_model.dart';
 
 class AthkarItemCard extends StatelessWidget {
@@ -12,6 +13,13 @@ class AthkarItemCard extends StatelessWidget {
   final int number;
   final Color? color;
   final double fontSize;
+  final String fontFamily;
+  final double lineHeight;
+  final double letterSpacing;
+  final bool showTashkeel;
+  final bool showFadl;
+  final bool showSource;
+  final bool showCounter;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
   final VoidCallback? onShare;
@@ -24,10 +32,23 @@ class AthkarItemCard extends StatelessWidget {
     required this.number,
     this.color,
     required this.fontSize,
+    this.fontFamily = 'Cairo',
+    this.lineHeight = 1.8,
+    this.letterSpacing = 0.3,
+    this.showTashkeel = true,
+    this.showFadl = true,
+    this.showSource = true,
+    this.showCounter = true,
     required this.onTap,
     required this.onLongPress,
     this.onShare,
   });
+
+  String _removeTashkeel(String text) {
+    // إزالة التشكيل من النص
+    final tashkeelRegex = RegExp(r'[\u0617-\u061A\u064B-\u0652]');
+    return text.replaceAll(tashkeelRegex, '');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,25 +141,25 @@ class AthkarItemCard extends StatelessWidget {
                                 ),
                               ),
                               child: Text(
-                                item.text,
+                                showTashkeel ? item.text : _removeTashkeel(item.text),
                                 style: TextStyle(
                                   fontSize: fontSize.sp,
-                                  height: 1.8,
-                                  fontFamily: ThemeConstants.fontFamilyArabic,
+                                  height: lineHeight,
+                                  fontFamily: fontFamily,
                                   color: isCompleted 
                                       ? effectiveColor.darken(0.2)
                                       : context.textPrimaryColor,
                                   fontWeight: isCompleted 
                                       ? ThemeConstants.medium 
                                       : ThemeConstants.regular,
-                                  letterSpacing: 0.3,
+                                  letterSpacing: letterSpacing,
                                 ),
                                 textAlign: TextAlign.center,
                                 textDirection: TextDirection.rtl,
                               ),
                             ),
                             
-                            if (item.fadl != null) ...[
+                            if (showFadl && item.fadl != null) ...[
                               SizedBox(height: 10.h),
                               Container(
                                 padding: EdgeInsets.all(10.r),
@@ -204,7 +225,7 @@ class AthkarItemCard extends StatelessWidget {
                   
                   Row(
                     children: [
-                      if (item.source != null) ...[
+                      if (showSource && item.source != null) ...[
                         Expanded(
                           child: Container(
                             padding: EdgeInsets.symmetric(
@@ -244,13 +265,16 @@ class AthkarItemCard extends StatelessWidget {
                           ),
                         ),
                         SizedBox(width: 10.w),
-                      ] else
+                      ] else if (!showCounter && onShare == null)
                         const Spacer(),
                       
-                      _buildCounter(context),
+                      if (showCounter) ...[
+                        _buildCounter(context),
+                        if (onShare != null) SizedBox(width: 10.w),
+                      ],
                       
+                      // زر المشاركة
                       if (onShare != null) ...[
-                        SizedBox(width: 10.w),
                         _ActionButton(
                           icon: Icons.share_rounded,
                           onTap: onShare!,

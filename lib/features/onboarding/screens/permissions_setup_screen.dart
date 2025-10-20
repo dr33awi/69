@@ -231,7 +231,7 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'الأذونات المطلوبة',
+          '🔒 منح الأذونات',
           style: TextStyle(
             fontSize: titleSize,
             fontWeight: FontWeight.bold,
@@ -244,6 +244,19 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
                 blurRadius: 8,
               ),
             ],
+          ),
+          textAlign: TextAlign.center,
+        ),
+        
+        SizedBox(height: 6.h),
+        
+        Text(
+          'لتجربة مثالية، نحتاج بعض الأذونات',
+          style: TextStyle(
+            fontSize: isSmallScreen ? 11.sp : 12.sp,
+            color: Colors.white.withOpacity(0.9),
+            height: 1.3,
+            fontWeight: FontWeight.w500,
           ),
           textAlign: TextAlign.center,
         ),
@@ -432,7 +445,6 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
     final double buttonHeight = isSmallScreen ? 46.h : 48.h;
     final double buttonRadius = isSmallScreen ? 12.r : 14.r;
     final double buttonTextSize = isSmallScreen ? 13.sp : 14.sp;
-    final double iconSize = isSmallScreen ? 16.sp : 17.sp;
     final double statusTextSize = isSmallScreen ? 10.sp : 11.sp;
     final double statusIconSize = isSmallScreen ? 13.sp : 14.sp;
     final double spacing = isSmallScreen ? 8.h : 10.h;
@@ -455,28 +467,13 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
                   borderRadius: BorderRadius.circular(buttonRadius),
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.verified_user_rounded,
-                    size: iconSize,
-                  ),
-                  SizedBox(width: 8.w),
-                  Flexible(
-                    child: Text(
-                      'منح جميع الأذونات',
-                      style: TextStyle(
-                        fontSize: buttonTextSize,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.3,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ),
-                ],
+              child: Text(
+                '✨ تفعيل جميع الأذونات',
+                style: TextStyle(
+                  fontSize: buttonTextSize,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.3,
+                ),
               ),
             ),
           ),
@@ -514,28 +511,13 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
                       ),
                     ),
                   )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          _allPermissionsGranted ? 'ابدأ الآن' : 'المتابعة بدون أذونات',
-                          style: TextStyle(
-                            fontSize: buttonTextSize,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.3,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      ),
-                      SizedBox(width: 6.w),
-                      Icon(
-                        Icons.arrow_back,
-                        size: iconSize,
-                      ),
-                    ],
+                : Text(
+                    _allPermissionsGranted ? '🚀 ابدأ الآن' : 'المتابعة لاحقًا',
+                    style: TextStyle(
+                      fontSize: buttonTextSize,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.3,
+                    ),
                   ),
           ),
         ),
@@ -554,7 +536,7 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
               ),
               SizedBox(width: 6.w),
               Text(
-                'جميع الأذونات مفعلة! جاهز للبدء',
+                '✅ تمام! كل شيء جاهز الآن',
                 style: TextStyle(
                   fontSize: statusTextSize,
                   color: Colors.white.withOpacity(0.95),
@@ -573,7 +555,7 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
           )
         else
           Text(
-            'يمكنك تفعيل الأذونات لاحقاً من الإعدادات',
+            'يمكنك تفعيلها لاحقًا من ⚙️ الإعدادات',
             style: TextStyle(
               fontSize: statusTextSize,
               color: Colors.white.withOpacity(0.85),

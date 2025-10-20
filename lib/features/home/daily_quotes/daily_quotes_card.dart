@@ -419,7 +419,7 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
                     color: Colors.white,
                     fontSize: _getQuoteFontSize(quote.content.length),
                     height: 1.5,
-                    fontWeight: ThemeConstants.medium,
+                    fontWeight: ThemeConstants.bold,
                     fontFamily: quote.type == QuoteType.verse 
                         ? ThemeConstants.fontFamilyQuran 
                         : ThemeConstants.fontFamily,
@@ -478,11 +478,11 @@ class _DailyQuotesCardState extends State<DailyQuotesCard> {
 
   double _getQuoteFontSize(int textLength) {
     if (textLength > 150) {
-      return 11.sp;
-    } else if (textLength > 100) {
-      return 12.sp;
-    } else {
       return 13.sp;
+    } else if (textLength > 100) {
+      return 14.sp;
+    } else {
+      return 15.sp;
     }
   }
 
@@ -782,7 +782,8 @@ class QuoteDetailsModal extends StatelessWidget {
                       quote.content,
                       style: context.bodyLarge?.copyWith(
                         height: 1.7,
-                        fontSize: 14.sp,
+                        fontSize: 16.sp,
+                        fontWeight: ThemeConstants.bold,
                         fontFamily: quote.type == QuoteType.verse 
                             ? ThemeConstants.fontFamilyQuran 
                             : ThemeConstants.fontFamily,

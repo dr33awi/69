@@ -4,7 +4,6 @@ import '../permission_service.dart';
 import 'permission_handler_base.dart';
 import 'location_handler.dart';
 import 'notification_handler.dart';
-import 'battery_handler.dart';
 
 /// Factory للحصول على handler المناسب لكل إذن (مبسط)
 class PermissionHandlerFactory {
@@ -12,7 +11,6 @@ class PermissionHandlerFactory {
   static final Map<AppPermissionType, PermissionHandlerBase> _handlers = {
     AppPermissionType.location: LocationPermissionHandler(),
     AppPermissionType.notification: NotificationPermissionHandler(),
-    AppPermissionType.batteryOptimization: BatteryOptimizationHandler(),
   };
   
   /// الحصول على handler لإذن محدد

@@ -6,7 +6,6 @@ import 'dart:async';
 enum AppPermissionType {
   location,           // لحساب أوقات الصلاة
   notification,       // للتذكيرات
-  batteryOptimization, // لضمان عمل التطبيق في الخلفية
 }
 
 /// حالة الإذن
