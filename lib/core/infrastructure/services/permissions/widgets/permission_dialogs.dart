@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../permission_service.dart';
 import '../permission_constants.dart';
+import '../../../../../app/themes/widgets/core/app_button.dart';
 
 /// Dialog بسيط وموحد لشرح الأذونات
 class PermissionDialogs {
@@ -115,26 +116,20 @@ class PermissionDialogs {
             child: Row(
               children: [
                 Expanded(
-                  child: TextButton(
+                  child: AppButton.text(
+                    text: 'إلغاء',
                     onPressed: () => Navigator.pop(context, false),
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 12.h),
-                    ),
-                    child: Text('إلغاء', style: TextStyle(fontSize: 15.sp)),
+                    size: ButtonSize.small,
                   ),
                 ),
                 SizedBox(width: 8.w),
                 Expanded(
                   flex: 2,
-                  child: ElevatedButton(
+                  child: AppButton.primary(
+                    text: 'متابعة',
                     onPressed: () => Navigator.pop(context, true),
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 12.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                    ),
-                    child: Text('متابعة', style: TextStyle(fontSize: 15.sp)),
+                    size: ButtonSize.small,
+                    isFullWidth: true,
                   ),
                 ),
               ],
@@ -195,26 +190,20 @@ class PermissionDialogs {
             child: Row(
               children: [
                 Expanded(
-                  child: TextButton(
+                  child: AppButton.text(
+                    text: 'إلغاء',
                     onPressed: () => Navigator.pop(context, false),
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 12.h),
-                    ),
-                    child: Text('إلغاء', style: TextStyle(fontSize: 15.sp)),
+                    size: ButtonSize.small,
                   ),
                 ),
                 SizedBox(width: 8.w),
                 Expanded(
                   flex: 2,
-                  child: ElevatedButton(
+                  child: AppButton.primary(
+                    text: 'السماح',
                     onPressed: () => Navigator.pop(context, true),
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 12.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                    ),
-                    child: Text('السماح', style: TextStyle(fontSize: 15.sp)),
+                    size: ButtonSize.small,
+                    isFullWidth: true,
                   ),
                 ),
               ],
@@ -332,29 +321,23 @@ class PermissionDialogs {
             child: Row(
               children: [
                 Expanded(
-                  child: TextButton(
+                  child: AppButton.text(
+                    text: 'لاحقاً',
                     onPressed: () => Navigator.pop(context),
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 12.h),
-                    ),
-                    child: Text('لاحقاً', style: TextStyle(fontSize: 15.sp)),
+                    size: ButtonSize.small,
                   ),
                 ),
                 SizedBox(width: 8.w),
                 Expanded(
                   flex: 2,
-                  child: ElevatedButton(
+                  child: AppButton.primary(
+                    text: 'فتح الإعدادات',
                     onPressed: () {
                       Navigator.pop(context);
                       onOpenSettings();
                     },
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 12.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                    ),
-                    child: Text('فتح الإعدادات', style: TextStyle(fontSize: 15.sp)),
+                    size: ButtonSize.small,
+                    isFullWidth: true,
                   ),
                 ),
               ],
@@ -503,29 +486,20 @@ class PermissionDialogs {
               children: [
                 if (!allGranted)
                   Expanded(
-                    child: TextButton(
+                    child: AppButton.text(
+                      text: 'لاحقاً',
                       onPressed: () => Navigator.pop(context),
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 12.h),
-                      ),
-                      child: Text('لاحقاً', style: TextStyle(fontSize: 15.sp)),
+                      size: ButtonSize.small,
                     ),
                   ),
                 if (!allGranted) SizedBox(width: 8.w),
                 Expanded(
                   flex: allGranted ? 1 : 2,
-                  child: ElevatedButton(
+                  child: AppButton.primary(
+                    text: allGranted ? 'ممتاز!' : 'موافق',
                     onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 12.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                    ),
-                    child: Text(
-                      allGranted ? 'ممتاز!' : 'موافق',
-                      style: TextStyle(fontSize: 15.sp),
-                    ),
+                    size: ButtonSize.small,
+                    isFullWidth: true,
                   ),
                 ),
               ],

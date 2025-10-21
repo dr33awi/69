@@ -453,10 +453,9 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
             text: 'تفعيل جميع الأذونات',
             onPressed: _requestAllPermissions,
             isFullWidth: true,
-            size: isSmallScreen ? ButtonSize.medium : ButtonSize.large,
+            size: ButtonSize.small,
             backgroundColor: Colors.white,
             textColor: ThemeConstants.primary,
-            icon: Icons.done_all,
           ),
 
         if (!_allPermissionsGranted)
@@ -464,16 +463,15 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
 
         // Main Button - ابدأ الآن
         AppButton.custom(
-          text: _allPermissionsGranted ? ' ابدأ الآن' : 'المتابعة لاحقًا',
+          text: _allPermissionsGranted ? 'ابدأ الآن' : 'المتابعة لاحقًا',
           onPressed: !_isCompletingSetup ? _completeSetup : null,
           isFullWidth: true,
           isLoading: _isCompletingSetup,
-          size: isSmallScreen ? ButtonSize.medium : ButtonSize.large,
+          size: ButtonSize.small,
           backgroundColor: _allPermissionsGranted 
               ? Colors.white 
               : Colors.white.withOpacity(0.85),
           textColor: ThemeConstants.primary,
-          icon: _allPermissionsGranted ? Icons.rocket_launch : Icons.skip_next,
         ),
 
         SizedBox(height: spacing),

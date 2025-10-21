@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:athkar_app/app/di/service_locator.dart';
 import 'package:athkar_app/app/themes/app_theme.dart';
+import 'package:athkar_app/app/themes/widgets/core/app_button.dart';
 import '../permission_manager.dart';
 import '../permission_service.dart';
 import '../permission_constants.dart';
@@ -578,54 +579,12 @@ class _SimplePermissionCard extends StatelessWidget {
               SizedBox(height: 28.h),
               
               // زر التفعيل
-              SizedBox(
-                width: double.infinity,
-                height: 50.h,
-                child: ElevatedButton(
-                  onPressed: isProcessing ? null : onActivate,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: info.color,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: info.color.withOpacity(0.5),
-                    elevation: 0,
-                    shadowColor: info.color.withOpacity(0.3),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14.r),
-                    ),
-                  ),
-                  child: isProcessing
-                      ? SizedBox(
-                          width: 22.w,
-                          height: 22.w,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5.w,
-                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Flexible(
-                              child: Text(
-                                'تفعيل الآن',
-                                style: TextStyle(
-                                  fontSize: 15.sp,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.3,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ),
-                            SizedBox(width: 6.w),
-                            Icon(
-                              Icons.arrow_back,
-                              size: 18.sp,
-                            ),
-                          ],
-                        ),
-                ),
+              AppButton(
+                text: 'تفعيل الآن',
+                onPressed: isProcessing ? null : onActivate,
+                size: ButtonSize.medium,
+                customColor: info.color,
+                isFullWidth: true,
               ),
             ],
           ),
