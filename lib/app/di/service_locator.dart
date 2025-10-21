@@ -72,10 +72,12 @@ class ServiceLocator {
   /// تهيئة الخدمات الأساسية
   Future<void> _initializeEssentialOnly() async {
     if (_isEssentialInitialized) {
+      debugPrint('ServiceLocator: Essential services already ready ⚡');
       return;
     }
 
     try {
+      debugPrint('ServiceLocator: Fast initialization starting...');
       final stopwatch = Stopwatch()..start();
 
       await _registerCoreServices();
@@ -86,6 +88,7 @@ class ServiceLocator {
       await _checkFirebaseAvailability();
       if (_firebaseAvailable) {
         _registerFirebaseServices();
+        debugPrint('✅ Firebase services registered in Essential Init');
       }
       
       _registerDevelopmentServices();
@@ -100,21 +103,30 @@ class ServiceLocator {
 
       _isEssentialInitialized = true;
       stopwatch.stop();
+      
+      debugPrint('ServiceLocator: Essential init completed in ${stopwatch.elapsedMilliseconds}ms ⚡');
+      
     } catch (e, stackTrace) {
+      debugPrint('ServiceLocator: Essential init failed: $e');
+      debugPrint('StackTrace: $stackTrace');
       rethrow;
     }
   }
 
   Future<void> _registerFeatureServicesIfNeeded() async {
     if (_isFeatureServicesRegistered) {
+      debugPrint('ServiceLocator: Feature services already registered');
       return;
     }
 
     try {
+      debugPrint('ServiceLocator: Registering feature services lazily...');
       _registerFeatureServicesLazy();
       _isFeatureServicesRegistered = true;
       await _saveRegistrationState();
+      debugPrint('ServiceLocator: Feature services registered successfully ✅');
     } catch (e) {
+      debugPrint('ServiceLocator: Feature services registration failed: $e');
     }
   }
 
@@ -135,9 +147,11 @@ class ServiceLocator {
       
       if (_isFeatureServicesRegistered) {
         _registerFeatureServicesLazy();
+        debugPrint('ServiceLocator: Feature services re-registered from cache');
       }
 
     } catch (e) {
+      debugPrint('ServiceLocator: Error loading saved state: $e');
       await _resetSavedState();
     }
   }
@@ -149,6 +163,7 @@ class ServiceLocator {
       await prefs.setBool(_keyFeatureServicesRegistered, _isFeatureServicesRegistered);
       await prefs.setBool(_keyFirebaseAvailable, _firebaseAvailable);
     } catch (e) {
+      debugPrint('ServiceLocator: Error saving registration state: $e');
     }
   }
 
@@ -161,12 +176,15 @@ class ServiceLocator {
       _isFeatureServicesRegistered = false;
       _firebaseAvailable = false;
     } catch (e) {
+      debugPrint('ServiceLocator: Error resetting saved state: $e');
     }
   }
 
   // ==================== تسجيل الخدمات الأساسية ====================
 
   Future<void> _registerCoreServices() async {
+    debugPrint('ServiceLocator: Registering core services...');
+
     if (!getIt.isRegistered<SharedPreferences>()) {
       final sharedPreferences = await SharedPreferences.getInstance();
       getIt.registerSingleton<SharedPreferences>(sharedPreferences);
@@ -184,6 +202,8 @@ class ServiceLocator {
   }
 
   Future<void> _registerStorageServices() async {
+    debugPrint('ServiceLocator: Registering storage services...');
+
     if (!getIt.isRegistered<StorageService>()) {
       getIt.registerLazySingleton<StorageService>(
         () => StorageServiceImpl(getIt<SharedPreferences>()),
@@ -192,6 +212,8 @@ class ServiceLocator {
   }
 
   void _registerThemeServices() {
+    debugPrint('ServiceLocator: Registering theme services...');
+    
     if (!getIt.isRegistered<ThemeNotifier>()) {
       getIt.registerLazySingleton<ThemeNotifier>(
         () => ThemeNotifier(getIt<StorageService>()),
@@ -200,6 +222,8 @@ class ServiceLocator {
   }
 
   void _registerPermissionServices() {
+    debugPrint('ServiceLocator: Registering permission services...');
+
     if (!getIt.isRegistered<PermissionService>()) {
       getIt.registerLazySingleton<PermissionService>(
         () => PermissionServiceImpl(storage: getIt<StorageService>()),
@@ -217,6 +241,8 @@ class ServiceLocator {
   }
 
   Future<void> _registerNotificationServices() async {
+    debugPrint('ServiceLocator: Registering notification services...');
+
     if (!getIt.isRegistered<NotificationService>()) {
       getIt.registerLazySingleton<NotificationService>(
         () => NotificationServiceImpl(
@@ -230,10 +256,13 @@ class ServiceLocator {
     try {
       await NotificationManager.initialize(getIt<NotificationService>());
     } catch (e) {
+      debugPrint('ServiceLocator: Notification manager init error: $e');
     }
   }
 
   void _registerDeviceServices() {
+    debugPrint('ServiceLocator: Registering device services...');
+
     if (!getIt.isRegistered<BatteryService>()) {
       getIt.registerLazySingleton<BatteryService>(
         () => BatteryServiceImpl(battery: getIt<Battery>()),
@@ -242,12 +271,16 @@ class ServiceLocator {
   }
 
   void _registerErrorHandler() {
+    debugPrint('ServiceLocator: Registering error handler...');
+
     if (!getIt.isRegistered<AppErrorHandler>()) {
       getIt.registerLazySingleton<AppErrorHandler>(() => AppErrorHandler());
     }
   }
 
   void _registerDevelopmentServices() {
+    debugPrint('ServiceLocator: Registering development services...');
+    
     try {
       if (!getIt.isRegistered<AppLogger>()) {
         getIt.registerSingleton<AppLogger>(AppLogger.instance);
@@ -264,33 +297,45 @@ class ServiceLocator {
         LeakTrackerService.instance.initialize();
         AppLogger.info('LeakTrackerService initialized and registered');
       }
+
+      debugPrint('✅ Development services registered successfully');
     } catch (e) {
+      debugPrint('❌ Error registering development services: $e');
     }
   }
 
   void _registerShareService() {
+    debugPrint('ServiceLocator: Registering share service...');
+    
     try {
       if (!getIt.isRegistered<ShareService>()) {
         getIt.registerLazySingleton<ShareService>(() => ShareService());
+        debugPrint('✅ ShareService registered successfully');
       }
     } catch (e) {
+      debugPrint('❌ Error registering ShareService: $e');
     }
   }
 
   void _registerReviewServices() {
+    debugPrint('ServiceLocator: Registering review services...');
+    
     try {
       if (!getIt.isRegistered<ReviewService>()) {
         getIt.registerLazySingleton<ReviewService>(
           () => ReviewService(prefs: getIt<SharedPreferences>()),
         );
+        debugPrint('✅ ReviewService registered successfully');
       }
       
       if (!getIt.isRegistered<ReviewManager>()) {
         getIt.registerLazySingleton<ReviewManager>(
           () => ReviewManager(reviewService: getIt<ReviewService>()),
         );
+        debugPrint('✅ ReviewManager registered successfully');
       }
     } catch (e) {
+      debugPrint('❌ Error registering Review services: $e');
     }
   }
 
@@ -298,19 +343,24 @@ class ServiceLocator {
     if (!getIt.isRegistered<PrayerTimesService>()) {
       getIt.registerLazySingleton<PrayerTimesService>(
         () {
+          debugPrint('🕌 PrayerTimesService initialized in Essential Init');
           return PrayerTimesService(
             storage: getIt<StorageService>(),
             permissionService: getIt<PermissionService>(),
           );
         },
       );
+      debugPrint('✅ PrayerTimesService registered successfully');
     }
   }
 
   void _registerFeatureServicesLazy() {
+    debugPrint('ServiceLocator: Registering feature services as TRUE LAZY...');
+    
     if (!getIt.isRegistered<AthkarService>()) {
       getIt.registerLazySingleton<AthkarService>(
         () {
+          debugPrint('🔄 ACTUAL LAZY LOADING: AthkarService initialized NOW');
           return AthkarService(storage: getIt<StorageService>());
         },
       );
@@ -319,6 +369,7 @@ class ServiceLocator {
     if (!getIt.isRegistered<DuaService>()) {
       getIt.registerLazySingleton<DuaService>(
         () {
+          debugPrint('🔄 ACTUAL LAZY LOADING: DuaService initialized NOW');
           return DuaService(storage: getIt<StorageService>());
         },
       );
@@ -327,6 +378,7 @@ class ServiceLocator {
     if (!getIt.isRegistered<TasbihService>()) {
       getIt.registerFactory<TasbihService>(
         () {
+          debugPrint('🔄 FACTORY: New TasbihService instance created');
           return TasbihService(storage: getIt<StorageService>());
         },
       );
@@ -335,6 +387,7 @@ class ServiceLocator {
     if (!getIt.isRegistered<QiblaServiceV3>()) {
       getIt.registerFactory<QiblaServiceV3>(
         () {
+          debugPrint('🔄 FACTORY: New QiblaServiceV3 instance created');
           return QiblaServiceV3(
             storage: getIt<StorageService>(),
             permissionService: getIt<PermissionService>(),
@@ -346,6 +399,7 @@ class ServiceLocator {
     if (!getIt.isRegistered<SettingsServicesManager>()) {
       getIt.registerLazySingleton<SettingsServicesManager>(
         () {
+          debugPrint('🔄 ACTUAL LAZY LOADING: SettingsServicesManager initialized NOW');
           return SettingsServicesManager(
             storage: getIt<StorageService>(),
             permissionService: getIt<PermissionService>(),
@@ -354,6 +408,8 @@ class ServiceLocator {
         },
       );
     }
+    
+    debugPrint('ServiceLocator: TRUE LAZY feature services registered ✅');
   }
   
   // ==================== Firebase Services ====================
@@ -364,9 +420,12 @@ class ServiceLocator {
 
   Future<void> _safeInitializeFirebase() async {
     if (_firebaseAvailable) {
+      debugPrint('✅ Firebase already available from cache');
+      
       if (getIt.isRegistered<FirebaseRemoteConfigService>()) {
         await _initializeFirebaseServices();
       } else {
+        debugPrint('⚠️ FirebaseRemoteConfigService not registered, registering now...');
         _registerFirebaseServices();
         await _initializeFirebaseServices();
       }
@@ -374,15 +433,18 @@ class ServiceLocator {
     }
 
     try {
+      debugPrint('🔥 Checking Firebase availability...');
       await _checkFirebaseAvailability();
       
       if (_firebaseAvailable) {
         _registerFirebaseServices();
         await _initializeFirebaseServices();
         await _saveRegistrationState();
+        debugPrint('✅ Firebase initialized in background');
       }
       
     } catch (e) {
+      debugPrint('⚠️ Firebase background init failed (non-critical): $e');
       _firebaseAvailable = false;
     }
   }
@@ -393,52 +455,71 @@ class ServiceLocator {
       
       if (apps.isNotEmpty) {
         _firebaseAvailable = true;
+        debugPrint('✅ Firebase is available (${apps.length} apps)');
       } else {
         _firebaseAvailable = false;
+        debugPrint('⚠️ No Firebase apps found');
       }
     } catch (e) {
       _firebaseAvailable = false;
+      debugPrint('⚠️ Firebase check failed: $e');
     }
   }
 
   void _registerFirebaseServices() {
     if (!_firebaseAvailable) {
+      debugPrint('⚠️ Firebase not available, skipping service registration');
       return;
     }
     
     try {
+      debugPrint('📝 Registering Firebase services...');
+      
       if (!getIt.isRegistered<FirebaseRemoteConfigService>()) {
         getIt.registerLazySingleton<FirebaseRemoteConfigService>(
           () {
+            debugPrint('🔄 Creating FirebaseRemoteConfigService instance');
             return FirebaseRemoteConfigService();
           },
         );
+        debugPrint('  ✅ FirebaseRemoteConfigService registered');
       }
       
       if (!getIt.isRegistered<RemoteConfigManager>()) {
         getIt.registerLazySingleton<RemoteConfigManager>(
           () {
+            debugPrint('🔄 Creating RemoteConfigManager instance');
             return RemoteConfigManager();
           },
         );
+        debugPrint('  ✅ RemoteConfigManager registered');
       }
       
       if (!getIt.isRegistered<PromotionalBannerManager>()) {
         getIt.registerLazySingleton<PromotionalBannerManager>(
           () {
+            debugPrint('🔄 Creating PromotionalBannerManager instance');
             return PromotionalBannerManager();
           },
         );
+        debugPrint('  ✅ PromotionalBannerManager registered');
       }
       
       if (!getIt.isRegistered<FirebaseMessagingService>()) {
         getIt.registerLazySingleton<FirebaseMessagingService>(
           () {
+            debugPrint('🔄 Creating FirebaseMessagingService instance');
             return FirebaseMessagingService();
           },
         );
+        debugPrint('  ✅ FirebaseMessagingService registered');
       }
+      
+      debugPrint('✅ All Firebase services registered successfully');
+      
     } catch (e, stackTrace) {
+      debugPrint('❌ Firebase registration error: $e');
+      debugPrint('Stack: $stackTrace');
       _firebaseAvailable = false;
     }
   }
@@ -446,10 +527,12 @@ class ServiceLocator {
   /// ✅ تهيئة سريعة ومحسّنة للبانرات
   Future<void> _initializeFirebaseServices() async {
     if (!_firebaseAvailable) {
+      debugPrint('⚠️ Firebase not available, skipping initialization');
       return;
     }
     
     try {
+      debugPrint('🔄 Initializing Firebase services (FAST MODE)...');
       final storage = getIt<StorageService>();
       final stopwatch = Stopwatch()..start();
       
@@ -459,7 +542,9 @@ class ServiceLocator {
           final remoteConfig = getIt<FirebaseRemoteConfigService>();
           
           if (!remoteConfig.isInitialized) {
+            debugPrint('  🔄 Initializing RemoteConfig...');
             await remoteConfig.initialize();
+            debugPrint('  ✅ RemoteConfig ready (${stopwatch.elapsedMilliseconds}ms)');
           }
           
           // ✅ 2. تهيئة Manager
@@ -467,10 +552,12 @@ class ServiceLocator {
             final manager = getIt<RemoteConfigManager>();
             
             if (!manager.isInitialized) {
+              debugPrint('  🔄 Initializing ConfigManager...');
               await manager.initialize(
                 remoteConfig: remoteConfig,
                 storage: storage,
               );
+              debugPrint('  ✅ ConfigManager ready');
             }
           }
           
@@ -479,21 +566,30 @@ class ServiceLocator {
             final bannerManager = getIt<PromotionalBannerManager>();
             
             if (!bannerManager.isInitialized) {
+              debugPrint('  🔄 Initializing BannerManager...');
+              
               await bannerManager.initialize(
                 remoteConfig: remoteConfig,
                 storage: storage,
               );
               
               stopwatch.stop();
+              
+              debugPrint('  ✅ BannerManager ready (${stopwatch.elapsedMilliseconds}ms total)');
+              debugPrint('  📊 Active banners: ${bannerManager.activeBannersCount}');
+              
               // طباعة حالة البانرات
               if (bannerManager.activeBannersCount > 0) {
                 bannerManager.printStatus();
               } else {
+                debugPrint('  ⚠️ No active banners found!');
+                debugPrint('  💡 Check Firebase Remote Config: promotional_banners');
               }
             }
           }
           
         } catch (e) {
+          debugPrint('  ⚠️ Remote Config/Banners init failed: $e');
         }
       }
       
@@ -507,11 +603,17 @@ class ServiceLocator {
               storage: storage,
               notificationService: getIt<NotificationService>(),
             );
+            debugPrint('  ✅ FirebaseMessaging initialized');
           }
         } catch (e) {
+          debugPrint('  ⚠️ Firebase Messaging init failed: $e');
         }
       }
+      
+      debugPrint('✅ Firebase services initialization completed');
+      
     } catch (e) {
+      debugPrint('❌ Firebase services init failed: $e');
     }
   }
 
@@ -523,19 +625,24 @@ class ServiceLocator {
 
   Future<void> _initializeAdvancedFirebase() async {
     if (!_firebaseAvailable) {
+      debugPrint('⚠️ Firebase not available, skipping advanced services');
       return;
     }
 
     if (_advancedFirebaseInitialized) {
+      debugPrint('✅ Advanced Firebase already initialized');
       return;
     }
 
     try {
+      debugPrint('🚀 Initializing advanced Firebase services...');
+      
       // Analytics Service
       if (!getIt.isRegistered<AnalyticsService>()) {
         getIt.registerSingleton<AnalyticsService>(AnalyticsService());
         final analytics = getIt<AnalyticsService>();
         await analytics.initialize();
+        debugPrint('✅ AnalyticsService ready');
       }
       
       // Performance Service
@@ -543,6 +650,7 @@ class ServiceLocator {
         getIt.registerSingleton<PerformanceService>(PerformanceService());
         final performance = getIt<PerformanceService>();
         await performance.initialize();
+        debugPrint('✅ PerformanceService ready');
       }
       
       // ✅ In-App Messaging Service - جديد!
@@ -550,10 +658,14 @@ class ServiceLocator {
         getIt.registerSingleton<InAppMessagingService>(InAppMessagingService());
         final inAppMessaging = getIt<InAppMessagingService>();
         await inAppMessaging.initialize();
+        debugPrint('✅ InAppMessagingService ready');
       }
       
       _advancedFirebaseInitialized = true;
+      debugPrint('✅ Advanced Firebase services initialized');
+      
     } catch (e) {
+      debugPrint('❌ Advanced Firebase init error: $e');
     }
   }
 
@@ -574,6 +686,8 @@ class ServiceLocator {
   }
 
   static Future<void> reset({bool clearCache = false}) async {
+    debugPrint('ServiceLocator: Resetting (clearCache: $clearCache)...');
+    
     try {
       await _instance._cleanup();
       
@@ -591,10 +705,13 @@ class ServiceLocator {
       }
       
     } catch (e) {
+      debugPrint('ServiceLocator: Reset error: $e');
     }
   }
 
   Future<void> _cleanup() async {
+    debugPrint('ServiceLocator: Cleaning up resources...');
+
     try {
       if (getIt.isRegistered<SettingsServicesManager>()) {
         try {
@@ -602,6 +719,7 @@ class ServiceLocator {
             getIt<SettingsServicesManager>().dispose();
           }
         } catch (e) {
+          debugPrint('ServiceLocator: SettingsServicesManager cleanup error: $e');
         }
       }
 
@@ -615,6 +733,7 @@ class ServiceLocator {
             getIt<PrayerTimesService>().dispose();
           }
         } catch (e) {
+          debugPrint('ServiceLocator: PrayerTimesService cleanup error: $e');
         }
       }
       
@@ -624,6 +743,7 @@ class ServiceLocator {
             getIt<AthkarService>().dispose();
           }
         } catch (e) {
+          debugPrint('ServiceLocator: AthkarService cleanup error: $e');
         }
       }
 
@@ -645,7 +765,10 @@ class ServiceLocator {
 
       _cleanupFirebaseServices();
       _cleanupAdvancedFirebaseServices();
+
+      debugPrint('ServiceLocator: Resources cleaned up');
     } catch (e) {
+      debugPrint('ServiceLocator: Error cleaning up resources: $e');
     }
   }
 
@@ -682,7 +805,10 @@ class ServiceLocator {
           getIt<FirebaseRemoteConfigService>().dispose();
         }
       }
+      
+      debugPrint('ServiceLocator: Firebase services cleaned up');
     } catch (e) {
+      debugPrint('ServiceLocator: Error cleaning Firebase services: $e');
     }
   }
 
@@ -706,7 +832,10 @@ class ServiceLocator {
           getIt<InAppMessagingService>().dispose();
         }
       }
+      
+      debugPrint('ServiceLocator: Advanced Firebase services cleaned up');
     } catch (e) {
+      debugPrint('ServiceLocator: Error cleaning advanced Firebase services: $e');
     }
   }
 
@@ -728,6 +857,7 @@ T? getServiceSafe<T extends Object>() {
   try {
     return getIt.isRegistered<T>() ? getIt<T>() : null;
   } catch (e) {
+    debugPrint('Error getting service $T: $e');
     return null;
   }
 }
@@ -793,6 +923,7 @@ extension ServiceLocatorExtensions on BuildContext {
           ? getIt<PromotionalBannerManager>() 
           : null;
     } catch (e) {
+      debugPrint('Error accessing BannerManager: $e');
       return null;
     }
   }
@@ -805,6 +936,7 @@ extension ServiceLocatorExtensions on BuildContext {
           ? getIt<InAppMessagingService>() 
           : null;
     } catch (e) {
+      debugPrint('Error accessing InAppMessagingService: $e');
       return null;
     }
   }
@@ -813,6 +945,7 @@ extension ServiceLocatorExtensions on BuildContext {
     try {
       final manager = bannerManager;
       if (manager == null || !manager.isInitialized) {
+        debugPrint('⚠️ BannerManager not available');
         return;
       }
       
@@ -821,6 +954,7 @@ extension ServiceLocatorExtensions on BuildContext {
         screenName: screenName,
       );
     } catch (e) {
+      debugPrint('Error showing banners: $e');
     }
   }
   
@@ -831,6 +965,7 @@ extension ServiceLocatorExtensions on BuildContext {
         bannerId: bannerId,
       );
     } catch (e) {
+      debugPrint('Error showing specific banner: $e');
     }
   }
   
@@ -839,8 +974,10 @@ extension ServiceLocatorExtensions on BuildContext {
       final manager = bannerManager;
       if (manager != null && manager.isInitialized) {
         await manager.refresh();
+        debugPrint('✅ Banners refreshed successfully');
       }
     } catch (e) {
+      debugPrint('Error refreshing banners: $e');
     }
   }
   
@@ -859,6 +996,7 @@ extension ServiceLocatorExtensions on BuildContext {
     final manager = bannerManager;
     if (manager != null && manager.isInitialized) {
       await manager.clearAllBannerData();
+      debugPrint('🧹 All banner data cleared');
     }
   }
   
@@ -867,6 +1005,7 @@ extension ServiceLocatorExtensions on BuildContext {
     if (manager != null && manager.isInitialized) {
       manager.printStatus();
     } else {
+      debugPrint('⚠️ BannerManager not available or not initialized');
     }
   }
   
@@ -876,6 +1015,7 @@ extension ServiceLocatorExtensions on BuildContext {
     if (service != null && service.isInitialized) {
       await service.triggerEvent(eventName);
     } else {
+      debugPrint('⚠️ InAppMessagingService not available');
     }
   }
   
@@ -921,6 +1061,7 @@ extension ServiceLocatorExtensions on BuildContext {
         await service.logEvent(name, params);
       }
     } catch (e) {
+      debugPrint('Error logging analytics event: $e');
     }
   }
   
@@ -931,6 +1072,7 @@ extension ServiceLocatorExtensions on BuildContext {
         await service.logScreenView(screenName, extras: extras);
       }
     } catch (e) {
+      debugPrint('Error logging screen view: $e');
     }
   }
   
@@ -945,6 +1087,7 @@ extension ServiceLocatorExtensions on BuildContext {
         return await service.trackPerformance(traceName, operation, attributes: attributes);
       }
     } catch (e) {
+      debugPrint('Error tracking performance: $e');
     }
     
     return await operation();
@@ -957,6 +1100,7 @@ extension ServiceLocatorExtensions on BuildContext {
         service.startTrace(traceName);
       }
     } catch (e) {
+      debugPrint('Error starting trace: $e');
     }
   }
   
@@ -967,6 +1111,7 @@ extension ServiceLocatorExtensions on BuildContext {
         await service.stopTrace(traceName, attributes: attributes);
       }
     } catch (e) {
+      debugPrint('Error stopping trace: $e');
     }
   }
   
@@ -993,6 +1138,7 @@ extension ServiceLocatorExtensions on BuildContext {
   Future<bool> refreshRemoteConfig() async {
     final manager = remoteConfigManager;
     if (manager == null || !manager.isInitialized) {
+      debugPrint('⚠️ RemoteConfigManager not available or not initialized');
       return false;
     }
     

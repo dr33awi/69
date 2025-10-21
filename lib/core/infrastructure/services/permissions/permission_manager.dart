@@ -224,8 +224,10 @@ class UnifiedPermissionManager {
       statuses[permission] = status;
       if (status == AppPermissionStatus.granted) {
         granted.add(permission);
+        debugPrint('  ✅ $permission: GRANTED');
       } else {
         missing.add(permission);
+        debugPrint('  ❌ $permission: ${status.toString().split('.').last}');
       }
     }
     
@@ -495,19 +497,23 @@ class UnifiedPermissionManager {
   void _log(String message, [Map<String, dynamic>? data]) {
     if (kDebugMode) {
       final timestamp = DateTime.now().toString().substring(11, 19);
+      debugPrint('🔐 [$timestamp] [PermissionManager] $message${data != null ? " - $data" : ""}');
     }
   }
 
   void _logWarning(String message, [Map<String, dynamic>? data]) {
     if (kDebugMode) {
       final timestamp = DateTime.now().toString().substring(11, 19);
+      debugPrint('⚠️ [$timestamp] [PermissionManager] WARNING: $message${data != null ? " - $data" : ""}');
     }
   }
 
   void _logError(String message, dynamic error, [StackTrace? stackTrace]) {
     if (kDebugMode) {
       final timestamp = DateTime.now().toString().substring(11, 19);
+      debugPrint('🔴 [$timestamp] [PermissionManager] ERROR: $message - $error');
       if (stackTrace != null && kDebugMode) {
+        debugPrint('Stack trace: $stackTrace');
       }
     }
   }
