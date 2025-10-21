@@ -61,6 +61,7 @@ dependencies:
   # --- Development & Performance ---
   logger: ^2.4.0
   flutter_islamic_icons: ^1.0.2
+  connectivity_plus: ^7.0.0
 
 
 

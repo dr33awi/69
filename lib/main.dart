@@ -1,7 +1,9 @@
-// lib/main.dart - محسّن مع تهيئة سريعة للبانرات
+// lib/main.dart - محسّن مع دعم Offline Mode
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:athkar_app/core/firebase/promotional_banners/promotional_banner_manager.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -39,6 +41,7 @@ import 'features/onboarding/screens/permissions_setup_screen.dart';
 
 NotificationAppLaunchDetails? _notificationAppLaunchDetails;
 NotificationTapEvent? _pendingNotificationEvent;
+bool _isOfflineMode = false;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,14 +58,29 @@ Future<void> main() async {
       try {
         debugPrint('🚀 ========== App Starting ========== 🚀');
         
-        await _unifiedBootstrap();
+        // ✅ التحقق من الاتصال بالإنترنت
+        final hasConnection = await _checkInternetConnection();
+        
+        if (!hasConnection) {
+          debugPrint('⚠️ No internet connection detected - Starting in OFFLINE MODE');
+          _isOfflineMode = true;
+        }
+        
+        // ✅ التهيئة مع معالجة الوضع Offline
+        await _unifiedBootstrap(isOffline: _isOfflineMode);
         await _setupNotificationHandler();
         
         final app = const AthkarApp();
         final wrappedApp = DevicePreviewConfig.wrapApp(app);
         runApp(wrappedApp ?? app);
         
-        _backgroundInitialization();
+        // ✅ تأجيل Firebase للخلفية إذا كنا online
+        if (!_isOfflineMode) {
+          _backgroundInitialization();
+        } else {
+          // في حالة offline، حاول التهيئة لاحقاً عند عودة الإنترنت
+          _scheduleFirebaseRetry();
+        }
         
         debugPrint('✅ ========== App Started Successfully ========== ✅');
         
@@ -71,53 +89,111 @@ Future<void> main() async {
         debugPrint('Error: $e');
         debugPrint('Stack: $s');
         
-        FirebaseCrashlytics.instance.recordError(e, s, fatal: true);
-        runApp(_ErrorApp(error: e.toString()));
+        // في حالة الخطأ، حاول العمل بدون Firebase
+        try {
+          await _fallbackBootstrap();
+          runApp(const AthkarApp());
+        } catch (fallbackError) {
+          runApp(_ErrorApp(error: e.toString()));
+        }
       }
     },
     (error, stack) {
       debugPrint('❌ Uncaught error: $error');
-      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      // لا نسجل في Crashlytics إذا كنا offline
+      if (!_isOfflineMode) {
+        try {
+          FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        } catch (_) {}
+      }
     },
   );
 }
 
-// ==================== التهيئة الموحدة ====================
-Future<void> _unifiedBootstrap() async {
-  debugPrint('⚡ ========== Unified Bootstrap Starting ========== ⚡');
+// ==================== فحص الاتصال بالإنترنت ====================
+Future<bool> _checkInternetConnection() async {
+  try {
+    // Method 1: استخدام Connectivity Plus
+    final connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      return false;
+    }
+    
+    // Method 2: محاولة الاتصال بـ Google DNS
+    try {
+      final result = await InternetAddress.lookup('google.com').timeout(
+        const Duration(seconds: 3),
+        onTimeout: () => [],
+      );
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } on SocketException {
+      return false;
+    }
+  } catch (e) {
+    debugPrint('⚠️ Error checking internet: $e');
+    return false; // افترض عدم وجود اتصال في حالة الخطأ
+  }
+}
+
+// ==================== التهيئة الموحدة مع دعم Offline ====================
+Future<void> _unifiedBootstrap({bool isOffline = false}) async {
+  debugPrint('⚡ ========== Unified Bootstrap Starting (Offline: $isOffline) ========== ⚡');
   final stopwatch = Stopwatch()..start();
   
   try {
-    // 1. Development Config
+    // 1. Development Config - يعمل دائماً
     DevelopmentConfig.initialize();
     debugPrint('✅ [1/4] Development Config initialized');
     
-    // 2. Firebase Core
-    debugPrint('🔥 [2/4] Initializing Firebase Core...');
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    
-    if (Firebase.apps.isEmpty) {
-      throw Exception('❌ No Firebase apps found after initialization');
+    // 2. Firebase Core - مشروط بوجود إنترنت
+    if (!isOffline) {
+      debugPrint('🔥 [2/4] Initializing Firebase Core...');
+      try {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        ).timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            throw TimeoutException('Firebase initialization timeout');
+          },
+        );
+        
+        if (Firebase.apps.isEmpty) {
+          throw Exception('No Firebase apps found');
+        }
+        
+        debugPrint('✅ [2/4] Firebase Core initialized (${Firebase.apps.length} apps)');
+      } catch (firebaseError) {
+        debugPrint('⚠️ Firebase initialization failed: $firebaseError');
+        debugPrint('⚠️ Continuing in offline mode...');
+        _isOfflineMode = true;
+      }
+    } else {
+      debugPrint('⏭️ [2/4] Skipping Firebase (Offline mode)');
     }
     
-    debugPrint('✅ [2/4] Firebase Core initialized (${Firebase.apps.length} apps)');
-    
-    // 3. Service Locator (الخدمات الأساسية)
+    // 3. Service Locator - الخدمات الأساسية (تعمل بدون إنترنت)
     debugPrint('📦 [3/4] Initializing Service Locator...');
     await ServiceLocator.initEssential();
     
     if (!ServiceLocator.areEssentialServicesReady()) {
-      throw Exception('❌ Essential services not ready');
+      throw Exception('Essential services not ready');
     }
     
     debugPrint('✅ [3/4] Service Locator initialized');
     
-    // 4. ✅ تهيئة Firebase Services مبكراً (مهم للبانرات!)
-    debugPrint('🔥 [4/4] Initializing Firebase Services...');
-    await _initializeFirebaseServicesEarly();
-    debugPrint('✅ [4/4] Firebase Services ready');
+    // 4. Firebase Services - فقط إذا كنا online
+    if (!_isOfflineMode) {
+      debugPrint('🔥 [4/4] Initializing Firebase Services...');
+      try {
+        await _initializeFirebaseServicesEarly();
+        debugPrint('✅ [4/4] Firebase Services ready');
+      } catch (e) {
+        debugPrint('⚠️ [4/4] Firebase Services failed (non-critical): $e');
+      }
+    } else {
+      debugPrint('⏭️ [4/4] Skipping Firebase Services (Offline mode)');
+    }
     
     stopwatch.stop();
     debugPrint('⚡ ========== Bootstrap Completed in ${stopwatch.elapsedMilliseconds}ms ========== ⚡');
@@ -126,24 +202,92 @@ Future<void> _unifiedBootstrap() async {
     stopwatch.stop();
     debugPrint('❌ Bootstrap Failed after ${stopwatch.elapsedMilliseconds}ms');
     debugPrint('Error: $e');
+    
+    // في حالة الفشل، حاول التهيئة الاحتياطية
+    if (!_isOfflineMode) {
+      debugPrint('🔄 Attempting fallback bootstrap...');
+      await _fallbackBootstrap();
+    } else {
+      rethrow;
+    }
+  }
+}
+
+// ==================== التهيئة الاحتياطية ====================
+Future<void> _fallbackBootstrap() async {
+  debugPrint('🔄 ========== Fallback Bootstrap ========== 🔄');
+  _isOfflineMode = true;
+  
+  try {
+    // تهيئة الخدمات الأساسية فقط
+    DevelopmentConfig.initialize();
+    await ServiceLocator.initEssential();
+    
+    debugPrint('✅ Fallback bootstrap successful - Running in OFFLINE mode');
+  } catch (e) {
+    debugPrint('❌ Even fallback bootstrap failed: $e');
     rethrow;
   }
 }
 
-/// ✅ تهيئة Firebase Services مبكراً (محسّن للبانرات)
+// ==================== جدولة إعادة محاولة Firebase ====================
+void _scheduleFirebaseRetry() {
+  Timer.periodic(const Duration(seconds: 30), (timer) async {
+    if (!_isOfflineMode) {
+      timer.cancel();
+      return;
+    }
+    
+    debugPrint('🔄 Retrying Firebase initialization...');
+    
+    final hasConnection = await _checkInternetConnection();
+    if (hasConnection) {
+      try {
+        // محاولة تهيئة Firebase
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+        
+        // تهيئة خدمات Firebase
+        await ServiceLocator.initializeFirebaseInBackground();
+        
+        _isOfflineMode = false;
+        timer.cancel();
+        
+        debugPrint('✅ Firebase initialized successfully after retry');
+        
+        // تشغيل التهيئة الخلفية
+        _backgroundInitialization();
+        
+      } catch (e) {
+        debugPrint('⚠️ Firebase retry failed: $e');
+      }
+    }
+  });
+}
+
+// ==================== تهيئة Firebase Services ====================
 Future<void> _initializeFirebaseServicesEarly() async {
+  if (_isOfflineMode) return;
+  
   try {
     final stopwatch = Stopwatch()..start();
     
-    // تهيئة Firebase الأساسية
-    final firebaseSuccess = await FirebaseInitializer.initialize();
+    // تهيئة Firebase الأساسية مع timeout
+    final firebaseSuccess = await FirebaseInitializer.initialize().timeout(
+      const Duration(seconds: 10),
+      onTimeout: () {
+        debugPrint('⚠️ Firebase initialization timeout');
+        return false;
+      },
+    );
     
     if (!firebaseSuccess) {
       debugPrint('⚠️ Firebase initialization returned false');
       return;
     }
     
-    // ✅ تهيئة Firebase Services من ServiceLocator
+    // تهيئة Firebase Services من ServiceLocator
     if (ServiceLocator.isFirebaseAvailable) {
       await ServiceLocator.initializeFirebaseInBackground();
       
@@ -168,8 +312,10 @@ Future<void> _initializeFirebaseServicesEarly() async {
   }
 }
 
-// ✅ تحديث _backgroundInitialization
+// ==================== التهيئة الخلفية ====================
 void _backgroundInitialization() {
+  if (_isOfflineMode) return;
+  
   Future.delayed(const Duration(milliseconds: 500), () async {
     try {
       debugPrint('🌟 ========== Background Init Starting ========== 🌟');
@@ -179,9 +325,11 @@ void _backgroundInitialization() {
       await ServiceLocator.registerFeatureServices();
       debugPrint('✅ [1/2] Feature services registered');
       
-      // 2. Advanced Firebase (Analytics, Performance)
-      await ServiceLocator.initializeAdvancedFirebaseServices();
-      debugPrint('✅ [2/2] Advanced Firebase services initialized');
+      // 2. Advanced Firebase (Analytics, Performance) - فقط إذا كنا online
+      if (!_isOfflineMode) {
+        await ServiceLocator.initializeAdvancedFirebaseServices();
+        debugPrint('✅ [2/2] Advanced Firebase services initialized');
+      }
       
       stopwatch.stop();
       debugPrint('🌟 ========== Background Init Completed in ${stopwatch.elapsedMilliseconds}ms ========== 🌟');
@@ -192,6 +340,7 @@ void _backgroundInitialization() {
   });
 }
 
+// ==================== معالج الإشعارات ====================
 Future<void> _checkInitialNotification() async {
   try {
     debugPrint('🔍 Checking initial notification...');
@@ -267,19 +416,8 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
   RemoteConfigManager? _configManager;
   bool _configManagerReady = false;
   late final UnifiedPermissionManager _permissionManager;
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _processPendingNotificationIfAny();
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
+  StreamSubscription? _connectivitySubscription;
+  bool _hasShownOfflineMessage = false;
 
   @override
   void initState() {
@@ -291,6 +429,147 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
     _initializeConfigManager();
     _scheduleInitialPermissionCheck();
     _processPendingNotificationIfAny();
+    _monitorConnectivity();
+    
+    // عرض رسالة الوضع Offline إذا لزم الأمر
+    if (_isOfflineMode && !_hasShownOfflineMessage) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showOfflineMessage();
+      });
+    }
+  }
+
+  void _monitorConnectivity() {
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((result) async {
+      if (result != ConnectivityResult.none && _isOfflineMode) {
+        debugPrint('📡 Internet connection restored!');
+        
+        // محاولة تهيئة Firebase إذا لم تكن مهيأة
+        if (Firebase.apps.isEmpty) {
+          try {
+            await Firebase.initializeApp(
+              options: DefaultFirebaseOptions.currentPlatform,
+            );
+            await ServiceLocator.initializeFirebaseInBackground();
+            _isOfflineMode = false;
+            
+            if (mounted) {
+              _showOnlineMessage();
+            }
+          } catch (e) {
+            debugPrint('⚠️ Failed to initialize Firebase after reconnection: $e');
+          }
+        }
+      } else if (result == ConnectivityResult.none && !_isOfflineMode) {
+        debugPrint('📡 Internet connection lost!');
+        _isOfflineMode = true;
+        
+        if (mounted && !_hasShownOfflineMessage) {
+          _showOfflineMessage();
+        }
+      }
+    });
+  }
+
+  void _showOfflineMessage() {
+    if (!mounted) return;
+    
+    _hasShownOfflineMessage = true;
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.wifi_off, color: Colors.white, size: 20.sp),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                'التطبيق يعمل بدون اتصال بالإنترنت',
+                style: TextStyle(fontSize: 14.sp),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.orange,
+        duration: const Duration(seconds: 4),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.all(16.w),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+      ),
+    );
+  }
+
+  void _showOnlineMessage() {
+    if (!mounted) return;
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.wifi, color: Colors.white, size: 20.sp),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                'تم استعادة الاتصال بالإنترنت',
+                style: TextStyle(fontSize: 14.sp),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.all(16.w),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _processPendingNotificationIfAny();
+      
+      // فحص الاتصال عند العودة للتطبيق
+      _checkAndUpdateConnectivity();
+    }
+  }
+
+  Future<void> _checkAndUpdateConnectivity() async {
+    final hasConnection = await _checkInternetConnection();
+    
+    if (hasConnection && _isOfflineMode) {
+      // عاد الإنترنت
+      _isOfflineMode = false;
+      _showOnlineMessage();
+      
+      // محاولة تهيئة Firebase إذا لم تكن مهيأة
+      if (Firebase.apps.isEmpty) {
+        try {
+          await Firebase.initializeApp(
+            options: DefaultFirebaseOptions.currentPlatform,
+          );
+          await ServiceLocator.initializeFirebaseInBackground();
+        } catch (e) {
+          debugPrint('⚠️ Failed to initialize Firebase: $e');
+        }
+      }
+    } else if (!hasConnection && !_isOfflineMode) {
+      // فقدان الإنترنت
+      _isOfflineMode = true;
+      _showOfflineMessage();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _connectivitySubscription?.cancel();
+    super.dispose();
   }
 
   void _processPendingNotificationIfAny() {
@@ -308,6 +587,9 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
   }
 
   void _initializeConfigManager() {
+    // لا نهيئ ConfigManager في وضع Offline
+    if (_isOfflineMode) return;
+    
     try {
       if (getIt.isRegistered<RemoteConfigManager>()) {
         _configManager = getIt<RemoteConfigManager>();
@@ -382,7 +664,8 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
   }
 
   Widget _wrapWithAppMonitor(Widget screen) {
-    if (_configManagerReady && _configManager != null) {
+    // لا نستخدم AppStatusMonitor في وضع Offline
+    if (!_isOfflineMode && _configManagerReady && _configManager != null) {
       return AppStatusMonitor(
         configManager: _configManager,
         child: screen,
