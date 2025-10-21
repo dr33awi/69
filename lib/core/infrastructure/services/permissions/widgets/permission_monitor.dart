@@ -2,12 +2,12 @@
 
 import 'dart:async';
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:athkar_app/app/di/service_locator.dart';
 import 'package:athkar_app/app/themes/app_theme.dart';
-import 'package:athkar_app/app/themes/widgets/core/app_button.dart';
 import '../permission_manager.dart';
 import '../permission_service.dart';
 import '../permission_constants.dart';
@@ -51,7 +51,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
   // ========================================================================
   
   final Map<AppPermissionType, DateTime> _dismissedPermissions = {};
-  DateTime? _lastCheckTime;
   
   static const Duration _dismissalDuration = Duration(hours: 1);
   
@@ -102,13 +101,25 @@ class _PermissionMonitorState extends State<PermissionMonitor>
   }
   
   void _handlePermissionChangeEvent(PermissionChangeEvent event) {
+    debugPrint('[PermissionMonitor] 🔄 Handling permission change: ${event.permission}');
+    debugPrint('[PermissionMonitor]   - Was granted: ${event.wasGranted}');
+    debugPrint('[PermissionMonitor]   - Was revoked: ${event.wasRevoked}');
+    
     if (event.wasGranted) {
       setState(() {
         _missingPermissions.remove(event.permission);
         _cachedStatuses[event.permission] = event.newStatus;
       });
       
-      if (_currentPermission == event.permission) {
+      // إخفاء التنبيه فوراً إذا كان للإذن الممنوح
+      if (_currentPermission == event.permission && _isShowingNotification) {
+        debugPrint('[PermissionMonitor] ✅ Hiding notification for granted permission: ${event.permission}');
+        _hideNotification(success: true);
+      }
+      
+      // إخفاء التنبيه إذا لم تعد هناك أذونات مفقودة
+      if (_missingPermissions.isEmpty && _isShowingNotification) {
+        debugPrint('[PermissionMonitor] ✅ All permissions granted, hiding any active notification');
         _hideNotification(success: true);
       }
       
@@ -122,8 +133,13 @@ class _PermissionMonitorState extends State<PermissionMonitor>
         _cachedStatuses[event.permission] = event.newStatus;
       });
       
+      // عرض تنبيه فقط إذا لم يكن هناك تنبيه معروض
       if (!_isShowingNotification && widget.showNotifications) {
-        _showNotificationForPermission(event.permission);
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted && !_isShowingNotification) {
+            _showNotificationForPermission(event.permission);
+          }
+        });
       }
     }
   }
@@ -172,6 +188,8 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     debugPrint('[PermissionMonitor]   - Missing: ${result.missingCount} permissions');
     debugPrint('[PermissionMonitor]   - Granted: ${result.grantedCount} permissions');
     
+    final previousMissingCount = _missingPermissions.length;
+    
     setState(() {
       _missingPermissions = result.missingPermissions
           .where((p) => PermissionConstants.isCritical(p))
@@ -180,6 +198,23 @@ class _PermissionMonitorState extends State<PermissionMonitor>
       _cachedStatuses = Map.from(result.statuses);
     });
     
+    // إخفاء التنبيه إذا تم حل جميع الأذونات المفقودة
+    if (previousMissingCount > 0 && _missingPermissions.isEmpty && _isShowingNotification) {
+      debugPrint('[PermissionMonitor] ✅ All permissions granted, hiding notification');
+      _hideNotification(success: true);
+      return;
+    }
+    
+    // إخفاء التنبيه إذا تم حل الإذن الحالي المعروض
+    if (_currentPermission != null && 
+        !_missingPermissions.contains(_currentPermission!) && 
+        _isShowingNotification) {
+      debugPrint('[PermissionMonitor] ✅ Current permission granted, hiding notification');
+      _hideNotification(success: true);
+      return;
+    }
+    
+    // عرض تنبيه فقط إذا كان هناك أذونات مفقودة ولا يُعرض تنبيه حالياً
     if (_missingPermissions.isNotEmpty && 
         widget.showNotifications && 
         !_isShowingNotification) {
@@ -246,6 +281,18 @@ class _PermissionMonitorState extends State<PermissionMonitor>
   }
   
   void _showNotificationForPermission(AppPermissionType permission) {
+    // التحقق من أن الإذن لا يزال مفقود فعلاً
+    if (!_missingPermissions.contains(permission)) {
+      debugPrint('[PermissionMonitor] ℹ️ Permission no longer missing, skipping notification: $permission');
+      return;
+    }
+    
+    // التحقق من أن التنبيه غير معروض حالياً
+    if (_isShowingNotification) {
+      debugPrint('[PermissionMonitor] ⚠️ Notification already showing, skipping: $permission');
+      return;
+    }
+    
     final dismissedAt = _dismissedPermissions[permission];
     if (dismissedAt != null && 
         DateTime.now().difference(dismissedAt) < _dismissalDuration) {
@@ -253,6 +300,8 @@ class _PermissionMonitorState extends State<PermissionMonitor>
       
       // البحث عن إذن آخر غير مؤجل
       for (final p in _missingPermissions) {
+        if (p == permission) continue; // تخطي الإذن الحالي
+        
         final otherDismissedAt = _dismissedPermissions[p];
         if (otherDismissedAt == null || 
             DateTime.now().difference(otherDismissedAt) >= _dismissalDuration) {
@@ -274,7 +323,9 @@ class _PermissionMonitorState extends State<PermissionMonitor>
   }
   
   void _hideNotification({bool success = false, bool dismissed = false}) {
-    if (!mounted) return;
+    if (!mounted || !_isShowingNotification) return;
+    
+    debugPrint('[PermissionMonitor] 🔇 Hiding notification (success: $success, dismissed: $dismissed)');
     
     if (dismissed && _currentPermission != null) {
       _dismissedPermissions[_currentPermission!] = DateTime.now();
@@ -287,13 +338,16 @@ class _PermissionMonitorState extends State<PermissionMonitor>
       _isProcessing = false;
     });
     
+    // عرض تنبيه جديد فقط إذا كان النجاح ولا تزال هناك أذونات مفقودة
     if (success && _missingPermissions.isNotEmpty) {
       Future.delayed(const Duration(seconds: 1), () {
-        if (mounted && !_isShowingNotification) {
+        if (mounted && !_isShowingNotification && _missingPermissions.isNotEmpty) {
+          // البحث عن إذن غير مؤجل
           for (final perm in _missingPermissions) {
             final dismissedAt = _dismissedPermissions[perm];
             if (dismissedAt == null || 
                 DateTime.now().difference(dismissedAt) > _dismissalDuration) {
+              debugPrint('[PermissionMonitor] 🔔 Showing next permission notification: $perm');
               _showNotificationForPermission(perm);
               break;
             }
@@ -348,6 +402,8 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     HapticFeedback.lightImpact();
     
     try {
+      debugPrint('[PermissionMonitor] 🚀 Requesting permission: $_currentPermission');
+      
       // استخدام Manager للطلب (الذي يستخدم Coordinator)
       final granted = await _manager.requestPermissionWithExplanation(
         context,
@@ -355,16 +411,33 @@ class _PermissionMonitorState extends State<PermissionMonitor>
         forceRequest: true,
       );
       
+      debugPrint('[PermissionMonitor] 📊 Permission result: $granted for $_currentPermission');
+      
       if (granted) {
-        _cachedStatuses[_currentPermission!] = AppPermissionStatus.granted;
-        _missingPermissions.remove(_currentPermission!);
+        // تحديث الحالة المحلية فوراً
+        setState(() {
+          _cachedStatuses[_currentPermission!] = AppPermissionStatus.granted;
+          _missingPermissions.remove(_currentPermission!);
+        });
+        
+        // إخفاء التنبيه فوراً
         _hideNotification(success: true);
         _showSuccessMessage(_currentPermission!);
+        
+        // فحص سريع للتأكد من حالة باقي الأذونات
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            _manager.performQuickCheck();
+          }
+        });
+        
       } else {
         setState(() => _isProcessing = false);
         
         // فحص إذا كان مرفوض نهائياً
         final status = await _permissionService.checkPermissionStatus(_currentPermission!);
+        
+        debugPrint('[PermissionMonitor] 📊 Permission status after denial: $status');
         
         if (status == AppPermissionStatus.permanentlyDenied && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -403,6 +476,26 @@ class _PermissionMonitorState extends State<PermissionMonitor>
   
   @override
   Widget build(BuildContext context) {
+    // طباعة حالة مفصلة للتشخيص
+    if (kDebugMode) {
+      debugPrint('[PermissionMonitor] 🎨 Build State:');
+      debugPrint('[PermissionMonitor]   - Missing permissions: ${_missingPermissions.length}');
+      debugPrint('[PermissionMonitor]   - Is showing notification: $_isShowingNotification');
+      debugPrint('[PermissionMonitor]   - Current permission: $_currentPermission');
+      debugPrint('[PermissionMonitor]   - Show notifications: ${widget.showNotifications}');
+      
+      if (_missingPermissions.isNotEmpty) {
+        debugPrint('[PermissionMonitor]   - Missing list: ${_missingPermissions.map((p) => p.toString().split('.').last).join(', ')}');
+      }
+      
+      if (_cachedStatuses.isNotEmpty) {
+        debugPrint('[PermissionMonitor]   - Cached statuses:');
+        _cachedStatuses.forEach((perm, status) {
+          debugPrint('[PermissionMonitor]     - ${perm.toString().split('.').last}: ${status.toString().split('.').last}');
+        });
+      }
+    }
+    
     return Stack(
       children: [
         widget.child,
