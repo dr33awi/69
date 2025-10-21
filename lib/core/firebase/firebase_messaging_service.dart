@@ -10,7 +10,15 @@ import '../infrastructure/services/notifications/models/notification_models.dart
 /// معالج الرسائل في الخلفية
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  try {
+    // التحقق من توفر Firebase قبل المحاولة
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp();
+    }
+  } catch (e) {
+    // تجاهل الأخطاء في الخلفية
+    debugPrint('⚠️ Firebase background handler skipped (offline mode): $e');
+  }
 }
 
 /// خدمة Firebase Messaging - محسّنة

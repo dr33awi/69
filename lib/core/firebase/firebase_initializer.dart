@@ -35,38 +35,35 @@ class FirebaseInitializer {
       _printStatus();
       return true;
     }
-    
+
     try {
       final stopwatch = Stopwatch()..start();
-      
-      // تهيئة Firebase Core
-      await Firebase.initializeApp();
-      
-      // التحقق من نجاح التهيئة
+
+      // التحقق من توفر Firebase apps (تم تهيئتها مسبقاً)
       if (Firebase.apps.isEmpty) {
-        throw Exception('No Firebase apps found after initialization');
+        debugPrint('⚠️ No Firebase apps available - running in offline mode');
+        return false;
       }
-      
+
       _isInitialized = true;
       _initializationTime = DateTime.now();
       _lastError = null;
-      
-      // فحص وتهيئة الخدمات المتاحة
+
+      // فحص وتهيئة الخدمات المتاحة (بدون رمي استثناءات)
       await _initializeServices();
-      
-      // إعداد Crashlytics
+
+      // إعداد Crashlytics (اختياري)
       await _setupCrashlytics();
-      
+
       stopwatch.stop();
       _printStatus();
-      
+
       return true;
-      
+
     } catch (e) {
       _lastError = Exception('Firebase initialization failed: $e');
-      if (kDebugMode) {
-      }
-      
+      debugPrint('⚠️ Firebase initialization failed (offline mode): $e');
+
       return false;
     }
   }

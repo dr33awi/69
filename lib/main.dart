@@ -86,42 +86,47 @@ Future<void> main() async {
 Future<void> _unifiedBootstrap() async {
   debugPrint('⚡ ========== Unified Bootstrap Starting ========== ⚡');
   final stopwatch = Stopwatch()..start();
-  
+
   try {
     // 1. Development Config
     DevelopmentConfig.initialize();
     debugPrint('✅ [1/4] Development Config initialized');
-    
-    // 2. Firebase Core
+
+    // 2. Firebase Core (اختياري - يعمل بدون إنترنت)
     debugPrint('🔥 [2/4] Initializing Firebase Core...');
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    
-    if (Firebase.apps.isEmpty) {
-      throw Exception('❌ No Firebase apps found after initialization');
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+
+      if (Firebase.apps.isEmpty) {
+        debugPrint('⚠️ No Firebase apps found after initialization');
+      } else {
+        debugPrint('✅ [2/4] Firebase Core initialized (${Firebase.apps.length} apps)');
+      }
+    } catch (firebaseError) {
+      debugPrint('⚠️ Firebase initialization skipped (offline mode): $firebaseError');
+      debugPrint('✅ [2/4] Continuing without Firebase (offline mode)');
     }
-    
-    debugPrint('✅ [2/4] Firebase Core initialized (${Firebase.apps.length} apps)');
-    
+
     // 3. Service Locator (الخدمات الأساسية)
     debugPrint('📦 [3/4] Initializing Service Locator...');
     await ServiceLocator.initEssential();
-    
+
     if (!ServiceLocator.areEssentialServicesReady()) {
       throw Exception('❌ Essential services not ready');
     }
-    
+
     debugPrint('✅ [3/4] Service Locator initialized');
-    
-    // 4. ✅ تهيئة Firebase Services مبكراً (مهم للبانرات!)
+
+    // 4. ✅ تهيئة Firebase Services مبكراً (مهم للبانرات!) - اختياري
     debugPrint('🔥 [4/4] Initializing Firebase Services...');
     await _initializeFirebaseServicesEarly();
-    debugPrint('✅ [4/4] Firebase Services ready');
-    
+    debugPrint('✅ [4/4] Firebase Services ready (or skipped in offline mode)');
+
     stopwatch.stop();
     debugPrint('⚡ ========== Bootstrap Completed in ${stopwatch.elapsedMilliseconds}ms ========== ⚡');
-    
+
   } catch (e, s) {
     stopwatch.stop();
     debugPrint('❌ Bootstrap Failed after ${stopwatch.elapsedMilliseconds}ms');
@@ -134,22 +139,28 @@ Future<void> _unifiedBootstrap() async {
 Future<void> _initializeFirebaseServicesEarly() async {
   try {
     final stopwatch = Stopwatch()..start();
-    
-    // تهيئة Firebase الأساسية
-    final firebaseSuccess = await FirebaseInitializer.initialize();
-    
-    if (!firebaseSuccess) {
-      debugPrint('⚠️ Firebase initialization returned false');
+
+    // التحقق من وجود Firebase apps قبل المحاولة
+    if (Firebase.apps.isEmpty) {
+      debugPrint('⚠️ Firebase apps not available - skipping Firebase services (offline mode)');
       return;
     }
-    
+
+    // تهيئة Firebase الأساسية
+    final firebaseSuccess = await FirebaseInitializer.initialize();
+
+    if (!firebaseSuccess) {
+      debugPrint('⚠️ Firebase initialization returned false (offline mode)');
+      return;
+    }
+
     // ✅ تهيئة Firebase Services من ServiceLocator
     if (ServiceLocator.isFirebaseAvailable) {
       await ServiceLocator.initializeFirebaseInBackground();
-      
+
       stopwatch.stop();
       debugPrint('✅ Firebase Services initialized in ${stopwatch.elapsedMilliseconds}ms');
-      
+
       // طباعة حالة البانرات
       if (getIt.isRegistered<PromotionalBannerManager>()) {
         final bannerManager = getIt<PromotionalBannerManager>();
@@ -160,11 +171,11 @@ Future<void> _initializeFirebaseServicesEarly() async {
         }
       }
     } else {
-      debugPrint('⚠️ Firebase not available');
+      debugPrint('⚠️ Firebase not available (offline mode)');
     }
-    
+
   } catch (e) {
-    debugPrint('⚠️ Firebase Services init warning: $e');
+    debugPrint('⚠️ Firebase Services init warning (offline mode): $e');
   }
 }
 
@@ -174,18 +185,26 @@ void _backgroundInitialization() {
     try {
       debugPrint('🌟 ========== Background Init Starting ========== 🌟');
       final stopwatch = Stopwatch()..start();
-      
+
       // 1. تسجيل خدمات الميزات
       await ServiceLocator.registerFeatureServices();
       debugPrint('✅ [1/2] Feature services registered');
-      
-      // 2. Advanced Firebase (Analytics, Performance)
-      await ServiceLocator.initializeAdvancedFirebaseServices();
-      debugPrint('✅ [2/2] Advanced Firebase services initialized');
-      
+
+      // 2. Advanced Firebase (Analytics, Performance) - اختياري
+      try {
+        if (Firebase.apps.isNotEmpty) {
+          await ServiceLocator.initializeAdvancedFirebaseServices();
+          debugPrint('✅ [2/2] Advanced Firebase services initialized');
+        } else {
+          debugPrint('⚠️ [2/2] Advanced Firebase services skipped (offline mode)');
+        }
+      } catch (e) {
+        debugPrint('⚠️ [2/2] Advanced Firebase services skipped: $e');
+      }
+
       stopwatch.stop();
       debugPrint('🌟 ========== Background Init Completed in ${stopwatch.elapsedMilliseconds}ms ========== 🌟');
-      
+
     } catch (e) {
       debugPrint('⚠️ Background init warning: $e');
     }
