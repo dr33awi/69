@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
+import '../../../app/themes/widgets/core/app_button.dart';
 import '../../../app/di/service_locator.dart';
 import '../services/prayer_times_service.dart';
 import '../models/prayer_time_model.dart';
@@ -55,11 +56,6 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
     
     try {
       await _prayerService.updateNotificationSettings(_notificationSettings);
-      
-      debugPrint('Prayer notification settings updated - '
-          'enabled: ${_notificationSettings.enabled}, '
-          'enabled_prayers_count: ${_notificationSettings.enabledPrayers.values.where((v) => v).length}');
-      
       if (!mounted) return;
       
       context.showSuccessSnackBar('تم حفظ إعدادات الإشعارات بنجاح');
@@ -67,8 +63,6 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
         _hasChanges = false;
       });
     } catch (e) {
-      debugPrint('خطأ في حفظ إعدادات الإشعارات: $e');
-      
       if (!mounted) return;
       
       context.showErrorSnackBar('فشل حفظ إعدادات الإشعارات');
@@ -523,66 +517,25 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
 
   Widget _buildSaveButton() {
     return Padding(
-      padding: EdgeInsets.all(12.w),
-      child: SizedBox(
-        width: double.infinity,
-        height: 44.h,
-        child: ElevatedButton(
-          onPressed: _isSaving || !_hasChanges ? null : _saveSettings,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _primaryGreenColor,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.r),
-            ),
-            elevation: 2,
-          ),
-          child: _isSaving
-              ? SizedBox(
-                  width: 20.w,
-                  height: 20.w,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.w,
-                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                )
-              : Text(
-                  'حفظ الإعدادات',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-        ),
+      padding: EdgeInsets.all(12.r),
+      child: AppButton.primary(
+        text: 'حفظ الإعدادات',
+        onPressed: _isSaving || !_hasChanges ? null : _saveSettings,
+        isLoading: _isSaving,
+        isFullWidth: true,
+        icon: Icons.save,
+        backgroundColor: ThemeConstants.success,
       ),
     );
   }
 
   void _showUnsavedChangesDialog() async {
-    final result = await showDialog<bool>(
+    final result = await AppInfoDialog.showConfirmation(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-        title: Text('تغييرات غير محفوظة', style: TextStyle(fontSize: 15.sp)),
-        content: Text(
-          'لديك تغييرات لم يتم حفظها. هل تريد حفظ التغييرات قبل المغادرة؟',
-          style: TextStyle(fontSize: 13.sp),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context, false);
-            },
-            child: Text('تجاهل التغييرات', style: TextStyle(fontSize: 12.sp)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context, true);
-            },
-            child: Text('حفظ وخروج', style: TextStyle(fontSize: 12.sp)),
-          ),
-        ],
-      ),
+      title: 'تغييرات غير محفوظة',
+      content: 'لديك تغييرات لم يتم حفظها. هل تريد حفظ التغييرات قبل المغادرة؟',
+      confirmText: 'حفظ وخروج',
+      cancelText: 'تجاهل التغييرات',
     );
     
     if (!mounted) return;

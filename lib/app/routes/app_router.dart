@@ -78,8 +78,6 @@ class AppRouter {
   static GlobalKey<NavigatorState> get navigatorKey => _navigatorKey;
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
-    debugPrint('🧭 AppRouter: Generating route for ${settings.name}');
-    
     switch (settings.name) {
       // ==================== Splash & Onboarding ====================
       case splash:

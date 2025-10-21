@@ -49,7 +49,6 @@ class _SpecialEventCardState extends State<SpecialEventCard> {
         });
         
         if (event.isValid) {
-          debugPrint('✅ Event activated: ${event.title}');
         }
       } else {
         setState(() {
@@ -57,7 +56,6 @@ class _SpecialEventCardState extends State<SpecialEventCard> {
         });
       }
     } catch (e) {
-      debugPrint('❌ Error loading event: $e');
       setState(() {
         _hasError = true;
         _isLoading = false;

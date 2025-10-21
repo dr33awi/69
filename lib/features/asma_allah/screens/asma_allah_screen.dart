@@ -123,7 +123,7 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
                       style: context.titleLarge?.copyWith(
                         fontWeight: ThemeConstants.bold,
                         color: context.textPrimaryColor,
-                        fontSize: 15.sp,
+                        fontSize: 17.sp,
                       ),
                     ),
                     Text(
@@ -166,12 +166,12 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
       ),
       child: TextField(
         controller: _searchController,
-        style: context.bodyMedium?.copyWith(fontSize: 13.sp),
+        style: context.bodyMedium?.copyWith(fontSize: 14.sp),
         decoration: InputDecoration(
           hintText: 'ابحث في الأسماء أو المعاني أو الشرح...',
           hintStyle: TextStyle(
             color: context.textSecondaryColor.withValues(alpha: 0.7),
-            fontSize: 12.sp,
+            fontSize: 14.sp,
           ),
           prefixIcon: Container(
             padding: EdgeInsets.all(10.w),
@@ -251,7 +251,7 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
             'جاري تحميل أسماء الله الحسنى...',
             style: context.titleMedium?.copyWith(
               color: context.textSecondaryColor,
-              fontSize: 14.sp,
+              fontSize: 16.sp,
             ),
           ),
           SizedBox(height: 6.h),
@@ -290,7 +290,7 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
             style: context.titleLarge?.copyWith(
               color: context.textSecondaryColor,
               fontWeight: ThemeConstants.bold,
-              fontSize: 16.sp,
+              fontSize: 20.sp,
             ),
           ),
           SizedBox(height: 6.h),
@@ -300,7 +300,7 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
               'جرب البحث بكلمات أخرى أو امسح شريط البحث',
               style: context.bodyMedium?.copyWith(
                 color: context.textSecondaryColor.withValues(alpha: 0.7),
-                fontSize: 12.sp,
+                fontSize: 14.sp,
               ),
               textAlign: TextAlign.center,
             ),
@@ -354,7 +354,7 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
                   'عدد النتائج: ${list.length}',
                   style: context.labelMedium?.copyWith(
                     color: context.textSecondaryColor,
-                    fontSize: 11.sp,
+                    fontSize: 14.sp,
                   ),
                 ),
                 const Spacer(),

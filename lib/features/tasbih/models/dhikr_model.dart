@@ -45,9 +45,6 @@ class DhikrItem {
     
     // التأكد من أن العدد ضمن النطاق المسموح
     count = count.clamp(1, 1000);
-    
-    debugPrint('[DhikrItem.fromMap] Loaded dhikr: ${map['text']}, count: $count (original: ${map['recommendedCount']})');
-    
     return DhikrItem(
       id: map['id'] ?? '',
       text: map['text'] ?? '',
@@ -79,9 +76,6 @@ class DhikrItem {
       'isCustom': isCustom,
       'createdAt': createdAt?.toIso8601String(),
     };
-    
-    debugPrint('[DhikrItem.toMap] Saving dhikr: $text, count: $recommendedCount');
-    
     return map;
   }
 
@@ -90,7 +84,6 @@ class DhikrItem {
       try {
         return gradientData.map((color) => Color(color as int)).toList();
       } catch (e) {
-        debugPrint('[DhikrItem] Error parsing gradient: $e');
       }
     }
     return [ThemeConstants.primary, ThemeConstants.primaryLight];
@@ -109,9 +102,6 @@ class DhikrItem {
     DateTime? createdAt,
   }) {
     final newCount = (recommendedCount ?? this.recommendedCount).clamp(1, 1000);
-    
-    debugPrint('[DhikrItem.copyWith] Creating copy with count: $newCount (requested: $recommendedCount, original: ${this.recommendedCount})');
-    
     return DhikrItem(
       id: id ?? this.id,
       text: text ?? this.text,

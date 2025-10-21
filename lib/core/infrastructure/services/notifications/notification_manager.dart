@@ -80,8 +80,6 @@ class NotificationManager {
     );
     
     await _service.scheduleNotification(notification);
-    
-    debugPrint('[NotificationManager] جدولة إشعار $arabicName: $title');
   }
   
   /// إلغاء جميع إشعارات الصلاة
@@ -136,8 +134,6 @@ class NotificationManager {
     );
     
     await _service.scheduleNotification(notification);
-    
-    debugPrint('[NotificationManager] جدولة تذكير أذكار $categoryName: ${message['title']}');
   }
   
   /// إلغاء تذكير أذكار محدد
@@ -270,13 +266,7 @@ class NotificationManager {
   /// طباعة معلومات الإشعارات المجدولة (للتطوير)
   Future<void> debugPrintScheduledNotifications() async {
     final notifications = await getScheduledNotifications();
-    
-    debugPrint('═══════════════════════════════════════');
-    debugPrint('إجمالي الإشعارات المجدولة: ${notifications.length}');
-    debugPrint('═══════════════════════════════════════');
-    
     if (notifications.isEmpty) {
-      debugPrint('لا توجد إشعارات مجدولة');
       return;
     }
     
@@ -289,17 +279,11 @@ class NotificationManager {
     
     // طباعة كل فئة
     byCategory.forEach((category, list) {
-      debugPrint('\n📌 ${_getCategoryName(category)}: ${list.length}');
-      
       for (final notif in list) {
-        debugPrint('  ├─ ${notif.title}');
         if (notif.scheduledTime != null) {
-          debugPrint('  │  الوقت: ${notif.scheduledTime}');
         }
       }
     });
-    
-    debugPrint('═══════════════════════════════════════\n');
   }
   
   /// الحصول على اسم الفئة بالعربية

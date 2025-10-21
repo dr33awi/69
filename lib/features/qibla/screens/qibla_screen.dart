@@ -58,7 +58,6 @@ class _QiblaScreenState extends State<QiblaScreen>
         }
       });
     } catch (e) {
-      debugPrint('[QiblaScreen] خطأ في تهيئة الشاشة: $e');
     }
   }
 
@@ -87,7 +86,6 @@ class _QiblaScreenState extends State<QiblaScreen>
         });
       }
     } catch (e) {
-      debugPrint('[QiblaScreen] خطأ في تحديث البيانات: $e');
       if (mounted) {
         _showErrorSnackbar(e.toString());
       }
@@ -235,14 +233,14 @@ class _QiblaScreenState extends State<QiblaScreen>
                   style: TextStyle(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
-                    fontSize: 15.sp,
+                    fontSize: 17.sp,
                   ),
                 ),
                 Text(
                   _getStatusText(service),
                   style: TextStyle(
                     color: _getStatusColor(service),
-                    fontSize: 10.sp,
+                    fontSize: 11.sp,
                   ),
                 ),
               ],

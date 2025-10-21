@@ -35,11 +35,7 @@ class AsmaAllahService extends ChangeNotifier {
       _asmaAllahList = AsmaAllahData.getAllNames()
         .map((data) => AsmaAllahModel.fromJson(data))
         .toList();
-      
-      debugPrint('AsmaAllah: تم تحميل ${_asmaAllahList.length} من أسماء الله الحسنى');
-      
     } catch (e) {
-      debugPrint('AsmaAllah Error: خطأ في تحميل أسماء الله الحسنى: $e');
     } finally {
       _setLoading(false);
     }

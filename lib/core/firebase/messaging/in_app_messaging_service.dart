@@ -29,8 +29,6 @@ class InAppMessagingService {
     if (_isInitialized) return;
     
     try {
-      debugPrint('🔄 Initializing Firebase In-App Messaging...');
-      
       _inAppMessaging = FirebaseInAppMessaging.instance;
       
       // تكوين الإعدادات الأساسية
@@ -40,13 +38,10 @@ class InAppMessagingService {
       _setupListeners();
       
       _isInitialized = true;
-      debugPrint('✅ Firebase In-App Messaging initialized');
-      
       // تسجيل الحدث في Analytics
       await _logAnalyticsEvent('in_app_messaging_initialized');
       
     } catch (e) {
-      debugPrint('❌ Failed to initialize In-App Messaging: $e');
     }
   }
   
@@ -60,12 +55,10 @@ class InAppMessagingService {
       
       // في وضع التطوير، تفعيل وضع الاختبار
       if (kDebugMode) {
-        debugPrint('📧 In-App Messaging in TEST MODE');
         // يمكنك استخدام Firebase Console لإرسال رسائل اختبار
       }
       
     } catch (e) {
-      debugPrint('❌ Failed to configure In-App Messaging: $e');
     }
   }
   
@@ -73,7 +66,6 @@ class InAppMessagingService {
   void _setupListeners() {
     // ملاحظة: Firebase In-App Messaging SDK لا يوفر listeners مباشرة
     // ولكن يمكننا تتبع الأحداث من خلال Analytics
-    debugPrint('📧 In-App Messaging listeners ready');
   }
   
   // ==================== التحكم في الرسائل ====================
@@ -85,18 +77,12 @@ class InAppMessagingService {
     try {
       _inAppMessaging!.setMessagesSuppressed(suppress);
       _isMessagesSuppressed = suppress;
-      
-      debugPrint(suppress 
-        ? '🔇 In-App Messages suppressed' 
-        : '🔔 In-App Messages enabled');
-      
       // تسجيل الحدث
       _logAnalyticsEvent('in_app_messages_suppressed', {
         'suppressed': suppress,
       });
       
     } catch (e) {
-      debugPrint('❌ Failed to suppress messages: $e');
     }
   }
   
@@ -106,17 +92,11 @@ class InAppMessagingService {
     
     try {
       await _inAppMessaging!.setAutomaticDataCollectionEnabled(enabled);
-      
-      debugPrint(enabled 
-        ? '✅ Automatic data collection enabled' 
-        : '❌ Automatic data collection disabled');
-      
       _logAnalyticsEvent('in_app_data_collection_changed', {
         'enabled': enabled,
       });
       
     } catch (e) {
-      debugPrint('❌ Failed to set data collection: $e');
     }
   }
   
@@ -131,9 +111,6 @@ class InAppMessagingService {
       
       // تتبع تكرار الأحداث
       _messageFrequency[eventName] = (_messageFrequency[eventName] ?? 0) + 1;
-      
-      debugPrint('🎯 Event triggered: $eventName');
-      
       // تسجيل في Analytics
       _logAnalyticsEvent('in_app_event_triggered', {
         'event_name': eventName,
@@ -141,7 +118,6 @@ class InAppMessagingService {
       });
       
     } catch (e) {
-      debugPrint('❌ Failed to trigger event: $e');
     }
   }
   
@@ -198,10 +174,8 @@ class InAppMessagingService {
   void suppressDuringPrayer(bool isPrayerTime) {
     if (isPrayerTime) {
       suppressMessages(true);
-      debugPrint('🕌 Messages suppressed during prayer');
     } else {
       suppressMessages(false);
-      debugPrint('✅ Messages enabled after prayer');
     }
   }
   
@@ -209,10 +183,8 @@ class InAppMessagingService {
   void suppressDuringQuranReading(bool isReading) {
     if (isReading) {
       suppressMessages(true);
-      debugPrint('📖 Messages suppressed during Quran reading');
     } else {
       suppressMessages(false);
-      debugPrint('✅ Messages enabled after Quran reading');
     }
   }
   
@@ -324,7 +296,6 @@ class InAppMessagingService {
       final analytics = AnalyticsService();
       await analytics.logEvent(event, params);
     } catch (e) {
-      debugPrint('Failed to log analytics event: $e');
     }
   }
   
@@ -358,7 +329,6 @@ class InAppMessagingService {
   void clearHistory() {
     _displayedMessages.clear();
     _messageFrequency.clear();
-    debugPrint('🧹 In-App Messaging history cleared');
   }
   
   /// تنظيف الموارد
@@ -369,7 +339,6 @@ class InAppMessagingService {
     _onMessageClickCallback = null;
     _onMessageDismissCallback = null;
     _isInitialized = false;
-    debugPrint('🧹 InAppMessagingService disposed');
   }
 }
 

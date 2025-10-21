@@ -33,10 +33,7 @@ class AnalyticsService {
       await _startSession();
       
       _isInitialized = true;
-      debugPrint('✅ AnalyticsService initialized');
-      
     } catch (e) {
-      debugPrint('❌ Failed to initialize AnalyticsService: $e');
     }
   }
   
@@ -61,7 +58,6 @@ class AnalyticsService {
       );
       
     } catch (e) {
-      debugPrint('❌ Failed to set default properties: $e');
     }
   }
   
@@ -107,11 +103,7 @@ class AnalyticsService {
         extraParams['screen_name'] = screenName;
         await logEvent('screen_view_details', extraParams);
       }
-      
-      debugPrint('📱 Screen viewed: $screenName');
-      
     } catch (e) {
-      debugPrint('❌ Failed to log screen view: $e');
     }
   }
   
@@ -181,11 +173,7 @@ class AnalyticsService {
         name: eventName,
         parameters: firebaseParams,
       );
-      
-      debugPrint('📊 Event: $eventName ${parameters != null ? '($parameters)' : ''}');
-      
     } catch (e) {
-      debugPrint('❌ Failed to log event: $e');
     }
   }
   
@@ -195,9 +183,7 @@ class AnalyticsService {
     
     try {
       await _analytics!.setUserId(id: userId);
-      debugPrint('👤 User ID set: ${userId ?? 'anonymous'}');
     } catch (e) {
-      debugPrint('❌ Failed to set user ID: $e');
     }
   }
   
@@ -207,9 +193,7 @@ class AnalyticsService {
     
     try {
       await _analytics!.setUserProperty(name: name, value: value);
-      debugPrint('📝 User property: $name = $value');
     } catch (e) {
-      debugPrint('❌ Failed to set user property: $e');
     }
   }
   
@@ -314,9 +298,7 @@ class AnalyticsService {
     try {
       await _analytics!.logAppOpen();
       await _startSession();
-      debugPrint('📱 App opened');
     } catch (e) {
-      debugPrint('❌ Failed to log app open: $e');
     }
   }
   

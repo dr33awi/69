@@ -156,9 +156,6 @@ class ResponsiveConstants {
   
   /// عرض عداد التسبيح
   static double get tasbihCounterSize => 180.w;
-  
-  /// ارتفاع بطاقة الاقتباس اليومي
-  static double get dailyQuoteCardHeight => 200.h;
 
   // ==================== تباعد خاص بالتخطيط (Layout Spacing) ====================
   

@@ -27,7 +27,6 @@ class PromotionalBannerManager {
     required StorageService storage,
   }) async {
     if (_isInitialized) {
-      debugPrint('✅ PromotionalBannerManager already initialized');
       return;
     }
     
@@ -37,15 +36,12 @@ class PromotionalBannerManager {
     try {
       // ✅ التحقق من تهيئة RemoteConfigService أولاً
       if (!_remoteConfig!.isInitialized) {
-        debugPrint('⚠️ RemoteConfigService not initialized yet, initializing now...');
         await _remoteConfig!.initialize();
       }
       
       await _loadBanners();
       _isInitialized = true;
-      debugPrint('✅ PromotionalBannerManager initialized successfully');
     } catch (e) {
-      debugPrint('❌ Error initializing PromotionalBannerManager: $e');
       _isInitialized = false;
     }
   }
@@ -54,7 +50,6 @@ class PromotionalBannerManager {
   Future<void> _loadBanners() async {
     // ✅ التحقق من وجود RemoteConfig
     if (_remoteConfig == null) {
-      debugPrint('❌ RemoteConfig is null, cannot load banners');
       return;
     }
     
@@ -62,7 +57,6 @@ class PromotionalBannerManager {
       final bannersData = _remoteConfig!.promotionalBanners;
       
       if (bannersData.isEmpty) {
-        debugPrint('⚠️ No promotional banners found');
         _cachedBanners = [];
         return;
       }
@@ -72,7 +66,6 @@ class PromotionalBannerManager {
             try {
               return PromotionalBanner.fromJson(data as Map<String, dynamic>);
             } catch (e) {
-              debugPrint('⚠️ Error parsing banner: $e');
               return null;
             }
           })
@@ -86,11 +79,7 @@ class PromotionalBannerManager {
       );
 
       _lastCacheUpdate = DateTime.now();
-      
-      debugPrint('✅ Loaded ${_cachedBanners.length} promotional banners');
-      
     } catch (e) {
-      debugPrint('❌ Error loading banners: $e');
       _cachedBanners = [];
     }
   }
@@ -98,35 +87,27 @@ class PromotionalBannerManager {
   /// تحديث البانرات
   Future<void> refresh() async {
     if (!_isInitialized) {
-      debugPrint('⚠️ PromotionalBannerManager not initialized');
       return;
     }
 
     // ✅ التحقق من وجود RemoteConfig
     if (_remoteConfig == null) {
-      debugPrint('❌ RemoteConfig is null, cannot refresh');
       return;
     }
 
     try {
-      debugPrint('🔄 Refreshing promotional banners...');
-      
       // ✅ تحديث RemoteConfig أولاً
       await _remoteConfig!.refresh();
       
       // ثم تحميل البانرات
       await _loadBanners();
-      
-      debugPrint('✅ Banners refreshed successfully');
     } catch (e) {
-      debugPrint('❌ Error refreshing banners: $e');
     }
   }
 
   /// الحصول على البانرات النشطة لشاشة معينة
   List<PromotionalBanner> getActiveBannersForScreen(String screenName) {
     if (!_isInitialized) {
-      debugPrint('⚠️ PromotionalBannerManager not initialized');
       return [];
     }
 
@@ -136,21 +117,17 @@ class PromotionalBannerManager {
           banner.canShowOnScreen(screenName)
         )
         .toList();
-
-    debugPrint('📊 Found ${activeBanners.length} active banners for $screenName');
     return activeBanners;
   }
 
   /// الحصول على البانرات التي يجب عرضها (بناءً على التكرار)
   Future<List<PromotionalBanner>> getBannersToShow(String screenName) async {
     if (!_isInitialized) {
-      debugPrint('⚠️ PromotionalBannerManager not initialized');
       return [];
     }
     
     // ✅ التحقق من Storage
     if (_storage == null) {
-      debugPrint('❌ Storage is null');
       return [];
     }
     
@@ -168,8 +145,6 @@ class PromotionalBannerManager {
         bannersToShow.add(banner);
       }
     }
-
-    debugPrint('🎯 ${bannersToShow.length} banners ready to show on $screenName');
     return bannersToShow;
   }
 
@@ -177,20 +152,17 @@ class PromotionalBannerManager {
   Future<bool> _shouldShowBanner(PromotionalBanner banner) async {
     // ✅ التحقق من Storage
     if (_storage == null) {
-      debugPrint('❌ Storage is null, allowing banner to show');
       return true;
     }
     
     try {
       // ✅ التحقق من الإخفاء النهائي
       if (isBannerDismissedForever(banner.id)) {
-        debugPrint('🚫 Banner ${banner.id} is dismissed forever');
         return false;
       }
       
       // ✅ بالنسبة لبانرات التحديث، التحقق من النقر
       if (banner.bannerType == BannerType.update && isUpdateBannerActioned(banner.id)) {
-        debugPrint('✅ Update banner ${banner.id} already actioned');
         return false;
       }
       
@@ -210,13 +182,9 @@ class PromotionalBannerManager {
       final hoursSinceLastShown = DateTime.now().difference(lastShown).inHours;
       
       final shouldShow = hoursSinceLastShown >= banner.displayFrequencyHours;
-      
-      debugPrint('📅 Banner ${banner.id}: Last shown $hoursSinceLastShown hours ago (frequency: ${banner.displayFrequencyHours}h) - Show: $shouldShow');
-      
       return shouldShow;
       
     } catch (e) {
-      debugPrint('⚠️ Error checking banner display frequency: $e');
       return false;
     }
   }
@@ -225,7 +193,6 @@ class PromotionalBannerManager {
   Future<void> markBannerAsShown(String bannerId) async {
     // ✅ التحقق من Storage
     if (_storage == null) {
-      debugPrint('❌ Storage is null, cannot mark banner as shown');
       return;
     }
     
@@ -237,11 +204,7 @@ class PromotionalBannerManager {
       final countKey = 'banner_show_count_$bannerId';
       final currentCount = _storage!.getInt(countKey) ?? 0;
       await _storage!.setInt(countKey, currentCount + 1);
-      
-      debugPrint('✅ Banner $bannerId marked as shown (count: ${currentCount + 1})');
-      
     } catch (e) {
-      debugPrint('❌ Error marking banner as shown: $e');
     }
   }
 
@@ -249,7 +212,6 @@ class PromotionalBannerManager {
   Future<void> trackBannerClick(String bannerId) async {
     // ✅ التحقق من Storage
     if (_storage == null) {
-      debugPrint('❌ Storage is null, cannot track banner click');
       return;
     }
     
@@ -257,29 +219,20 @@ class PromotionalBannerManager {
       final key = 'banner_click_count_$bannerId';
       final currentCount = _storage!.getInt(key) ?? 0;
       await _storage!.setInt(key, currentCount + 1);
-      
-      debugPrint('📊 Banner $bannerId clicked (count: ${currentCount + 1})');
-      
     } catch (e) {
-      debugPrint('❌ Error tracking banner click: $e');
     }
   }
 
   /// ✅ إخفاء البانر نهائياً
   Future<void> dismissBannerForever(String bannerId) async {
     if (_storage == null) {
-      debugPrint('❌ Storage is null, cannot dismiss banner forever');
       return;
     }
     
     try {
       final key = 'banner_dismissed_forever_$bannerId';
       await _storage!.setBool(key, true);
-      
-      debugPrint('🚫 Banner $bannerId dismissed forever');
-      
     } catch (e) {
-      debugPrint('❌ Error dismissing banner forever: $e');
     }
   }
 
@@ -291,7 +244,6 @@ class PromotionalBannerManager {
       final key = 'banner_dismissed_forever_$bannerId';
       return _storage!.getBool(key) ?? false;
     } catch (e) {
-      debugPrint('❌ Error checking dismissed forever: $e');
       return false;
     }
   }
@@ -299,7 +251,6 @@ class PromotionalBannerManager {
   /// ✅ تسجيل أن المستخدم نقر على زر التحديث
   Future<void> markUpdateBannerAsActioned(String bannerId) async {
     if (_storage == null) {
-      debugPrint('❌ Storage is null');
       return;
     }
     
@@ -310,11 +261,7 @@ class PromotionalBannerManager {
         'banner_update_actioned_time_$bannerId',
         DateTime.now().toIso8601String(),
       );
-      
-      debugPrint('✅ Update banner $bannerId marked as actioned');
-      
     } catch (e) {
-      debugPrint('❌ Error marking update banner: $e');
     }
   }
 
@@ -326,7 +273,6 @@ class PromotionalBannerManager {
       final key = 'banner_update_actioned_$bannerId';
       return _storage!.getBool(key) ?? false;
     } catch (e) {
-      debugPrint('❌ Error checking update actioned: $e');
       return false;
     }
   }
@@ -334,7 +280,6 @@ class PromotionalBannerManager {
   /// ✅ استعادة بانر مُخفى (للاختبار)
   Future<void> restoreBanner(String bannerId) async {
     if (_storage == null) {
-      debugPrint('❌ Storage is null');
       return;
     }
     
@@ -342,10 +287,7 @@ class PromotionalBannerManager {
       await _storage!.remove('banner_dismissed_forever_$bannerId');
       await _storage!.remove('banner_update_actioned_$bannerId');
       await _storage!.remove('banner_update_actioned_time_$bannerId');
-      
-      debugPrint('♻️ Banner $bannerId restored');
     } catch (e) {
-      debugPrint('❌ Error restoring banner: $e');
     }
   }
 
@@ -353,7 +295,6 @@ class PromotionalBannerManager {
   Map<String, dynamic> getBannerStats(String bannerId) {
     // ✅ التحقق من Storage
     if (_storage == null) {
-      debugPrint('❌ Storage is null');
       return {};
     }
     
@@ -374,7 +315,6 @@ class PromotionalBannerManager {
         'is_update_actioned': isActioned,
       };
     } catch (e) {
-      debugPrint('⚠️ Error getting banner stats: $e');
       return {};
     }
   }
@@ -383,7 +323,6 @@ class PromotionalBannerManager {
   Future<void> clearBannerData(String bannerId) async {
     // ✅ التحقق من Storage
     if (_storage == null) {
-      debugPrint('❌ Storage is null, cannot clear banner data');
       return;
     }
     
@@ -394,10 +333,7 @@ class PromotionalBannerManager {
       await _storage!.remove('banner_dismissed_forever_$bannerId');
       await _storage!.remove('banner_update_actioned_$bannerId');
       await _storage!.remove('banner_update_actioned_time_$bannerId');
-      
-      debugPrint('🧹 Banner data cleared for: $bannerId');
     } catch (e) {
-      debugPrint('❌ Error clearing banner data: $e');
     }
   }
 
@@ -407,9 +343,7 @@ class PromotionalBannerManager {
       for (final banner in _cachedBanners) {
         await clearBannerData(banner.id);
       }
-      debugPrint('🧹 All banner data cleared');
     } catch (e) {
-      debugPrint('❌ Error clearing all banner data: $e');
     }
   }
 
@@ -456,39 +390,16 @@ class PromotionalBannerManager {
 
   /// طباعة الحالة
   void printStatus() {
-    debugPrint('========== Promotional Banner Manager Status ==========');
-    debugPrint('Initialized: $_isInitialized');
-    debugPrint('Storage Available: ${_storage != null}');
-    debugPrint('RemoteConfig Available: ${_remoteConfig != null}');
-    
     if (!_isInitialized) {
-      debugPrint('⚠️ Manager is not initialized properly');
-      debugPrint('====================================================');
       return;
     }
-    
-    debugPrint('Total Banners: ${_cachedBanners.length}');
-    debugPrint('Active Banners: $activeBannersCount');
-    debugPrint('Last Update: $_lastCacheUpdate');
-    debugPrint('--- Banners ---');
-    
     for (final banner in _cachedBanners) {
-      debugPrint('  - ${banner.title} (${banner.id})');
-      debugPrint('    Type: ${banner.bannerType.displayName}');
-      debugPrint('    Priority: ${banner.priority.displayName}');
-      debugPrint('    Active: ${banner.isCurrentlyActive}');
-      debugPrint('    Screens: ${banner.targetScreens.join(", ")}');
-      
       if (_storage != null) {
         final stats = getBannerStats(banner.id);
-        debugPrint('    Stats: ${stats["show_count"]} shows, ${stats["click_count"]} clicks');
-        debugPrint('    Dismissed: ${stats["is_dismissed_forever"]}');
         if (banner.bannerType == BannerType.update) {
-          debugPrint('    Update Actioned: ${stats["is_update_actioned"]}');
         }
       }
     }
-    debugPrint('====================================================');
   }
 
   /// تنظيف
@@ -498,6 +409,5 @@ class PromotionalBannerManager {
     _lastCacheUpdate = null;
     _remoteConfig = null;
     _storage = null;
-    debugPrint('🧹 PromotionalBannerManager disposed');
   }
 }

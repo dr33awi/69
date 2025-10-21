@@ -8,6 +8,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/promotional_banner_model.dart';
 import '../../../../app/themes/app_theme.dart';
+import '../../../../app/themes/widgets/core/app_button.dart';
 
 /// Dialog لعرض البانر الترويجي مع تأثير Blur محسّن
 class PromotionalBannerDialog extends StatelessWidget {
@@ -69,9 +70,7 @@ class PromotionalBannerDialog extends StatelessWidget {
     if (banner.actionRoute != null && banner.actionRoute!.isNotEmpty) {
       try {
         Navigator.pushNamed(context, banner.actionRoute!);
-        debugPrint('📍 Navigating to: ${banner.actionRoute}');
       } catch (e) {
-        debugPrint('❌ Navigation error: $e');
       }
     }
 
@@ -90,12 +89,9 @@ class PromotionalBannerDialog extends StatelessWidget {
           uri,
           mode: LaunchMode.externalApplication,
         );
-        debugPrint('🌐 Opened URL: $url');
       } else {
-        debugPrint('❌ Cannot launch URL: $url');
       }
     } catch (e) {
-      debugPrint('❌ Error launching URL: $e');
     }
   }
 
@@ -311,7 +307,6 @@ class _BannerCard extends StatelessWidget {
             );
           },
           errorBuilder: (context, error, stackTrace) {
-            debugPrint('❌ Error loading background image: $error');
             return const SizedBox();
           },
         ),
@@ -411,7 +406,6 @@ class _BannerCard extends StatelessWidget {
               );
             },
             errorBuilder: (context, error, stackTrace) {
-              debugPrint('❌ Error loading ${isGif ? "GIF" : "image"}: $error');
               return Icon(
                 isGif ? Icons.gif_box_outlined : Icons.image_outlined,
                 size: 36.sp,
@@ -456,48 +450,22 @@ class _BannerCard extends StatelessWidget {
     required bool isPrimary,
     required Color mainColor,
   }) {
-    return SizedBox(
-      height: 50.h,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isPrimary ? mainColor : Colors.grey.withOpacity(0.1),
-          foregroundColor: isPrimary ? Colors.white : Colors.grey[600],
-          elevation: 0,
-          shadowColor: isPrimary ? mainColor.withOpacity(0.3) : null,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14.r),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Flexible(
-              child: Text(
-                text,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15.sp,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.3,
-                ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ),
-            if (isPrimary && 
-                (banner.actionRoute != null || banner.actionUrl != null)) ...[
-              SizedBox(width: 6.w),
-              Icon(
-                Icons.arrow_back,
-                size: 18.sp,
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
+    return isPrimary 
+        ? AppButton.custom(
+            text: text,
+            onPressed: onPressed,
+            isFullWidth: true,
+            size: ButtonSize.small,
+            backgroundColor: mainColor,
+            textColor: Colors.white,
+          )
+        : AppButton.outline(
+            text: text,
+            onPressed: onPressed,
+            isFullWidth: true,
+            size: ButtonSize.small,
+            color: Colors.grey[600],
+          );
   }
 
   /// شارة عاجل

@@ -12,7 +12,6 @@ import 'dart:async';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../widgets/category_grid.dart';
-import '../daily_quotes/daily_quotes_card.dart';
 import '../widgets/home_prayer_times_card.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -78,18 +77,12 @@ class _HomeScreenState extends State<HomeScreen>
           
           if (bannerManager != null && bannerManager.isInitialized) {
             stopwatch.stop();
-            debugPrint('✅ BannerManager ready after ${stopwatch.elapsedMilliseconds}ms');
-            
             // طباعة معلومات البانرات
             final activeCount = bannerManager.activeBannersCount;
-            debugPrint('📊 Active banners: $activeCount');
-            
             if (activeCount > 0) {
               // عرض البانرات
               await context.showBanners(screenName: 'home');
             } else {
-              debugPrint('⚠️ No active banners to show');
-              debugPrint('💡 Check Firebase Console: Remote Config > promotional_banners');
             }
             
             return;
@@ -100,14 +93,10 @@ class _HomeScreenState extends State<HomeScreen>
         }
         
         stopwatch.stop();
-        debugPrint('⚠️ BannerManager not ready after ${stopwatch.elapsedMilliseconds}ms');
-        
         // ✅ محاولة أخيرة: تهيئة قسرية
         await _forceInitializeBanners();
         
-      } catch (e, stackTrace) {
-        debugPrint('❌ Error showing banners: $e');
-        debugPrint('Stack: $stackTrace');
+      } catch (e) {
       }
     });
   }
@@ -115,24 +104,18 @@ class _HomeScreenState extends State<HomeScreen>
   /// ✅ تهيئة قسرية للبانرات
   Future<void> _forceInitializeBanners() async {
     try {
-      debugPrint('🔄 Attempting force initialization...');
-      
       if (!getIt.isRegistered<PromotionalBannerManager>()) {
-        debugPrint('❌ BannerManager not registered');
         return;
       }
       
       final bannerManager = getIt<PromotionalBannerManager>();
       
       if (!bannerManager.isInitialized) {
-        debugPrint('  🔄 Initializing BannerManager...');
-        
         final storage = getIt<StorageService>();
         final remoteConfig = getIt<FirebaseRemoteConfigService>();
         
         // تأكد من تهيئة RemoteConfig أولاً
         if (!remoteConfig.isInitialized) {
-          debugPrint('  🔄 Initializing RemoteConfig first...');
           await remoteConfig.initialize();
           await Future.delayed(const Duration(milliseconds: 300));
         }
@@ -144,20 +127,14 @@ class _HomeScreenState extends State<HomeScreen>
         );
         
         if (bannerManager.isInitialized) {
-          debugPrint('  ✅ Force initialization successful!');
-          
           final activeCount = bannerManager.activeBannersCount;
-          debugPrint('  📊 Active banners: $activeCount');
-          
           if (activeCount > 0 && mounted) {
             await context.showBanners(screenName: 'home');
           }
         } else {
-          debugPrint('  ❌ Force initialization failed');
         }
       }
     } catch (e) {
-      debugPrint('❌ Force initialization error: $e');
     }
   }
 
@@ -198,23 +175,16 @@ class _HomeScreenState extends State<HomeScreen>
     HapticFeedback.mediumImpact();
     
     try {
-      debugPrint('🔄 Refreshing home screen...');
-      
       // تحديث Remote Config والبانرات
       if (context.mounted) {
         final refreshed = await context.refreshRemoteConfig();
         
         if (refreshed) {
-          debugPrint('✅ Config refreshed');
-          
           // تحديث البانرات
           await context.refreshBanners();
-          debugPrint('✅ Banners refreshed');
-          
           // إعادة عرض البانرات إذا كانت هناك بانرات جديدة
           final activeCount = context.activeBannersCount;
           if (activeCount > 0) {
-            debugPrint('📊 $activeCount active banner(s) available');
           }
         }
       }
@@ -222,7 +192,6 @@ class _HomeScreenState extends State<HomeScreen>
       await Future.delayed(const Duration(milliseconds: 800));
       
     } catch (e) {
-      debugPrint('⚠️ Refresh error: $e');
     } finally {
       if (mounted) {
         setState(() => _isRefreshing = false);
@@ -283,10 +252,6 @@ class _HomeScreenState extends State<HomeScreen>
                               const SpecialEventCard(),
                               const PrayerTimesCard(),
                               
-                              SizedBox(height: 16.h),
-                              
-                              const DailyQuotesCard(),
-                              
                               SizedBox(height: 20.h),
                               
                               _buildSectionsHeader(context),
@@ -337,7 +302,7 @@ class _HomeScreenState extends State<HomeScreen>
                       style: TextStyle(
                         fontWeight: ThemeConstants.bold,
                         color: context.textPrimaryColor,
-                        fontSize: 15.sp,
+                        fontSize: 17.sp,
                       ),
                     ),
                   ],

@@ -76,7 +76,6 @@ class _SplashScreenState extends State<SplashScreen>
       _navigateToNextScreen();
       
     } catch (e) {
-      debugPrint('❌ Splash initialization error: $e');
       if (mounted) {
         _showErrorAndRetry();
       }
@@ -120,7 +119,6 @@ class _SplashScreenState extends State<SplashScreen>
       }
 
     } catch (e) {
-      debugPrint('❌ Navigation error: $e');
       // في حالة الخطأ، اذهب للـ Home مباشرة
       Navigator.pushReplacementNamed(context, AppRouter.home);
     }

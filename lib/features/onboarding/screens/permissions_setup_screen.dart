@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/di/service_locator.dart';
 import '../../../app/routes/app_router.dart';
 import '../../../app/themes/app_theme.dart';
+import '../../../app/themes/widgets/core/app_button.dart';
 import '../../../core/infrastructure/services/permissions/permission_service.dart';
 import '../../../core/infrastructure/services/permissions/permission_manager.dart';
 import '../../../core/infrastructure/services/permissions/permission_constants.dart';
@@ -80,7 +81,6 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
         }
       }
     } catch (e) {
-      debugPrint('Error requesting permission: $e');
       if (mounted) {
         setState(() {
           _isProcessingMap[permission] = false;
@@ -103,7 +103,6 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
         await Navigator.pushReplacementNamed(context, AppRouter.home);
       }
     } catch (e) {
-      debugPrint('Error completing setup: $e');
       if (mounted) {
         setState(() => _isCompletingSetup = false);
       }
@@ -442,9 +441,6 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
     required bool isSmallScreen,
     required bool isMediumScreen,
   }) {
-    final double buttonHeight = isSmallScreen ? 46.h : 48.h;
-    final double buttonRadius = isSmallScreen ? 12.r : 14.r;
-    final double buttonTextSize = isSmallScreen ? 13.sp : 14.sp;
     final double statusTextSize = isSmallScreen ? 10.sp : 11.sp;
     final double statusIconSize = isSmallScreen ? 13.sp : 14.sp;
     final double spacing = isSmallScreen ? 8.h : 10.h;
@@ -453,73 +449,31 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
       children: [
         // زر منح جميع الأذونات (يظهر فقط عند وجود أذونات غير مفعلة)
         if (!_allPermissionsGranted)
-          SizedBox(
-            width: double.infinity,
-            height: buttonHeight,
-            child: ElevatedButton(
-              onPressed: _requestAllPermissions,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: ThemeConstants.primary,
-                elevation: 8,
-                shadowColor: Colors.black.withOpacity(0.3),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(buttonRadius),
-                ),
-              ),
-              child: Text(
-                '✨ تفعيل جميع الأذونات',
-                style: TextStyle(
-                  fontSize: buttonTextSize,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ),
+          AppButton.custom(
+            text: 'تفعيل جميع الأذونات',
+            onPressed: _requestAllPermissions,
+            isFullWidth: true,
+            size: isSmallScreen ? ButtonSize.medium : ButtonSize.large,
+            backgroundColor: Colors.white,
+            textColor: ThemeConstants.primary,
+            icon: Icons.done_all,
           ),
 
         if (!_allPermissionsGranted)
           SizedBox(height: spacing),
 
         // Main Button - ابدأ الآن
-        SizedBox(
-          width: double.infinity,
-          height: buttonHeight,
-          child: ElevatedButton(
-            onPressed: !_isCompletingSetup ? _completeSetup : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _allPermissionsGranted 
-                  ? Colors.white 
-                  : Colors.white.withOpacity(0.85),
-              foregroundColor: ThemeConstants.primary,
-              disabledBackgroundColor: Colors.white.withOpacity(0.5),
-              disabledForegroundColor: ThemeConstants.primary.withOpacity(0.7),
-              elevation: _allPermissionsGranted ? 8 : 4,
-              shadowColor: Colors.black.withOpacity(0.3),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(buttonRadius),
-              ),
-            ),
-            child: _isCompletingSetup
-                ? SizedBox(
-                    width: 20.w,
-                    height: 20.w,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5.w,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        ThemeConstants.primary,
-                      ),
-                    ),
-                  )
-                : Text(
-                    _allPermissionsGranted ? '🚀 ابدأ الآن' : 'المتابعة لاحقًا',
-                    style: TextStyle(
-                      fontSize: buttonTextSize,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-          ),
+        AppButton.custom(
+          text: _allPermissionsGranted ? ' ابدأ الآن' : 'المتابعة لاحقًا',
+          onPressed: !_isCompletingSetup ? _completeSetup : null,
+          isFullWidth: true,
+          isLoading: _isCompletingSetup,
+          size: isSmallScreen ? ButtonSize.medium : ButtonSize.large,
+          backgroundColor: _allPermissionsGranted 
+              ? Colors.white 
+              : Colors.white.withOpacity(0.85),
+          textColor: ThemeConstants.primary,
+          icon: _allPermissionsGranted ? Icons.rocket_launch : Icons.skip_next,
         ),
 
         SizedBox(height: spacing),
@@ -536,7 +490,7 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
               ),
               SizedBox(width: 6.w),
               Text(
-                '✅ تمام! كل شيء جاهز الآن',
+                'كل شيء جاهز الآن',
                 style: TextStyle(
                   fontSize: statusTextSize,
                   color: Colors.white.withOpacity(0.95),

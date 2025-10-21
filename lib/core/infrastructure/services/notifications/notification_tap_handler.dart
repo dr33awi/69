@@ -15,19 +15,8 @@ class NotificationTapHandler {
   
   /// معالجة حدث النقر على الإشعار
   Future<void> handleNotificationTap(NotificationTapEvent event) async {
-    debugPrint('╔══════════════════════════════════════════╗');
-    debugPrint('║    🔔 NOTIFICATION TAP HANDLER 🔔         ║');
-    debugPrint('╠══════════════════════════════════════════╣');
-    debugPrint('║ Event Details:                            ║');
-    debugPrint('║   • ID: ${event.notificationId}');
-    debugPrint('║   • Category: ${event.category}');
-    debugPrint('║   • Payload: ${event.payload}');
-    debugPrint('║   • Timestamp: ${event.timestamp}');
-    debugPrint('╚══════════════════════════════════════════╝');
-    
     // منع المعالجة المتعددة
     if (_isProcessing) {
-      debugPrint('⚠️ [Handler] Already processing another notification');
       return;
     }
     
@@ -38,7 +27,6 @@ class NotificationTapHandler {
       bool processed = await _tryProcessEvent(event);
       
       if (!processed) {
-        debugPrint('⏳ [Handler] Navigator not ready, saving event for later...');
         _pendingEvent = event;
         
         // المحاولة عدة مرات مع فترات انتظار متزايدة
@@ -46,16 +34,12 @@ class NotificationTapHandler {
           await Future.delayed(Duration(milliseconds: 300 * attempt));
           
           if (await _tryProcessEvent(event)) {
-            debugPrint('✅ [Handler] Event processed on attempt $attempt');
             _pendingEvent = null;
             break;
           }
-          
-          debugPrint('🔄 [Handler] Retry $attempt failed, waiting...');
         }
         
         if (_pendingEvent != null) {
-          debugPrint('❌ [Handler] Failed to process event after all retries');
         }
       }
     } finally {
@@ -69,7 +53,6 @@ class NotificationTapHandler {
     final context = navigatorKey.currentContext;
     
     if (context == null || !context.mounted) {
-      debugPrint('❌ [Handler] Context not available');
       return false;
     }
     
@@ -77,9 +60,7 @@ class NotificationTapHandler {
     try {
       // اختبار بسيط للتأكد من جاهزية Navigator
       final canPop = Navigator.of(context).canPop();
-      debugPrint('✅ [Handler] Navigator ready (canPop: $canPop)');
     } catch (e) {
-      debugPrint('❌ [Handler] Navigator not ready: $e');
       return false;
     }
     
@@ -88,7 +69,6 @@ class NotificationTapHandler {
       await _processEventByCategory(context, event);
       return true;
     } catch (e) {
-      debugPrint('❌ [Handler] Error processing event: $e');
       return false;
     }
   }
@@ -98,8 +78,6 @@ class NotificationTapHandler {
     BuildContext context,
     NotificationTapEvent event,
   ) async {
-    debugPrint('🎯 [Handler] Processing ${event.category} notification...');
-    
     // الانتظار قليلاً للتأكد من استقرار الواجهة
     await Future.delayed(const Duration(milliseconds: 100));
     
@@ -124,8 +102,6 @@ class NotificationTapHandler {
         await _handleSystemNotification(context, event);
         break;
     }
-    
-    debugPrint('✅ [Handler] Navigation completed successfully');
   }
   
   // ==================== معالجات الإشعارات المختلفة ====================
@@ -135,14 +111,9 @@ class NotificationTapHandler {
     BuildContext context,
     NotificationTapEvent event,
   ) async {
-    debugPrint('🕌 [Handler] Processing prayer notification');
-    
     try {
       final prayerName = event.payload['prayer'] as String?;
       final arabicName = event.payload['arabicName'] as String?;
-      
-      debugPrint('   • Prayer: $prayerName ($arabicName)');
-      
       // التنقل لصفحة مواقيت الصلاة
       await _safeNavigate(
         context,
@@ -151,7 +122,6 @@ class NotificationTapHandler {
       );
       
     } catch (e) {
-      debugPrint('❌ [Handler] Prayer notification error: $e');
       _navigateToHome(context);
     }
   }
@@ -161,14 +131,9 @@ class NotificationTapHandler {
     BuildContext context,
     NotificationTapEvent event,
   ) async {
-    debugPrint('📿 [Handler] Processing athkar notification');
-    
     try {
       final categoryId = event.payload['categoryId'] as String?;
       final categoryName = event.payload['categoryName'] as String?;
-      
-      debugPrint('   • Category: $categoryId ($categoryName)');
-      
       if (categoryId != null) {
         // الانتقال مباشرة لصفحة قراءة الأذكار
         await _safeNavigate(
@@ -187,7 +152,6 @@ class NotificationTapHandler {
       }
       
     } catch (e) {
-      debugPrint('❌ [Handler] Athkar notification error: $e');
       _navigateToHome(context);
     }
   }
@@ -197,8 +161,6 @@ class NotificationTapHandler {
     BuildContext context,
     NotificationTapEvent event,
   ) async {
-    debugPrint('📖 [Handler] Processing quran notification');
-    
     await _safeNavigate(
       context,
       '/quran',
@@ -211,8 +173,6 @@ class NotificationTapHandler {
     BuildContext context,
     NotificationTapEvent event,
   ) async {
-    debugPrint('⏰ [Handler] Processing reminder notification');
-    
     // الانتقال للصفحة الرئيسية
     _navigateToHome(context);
   }
@@ -222,8 +182,6 @@ class NotificationTapHandler {
     BuildContext context,
     NotificationTapEvent event,
   ) async {
-    debugPrint('⚙️ [Handler] Processing system notification');
-    
     final type = event.payload['type'] as String?;
     
     switch (type) {
@@ -251,10 +209,7 @@ class NotificationTapHandler {
     bool clearStack = false,
   }) async {
     try {
-      debugPrint('🧭 [Navigation] Navigating to: $routeName');
-      
       if (!context.mounted) {
-        debugPrint('❌ [Navigation] Context not mounted');
         return;
       }
       
@@ -272,12 +227,7 @@ class NotificationTapHandler {
           arguments: arguments,
         );
       }
-      
-      debugPrint('✅ [Navigation] Successfully navigated to $routeName');
-      
     } catch (e) {
-      debugPrint('❌ [Navigation] Error navigating to $routeName: $e');
-      
       // في حالة الفشل، حاول الانتقال للصفحة الرئيسية
       try {
         if (context.mounted) {
@@ -287,7 +237,6 @@ class NotificationTapHandler {
           );
         }
       } catch (homeError) {
-        debugPrint('❌ [Navigation] Failed to navigate home: $homeError');
       }
     }
   }
@@ -313,7 +262,6 @@ class NotificationTapHandler {
   /// معالجة الحدث المعلق إن وجد
   Future<void> processPendingEvent() async {
     if (_pendingEvent != null) {
-      debugPrint('🔄 [Handler] Processing pending event...');
       final event = _pendingEvent!;
       _pendingEvent = null; // مسحه قبل المعالجة
       await handleNotificationTap(event);

@@ -1,7 +1,10 @@
 // lib/features/prayer_times/utils/prayer_utils.dart
 
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../app/themes/theme_constants.dart';
+import '../../../core/error/exceptions.dart';
 import '../models/prayer_time_model.dart';
 
 /// أدوات موحدة لمواقيت الصلاة
@@ -34,7 +37,6 @@ class PrayerUtils {
       }
       return '$displayHour:$minute';
     } catch (e) {
-      debugPrint('[PrayerUtils] خطأ في تنسيق الوقت: $e');
       return '--:--';
     }
   }
@@ -136,36 +138,55 @@ class PrayerUtils {
   // ==================== رسائل الأخطاء ====================
   
   /// رسالة خطأ موحدة
+  /// معالجة رسائل الأخطاء - محسّن مثل نظام القبلة
   static String getErrorMessage(dynamic error) {
-    final errorStr = error.toString().toLowerCase();
-    
-    // أخطاء الأذونات
-    if (errorStr.contains('permission') || errorStr.contains('denied')) {
-      return 'يرجى السماح بالوصول للموقع من إعدادات التطبيق';
+    // معالجة الأخطاء المخصصة أولاً
+    if (error is TimeoutException) {
+      return 'انتهت مهلة الحصول على الموقع';
+    } else if (error is LocationServiceDisabledException) {
+      return 'خدمة الموقع معطلة';
+    } else if (error is PermissionDeniedException) {
+      return 'لم يتم منح إذن الوصول إلى الموقع';
     }
     
-    // أخطاء خدمة الموقع
+    // معالجة الأخطاء المخصصة للمشروع
+    if (error is LocationException) {
+      switch (error.code) {
+        case 'PERMISSION_DENIED':
+          return 'يرجى منح إذن الوصول للموقع من إعدادات التطبيق';
+        case 'SERVICE_DISABLED':
+          return 'يرجى تفعيل خدمة الموقع من إعدادات الجهاز';
+        case 'LOCATION_ERROR':
+          return 'فشل في تحديد الموقع، تأكد من قوة الإشارة';
+        default:
+          return error.message;
+      }
+    }
+    
+    // معالجة بناءً على نص الخطأ (كما هو موجود حالياً)
+    final errorStr = error.toString().toLowerCase();
+    
+    if (errorStr.contains('permission') || errorStr.contains('denied')) {
+      return 'يرجى منح إذن الوصول للموقع من إعدادات التطبيق';
+    }
+    
     if (errorStr.contains('service') || errorStr.contains('disabled')) {
       return 'يرجى تفعيل خدمة الموقع من إعدادات الجهاز';
     }
     
-    // أخطاء الشبكة
     if (errorStr.contains('network') || errorStr.contains('internet') || errorStr.contains('connection')) {
       return 'تحقق من اتصال الإنترنت وحاول مرة أخرى';
     }
     
-    // انتهاء الوقت
     if (errorStr.contains('timeout')) {
       return 'انتهت مهلة الاتصال، يرجى المحاولة مرة أخرى';
     }
     
-    // أخطاء الموقع
     if (errorStr.contains('location')) {
       return 'لم نتمكن من تحديد موقعك، تحقق من إعدادات الموقع';
     }
     
-    // خطأ عام
-    return 'حدث خطأ غير متوقع، يرجى المحاولة مرة أخرى';
+    return 'حدث خطأ غير متوقع';
   }
 
   /// نوع الخطأ للتعامل المخصص

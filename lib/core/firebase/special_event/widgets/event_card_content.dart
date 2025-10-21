@@ -19,7 +19,6 @@ class EventCardContent extends StatelessWidget {
   
   void _handleTap(BuildContext context) {
     if (event.actionUrl.isEmpty) {
-      debugPrint('ℹ️ [EventCard] No action URL - ignoring tap');
       return;
     }
     

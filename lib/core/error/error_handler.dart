@@ -149,10 +149,7 @@ class AppErrorHandler {
   
   /// Log error details
   void _logError(String operation, dynamic error, StackTrace? stackTrace) {
-    debugPrint('Error in operation: $operation');
-    debugPrint('Error: $error');
     if (stackTrace != null) {
-      debugPrint('StackTrace: $stackTrace');
     }
   }
   

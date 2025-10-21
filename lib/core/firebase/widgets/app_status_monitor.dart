@@ -52,9 +52,7 @@ class _AppStatusMonitorState extends State<AppStatusMonitor> {
     if (_configManager != null) {
       _setupListeners();
       _checkInitialStatus();
-      debugPrint('✅ AppStatusMonitor initialized with ConfigManager');
     } else {
-      debugPrint('⚠️ AppStatusMonitor: No ConfigManager available');
       _retryInitialization();
     }
   }
@@ -65,12 +63,10 @@ class _AppStatusMonitorState extends State<AppStatusMonitor> {
       if (_getIt.isRegistered<RemoteConfigManager>()) {
         final manager = _getIt<RemoteConfigManager>();
         if (manager.isInitialized) {
-          debugPrint('✅ Got RemoteConfigManager from GetIt');
           return manager;
         }
       }
     } catch (e) {
-      debugPrint('⚠️ Could not get RemoteConfigManager: $e');
     }
     return null;
   }
@@ -80,11 +76,9 @@ class _AppStatusMonitorState extends State<AppStatusMonitor> {
     try {
       if (_getIt.isRegistered<FirebaseRemoteConfigService>()) {
         final service = _getIt<FirebaseRemoteConfigService>();
-        debugPrint('✅ Got FirebaseRemoteConfigService for screens');
         return service;
       }
     } catch (e) {
-      debugPrint('⚠️ Could not get FirebaseRemoteConfigService: $e');
     }
     return null;
   }
@@ -93,7 +87,6 @@ class _AppStatusMonitorState extends State<AppStatusMonitor> {
   void _retryInitialization() {
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted && _configManager == null) {
-        debugPrint('🔄 Retrying to get ConfigManager...');
         _initializeManagers();
       }
     });
@@ -105,8 +98,6 @@ class _AppStatusMonitorState extends State<AppStatusMonitor> {
     
     _configManager!.maintenanceMode.addListener(_onMaintenanceModeChanged);
     _configManager!.forceUpdate.addListener(_onForceUpdateChanged);
-    
-    debugPrint('🔔 Listeners setup for Remote Config changes');
   }
   
   /// فحص الحالة الأولية
@@ -123,11 +114,6 @@ class _AppStatusMonitorState extends State<AppStatusMonitor> {
           _isMaintenanceMode = maintenanceMode;
           _isForceUpdateRequired = forceUpdate;
         });
-        
-        debugPrint('📊 Initial App Status:');
-        debugPrint('  - Maintenance Mode: $_isMaintenanceMode');
-        debugPrint('  - Force Update: $_isForceUpdateRequired');
-        
         // عرض Dialog إذا لزم الأمر
         if (_isMaintenanceMode || _isForceUpdateRequired) {
           _showAppropriateDialog();
@@ -149,9 +135,6 @@ class _AppStatusMonitorState extends State<AppStatusMonitor> {
             _isMaintenanceMode = newValue;
             _hasShownDialog = false; // السماح بعرض Dialog جديد
           });
-          
-          debugPrint('🔧 Maintenance mode changed to: $_isMaintenanceMode');
-          
           if (_isMaintenanceMode) {
             _showAppropriateDialog();
           }
@@ -172,9 +155,6 @@ class _AppStatusMonitorState extends State<AppStatusMonitor> {
             _isForceUpdateRequired = newValue;
             _hasShownDialog = false;
           });
-          
-          debugPrint('🚨 Force update changed to: $_isForceUpdateRequired');
-          
           if (_isForceUpdateRequired) {
             _showAppropriateDialog();
           }
@@ -237,8 +217,6 @@ class _AppStatusMonitorState extends State<AppStatusMonitor> {
       _configManager!.maintenanceMode.removeListener(_onMaintenanceModeChanged);
       _configManager!.forceUpdate.removeListener(_onForceUpdateChanged);
     }
-    
-    debugPrint('🧹 AppStatusMonitor disposed');
     super.dispose();
   }
 
@@ -246,19 +224,16 @@ class _AppStatusMonitorState extends State<AppStatusMonitor> {
   Widget build(BuildContext context) {
     // إذا لم يتم تهيئة ConfigManager بعد
     if (_configManager == null) {
-      debugPrint('⏳ AppStatusMonitor: Waiting for ConfigManager...');
       return widget.child; // عرض المحتوى العادي مباشرة
     }
     
     // إذا كان وضع الصيانة مفعل
     if (_isMaintenanceMode) {
-      debugPrint('🔧 Rendering MaintenanceScreen');
       return const MaintenanceScreen();
     }
     
     // إذا كان التحديث الإجباري مطلوب
     if (_isForceUpdateRequired) {
-      debugPrint('🚨 Rendering ForceUpdateScreen');
       return ForceUpdateScreen(
         remoteConfig: _remoteConfigService,
       );

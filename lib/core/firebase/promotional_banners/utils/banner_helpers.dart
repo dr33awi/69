@@ -28,7 +28,6 @@ class BannerHelpers {
     try {
       // التحقق من تسجيل الخدمة
       if (!getIt.isRegistered<PromotionalBannerManager>()) {
-        debugPrint('⚠️ PromotionalBannerManager not registered');
         return;
       }
 
@@ -36,8 +35,6 @@ class BannerHelpers {
       
       // ✅ انتظار التهيئة إذا لم تكن جاهزة
       if (!bannerManager.isInitialized) {
-        debugPrint('⚠️ PromotionalBannerManager not initialized, waiting...');
-        
         // الانتظار حتى 5 ثوانٍ للتهيئة
         int attempts = 0;
         while (!bannerManager.isInitialized && attempts < 10) {
@@ -45,14 +42,12 @@ class BannerHelpers {
           attempts++;
           
           if (bannerManager.isInitialized) {
-            debugPrint('✅ BannerManager initialized after ${attempts * 500}ms');
             break;
           }
         }
         
         // إذا لم تتم التهيئة بعد، محاولة التهيئة يدوياً
         if (!bannerManager.isInitialized) {
-          debugPrint('🔄 Attempting manual initialization...');
           try {
             final storage = getIt<StorageService>();
             final remoteConfig = getIt<FirebaseRemoteConfigService>();
@@ -63,13 +58,9 @@ class BannerHelpers {
             );
             
             if (!bannerManager.isInitialized) {
-              debugPrint('❌ Manual initialization failed');
               return;
             }
-            
-            debugPrint('✅ Manual initialization successful');
           } catch (e) {
-            debugPrint('❌ Manual initialization error: $e');
             return;
           }
         }
@@ -79,12 +70,8 @@ class BannerHelpers {
       final bannersToShow = await bannerManager.getBannersToShow(screenName);
       
       if (bannersToShow.isEmpty) {
-        debugPrint('ℹ️ No banners to show for screen: $screenName');
         return;
       }
-
-      debugPrint('🎯 Showing ${bannersToShow.length} banner(s) for: $screenName');
-
       // عرض البانرات واحداً تلو الآخر
       for (final banner in bannersToShow) {
         if (!context.mounted) break;
@@ -99,10 +86,7 @@ class BannerHelpers {
             // ✅ إذا كان dismiss_forever، إخفاء نهائياً
             if (banner.dismissForever) {
               await bannerManager.dismissBannerForever(banner.id);
-              debugPrint('🚫 Banner ${banner.id} dismissed forever');
             }
-            
-            debugPrint('✅ Banner ${banner.id} dismissed');
           },
           onActionPressed: () async {
             // ✅ تسجيل النقر
@@ -112,8 +96,6 @@ class BannerHelpers {
             if (banner.bannerType == BannerType.update) {
               await _handleUpdateBannerAction(banner);
             }
-            
-            debugPrint('👆 Banner ${banner.id} action pressed');
           },
         );
 
@@ -126,8 +108,6 @@ class BannerHelpers {
         }
       }
     } catch (e, stackTrace) {
-      debugPrint('❌ Error showing banners: $e');
-      debugPrint('Stack trace: $stackTrace');
     }
   }
 
@@ -138,20 +118,15 @@ class BannerHelpers {
       
       // حفظ معلومات أن المستخدم نقر على التحديث
       await bannerManager.markUpdateBannerAsActioned(banner.id);
-      
-      debugPrint('✅ Update banner ${banner.id} marked as actioned');
-      
       // بعد فترة، التحقق من النسخة وإخفاء البانر
       Future.delayed(const Duration(seconds: 30), () async {
         final shouldHide = await _shouldHideUpdateBanner(banner);
         if (shouldHide) {
           await bannerManager.dismissBannerForever(banner.id);
-          debugPrint('🎉 User updated! Banner ${banner.id} hidden forever');
         }
       });
       
     } catch (e) {
-      debugPrint('❌ Error handling update banner action: $e');
     }
   }
 
@@ -166,17 +141,12 @@ class BannerHelpers {
       // الحصول على نسخة التطبيق الحالية
       final packageInfo = await PackageInfo.fromPlatform();
       final currentVersion = packageInfo.version;
-      
-      debugPrint('📱 Current version: $currentVersion');
-      debugPrint('🎯 Required version: ${banner.minAppVersion}');
-      
       // مقارنة النسخ
       final isUpdated = _compareVersions(currentVersion, banner.minAppVersion!);
       
       return isUpdated;
       
     } catch (e) {
-      debugPrint('❌ Error checking app version: $e');
       return false;
     }
   }
@@ -207,7 +177,6 @@ class BannerHelpers {
       return true; // النسخ متساوية
       
     } catch (e) {
-      debugPrint('❌ Error comparing versions: $e');
       return false;
     }
   }
@@ -219,7 +188,6 @@ class BannerHelpers {
   }) async {
     try {
       if (!getIt.isRegistered<PromotionalBannerManager>()) {
-        debugPrint('⚠️ PromotionalBannerManager not registered');
         return;
       }
 
@@ -230,7 +198,6 @@ class BannerHelpers {
           .firstOrNull;
       
       if (banner == null) {
-        debugPrint('⚠️ Banner not found: $bannerId');
         return;
       }
 
@@ -247,7 +214,6 @@ class BannerHelpers {
         },
       );
     } catch (e) {
-      debugPrint('❌ Error showing banner by ID: $e');
     }
   }
 
@@ -258,7 +224,6 @@ class BannerHelpers {
   }) async {
     try {
       if (!getIt.isRegistered<PromotionalBannerManager>()) {
-        debugPrint('⚠️ PromotionalBannerManager not registered');
         return;
       }
 
@@ -266,8 +231,6 @@ class BannerHelpers {
       
       // ✅ التحقق من التهيئة ومحاولة إعادة التهيئة إذا لزم الأمر
       if (!bannerManager.isInitialized) {
-        debugPrint('⚠️ PromotionalBannerManager not initialized, attempting to initialize...');
-        
         try {
           final storage = getIt<StorageService>();
           final remoteConfig = getIt<FirebaseRemoteConfigService>();
@@ -278,13 +241,9 @@ class BannerHelpers {
           );
           
           if (!bannerManager.isInitialized) {
-            debugPrint('❌ Initialization failed');
             throw Exception('Failed to initialize BannerManager');
           }
-          
-          debugPrint('✅ BannerManager initialized successfully');
         } catch (e) {
-          debugPrint('❌ Initialization error: $e');
           throw Exception('Cannot initialize BannerManager: $e');
         }
       }
@@ -301,12 +260,8 @@ class BannerHelpers {
           .toList();
 
       if (allBanners.isEmpty) {
-        debugPrint('⚠️ No active banners found');
         return;
       }
-
-      debugPrint('🧪 Testing: Showing ${allBanners.length} banner(s)');
-
       for (final banner in allBanners) {
         if (!context.mounted) break;
 
@@ -314,18 +269,14 @@ class BannerHelpers {
           context: context,
           banner: banner,
           onDismiss: () {
-            debugPrint('🧪 Test banner ${banner.id} dismissed');
           },
           onActionPressed: () {
-            debugPrint('🧪 Test banner ${banner.id} action pressed');
           },
         );
 
         await Future.delayed(const Duration(milliseconds: 500));
       }
     } catch (e, stackTrace) {
-      debugPrint('❌ Error showing all banners: $e');
-      debugPrint('Stack trace: $stackTrace');
       rethrow;
     }
   }

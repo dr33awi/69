@@ -346,21 +346,17 @@ class PermissionServiceImpl implements PermissionService {
 
   void _log(String message, [Map<String, dynamic>? data]) {
     if (kDebugMode) {
-      debugPrint('🔐 [PermissionService] $message${data != null ? " - $data" : ""}');
     }
   }
 
   void _logWarning(String message) {
     if (kDebugMode) {
-      debugPrint('⚠️ [PermissionService] WARNING: $message');
     }
   }
 
   void _logError(String message, dynamic error, [StackTrace? stackTrace]) {
     if (kDebugMode) {
-      debugPrint('🔴 [PermissionService] ERROR: $message - $error');
       if (stackTrace != null) {
-        debugPrint('Stack trace: $stackTrace');
       }
     }
   }

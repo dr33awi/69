@@ -101,7 +101,6 @@ class _AthkarNotificationSettingsScreenState
       }
       
     } catch (e) {
-      debugPrint('خطأ في تحميل البيانات: $e');
       setState(() {
         _isLoading = false;
         _errorMessage = 'فشل في تحميل البيانات. يرجى المحاولة مرة أخرى.';
@@ -122,7 +121,6 @@ class _AthkarNotificationSettingsScreenState
   }
 
   Future<void> _migrateSettings(int fromVersion) async {
-    debugPrint('ترقية إعدادات الأذكار من الإصدار $fromVersion');
   }
 
   Future<void> _saveInitialSettings(List<String> autoEnabledIds) async {
@@ -161,11 +159,9 @@ class _AthkarNotificationSettingsScreenState
       final missingNotifications = enabledSet.difference(scheduledAthkarIds);
       
       if (missingNotifications.isNotEmpty) {
-        debugPrint('إعادة جدولة الإشعارات المفقودة: $missingNotifications');
         await _service.scheduleCategoryReminders();
       }
     } catch (e) {
-      debugPrint('خطأ في التحقق من الإشعارات: $e');
     }
   }
 
@@ -278,7 +274,6 @@ class _AthkarNotificationSettingsScreenState
         context.showSuccessSnackBar('تم حفظ الإعدادات بنجاح');
       }
     } catch (e) {
-      debugPrint('خطأ في حفظ الإعدادات: $e');
       if (mounted) {
         context.showErrorSnackBar('حدث خطأ في حفظ الإعدادات');
       }
@@ -428,7 +423,7 @@ class _AthkarNotificationSettingsScreenState
                   style: TextStyle(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
-                    fontSize: 16.sp,
+                    fontSize: 17.sp,
                   ),
                 ),
                 Text(

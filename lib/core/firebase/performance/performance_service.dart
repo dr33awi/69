@@ -31,13 +31,10 @@ class PerformanceService {
       await _performance!.setPerformanceCollectionEnabled(true);
       
       _isInitialized = true;
-      debugPrint('✅ PerformanceService initialized');
-      
       // بدء تتبع أداء التطبيق الأساسي
       await _startAppLifecycleTrace();
       
     } catch (e) {
-      debugPrint('❌ Failed to initialize PerformanceService: $e');
     }
   }
   
@@ -55,7 +52,6 @@ class PerformanceService {
     try {
       // التحقق من عدم وجود trace نشط بنفس الاسم
       if (_activeTraces.containsKey(traceName)) {
-        debugPrint('⚠️ Trace already active: $traceName');
         return;
       }
       
@@ -69,18 +65,13 @@ class PerformanceService {
         name: traceName,
         startTime: DateTime.now(),
       );
-      
-      debugPrint('⏱️ Trace started: $traceName');
-      
     } catch (e) {
-      debugPrint('❌ Failed to start trace: $e');
     }
   }
   
   /// إيقاف تتبع الأداء
   Future<void> stopTrace(String traceName, {Map<String, dynamic>? attributes}) async {
     if (!_activeTraces.containsKey(traceName)) {
-      debugPrint('⚠️ No active trace: $traceName');
       return;
     }
     
@@ -106,12 +97,9 @@ class PerformanceService {
         final metric = _metrics[traceName]!;
         metric.endTime = DateTime.now();
         metric.duration = metric.endTime!.difference(metric.startTime);
-        
-        debugPrint('⏱️ Trace stopped: $traceName (${metric.duration!.inMilliseconds}ms)');
       }
       
     } catch (e) {
-      debugPrint('❌ Failed to stop trace: $e');
     }
   }
   
@@ -121,9 +109,7 @@ class PerformanceService {
     
     try {
       _activeTraces[traceName]!.setMetric(metricName, value);
-      debugPrint('📊 Metric added to $traceName: $metricName = $value');
     } catch (e) {
-      debugPrint('❌ Failed to add metric: $e');
     }
   }
   
@@ -133,9 +119,7 @@ class PerformanceService {
     
     try {
       _activeTraces[traceName]!.putAttribute(key, value);
-      debugPrint('🏷️ Attribute added to $traceName: $key = $value');
     } catch (e) {
-      debugPrint('❌ Failed to add attribute: $e');
     }
   }
   
@@ -171,7 +155,6 @@ class PerformanceService {
       
       // التحقق من عدم وجود metric نشط
       if (_activeHttpMetrics.containsKey(metricKey)) {
-        debugPrint('⚠️ HTTP metric already active: $metricKey');
         return;
       }
       
@@ -179,11 +162,7 @@ class PerformanceService {
       metric.start();
       
       _activeHttpMetrics[metricKey] = metric;
-      
-      debugPrint('🌐 HTTP metric started: ${method.name} $url');
-      
     } catch (e) {
-      debugPrint('❌ Failed to start HTTP metric: $e');
     }
   }
   
@@ -200,7 +179,6 @@ class PerformanceService {
     final metricKey = requestId ?? '${method.name}_${url.hashCode}';
     
     if (!_activeHttpMetrics.containsKey(metricKey)) {
-      debugPrint('⚠️ No active HTTP metric: $metricKey');
       return;
     }
     
@@ -223,11 +201,7 @@ class PerformanceService {
       
       await metric.stop();
       _activeHttpMetrics.remove(metricKey);
-      
-      debugPrint('🌐 HTTP metric stopped: ${method.name} $url (${httpResponseCode ?? 'unknown'})');
-      
     } catch (e) {
-      debugPrint('❌ Failed to stop HTTP metric: $e');
     }
   }
   
@@ -331,7 +305,6 @@ class PerformanceService {
   /// مسح المقاييس المحفوظة
   void clearMetrics() {
     _metrics.clear();
-    debugPrint('🧹 Performance metrics cleared');
   }
   
   // ==================== Automatic Performance Tracking ====================
@@ -399,7 +372,6 @@ class PerformanceService {
     _metrics.clear();
     
     _isInitialized = false;
-    debugPrint('🧹 PerformanceService disposed');
   }
   
   // ==================== Getters ====================

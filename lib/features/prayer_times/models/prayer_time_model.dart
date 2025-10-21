@@ -72,7 +72,6 @@ class PrayerTime {
       final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
       return '$displayHour:$minute $period';
     } catch (e) {
-      debugPrint('[PrayerTime] خطأ في تنسيق الوقت: $e');
       return '--:--';
     }
   }
@@ -258,7 +257,7 @@ class PrayerCalculationSettings {
   }
 }
 
-/// بيانات الموقع للصلاة
+/// بيانات الموقع للصلاة - محسّن مع تتبع الدقة
 @immutable
 class PrayerLocation {
   final double latitude;
@@ -267,6 +266,7 @@ class PrayerLocation {
   final String? countryName;
   final String timezone;
   final double? altitude;
+  final double accuracy; // دقة الموقع بالأمتار - جديد
 
   const PrayerLocation({
     required this.latitude,
@@ -275,6 +275,7 @@ class PrayerLocation {
     this.countryName,
     required this.timezone,
     this.altitude,
+    this.accuracy = 0.0, // قيمة افتراضية
   });
 
   String get displayName {
@@ -289,6 +290,19 @@ class PrayerLocation {
     }
   }
 
+  /// تقييم جودة دقة الموقع - مشابه لنظام القبلة
+  bool get hasHighAccuracy => accuracy <= 20;
+  bool get hasMediumAccuracy => accuracy > 20 && accuracy <= 100;
+  bool get hasLowAccuracy => accuracy > 100;
+
+  String get accuracyDescription {
+    if (hasHighAccuracy) return 'دقة عالية';
+    if (hasMediumAccuracy) return 'دقة متوسطة';
+    return 'دقة منخفضة';
+  }
+
+  String get detailedAccuracyInfo => 'دقة الموقع: ± ${accuracy.toStringAsFixed(0)}م ($accuracyDescription)';
+
   Map<String, dynamic> toJson() => {
     'latitude': latitude,
     'longitude': longitude,
@@ -296,6 +310,7 @@ class PrayerLocation {
     'countryName': countryName,
     'timezone': timezone,
     'altitude': altitude,
+    'accuracy': accuracy, // إضافة حقل الدقة
   };
 
   factory PrayerLocation.fromJson(Map<String, dynamic> json) {
@@ -306,6 +321,7 @@ class PrayerLocation {
       countryName: json['countryName'] as String?,
       timezone: json['timezone'] as String,
       altitude: json['altitude'] != null ? (json['altitude'] as num).toDouble() : null,
+      accuracy: json['accuracy'] != null ? (json['accuracy'] as num).toDouble() : 0.0, // إضافة حقل الدقة
     );
   }
 }

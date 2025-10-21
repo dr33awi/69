@@ -28,8 +28,6 @@ class DevelopmentConfig {
 
       AppLogger.info('✅ All development tools initialized successfully');
     } catch (e, stackTrace) {
-      debugPrint('❌ Error initializing development tools: $e');
-      debugPrint('Stack trace: $stackTrace');
     }
   }
 

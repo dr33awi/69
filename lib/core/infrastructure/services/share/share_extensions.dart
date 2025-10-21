@@ -31,7 +31,6 @@ extension ShareContextExtensions on BuildContext {
       HapticFeedback.lightImpact();
       
     } catch (e) {
-      debugPrint('Copy Athkar Error: $e');
       if (mounted) {
         _showCopyErrorMessage();
       }
@@ -66,7 +65,6 @@ extension ShareContextExtensions on BuildContext {
       HapticFeedback.lightImpact();
       
     } catch (e) {
-      debugPrint('Copy Dua Error: $e');
       if (mounted) {
         _showCopyErrorMessage();
       }
@@ -93,34 +91,6 @@ extension ShareContextExtensions on BuildContext {
       HapticFeedback.lightImpact();
       
     } catch (e) {
-      debugPrint('Copy AsmaAllah Error: $e');
-      if (mounted) {
-        _showCopyErrorMessage();
-      }
-    }
-  }
-
-  /// نسخ اقتباس يومي مع كل التفاصيل
-  Future<void> copyDailyQuote(
-    String content,
-    String source, {
-    String? theme,
-  }) async {
-    try {
-      await shareService.copyDailyQuote(
-        content,
-        source,
-        theme: theme,
-      );
-      
-      if (mounted) {
-        _showCopySuccessMessage('الاقتباس');
-      }
-      
-      HapticFeedback.lightImpact();
-      
-    } catch (e) {
-      debugPrint('Copy Quote Error: $e');
       if (mounted) {
         _showCopyErrorMessage();
       }
@@ -147,7 +117,6 @@ extension ShareContextExtensions on BuildContext {
       HapticFeedback.lightImpact();
       
     } catch (e) {
-      debugPrint('Copy Tasbih Stats Error: $e');
       if (mounted) {
         _showCopyErrorMessage();
       }
@@ -216,15 +185,6 @@ extension ShareContextExtensions on BuildContext {
       explanation,
       meaning: meaning,
     );
-  }
-
-  /// مشاركة اقتباس يومي
-  Future<void> shareDailyQuote(
-    String content,
-    String source, {
-    String? theme,
-  }) async {
-    await shareService.shareDailyQuote(content, source, theme: theme);
   }
 
   /// مشاركة إحصائيات التسبيح

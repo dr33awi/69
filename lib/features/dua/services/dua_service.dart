@@ -54,7 +54,6 @@ class DuaService {
       return categories;
       
     } catch (e) {
-      debugPrint('Error loading dua categories: $e');
       return [];
     }
   }
@@ -86,7 +85,6 @@ class DuaService {
       return duas;
       
     } catch (e) {
-      debugPrint('Error loading duas for category $categoryId: $e');
       return [];
     }
   }
@@ -113,7 +111,6 @@ class DuaService {
       return allDuas;
       
     } catch (e) {
-      debugPrint('Error loading all duas: $e');
       return [];
     }
   }
@@ -139,7 +136,6 @@ class DuaService {
       }).toList();
       
     } catch (e) {
-      debugPrint('Error searching duas: $e');
       return [];
     }
   }
@@ -157,7 +153,6 @@ class DuaService {
       return allDuas.where((dua) => _favoritesCache!.contains(dua.id)).toList();
       
     } catch (e) {
-      debugPrint('Error getting favorite duas: $e');
       return [];
     }
   }
@@ -193,7 +188,6 @@ class DuaService {
       return _favoritesCache!.contains(duaId);
       
     } catch (e) {
-      debugPrint('Error toggling favorite: $e');
       return false;
     }
   }
@@ -213,7 +207,6 @@ class DuaService {
       _favoritesCache = favorites.toSet();
       
     } catch (e) {
-      debugPrint('Error loading favorites: $e');
       _favoritesCache = {};
     }
   }
@@ -227,7 +220,6 @@ class DuaService {
       await _storage.setStringList(_readDuasKey, _readDuasCache!.toList());
       
     } catch (e) {
-      debugPrint('Error marking dua as read: $e');
     }
   }
 
@@ -240,7 +232,6 @@ class DuaService {
       _readDuasCache = readDuas.toSet();
       
     } catch (e) {
-      debugPrint('Error loading read duas: $e');
       _readDuasCache = {};
     }
   }
@@ -255,7 +246,6 @@ class DuaService {
     try {
       return _storage.getDouble(_fontSizeKey) ?? 18.0;
     } catch (e) {
-      debugPrint('Error getting font size: $e');
       return 18.0;
     }
   }
@@ -265,7 +255,6 @@ class DuaService {
     try {
       await _storage.setDouble(_fontSizeKey, size);
     } catch (e) {
-      debugPrint('Error saving font size: $e');
     }
   }
 
@@ -281,7 +270,6 @@ class DuaService {
       await _storage.setMap(_lastViewedKey, data);
       
     } catch (e) {
-      debugPrint('Error saving last viewed: $e');
     }
   }
 
@@ -290,7 +278,6 @@ class DuaService {
     try {
       return _storage.getMap(_lastViewedKey);
     } catch (e) {
-      debugPrint('Error getting last viewed: $e');
       return null;
     }
   }
@@ -314,7 +301,6 @@ class DuaService {
       await _storage.setStringList(_searchHistoryKey, history);
       
     } catch (e) {
-      debugPrint('Error saving search history: $e');
     }
   }
 
@@ -323,7 +309,6 @@ class DuaService {
     try {
       return _storage.getStringList(_searchHistoryKey) ?? [];
     } catch (e) {
-      debugPrint('Error getting search history: $e');
       return [];
     }
   }
@@ -333,7 +318,6 @@ class DuaService {
     try {
       await _storage.remove(_searchHistoryKey);
     } catch (e) {
-      debugPrint('Error clearing search history: $e');
     }
   }
 
@@ -358,7 +342,6 @@ class DuaService {
       };
       
     } catch (e) {
-      debugPrint('Error getting statistics: $e');
       return {};
     }
   }

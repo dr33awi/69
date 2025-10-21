@@ -142,7 +142,6 @@ class CustomDhikrDialogs {
                   if (context.mounted) {
                     context.showErrorSnackBar('حدث خطأ أثناء إضافة الذكر');
                   }
-                  debugPrint('[CustomDhikrDialogs] Error adding: $e');
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -264,7 +263,6 @@ class CustomDhikrDialogs {
                   if (context.mounted) {
                     context.showErrorSnackBar('حدث خطأ أثناء تحديث الذكر');
                   }
-                  debugPrint('[CustomDhikrDialogs] Error updating: $e');
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -307,7 +305,6 @@ class CustomDhikrDialogs {
           if (context.mounted) {
             context.showErrorSnackBar('حدث خطأ أثناء حذف الذكر');
           }
-          debugPrint('[CustomDhikrDialogs] Error deleting: $e');
         }
       }
     });

@@ -7,7 +7,6 @@ import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../services/dua_service.dart';
 import '../models/dua_model.dart';
-import '../widgets/dua_item_card.dart';
 import 'dua_details_screen.dart';
 
 class DuaSearchScreen extends StatefulWidget {

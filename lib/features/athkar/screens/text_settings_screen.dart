@@ -70,7 +70,6 @@ class _AthkarTextSettingsScreenState extends State<AthkarTextSettingsScreen> {
       
       setState(() => _isLoading = false);
     } catch (e) {
-      debugPrint('خطأ في تحميل الإعدادات: $e');
       setState(() => _isLoading = false);
     }
   }
@@ -101,7 +100,6 @@ class _AthkarTextSettingsScreenState extends State<AthkarTextSettingsScreen> {
         context.showSuccessSnackBar('تم حفظ الإعدادات بنجاح');
       }
     } catch (e) {
-      debugPrint('خطأ في حفظ الإعدادات: $e');
       if (mounted) {
         context.showErrorSnackBar('فشل حفظ الإعدادات');
       }
@@ -237,7 +235,7 @@ class _AthkarTextSettingsScreenState extends State<AthkarTextSettingsScreen> {
                   style: TextStyle(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
-                    fontSize: 16.sp,
+                    fontSize: 17.sp,
                   ),
                 ),
                 Text(

@@ -15,7 +15,6 @@ class EventNavigationHandler {
   }) async {
     // ✅ إذا كان الرابط فارغاً، لا نفعل شيء (بدلاً من عرض Modal)
     if (url.isEmpty) {
-      debugPrint('ℹ️ [Navigation] No action URL - ignoring tap');
       return;
     }
     
@@ -25,7 +24,6 @@ class EventNavigationHandler {
       await _handleExternalUrl(context, url, event);
     } else {
       // ✅ رابط غير معروف - لا نفعل شيء
-      debugPrint('⚠️ [Navigation] Unknown URL format: $url');
     }
   }
   
@@ -38,9 +36,6 @@ class EventNavigationHandler {
     try {
       final uri = Uri.parse(url);
       final path = uri.host;
-      
-      debugPrint('🔗 [Navigation] Internal path: $path');
-      
       switch (path) {
         // ========== روابط رمضان ==========
         case 'ramadan-duas':
@@ -173,11 +168,9 @@ class EventNavigationHandler {
           
         // ========== افتراضي ==========
         default:
-          debugPrint('⚠️ [Navigation] Unknown path: $path - ignoring');
           // ✅ لا نعرض Modal، فقط نتجاهل
       }
     } catch (e) {
-      debugPrint('❌ [Navigation] Error handling internal navigation: $e');
       // ✅ لا نعرض Modal عند الخطأ
     }
   }
@@ -192,15 +185,11 @@ class EventNavigationHandler {
       final Uri uri = Uri.parse(url);
       
       if (await canLaunchUrl(uri)) {
-        debugPrint('🌐 [Navigation] Launching external URL: $url');
-        
         await launchUrl(
           uri,
           mode: LaunchMode.externalApplication,
         );
       } else {
-        debugPrint('⚠️ [Navigation] Cannot launch URL: $url');
-        
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -215,8 +204,6 @@ class EventNavigationHandler {
         }
       }
     } catch (e) {
-      debugPrint('❌ [Navigation] Error launching external URL: $e');
-      
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

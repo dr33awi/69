@@ -383,19 +383,16 @@ class StorageServiceImpl implements StorageService {
 
   void _log(String message, Map<String, dynamic>? data) {
     if (kDebugMode) {
-      debugPrint('💾 [Storage] $message${data != null ? " - $data" : ""}');
     }
   }
 
   void _logWarning(String message) {
     if (kDebugMode) {
-      debugPrint('⚠️ [Storage] WARNING: $message');
     }
   }
 
   void _logError(String message, dynamic error) {
     if (kDebugMode) {
-      debugPrint('🔴 [Storage] ERROR: $message - $error');
     }
   }
 }

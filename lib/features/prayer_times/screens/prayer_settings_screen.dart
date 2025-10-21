@@ -169,7 +169,7 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
                   style: TextStyle(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
-                    fontSize: 16.sp,
+                    fontSize: 17.sp,
                   ),
                 ),
                 Text(

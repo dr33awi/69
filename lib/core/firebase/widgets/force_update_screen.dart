@@ -84,10 +84,8 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
       if (getIt.isRegistered<RemoteConfigManager>()) {
         final manager = getIt<RemoteConfigManager>();
         await manager.acknowledgeUpdateShown();
-        debugPrint('✅ Update screen acknowledgement saved');
       }
     } catch (e) {
-      debugPrint('❌ Error acknowledging update screen: $e');
     }
   }
 
@@ -97,9 +95,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
       
       final packageInfo = await PackageInfo.fromPlatform();
       final currentVersion = packageInfo.version;
-      
-      debugPrint('📱 Package Version: $currentVersion');
-      
       String targetVersion = '';
       String updateUrl = '';
       List<String> features = [];
@@ -108,7 +103,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
         targetVersion = widget.remoteConfig!.requiredAppVersion;
         updateUrl = widget.remoteConfig!.updateUrl;
         features = widget.remoteConfig!.updateFeaturesList;
-        debugPrint('✅ Got data from widget.remoteConfig');
       } 
       else if (getIt.isRegistered<RemoteConfigManager>()) {
         final manager = getIt<RemoteConfigManager>();
@@ -119,7 +113,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
             final service = getIt<FirebaseRemoteConfigService>();
             features = service.updateFeaturesList;
           }
-          debugPrint('✅ Got data from RemoteConfigManager');
         }
       }
       else if (getIt.isRegistered<FirebaseRemoteConfigService>()) {
@@ -128,23 +121,19 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
           targetVersion = service.requiredAppVersion;
           updateUrl = service.updateUrl;
           features = service.updateFeaturesList;
-          debugPrint('✅ Got data from FirebaseRemoteConfigService');
         }
       }
       
       if (targetVersion.isEmpty) {
         targetVersion = '2.0.0';
-        debugPrint('⚠️ Using default target version');
       }
       
       if (updateUrl.isEmpty) {
         updateUrl = 'https://play.google.com/store/apps/details?id=com.example.athkar_app';
-        debugPrint('⚠️ Using default update URL');
       }
       
       if (features.isEmpty) {
         features = ['تحسينات الأداء', 'إصلاح الأخطاء', 'ميزات جديدة'];
-        debugPrint('⚠️ Using default features list');
       }
       
       setState(() {
@@ -154,15 +143,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
         _featuresList = features;
         _isLoadingVersions = false;
       });
-      
-      debugPrint('📊 Version Info Loaded:');
-      debugPrint('  - Current: $_currentVersion');
-      debugPrint('  - Target: $_targetVersion');
-      debugPrint('  - URL: $_updateUrl');
-      debugPrint('  - Features: $_featuresList');
-      
     } catch (e) {
-      debugPrint('❌ Error loading version info: $e');
       setState(() {
         _currentVersion = '1.0.0';
         _targetVersion = '2.0.0';
@@ -530,9 +511,6 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
       String storeUrl = _updateUrl.isNotEmpty 
           ? _updateUrl 
           : 'https://play.google.com/store/apps/details?id=com.example.athkar_app';
-      
-      debugPrint('🔗 Opening URL: $storeUrl');
-      
       final Uri url = Uri.parse(storeUrl);
       
       if (await canLaunchUrl(url)) {
@@ -542,12 +520,10 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
         );
         
         // بعد فتح المتجر، تسجيل أن المستخدم قام بمحاولة التحديث
-        debugPrint('✅ Store opened - User initiated update');
       } else {
         _showErrorSnackBar('لا يمكن فتح الرابط');
       }
     } catch (e) {
-      debugPrint('❌ Error opening URL: $e');
       _showErrorSnackBar('حدث خطأ أثناء فتح المتجر');
     } finally {
       if (mounted) {

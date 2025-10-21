@@ -250,11 +250,11 @@ class AppButton extends StatelessWidget {
   TextStyle _getTextStyle() {
     switch (size) {
       case ButtonSize.small:
-        return AppTextStyles.buttonSmall.copyWith(fontSize: 12.sp);
+        return AppTextStyles.buttonSmall.copyWith(fontSize: 16.sp);
       case ButtonSize.medium:
-        return AppTextStyles.button.copyWith(fontSize: 14.sp);
-      case ButtonSize.large:
         return AppTextStyles.button.copyWith(fontSize: 18.sp);
+      case ButtonSize.large:
+        return AppTextStyles.button.copyWith(fontSize: 22.sp);
     }
   }
 

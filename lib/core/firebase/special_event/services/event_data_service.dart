@@ -13,19 +13,15 @@ class EventDataService {
   
   /// جلب البيانات من Remote Config مباشرة
   Future<Map<String, dynamic>?> fetchEventData() async {
-    debugPrint('🎉 [EventDataService] Fetching event data...');
-    
     try {
       // ✅ مصدر واحد فقط
       if (!_getIt.isRegistered<FirebaseRemoteConfigService>()) {
-        debugPrint('⚠️ FirebaseRemoteConfigService not registered');
         return null;
       }
       
       final remoteConfig = _getIt<FirebaseRemoteConfigService>();
       
       if (!remoteConfig.isInitialized) {
-        debugPrint('⚠️ FirebaseRemoteConfigService not initialized');
         return null;
       }
       
@@ -35,16 +31,12 @@ class EventDataService {
         final isActive = data['is_active'] ?? false;
         
         if (isActive == true) {
-          debugPrint('✅ Event data found: ${data['title']}');
           return data;
         } else {
-          debugPrint('ℹ️ Event exists but is not active');
         }
       }
       
     } catch (e, stackTrace) {
-      debugPrint('❌ Error fetching event data: $e');
-      debugPrint('Stack: $stackTrace');
     }
     
     return null;
@@ -53,17 +45,12 @@ class EventDataService {
   /// تحديث البيانات من Firebase
   Future<bool> refreshEventData() async {
     try {
-      debugPrint('🔄 Refreshing event data...');
-      
       if (_getIt.isRegistered<FirebaseRemoteConfigService>()) {
         final remoteConfig = _getIt<FirebaseRemoteConfigService>();
         await remoteConfig.refresh();
-        
-        debugPrint('✅ Event data refreshed');
         return true;
       }
     } catch (e) {
-      debugPrint('❌ Refresh error: $e');
     }
     
     return false;
@@ -87,7 +74,6 @@ class EventDataService {
         return remoteConfig.specialEventData;
       }
     } catch (e) {
-      debugPrint('❌ Error getting cached data: $e');
     }
     
     return null;

@@ -11,7 +11,6 @@ import '../infrastructure/services/notifications/models/notification_models.dart
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  debugPrint('📱 Background message: ${message.messageId}');
 }
 
 /// خدمة Firebase Messaging - محسّنة
@@ -36,7 +35,6 @@ class FirebaseMessagingService {
     NotificationService? notificationService,
   }) async {
     if (_isInitialized) {
-      debugPrint('✅ Firebase Messaging already initialized');
       return;
     }
     
@@ -44,8 +42,6 @@ class FirebaseMessagingService {
     _notificationService = notificationService;
     
     try {
-      debugPrint('🔄 Initializing Firebase Messaging...');
-      
       if (Firebase.apps.isEmpty) {
         throw Exception('Firebase not initialized');
       }
@@ -60,10 +56,7 @@ class FirebaseMessagingService {
       await _subscribeToDefaultTopics();
       
       _isInitialized = true;
-      debugPrint('✅ FirebaseMessagingService initialized');
-      
     } catch (e) {
-      debugPrint('❌ Error initializing Firebase Messaging: $e');
       _isInitialized = false;
       _messaging = null;
       await _storage.setBool('firebase_messaging_available', false);
@@ -84,11 +77,7 @@ class FirebaseMessagingService {
       
       final isGranted = settings.authorizationStatus == AuthorizationStatus.authorized;
       await _storage.setBool('fcm_permission_granted', isGranted);
-      
-      debugPrint('FCM permission: ${settings.authorizationStatus}');
-        
     } catch (e) {
-      debugPrint('❌ Error requesting FCM permissions: $e');
       await _storage.setBool('fcm_permission_granted', false);
     }
   }
@@ -101,12 +90,10 @@ class FirebaseMessagingService {
       _fcmToken = await _messaging!.getToken();
       
       if (_fcmToken != null && _fcmToken!.isNotEmpty) {
-        debugPrint('✅ FCM Token: ${_fcmToken!.substring(0, 20)}...');
         await _storage.setString('fcm_token', _fcmToken!);
         await _storage.setBool('firebase_messaging_available', true);
         await _sendTokenToServer(_fcmToken!);
       } else {
-        debugPrint('❌ Failed to get FCM token');
         await _storage.setBool('firebase_messaging_available', false);
       }
       
@@ -115,11 +102,9 @@ class FirebaseMessagingService {
         _fcmToken = newToken;
         await _storage.setString('fcm_token', newToken);
         await _sendTokenToServer(newToken);
-        debugPrint('🔄 FCM Token refreshed');
       });
       
     } catch (e) {
-      debugPrint('❌ Error getting FCM token: $e');
       await _storage.setBool('firebase_messaging_available', false);
     }
   }
@@ -130,9 +115,7 @@ class FirebaseMessagingService {
       // TODO: API call للخادم
       await _storage.setString('last_token_sent', DateTime.now().toIso8601String());
       await _storage.setBool('token_sent_to_server', true);
-      debugPrint('✅ Token sent to server');
     } catch (e) {
-      debugPrint('❌ Error sending token: $e');
       await _storage.setBool('token_sent_to_server', false);
     }
   }
@@ -144,22 +127,16 @@ class FirebaseMessagingService {
     try {
       // رسائل Foreground
       FirebaseMessaging.onMessage.listen((message) {
-        debugPrint('📩 Foreground message: ${message.messageId}');
         _handleForegroundMessage(message);
       });
 
       // النقر على الإشعار
       FirebaseMessaging.onMessageOpenedApp.listen((message) {
-        debugPrint('👆 Message opened: ${message.messageId}');
         _handleMessageOpened(message);
       });
 
       _handleInitialMessage();
-      
-      debugPrint('✅ Message handlers setup completed');
-      
     } catch (e) {
-      debugPrint('❌ Error setting up message handlers: $e');
     }
   }
 
@@ -171,7 +148,6 @@ class FirebaseMessagingService {
       }
       await _processMessageData(message);
     } catch (e) {
-      debugPrint('❌ Error handling foreground message: $e');
     }
   }
 
@@ -180,7 +156,6 @@ class FirebaseMessagingService {
     try {
       await _handleNavigationFromNotification(message.data);
     } catch (e) {
-      debugPrint('❌ Error handling message opened: $e');
     }
   }
 
@@ -189,11 +164,9 @@ class FirebaseMessagingService {
     try {
       final initialMessage = await _messaging!.getInitialMessage();
       if (initialMessage != null) {
-        debugPrint('📱 App opened from notification');
         await _handleMessageOpened(initialMessage);
       }
     } catch (e) {
-      debugPrint('❌ Error handling initial message: $e');
     }
   }
 
@@ -217,7 +190,6 @@ class FirebaseMessagingService {
       await _notificationService!.showNotification(notificationData);
       
     } catch (e) {
-      debugPrint('❌ Error showing local notification: $e');
     }
   }
 
@@ -239,24 +211,19 @@ class FirebaseMessagingService {
       switch (type) {
         case 'prayer':
           final prayerName = message.data['prayer_name'];
-          debugPrint('📿 Prayer notification: $prayerName');
           break;
         case 'athkar':
           final athkarType = message.data['athkar_type'];
-          debugPrint('📖 Athkar notification: $athkarType');
           break;
         default:
-          debugPrint('📬 General notification: $type');
       }
       
     } catch (e) {
-      debugPrint('❌ Error processing message data: $e');
     }
   }
 
   Future<void> _handleNavigationFromNotification(Map<String, dynamic> data) async {
     final route = data['route'] as String?;
-    debugPrint('🧭 Navigation to: $route');
     // TODO: تنفيذ التنقل
   }
 
@@ -265,9 +232,7 @@ class FirebaseMessagingService {
   Future<void> _subscribeToDefaultTopics() async {
     try {
       await subscribeToTopic(_generalTopic);
-      debugPrint('✅ Subscribed to general notifications');
     } catch (e) {
-      debugPrint('❌ Error subscribing to default topics: $e');
     }
   }
 
@@ -276,15 +241,12 @@ class FirebaseMessagingService {
     
     try {
       await _messaging!.subscribeToTopic(topic);
-      debugPrint('✅ Subscribed to: $topic');
-      
       final subscriptions = getSubscribedTopics();
       if (!subscriptions.contains(topic)) {
         subscriptions.add(topic);
         await _storage.setStringList('subscribed_topics', subscriptions);
       }
     } catch (e) {
-      debugPrint('❌ Error subscribing to $topic: $e');
     }
   }
 
@@ -293,13 +255,10 @@ class FirebaseMessagingService {
     
     try {
       await _messaging!.unsubscribeFromTopic(topic);
-      debugPrint('✅ Unsubscribed from: $topic');
-      
       final subscriptions = getSubscribedTopics();
       subscriptions.remove(topic);
       await _storage.setStringList('subscribed_topics', subscriptions);
     } catch (e) {
-      debugPrint('❌ Error unsubscribing from $topic: $e');
     }
   }
 
@@ -331,7 +290,6 @@ class FirebaseMessagingService {
         await _getFCMToken();
       }
     } catch (e) {
-      debugPrint('❌ Error refreshing token: $e');
     }
   }
 
@@ -340,6 +298,5 @@ class FirebaseMessagingService {
     _isInitialized = false;
     _fcmToken = null;
     _messaging = null;
-    debugPrint('FirebaseMessagingService disposed');
   }
 }

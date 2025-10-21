@@ -150,7 +150,6 @@ class SpecialEventModel {
       
       return colors;
     } catch (e) {
-      debugPrint('⚠️ Error parsing gradient colors: $e');
       return _getDefaultColors();
     }
   }

@@ -49,7 +49,6 @@ class ReviewService {
   Future<void> incrementAppLaunches() async {
     final count = _prefs.getInt(_keyAppLaunches) ?? 0;
     await _prefs.setInt(_keyAppLaunches, count + 1);
-    debugPrint('[ReviewService] App launches: ${count + 1}');
   }
 
   /// زيادة عداد الإجراءات المهمة
@@ -61,7 +60,6 @@ class ReviewService {
   Future<void> incrementSignificantActions() async {
     final count = _prefs.getInt(_keySignificantActions) ?? 0;
     await _prefs.setInt(_keySignificantActions, count + 1);
-    debugPrint('[ReviewService] Significant actions: ${count + 1}');
   }
 
   /// التحقق من توفر نافذة التقييم
@@ -69,7 +67,6 @@ class ReviewService {
     try {
       return await _inAppReview.isAvailable();
     } catch (e) {
-      debugPrint('[ReviewService] Error checking availability: $e');
       return false;
     }
   }
@@ -79,21 +76,18 @@ class ReviewService {
     // إذا كان المستخدم قد قيّم أو رفض
     if (_prefs.getBool(_keyReviewCompleted) == true ||
         _prefs.getBool(_keyReviewDeclined) == true) {
-      debugPrint('[ReviewService] Review already completed or declined');
       return false;
     }
 
     // التحقق من عدد مرات التشغيل
     final launches = _prefs.getInt(_keyAppLaunches) ?? 0;
     if (launches < _minLaunchesBeforeReview) {
-      debugPrint('[ReviewService] Not enough launches: $launches/$_minLaunchesBeforeReview');
       return false;
     }
 
     // التحقق من عدد الإجراءات المهمة
     final actions = _prefs.getInt(_keySignificantActions) ?? 0;
     if (actions < _minSignificantActionsBeforeReview) {
-      debugPrint('[ReviewService] Not enough actions: $actions/$_minSignificantActionsBeforeReview');
       return false;
     }
 
@@ -104,12 +98,9 @@ class ReviewService {
       final daysSinceLastRequest = DateTime.now().difference(lastRequest).inDays;
       
       if (daysSinceLastRequest < _minDaysBetweenRequests) {
-        debugPrint('[ReviewService] Too soon since last request: $daysSinceLastRequest days');
         return false;
       }
     }
-
-    debugPrint('[ReviewService] ✅ User qualifies for review request');
     return true;
   }
 
@@ -119,17 +110,13 @@ class ReviewService {
   Future<void> requestReview({bool forceRequest = false}) async {
     try {
       if (!forceRequest && !shouldRequestReview()) {
-        debugPrint('[ReviewService] Review request conditions not met');
         return;
       }
 
       final available = await isReviewAvailable();
       if (!available) {
-        debugPrint('[ReviewService] In-app review not available');
         return;
       }
-
-      debugPrint('[ReviewService] Requesting in-app review...');
       await _inAppReview.requestReview();
       
       // حفظ تاريخ آخر طلب
@@ -137,28 +124,20 @@ class ReviewService {
         _keyLastReviewRequest,
         DateTime.now().toIso8601String(),
       );
-
-      debugPrint('[ReviewService] ✅ Review requested successfully');
     } catch (e) {
-      debugPrint('[ReviewService] ❌ Error requesting review: $e');
     }
   }
 
   /// فتح صفحة التطبيق في المتجر مباشرة
   Future<void> openStorePage() async {
     try {
-      debugPrint('[ReviewService] Opening store page...');
       await _inAppReview.openStoreListing(
         appStoreId: _iosAppId,
       );
       
       // وضع علامة على أن المستخدم أكمل عملية التقييم
       await _markReviewCompleted();
-      
-      debugPrint('[ReviewService] ✅ Store page opened');
     } catch (e) {
-      debugPrint('[ReviewService] ❌ Error opening store: $e');
-      
       // محاولة بديلة لفتح الرابط
       await _openStorePageFallback();
     }
@@ -176,14 +155,12 @@ class ReviewService {
         await _markReviewCompleted();
       }
     } catch (e) {
-      debugPrint('[ReviewService] ❌ Fallback failed: $e');
     }
   }
 
   /// وضع علامة على أن المستخدم أكمل التقييم
   Future<void> _markReviewCompleted() async {
     await _prefs.setBool(_keyReviewCompleted, true);
-    debugPrint('[ReviewService] Review marked as completed');
   }
 
   /// وضع علامة على أن المستخدم رفض التقييم
@@ -193,7 +170,6 @@ class ReviewService {
       _keyLastReviewRequest,
       DateTime.now().toIso8601String(),
     );
-    debugPrint('[ReviewService] Review marked as declined');
   }
 
   /// إعادة تعيين حالة التقييم (للاختبار فقط)
@@ -203,7 +179,6 @@ class ReviewService {
     await _prefs.remove(_keyReviewCompleted);
     await _prefs.remove(_keyReviewDeclined);
     await _prefs.remove(_keySignificantActions);
-    debugPrint('[ReviewService] Review state reset');
   }
 
   // ============== معلومات للمطورين ==============
@@ -223,10 +198,7 @@ class ReviewService {
   /// طباعة إحصائيات التقييم
   void printReviewStats() {
     final stats = getReviewStats();
-    debugPrint('[ReviewService] ============ Review Stats ============');
     stats.forEach((key, value) {
-      debugPrint('[ReviewService] $key: $value');
     });
-    debugPrint('[ReviewService] =====================================');
   }
 }

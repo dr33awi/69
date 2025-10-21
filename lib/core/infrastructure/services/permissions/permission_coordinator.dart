@@ -319,7 +319,6 @@ class PermissionCoordinator {
   void _log(String message) {
     if (kDebugMode) {
       final timestamp = DateTime.now().toString().substring(11, 19);
-      debugPrint('🎯 [$timestamp] [PermissionCoordinator] $message');
     }
   }
 }

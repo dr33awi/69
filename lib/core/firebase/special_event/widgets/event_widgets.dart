@@ -248,14 +248,12 @@ class EventBackground extends StatelessWidget {
           cacheWidth: isGif ? null : 800,
           cacheHeight: isGif ? null : 800,
           errorBuilder: (context, error, stackTrace) {
-            debugPrint('⚠️ [EventBackground] Failed to load ${isGif ? 'GIF' : 'image'}: $error');
             return const SizedBox.shrink();
           },
           loadingBuilder: (context, child, loadingProgress) {
             if (loadingProgress == null) {
               // ✅ عرض مؤشر للـ GIF
               if (isGif) {
-                debugPrint('✅ [EventBackground] GIF loaded and animating');
               }
               return child;
             }

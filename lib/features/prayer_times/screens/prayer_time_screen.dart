@@ -111,8 +111,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         _errorMessage = PrayerUtils.getErrorMessage(e);
         _isLoading = false;
       });
-      
-      debugPrint('خطأ في تحميل مواقيت الصلاة: $e');
     }
   }
 
@@ -125,9 +123,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     
     try {
       final location = await _prayerService.getCurrentLocation(forceUpdate: true);
-      
-      debugPrint('تم تحديد الموقع بنجاح: ${location.cityName}, ${location.countryName}');
-      
       await _prayerService.updatePrayerTimes();
       
       if (mounted) {
@@ -138,8 +133,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         context.showSuccessSnackBar('تم تحديد الموقع وتحميل المواقيت بنجاح');
       }
     } catch (e) {
-      debugPrint('فشل الحصول على الموقع: $e');
-      
       if (mounted) {
         setState(() {
           _lastError = e;
@@ -178,8 +171,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         context.showSuccessSnackBar('تم تحديث مواقيت الصلاة بنجاح');
       }
     } catch (e) {
-      debugPrint('فشل تحديث مواقيت الصلاة: $e');
-      
       if (mounted) {
         setState(() {
           _lastError = e;

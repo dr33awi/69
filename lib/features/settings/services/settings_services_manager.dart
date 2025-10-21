@@ -34,31 +34,22 @@ class SettingsServicesManager {
   
   Future<void> _loadSettings() async {
     try {
-      debugPrint('[SettingsManager] Loading settings...');
-      
       // تحميل الإعدادات العامة من التخزين
       final settingsJson = _storage.getMap(_settingsKey);
       if (settingsJson != null) {
         _currentSettings = AppSettings.fromJson(settingsJson);
-        debugPrint('[SettingsManager] Settings loaded from storage');
       } else {
-        debugPrint('[SettingsManager] No saved settings found, using defaults');
       }
       
       // ThemeNotifier يحمل الثيم الخاص به بشكل منفصل
-      debugPrint('[SettingsManager] Current theme: ${_themeNotifier.currentThemeName}');
-      
     } catch (e) {
-      debugPrint('[SettingsManager] Error loading settings: $e');
     }
   }
 
   Future<void> _saveSettings() async {
     try {
       final saved = await _storage.setMap(_settingsKey, _currentSettings.toJson());
-      debugPrint('[SettingsManager] Settings saved: $saved');
     } catch (e) {
-      debugPrint('[SettingsManager] Error saving settings: $e');
     }
   }
 
@@ -82,15 +73,11 @@ class SettingsServicesManager {
   
   /// تغيير الثيم مع الحفظ التلقائي
   Future<bool> changeTheme(ThemeMode mode) async {
-    debugPrint('[SettingsManager] Changing theme to: $mode');
-    
     // استخدام ThemeNotifier's setTheme method الذي يحفظ تلقائياً
     final saved = await _themeNotifier.setTheme(mode);
     
     if (saved) {
-      debugPrint('[SettingsManager] Theme changed successfully');
     } else {
-      debugPrint('[SettingsManager] Failed to save theme');
     }
     
     return saved;
@@ -107,7 +94,6 @@ class SettingsServicesManager {
   Future<void> toggleVibration(bool enabled) async {
     _currentSettings = _currentSettings.copyWith(vibrationEnabled: enabled);
     await _saveSettings();
-    debugPrint('[SettingsManager] Vibration toggled - enabled: $enabled');
   }
 
   Future<void> toggleNotifications(bool enabled) async {
@@ -121,20 +107,16 @@ class SettingsServicesManager {
         await _permissionService.requestPermission(AppPermissionType.notification);
       }
     }
-    
-    debugPrint('[SettingsManager] Notifications toggled - enabled: $enabled');
   }
 
   Future<void> togglePrayerNotifications(bool enabled) async {
     _currentSettings = _currentSettings.copyWith(prayerNotificationsEnabled: enabled);
     await _saveSettings();
-    debugPrint('[SettingsManager] Prayer notifications toggled - enabled: $enabled');
   }
 
   Future<void> toggleAthkarNotifications(bool enabled) async {
     _currentSettings = _currentSettings.copyWith(athkarNotificationsEnabled: enabled);
     await _saveSettings();
-    debugPrint('[SettingsManager] Athkar notifications toggled - enabled: $enabled');
   }
 
   // ==================== إعدادات إضافية ====================
@@ -142,20 +124,16 @@ class SettingsServicesManager {
   Future<void> toggleSound(bool enabled) async {
     _currentSettings = _currentSettings.copyWith(soundEnabled: enabled);
     await _saveSettings();
-    debugPrint('[SettingsManager] Sound toggled - enabled: $enabled');
   }
 
   Future<void> changeFontSize(double size) async {
     _currentSettings = _currentSettings.copyWith(fontSize: size);
     await _saveSettings();
-    debugPrint('[SettingsManager] Font size changed - size: $size');
   }
 
   // ==================== إعادة تعيين الإعدادات ====================
   
   Future<void> resetSettings() async {
-    debugPrint('[SettingsManager] Resetting all settings...');
-    
     try {
       // إعادة تعيين الإعدادات العامة
       _currentSettings = const AppSettings();
@@ -163,17 +141,13 @@ class SettingsServicesManager {
       
       // إعادة تعيين الثيم إلى النظام
       await _themeNotifier.setTheme(ThemeMode.system);
-      
-      debugPrint('[SettingsManager] Settings reset completed successfully');
     } catch (e) {
-      debugPrint('[SettingsManager] Error resetting settings: $e');
     }
   }
 
   // ==================== Cleanup ====================
   
   void dispose() {
-    debugPrint('[SettingsManager] Disposing settings manager');
     // لا نحتاج dispose للـ ThemeNotifier هنا لأنه مسجل منفصل في ServiceLocator
   }
 }

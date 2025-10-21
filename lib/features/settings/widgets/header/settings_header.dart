@@ -84,7 +84,7 @@ class SettingsHeader extends StatelessWidget {
           title,
           style: context.headlineSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            fontSize: 16.sp,
+            fontSize: 17.sp,
           ),
         ),
         Text(

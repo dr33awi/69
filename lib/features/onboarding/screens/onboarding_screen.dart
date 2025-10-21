@@ -53,7 +53,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         Navigator.pushReplacementNamed(context, AppRouter.permissionsSetup);
       }
     } catch (e) {
-      debugPrint('Error completing onboarding: $e');
     }
   }
 
@@ -163,7 +162,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   SizedBox(width: 8.w),
                   Text(
                     _currentPage == _pages.length - 1
-                        ? '🚀 ابدأ الآن'
+                        ? ' ابدأ الآن'
                         : 'اسحب للمتابعة',
                     style: TextStyle(
                       fontSize: _currentPage == _pages.length - 1 

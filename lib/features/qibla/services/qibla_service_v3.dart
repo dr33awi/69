@@ -68,8 +68,6 @@ class QiblaServiceV3 extends ChangeNotifier {
     if (_disposed) return;
 
     try {
-      debugPrint('[QiblaV3] 🚀 بدء التهيئة مع flutter_qiblah');
-      
       // تحميل البيانات المحفوظة
       await _loadStoredData();
       
@@ -80,14 +78,8 @@ class QiblaServiceV3 extends ChangeNotifier {
       if (_hasCompass) {
         await _startQiblahListener();
       }
-      
-      debugPrint('[QiblaV3] ✅ تمت التهيئة بنجاح');
-      debugPrint('  - البوصلة متوفرة: $_hasCompass');
-      debugPrint('  - الدقة الافتراضية: ${(_compassAccuracy * 100).toStringAsFixed(1)}%');
-      
     } catch (e) {
       _errorMessage = 'حدث خطأ أثناء التهيئة';
-      debugPrint('[QiblaV3] ❌ خطأ في التهيئة: $e');
     }
   }
 
@@ -96,10 +88,8 @@ class QiblaServiceV3 extends ChangeNotifier {
       final qiblaJson = _storage.getMap(_qiblaDataKey);
       if (qiblaJson != null && qiblaJson.isNotEmpty) {
         _qiblaData = QiblaModel.fromJson(qiblaJson);
-        debugPrint('[QiblaV3] 📦 تم تحميل البيانات المخزنة');
       }
     } catch (e) {
-      debugPrint('[QiblaV3] ⚠️ خطأ في تحميل البيانات: $e');
     }
   }
 
@@ -111,13 +101,10 @@ class QiblaServiceV3 extends ChangeNotifier {
       
       if (_hasCompass) {
         _compassAccuracy = 0.9; // دقة عالية مع flutter_qiblah
-        debugPrint('[QiblaV3] 📱 البوصلة مدعومة ومتوفرة');
       } else {
-        debugPrint('[QiblaV3] ⚠️ البوصلة غير مدعومة على هذا الجهاز');
       }
     } catch (e) {
       _hasCompass = true; // افتراض التوفر في حالة الخطأ
-      debugPrint('[QiblaV3] ⚠️ لم يمكن فحص البوصلة: $e');
     }
   }
 
@@ -133,15 +120,11 @@ class QiblaServiceV3 extends ChangeNotifier {
           }
         },
         onError: (error) {
-          debugPrint('[QiblaV3] ❌ خطأ في قراءة اتجاه القبلة: $error');
           _errorMessage = 'خطأ في قراءة البوصلة';
           _throttledNotify();
         },
       );
-
-      debugPrint('[QiblaV3] 🧭 بدء الاستماع لاتجاه القبلة');
     } catch (e) {
-      debugPrint('[QiblaV3] ❌ خطأ في بدء الاستماع: $e');
     }
   }
 
@@ -247,8 +230,6 @@ class QiblaServiceV3 extends ChangeNotifier {
     _notifyListenersNow();
 
     try {
-      debugPrint('[QiblaV3] 📍 بدء تحديث بيانات القبلة');
-
       final hasPermission = await _checkLocationPermission();
       if (!hasPermission) {
         throw Exception('لم يتم منح إذن الوصول إلى الموقع');
@@ -274,7 +255,6 @@ class QiblaServiceV3 extends ChangeNotifier {
           countryName = placemark.country;
         }
       } catch (e) {
-        debugPrint('[QiblaV3] ⚠️ لم يتم الحصول على معلومات الموقع');
       }
 
       _qiblaData = QiblaModel.fromCoordinates(
@@ -286,13 +266,8 @@ class QiblaServiceV3 extends ChangeNotifier {
       );
 
       await _saveQiblaData(_qiblaData!);
-      
-      debugPrint('[QiblaV3] ✅ تم تحديث بيانات القبلة بنجاح');
-      debugPrint('  - الموقع: $cityName, $countryName');
-      debugPrint('  - زاوية القبلة: ${_qiblaData!.qiblaDirection.toStringAsFixed(2)}°');
     } catch (e) {
       _errorMessage = _getErrorMessage(e);
-      debugPrint('[QiblaV3] ❌ خطأ في تحديث البيانات: $e');
     } finally {
       if (!_disposed) {
         _isLoading = false;
@@ -343,9 +318,7 @@ class QiblaServiceV3 extends ChangeNotifier {
   Future<void> _saveQiblaData(QiblaModel data) async {
     try {
       await _storage.setMap(_qiblaDataKey, data.toJson());
-      debugPrint('[QiblaV3] 💾 تم حفظ بيانات القبلة');
     } catch (e) {
-      debugPrint('[QiblaV3] ⚠️ خطأ في حفظ البيانات');
     }
   }
 
@@ -368,9 +341,6 @@ class QiblaServiceV3 extends ChangeNotifier {
   void dispose() {
     if (_disposed) return;
     _disposed = true;
-
-    debugPrint('[QiblaV3] 🧹 تنظيف الموارد');
-
     _qiblahSubscription?.cancel();
     _directionHistory.clear();
 

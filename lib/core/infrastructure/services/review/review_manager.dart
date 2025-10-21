@@ -26,7 +26,6 @@ class ReviewManager {
   Future<void> checkAndRequestReview(BuildContext context) async {
     // التحقق من أن المستخدم مؤهل
     if (!_reviewService.shouldRequestReview()) {
-      debugPrint('[ReviewManager] Not eligible for review request');
       return;
     }
 
@@ -65,14 +64,11 @@ class ReviewManager {
 
   /// معالجة اختيار التقييم
   Future<void> _handleRateAction() async {
-    debugPrint('[ReviewManager] User chose to rate');
     await _reviewService.openStorePage();
   }
 
   /// معالجة اختيار إرسال ملاحظات
   Future<void> _handleFeedbackAction() async {
-    debugPrint('[ReviewManager] User chose to send feedback');
-    
     final Uri emailUri = Uri(
       scheme: 'mailto',
       path: 'dhakaranifeedback@gmail.com',
@@ -86,10 +82,8 @@ class ReviewManager {
       if (await canLaunchUrl(emailUri)) {
         await launchUrl(emailUri);
       } else {
-        debugPrint('[ReviewManager] Cannot launch email app');
       }
     } catch (e) {
-      debugPrint('[ReviewManager] Error launching email: $e');
     }
     
     // اعتبار هذا تفاعل إيجابي
@@ -98,7 +92,6 @@ class ReviewManager {
 
   /// معالجة اختيار "لاحقاً"
   Future<void> _handleLaterAction() async {
-    debugPrint('[ReviewManager] User chose later');
     await _reviewService.markReviewDeclined();
   }
 
@@ -107,13 +100,9 @@ class ReviewManager {
   /// طلب التقييم بشكل مباشر (للاستخدام من الإعدادات)
   /// يعرض مربع الحوار المخصص دائماً لضمان تجربة مستخدم متسقة
   Future<void> requestReviewDirect(BuildContext context) async {
-    debugPrint('[ReviewManager] Direct review request from user');
-    
     // عرض مربع الحوار المخصص مباشرة
     // هذا يضمن أن المستخدم يرى خيارات واضحة دائماً
     await _showCustomReviewDialog(context);
-    
-    debugPrint('[ReviewManager] ✅ Custom review dialog shown');
   }
 
   /// فتح صفحة التطبيق في المتجر

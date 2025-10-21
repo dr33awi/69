@@ -108,7 +108,6 @@ class AthkarCategory {
       
       return TimeOfDay(hour: hour, minute: minute);
     } catch (e) {
-      debugPrint('Error parsing time: $e');
       return null;
     }
   }

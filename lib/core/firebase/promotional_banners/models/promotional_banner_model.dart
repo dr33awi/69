@@ -116,8 +116,6 @@ class PromotionalBanner {
       if (json['color_theme'] != null) {
         colorTheme = json['color_theme'].toString().toLowerCase();
         gradientColors = _getThemeColors(colorTheme);
-        
-        debugPrint('🎨 Using color theme: $colorTheme');
       } 
       // ثانياً: التحقق من gradient_colors
       else if (json['gradient_colors'] != null) {
@@ -125,8 +123,6 @@ class PromotionalBanner {
         gradientColors = colors
             .map((colorHex) => _parseColor(colorHex.toString()))
             .toList();
-            
-        debugPrint('🎨 Using custom gradient colors: ${colors.length} colors');
       }
 
       // إذا لم تكن هناك ألوان، استخدم الألوان الافتراضية
@@ -135,7 +131,6 @@ class PromotionalBanner {
           const Color(0xFF5D7052), // primary
           const Color(0xFF4A5A41), // primaryDark
         ];
-        debugPrint('🎨 Using default colors');
       }
 
       // تحويل Target Screens
@@ -217,7 +212,6 @@ class PromotionalBanner {
         dismissForever: json['dismiss_forever'] ?? false,
       );
     } catch (e) {
-      debugPrint('❌ Error parsing promotional banner: $e');
       rethrow;
     }
   }
@@ -343,7 +337,6 @@ class PromotionalBanner {
 
       // Default
       default:
-        debugPrint('⚠️ Unknown theme: $theme, using primary');
         return [
           const Color(0xFF5D7052),
           const Color(0xFF4A5A41),
@@ -362,7 +355,6 @@ class PromotionalBanner {
       
       return Color(int.parse(hexColor, radix: 16));
     } catch (e) {
-      debugPrint('⚠️ Error parsing color: $hexColor - $e');
       return const Color(0xFF5D7052);
     }
   }

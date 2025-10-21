@@ -41,7 +41,6 @@ class _AppAboutDialogState extends State<AppAboutDialog> {
         });
       }
     } catch (e) {
-      debugPrint('Error loading package info: $e');
     }
   }
 

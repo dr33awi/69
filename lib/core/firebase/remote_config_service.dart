@@ -28,12 +28,10 @@ class FirebaseRemoteConfigService {
   /// ✅ تهيئة محسّنة مع Fetch أفضل
   Future<void> initialize() async {
     if (_isInitialized) {
-      debugPrint('✅ FirebaseRemoteConfigService already initialized');
       return;
     }
     
     try {
-      debugPrint('🔄 Initializing FirebaseRemoteConfigService...');
       final stopwatch = Stopwatch()..start();
       
       _remoteConfig = FirebaseRemoteConfig.instance;
@@ -54,23 +52,16 @@ class FirebaseRemoteConfigService {
       
       try {
         // المحاولة الأولى
-        debugPrint('🔄 Fetching from Firebase (attempt 1)...');
         fetchSuccess = await _remoteConfig.fetchAndActivate();
         
         if (fetchSuccess) {
-          debugPrint('✅ Fresh data fetched successfully');
         } else {
-          debugPrint('ℹ️ No new data, using cached values');
         }
       } catch (e) {
-        debugPrint('⚠️ Fetch failed, trying activate cached: $e');
-        
         // محاولة تفعيل القيم المخزنة
         try {
           await _remoteConfig.activate();
-          debugPrint('✅ Activated cached values');
         } catch (activateError) {
-          debugPrint('⚠️ Activate failed: $activateError');
         }
       }
       
@@ -82,11 +73,9 @@ class FirebaseRemoteConfigService {
       _lastFetchTime = DateTime.now();
       
       stopwatch.stop();
-      debugPrint('✅ FirebaseRemoteConfigService initialized in ${stopwatch.elapsedMilliseconds}ms');
       _printDebugInfo();
       
     } catch (e) {
-      debugPrint('❌ Error initializing Firebase Remote Config: $e');
       _isInitialized = false;
       _loadDefaultValues();
     }
@@ -100,8 +89,6 @@ class FirebaseRemoteConfigService {
     }
     
     try {
-      debugPrint('🔄 Refreshing remote config...');
-      
       // ✅ السماح بـ Fetch حتى لو كان قريب
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(seconds: 10),
@@ -111,23 +98,16 @@ class FirebaseRemoteConfigService {
       bool result = false;
       
       try {
-        debugPrint('🔄 Fetching remote config (attempt 1)...');
         result = await _remoteConfig.fetchAndActivate();
         
         if (result) {
-          debugPrint('✅ Fetched fresh data successfully');
         } else {
-          debugPrint('ℹ️ No new data available');
         }
       } catch (e) {
-        debugPrint('⚠️ Fetch error, trying activate: $e');
-        
         try {
           await _remoteConfig.activate();
-          debugPrint('✅ Activated cached values');
           result = false; // لم نحصل على بيانات جديدة
         } catch (activateError) {
-          debugPrint('⚠️ Activate failed: $activateError');
           return false;
         }
       }
@@ -149,7 +129,6 @@ class FirebaseRemoteConfigService {
       return true; // نجحت العملية حتى لو لم تكن هناك بيانات جديدة
       
     } catch (e) {
-      debugPrint('❌ Error refreshing config: $e');
       return false;
     }
   }
@@ -165,10 +144,7 @@ class FirebaseRemoteConfigService {
         _keySpecialEvent: _parseSpecialEvent(),
         _keyPromotionalBanners: _parsePromotionalBanners(),
       };
-      
-      debugPrint('✅ Cache updated with ${_cachedValues.length} values');
     } catch (e) {
-      debugPrint('⚠️ Error updating cache: $e');
     }
   }
 
@@ -182,8 +158,6 @@ class FirebaseRemoteConfigService {
       _keySpecialEvent: null,
       _keyPromotionalBanners: [],
     };
-    
-    debugPrint('⚠️ Using default values');
   }
 
   Future<void> _setDefaults() async {
@@ -308,7 +282,6 @@ class FirebaseRemoteConfigService {
         return decoded.map((e) => e.toString()).toList();
       }
     } catch (e) {
-      debugPrint('⚠️ Error parsing features list: $e');
     }
     return _getDefaultFeaturesList();
   }
@@ -334,7 +307,6 @@ class FirebaseRemoteConfigService {
         return decoded;
       }
     } catch (e) {
-      debugPrint('⚠️ Error parsing special event: $e');
     }
     return null;
   }
@@ -344,22 +316,15 @@ class FirebaseRemoteConfigService {
       final jsonString = _remoteConfig.getString(_keyPromotionalBanners);
       
       if (jsonString.isEmpty) {
-        debugPrint('⚠️ promotional_banners is empty in Remote Config');
         return [];
       }
-      
-      debugPrint('📄 Raw promotional_banners JSON: ${jsonString.substring(0, jsonString.length > 100 ? 100 : jsonString.length)}...');
-      
       final dynamic decoded = jsonDecode(jsonString);
       
       if (decoded is List) {
-        debugPrint('✅ Found ${decoded.length} promotional banners in config');
         return decoded;
       } else {
-        debugPrint('⚠️ promotional_banners is not a list: ${decoded.runtimeType}');
       }
     } catch (e) {
-      debugPrint('❌ Error parsing promotional banners: $e');
     }
     return [];
   }
@@ -393,42 +358,18 @@ class FirebaseRemoteConfigService {
 
   void _printDebugInfo() {
     try {
-      debugPrint('========== Remote Config Info ==========');
-      debugPrint('Is initialized: $_isInitialized');
-      debugPrint('Last fetch status: ${_remoteConfig.lastFetchStatus}');
-      debugPrint('Last fetch time: ${lastFetchTime}');
-      debugPrint('--- Current Values ---');
-      debugPrint('Force Update: ${isForceUpdateRequired}');
-      debugPrint('Maintenance Mode: ${isMaintenanceModeEnabled}');
-      debugPrint('App Version: ${requiredAppVersion}');
-      debugPrint('Features List: ${updateFeaturesList}');
-      debugPrint('Promotional Banners: ${promotionalBanners.length}');
-      
       if (promotionalBanners.isNotEmpty) {
-        debugPrint('--- Banner Details ---');
         for (var i = 0; i < promotionalBanners.length; i++) {
           final banner = promotionalBanners[i];
           if (banner is Map) {
-            debugPrint('  Banner ${i + 1}:');
-            debugPrint('    - ID: ${banner['id']}');
-            debugPrint('    - Title: ${banner['title']}');
-            debugPrint('    - Active: ${banner['is_active']}');
           }
         }
       } else {
-        debugPrint('⚠️ No promotional banners found!');
-        debugPrint('💡 Add banners to Firebase Console:');
-        debugPrint('   Remote Config > promotional_banners (JSON)');
       }
       
       if (specialEventData != null) {
-        debugPrint('Special Event:');
-        debugPrint('  - Active: ${specialEventData!['is_active']}');
-        debugPrint('  - Title: ${specialEventData!['title']}');
       }
-      debugPrint('========================================');
     } catch (e) {
-      debugPrint('⚠️ Error printing debug info: $e');
     }
   }
 
@@ -440,8 +381,6 @@ class FirebaseRemoteConfigService {
     }
     
     try {
-      debugPrint('🧪 FORCE REFRESH FOR TESTING...');
-      
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(seconds: 5),
         minimumFetchInterval: Duration.zero,
@@ -451,8 +390,6 @@ class FirebaseRemoteConfigService {
       await Future.delayed(const Duration(milliseconds: 200));
       _updateAllCache();
       _lastFetchTime = DateTime.now();
-      
-      debugPrint('🧪 Force refresh result: $result');
       _printDebugInfo();
       
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
@@ -461,12 +398,10 @@ class FirebaseRemoteConfigService {
       ));
       
     } catch (e) {
-      debugPrint('🧪 Error in force refresh: $e');
     }
   }
 
   Future<void> reinitialize() async {
-    debugPrint('🔄 Reinitializing FirebaseRemoteConfigService...');
     _isInitialized = false;
     _cachedValues.clear();
     _lastFetchTime = null;
@@ -477,6 +412,5 @@ class FirebaseRemoteConfigService {
     _isInitialized = false;
     _cachedValues.clear();
     _lastFetchTime = null;
-    debugPrint('🧹 FirebaseRemoteConfigService disposed');
   }
 }

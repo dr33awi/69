@@ -108,7 +108,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                   'المسبحة الرقمية',
                   style: TextStyle(
                     fontWeight: ThemeConstants.bold,
-                    fontSize: 16.sp,
+                    fontSize: 17.sp,
                   ),
                 ),
                 Text(

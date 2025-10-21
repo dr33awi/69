@@ -29,7 +29,6 @@ class AthkarService {
 
   /// تهيئة الخدمة
   void _initialize() {
-    debugPrint('[AthkarService] Initializing service');
     _loadCachedData();
   }
 
@@ -51,7 +50,6 @@ class AthkarService {
         });
       }
     } catch (e) {
-      debugPrint('[AthkarService] Error loading cached data: $e');
     }
   }
 
@@ -62,21 +60,18 @@ class AthkarService {
     try {
       // التحقق من الكاش أولاً
       if (_categoriesCache != null) {
-        debugPrint('[AthkarService] Returning categories from cache');
         return _categoriesCache!;
       }
 
       // محاولة التحميل من التخزين المحلي
       final cachedData = _storage.getMap(AthkarConstants.categoriesKey);
       if (cachedData != null && _isCacheValid(cachedData)) {
-        debugPrint('[AthkarService] Loading categories from storage');
         _athkarDataCache = AthkarData.fromJson(cachedData);
         _categoriesCache = _athkarDataCache!.categories;
         return _categoriesCache!;
       }
 
       // التحميل من ملف الأصول
-      debugPrint('[AthkarService] Loading categories from assets: ${AppConstants.athkarDataFile}');
       final jsonStr = await rootBundle.loadString(AppConstants.athkarDataFile);
       final Map<String, dynamic> data = json.decode(jsonStr);
       
@@ -90,21 +85,12 @@ class AthkarService {
       
       // حفظ في التخزين المحلي
       await _storage.setMap(AthkarConstants.categoriesKey, data);
-      
-      debugPrint('[AthkarService] Categories loaded successfully:');
-      debugPrint('  - Version: ${_athkarDataCache!.version}');
-      debugPrint('  - Source: ${_athkarDataCache!.source}');
-      debugPrint('  - Categories count: ${_categoriesCache!.length}');
-      
       // طباعة أسماء الفئات للتأكد
       for (final category in _categoriesCache!) {
-        debugPrint('    * ${category.id}: ${category.title} (${category.athkar.length} items)');
       }
       
       return _categoriesCache!;
     } catch (e, stackTrace) {
-      debugPrint('[AthkarService] Failed to load categories: $e');
-      debugPrint('Stack trace: $stackTrace');
       throw Exception('Failed to load athkar data: $e');
     }
   }
@@ -121,7 +107,6 @@ class AthkarService {
       final cachedAt = DateTime.parse(cachedAtStr);
       return AthkarConstants.isCacheValid(cachedAt);
     } catch (e) {
-      debugPrint('[AthkarService] Invalid cache data: $e');
       return false;
     }
   }
@@ -137,19 +122,14 @@ class AthkarService {
           return category;
         }
       }
-      
-      debugPrint('[AthkarService] Category not found: $id');
-      debugPrint('Available categories: ${categories.map((c) => c.id).toList()}');
       return null;
     } catch (e) {
-      debugPrint('[AthkarService] Error getting category: $id - error: $e');
       return null;
     }
   }
 
   /// مسح الكاش وإعادة التحميل
   Future<void> refreshCategories() async {
-    debugPrint('[AthkarService] Refreshing categories');
     _categoriesCache = null;
     _athkarDataCache = null;
     await _storage.remove(AthkarConstants.categoriesKey);
@@ -167,10 +147,7 @@ class AthkarService {
       );
       
       await _storage.setDouble(AthkarConstants.fontSizeKey, clampedSize);
-      
-      debugPrint('[AthkarService] Font size saved: $clampedSize');
     } catch (e) {
-      debugPrint('[AthkarService] Error saving font size: $e');
     }
   }
 
@@ -180,7 +157,6 @@ class AthkarService {
       return _storage.getDouble(AthkarConstants.fontSizeKey) ?? 
              AthkarConstants.defaultFontSize;
     } catch (e) {
-      debugPrint('[AthkarService] Error getting saved font size: $e');
       return AthkarConstants.defaultFontSize;
     }
   }
@@ -197,12 +173,7 @@ class AthkarService {
     try {
       await _storage.setStringList(AthkarConstants.reminderKey, enabledIds);
       await _updateLastSyncTime();
-      
-      debugPrint('[AthkarService] Enabled categories updated:');
-      debugPrint('  - Count: ${enabledIds.length}');
-      debugPrint('  - IDs: $enabledIds');
     } catch (e) {
-      debugPrint('[AthkarService] Failed to update enabled categories: $e');
       rethrow;
     }
   }
@@ -220,10 +191,7 @@ class AthkarService {
       
       _customTimesCache.clear();
       _customTimesCache.addAll(customTimes);
-      
-      debugPrint('[AthkarService] Custom times saved - count: ${customTimes.length}');
     } catch (e) {
-      debugPrint('[AthkarService] Failed to save custom times: $e');
       rethrow;
     }
   }
@@ -245,7 +213,6 @@ class AthkarService {
       final enabledIds = getEnabledReminderCategories();
       
       if (enabledIds.isEmpty) {
-        debugPrint('[AthkarService] No categories enabled for reminders');
         return;
       }
 
@@ -272,20 +239,10 @@ class AthkarService {
         );
         
         scheduledCount++;
-        
-        debugPrint('[AthkarService] Reminder scheduled:');
-        debugPrint('  - Category: ${category.id} (${category.title})');
-        debugPrint('  - Time: ${AthkarConstants.timeOfDayToString(time)}');
       }
-      
-      debugPrint('[AthkarService] Reminders summary:');
-      debugPrint('  - Scheduled: $scheduledCount');
-      debugPrint('  - Total enabled: ${enabledIds.length}');
-      
       await _updateLastSyncTime();
       
     } catch (e) {
-      debugPrint('[AthkarService] Failed to schedule reminders: $e');
       rethrow;
     }
   }
@@ -311,11 +268,7 @@ class AthkarService {
 
       // إعادة جدولة التذكيرات
       await scheduleCategoryReminders();
-
-      debugPrint('[AthkarService] Reminder settings updated successfully');
-      debugPrint('  - Enabled count: ${enabledIds.length}');
     } catch (e) {
-      debugPrint('[AthkarService] Failed to update reminder settings: $e');
       rethrow;
     }
   }
@@ -345,7 +298,6 @@ class AthkarService {
 
   /// تنظيف الموارد
   void dispose() {
-    debugPrint('[AthkarService] Disposing service');
     _progressCache.clear();
     _customTimesCache.clear();
     _categoriesCache = null;
@@ -356,8 +308,6 @@ class AthkarService {
   /// مسح جميع البيانات
   Future<void> clearAllData() async {
     try {
-      debugPrint('[AthkarService] Clearing all data');
-      
       // مسح البيانات المحفوظة
       await _storage.remove(AthkarConstants.categoriesKey);
       await _storage.remove(AthkarConstants.reminderKey);
@@ -381,10 +331,7 @@ class AthkarService {
       
       // إلغاء التذكيرات
       await NotificationManager.instance.cancelAllAthkarReminders();
-      
-      debugPrint('[AthkarService] All data cleared successfully');
     } catch (e) {
-      debugPrint('[AthkarService] Failed to clear data: $e');
       rethrow;
     }
   }

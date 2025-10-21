@@ -39,7 +39,6 @@ class RemoteConfigManager {
     required StorageService storage,
   }) async {
     if (_isInitialized) {
-      debugPrint('RemoteConfigManager already initialized');
       return;
     }
     
@@ -57,10 +56,7 @@ class RemoteConfigManager {
       _startPeriodicRefresh();
       
       _isInitialized = true;
-      debugPrint('✅ RemoteConfigManager initialized successfully');
-      
     } catch (e) {
-      debugPrint('❌ Error initializing RemoteConfigManager: $e');
       _isInitialized = false;
     }
   }
@@ -76,23 +72,17 @@ class RemoteConfigManager {
       
       // إذا تغيرت النسخة (تم التحديث)
       if (lastSavedVersion != null && lastSavedVersion != currentVersion) {
-        debugPrint('📱 App version changed: $lastSavedVersion → $currentVersion');
-        
         // حفظ النسخة الجديدة
         await _storage.setString(_keyLastInstalledVersion, currentVersion);
         
         // مسح علامة الإقرار بالتحديث القديمة
         await _storage.remove(_keyUpdateAcknowledged);
-        
-        debugPrint('✅ Version update detected and acknowledged');
       } else if (lastSavedVersion == null) {
         // أول مرة - حفظ النسخة الحالية
         await _storage.setString(_keyLastInstalledVersion, currentVersion);
-        debugPrint('📝 First launch - saved version: $currentVersion');
       }
       
     } catch (e) {
-      debugPrint('❌ Error checking current version: $e');
     }
   }
 
@@ -108,17 +98,10 @@ class RemoteConfigManager {
       // فحص التحديث الإجباري مع مراعاة النسخة المثبتة
       final shouldShowForceUpdate = await _shouldShowForceUpdate(requiredVersion);
       _forceUpdate.value = shouldShowForceUpdate;
-      
-      debugPrint('📊 Remote config values updated:');
-      debugPrint('  - Maintenance Mode: ${_maintenanceMode.value}');
-      debugPrint('  - Force Update: ${_forceUpdate.value}');
-      debugPrint('  - Required Version: ${_requiredVersion.value}');
-      
       // حفظ آخر وقت تحديث
       await _storage.setString(_keyLastConfigRefresh, DateTime.now().toIso8601String());
       
     } catch (e) {
-      debugPrint('❌ Error updating remote config values: $e');
     }
   }
 
@@ -139,7 +122,6 @@ class RemoteConfigManager {
       final isVersionOutdated = _compareVersions(currentVersion, requiredVersion) < 0;
       
       if (!isVersionOutdated) {
-        debugPrint('✅ Current version ($currentVersion) is up to date');
         return false;
       }
       
@@ -147,15 +129,11 @@ class RemoteConfigManager {
       final acknowledgedVersion = _storage.getString(_keyUpdateAcknowledged);
       
       if (acknowledgedVersion == currentVersion) {
-        debugPrint('ℹ️ User already acknowledged update for version $currentVersion');
         return false;
       }
-      
-      debugPrint('⚠️ Force update required: $currentVersion → $requiredVersion');
       return true;
       
     } catch (e) {
-      debugPrint('❌ Error checking force update: $e');
       return false;
     }
   }
@@ -177,7 +155,6 @@ class RemoteConfigManager {
       
       return 0;
     } catch (e) {
-      debugPrint('❌ Error comparing versions: $e');
       return 0;
     }
   }
@@ -187,9 +164,7 @@ class RemoteConfigManager {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
       await _storage.setString(_keyUpdateAcknowledged, packageInfo.version);
-      debugPrint('✅ Update acknowledgement saved for version ${packageInfo.version}');
     } catch (e) {
-      debugPrint('❌ Error saving update acknowledgement: $e');
     }
   }
 
@@ -201,36 +176,27 @@ class RemoteConfigManager {
     _periodicRefreshTimer = Timer.periodic(
       const Duration(hours: 1),
       (timer) async {
-        debugPrint('⏰ Periodic remote config refresh...');
         await refreshConfig();
       },
     );
-    
-    debugPrint('🔄 Periodic refresh timer started (every hour)');
   }
 
   /// تحديث الإعدادات يدوياً
   Future<bool> refreshConfig() async {
     if (!_isInitialized) {
-      debugPrint('⚠️ RemoteConfigManager not initialized');
       return false;
     }
     
     try {
-      debugPrint('🔄 Refreshing remote config...');
-      
       final success = await _remoteConfig.refresh();
       if (success) {
         await _checkAndSaveCurrentVersion();
         await _updateValues();
-        debugPrint('✅ Remote config refreshed successfully');
       } else {
-        debugPrint('⚠️ Remote config refresh returned false');
       }
       
       return success;
     } catch (e) {
-      debugPrint('❌ Error refreshing config: $e');
       return false;
     }
   }
@@ -297,28 +263,14 @@ class RemoteConfigManager {
   Map<String, dynamic> get debugInfo => configStatus;
 
   void printStatus() {
-    debugPrint('========== RemoteConfigManager Status ==========');
-    debugPrint('Initialized: $_isInitialized');
-    debugPrint('Last Refresh: ${lastRefreshTime?.toString() ?? "Never"}');
-    debugPrint('Last Installed Version: ${_storage.getString(_keyLastInstalledVersion)}');
-    debugPrint('Update Acknowledged: ${_storage.getString(_keyUpdateAcknowledged)}');
-    debugPrint('--- Current Values ---');
-    debugPrint('Maintenance Mode: ${_maintenanceMode.value}');
-    debugPrint('Force Update: ${_forceUpdate.value}');
-    debugPrint('Required Version: ${_requiredVersion.value}');
-    debugPrint('Update URL: $updateUrl');
-    debugPrint('===============================================');
   }
 
   // ==================== للاختبار ====================
 
   Future<void> forceRefreshForTesting() async {
     if (!_isInitialized) {
-      debugPrint('⚠️ Cannot test - manager not initialized');
       return;
     }
-    
-    debugPrint('🧪 Testing force refresh...');
     await _remoteConfig.forceRefreshForTesting();
     await _checkAndSaveCurrentVersion();
     await _updateValues();
@@ -330,21 +282,16 @@ class RemoteConfigManager {
     bool? forceUpdate,
     String? requiredVersion,
   }) {
-    debugPrint('🧪 Setting test values...');
-    
     if (maintenanceMode != null) {
       _maintenanceMode.value = maintenanceMode;
-      debugPrint('  - Test Maintenance Mode: $maintenanceMode');
     }
     
     if (forceUpdate != null) {
       _forceUpdate.value = forceUpdate;
-      debugPrint('  - Test Force Update: $forceUpdate');
     }
     
     if (requiredVersion != null) {
       _requiredVersion.value = requiredVersion;
-      debugPrint('  - Test Required Version: $requiredVersion');
     }
   }
 
@@ -352,14 +299,11 @@ class RemoteConfigManager {
   Future<void> clearUpdateData() async {
     await _storage.remove(_keyUpdateAcknowledged);
     await _storage.remove(_keyLastInstalledVersion);
-    debugPrint('🧹 Update data cleared');
   }
 
   // ==================== تنظيف الموارد ====================
 
   void dispose() {
-    debugPrint('🧹 Disposing RemoteConfigManager...');
-    
     _periodicRefreshTimer?.cancel();
     _periodicRefreshTimer = null;
     
@@ -368,16 +312,12 @@ class RemoteConfigManager {
     _requiredVersion.dispose();
     
     _isInitialized = false;
-    
-    debugPrint('✅ RemoteConfigManager disposed');
   }
 
   Future<void> reinitialize({
     required FirebaseRemoteConfigService remoteConfig,
     required StorageService storage,
   }) async {
-    debugPrint('🔄 Reinitializing RemoteConfigManager...');
-    
     dispose();
     _isInitialized = false;
     

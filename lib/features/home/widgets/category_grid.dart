@@ -20,18 +20,14 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
 
   final Map<String, LinearGradient> _gradientCache = {};
 
-  LinearGradient _getGradient(String categoryId, bool isInDevelopment) {
-    final cacheKey = isInDevelopment ? 'dev_mode' : categoryId;
-    
-    if (_gradientCache.containsKey(cacheKey)) {
-      return _gradientCache[cacheKey]!;
+  LinearGradient _getGradient(String categoryId) {
+    if (_gradientCache.containsKey(categoryId)) {
+      return _gradientCache[categoryId]!;
     }
     
-    final gradient = isInDevelopment 
-        ? _getDevelopmentGradient() 
-        : AppColors.getCategoryGradient(categoryId);
+    final gradient = AppColors.getCategoryGradient(categoryId);
     
-    _gradientCache[cacheKey] = gradient;
+    _gradientCache[categoryId] = gradient;
     return gradient;
   }
 
@@ -39,170 +35,52 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
     CategoryItem(
       id: 'prayer_times',
       title: 'مواقيت الصلاة',
-      icon: FlutterIslamicIcons.solidMosque, // 🕌 مسجد
+      icon: FlutterIslamicIcons.solidMosque,
       routeName: '/prayer-times',
-      isInDevelopment: false,
     ),
     CategoryItem(
       id: 'athkar',
       title: 'الأذكار اليومية',
-      icon: Icons.menu_book_rounded, // 📿 مسبحة
+      icon: Icons.menu_book_rounded,
       routeName: '/athkar',
-      isInDevelopment: false,
     ),
     CategoryItem(
       id: 'asma_allah',  
       title: 'أسماء الله الحسنى',  
-      icon: FlutterIslamicIcons.solidAllah, // ☪️ الله 99
+      icon: FlutterIslamicIcons.solidAllah,
       routeName: '/asma-allah',
-      isInDevelopment: false,
     ),
     CategoryItem(
       id: 'qibla',
       title: 'اتجاه القبلة',
-      icon: FlutterIslamicIcons.solidQibla, // 🧭 قبلة
+      icon: FlutterIslamicIcons.solidQibla,
       routeName: '/qibla',
-      isInDevelopment: false,
     ),
     CategoryItem(
       id: 'tasbih',
       title: 'المسبحة الرقمية',
-      icon: FlutterIslamicIcons.solidTasbihHand, // 📿 مسبحة ثلاثية
+      icon: FlutterIslamicIcons.solidTasbihHand,
       routeName: '/tasbih',
-      isInDevelopment: false,
     ),
     CategoryItem(
       id: 'dua',
       title:  'الأدعية الإسلامية',
-      icon: FlutterIslamicIcons.solidPrayer, // 🤲 يد دعاء
+      icon: FlutterIslamicIcons.solidPrayer,
       routeName: '/dua',
-      isInDevelopment: false,
     ),
   ];
 
   void _onCategoryTap(CategoryItem category) {
     HapticFeedback.lightImpact();
     
-    if (category.isInDevelopment) {
-      _showDevelopmentDialog(category);
-      return;
-    }
-    
     if (category.routeName != null) {
       Navigator.pushNamed(context, category.routeName!).catchError((error) {
         if (mounted) {
-          context.showWarningSnackBar('هذه الميزة قيد التطوير');
+          context.showWarningSnackBar('حدث خطأ في فتح الصفحة');
         }
         return null;
       });
     }
-  }
-
-  void _showDevelopmentDialog(CategoryItem category) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14.r),
-        ),
-        contentPadding: EdgeInsets.all(16.r),
-        title: Row(
-          children: [
-            Icon(
-              Icons.construction,
-              color: ThemeConstants.warning,
-              size: 26.sp,
-            ),
-            SizedBox(width: 10.w),
-            Expanded(
-              child: Text(
-                category.title,
-                style: TextStyle(
-                  fontWeight: ThemeConstants.bold,
-                  fontSize: 16.sp,
-                ),
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: EdgeInsets.all(10.r),
-              decoration: BoxDecoration(
-                color: ThemeConstants.warning.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10.r),
-                border: Border.all(
-                  color: ThemeConstants.warning.withValues(alpha: 0.3),
-                  width: 1.w,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    color: ThemeConstants.warning,
-                    size: 20.sp,
-                  ),
-                  SizedBox(width: 6.w),
-                  Expanded(
-                    child: Text(
-                      'هذه الميزة معطلة مؤقتاً للصيانة',
-                      style: TextStyle(
-                        color: ThemeConstants.warning.darken(0.2),
-                        fontWeight: ThemeConstants.medium,
-                        fontSize: 12.sp,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 10.h),
-            Text(
-              'نعمل حالياً على تطوير وتحسين هذه الخدمة لتقديم أفضل تجربة ممكنة.',
-              style: TextStyle(fontSize: 13.sp),
-            ),
-            SizedBox(height: 10.h),
-            Container(
-              padding: EdgeInsets.all(10.r),
-              decoration: BoxDecoration(
-                color: context.primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10.r),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.schedule,
-                    color: context.primaryColor,
-                    size: 20.sp,
-                  ),
-                  SizedBox(width: 6.w),
-                  Expanded(
-                    child: Text(
-                      'ستكون متوفرة قريباً بإذن الله',
-                      style: TextStyle(
-                        color: context.primaryColor,
-                        fontWeight: ThemeConstants.semiBold,
-                        fontSize: 12.sp,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('حسناً', style: TextStyle(fontSize: 13.sp)),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -250,7 +128,6 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
               }
             } catch (e) {
               // تسجيل الخطأ وإرجاع widget فارغ
-              debugPrint('Error building category at index $index: $e');
               return const SizedBox.shrink();
             }
           },
@@ -290,7 +167,7 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
       return const SizedBox.shrink();
     }
     
-    final gradient = _getGradient(category.id, category.isInDevelopment);
+    final gradient = _getGradient(category.id);
     
     return RepaintBoundary(
       child: Container(
@@ -338,7 +215,7 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
                           ),
                         ),
                         child: Icon(
-                          category.isInDevelopment ? Icons.construction : category.icon,
+                          category.icon,
                           color: Colors.white,
                           size: 24.sp,
                         ),
@@ -367,37 +244,6 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
                       ),
                     ],
                   ),
-                  
-                  if (category.isInDevelopment)
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 6.w,
-                          vertical: 3.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: ThemeConstants.warning,
-                          borderRadius: BorderRadius.circular(10.r),
-                          boxShadow: [
-                            BoxShadow(
-                              color: ThemeConstants.warning.withValues(alpha: 0.4),
-                              blurRadius: 3.r,
-                              offset: Offset(0, 1.5.h),
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          'قيد التطوير',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: ThemeConstants.bold,
-                            fontSize: 8.sp,
-                          ),
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),
@@ -413,7 +259,7 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
       return const SizedBox.shrink();
     }
     
-    final gradient = _getGradient(category.id, category.isInDevelopment);
+    final gradient = _getGradient(category.id);
     
     return RepaintBoundary(
       child: Container(
@@ -460,7 +306,7 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
                           ),
                         ),
                         child: Icon(
-                          category.isInDevelopment ? Icons.construction : category.icon,
+                          category.icon,
                           color: Colors.white,
                           size: 24.sp,
                         ),
@@ -496,54 +342,12 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
                       ),
                     ],
                   ),
-                  
-                  if (category.isInDevelopment)
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 6.w,
-                          vertical: 3.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: ThemeConstants.warning,
-                          borderRadius: BorderRadius.circular(10.r),
-                          boxShadow: [
-                            BoxShadow(
-                              color: ThemeConstants.warning.withValues(alpha: 0.4),
-                              blurRadius: 3.r,
-                              offset: Offset(0, 1.5.h),
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          'قيد التطوير',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: ThemeConstants.bold,
-                            fontSize: 8.sp,
-                          ),
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),
           ),
         ),
       ),
-    );
-  }
-
-  LinearGradient _getDevelopmentGradient() {
-    return LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: [
-        ThemeConstants.warning.withValues(alpha: 0.9),
-        ThemeConstants.warning.darken(0.2).withValues(alpha: 0.9),
-      ],
     );
   }
 
@@ -559,13 +363,11 @@ class CategoryItem {
   final String title;
   final IconData icon;
   final String? routeName;
-  final bool isInDevelopment;
 
   const CategoryItem({
     required this.id,
     required this.title,
     required this.icon,
     this.routeName,
-    this.isInDevelopment = false,
   });
 }

@@ -51,14 +51,14 @@ class PermissionConstants {
   // ==================== معلومات الأذونات ====================
   static const Map<AppPermissionType, PermissionInfo> permissions = {
     AppPermissionType.notification: PermissionInfo(
-      name: '🔔 الإشعارات',
+      name: 'الإشعارات',
       description: 'لتذكيرك بمواقيت الصلاة والأذكار اليومية',
       icon: Icons.notifications_active,
       color: Colors.blue,
       isCritical: true,
     ),
     AppPermissionType.location: PermissionInfo(
-      name: '📍 الموقع',
+      name: ' الموقع',
       description: 'لحساب مواقيت الصلاة بدقة وتحديد اتجاه القبلة',
       icon: Icons.location_on,
       color: Colors.green,

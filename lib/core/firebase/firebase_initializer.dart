@@ -32,13 +32,11 @@ class FirebaseInitializer {
   /// تهيئة Firebase Core والخدمات
   static Future<bool> initialize() async {
     if (_isInitialized) {
-      debugPrint('✅ Firebase already initialized');
       _printStatus();
       return true;
     }
     
     try {
-      debugPrint('🔥 Initializing Firebase...');
       final stopwatch = Stopwatch()..start();
       
       // تهيئة Firebase Core
@@ -60,18 +58,13 @@ class FirebaseInitializer {
       await _setupCrashlytics();
       
       stopwatch.stop();
-      debugPrint('✅ Firebase initialized successfully in ${stopwatch.elapsedMilliseconds}ms');
       _printStatus();
       
       return true;
       
     } catch (e) {
       _lastError = Exception('Firebase initialization failed: $e');
-      debugPrint('❌ Failed to initialize Firebase: $e');
-      
       if (kDebugMode) {
-        debugPrint('⚠️ App will continue without Firebase services');
-        debugPrint('Stack trace: ${StackTrace.current}');
       }
       
       return false;
@@ -80,8 +73,6 @@ class FirebaseInitializer {
   
   /// تهيئة جميع خدمات Firebase
   static Future<void> _initializeServices() async {
-    debugPrint('🔍 Initializing Firebase services...');
-    
     // تهيئة Firebase Analytics
     await _initializeAnalytics();
     
@@ -119,11 +110,8 @@ class FirebaseInitializer {
       await _analytics!.logAppOpen();
       
       _isAnalyticsAvailable = true;
-      debugPrint('  ✅ Firebase Analytics: Available and initialized');
-      
     } catch (e) {
       _isAnalyticsAvailable = false;
-      debugPrint('  ❌ Firebase Analytics: Not available - $e');
     }
   }
   
@@ -146,11 +134,8 @@ class FirebaseInitializer {
       await appStartTrace.stop();
       
       _isPerformanceAvailable = true;
-      debugPrint('  ✅ Firebase Performance: Available and initialized');
-      
     } catch (e) {
       _isPerformanceAvailable = false;
-      debugPrint('  ❌ Firebase Performance: Not available - $e');
     }
   }
   
@@ -169,11 +154,8 @@ class FirebaseInitializer {
       }
       
       _isInAppMessagingAvailable = true;
-      debugPrint('  ✅ Firebase In-App Messaging: Available and initialized');
-      
     } catch (e) {
       _isInAppMessagingAvailable = false;
-      debugPrint('  ❌ Firebase In-App Messaging: Not available - $e');
     }
   }
   
@@ -184,11 +166,8 @@ class FirebaseInitializer {
       await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(!kDebugMode);
       
       _isCrashlyticsAvailable = true;
-      debugPrint('  ✅ Firebase Crashlytics: Available and initialized');
-      
     } catch (e) {
       _isCrashlyticsAvailable = false;
-      debugPrint('  ❌ Firebase Crashlytics: Not available - $e');
     }
   }
   
@@ -205,11 +184,7 @@ class FirebaseInitializer {
         FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
         return true;
       };
-      
-      debugPrint('  ✅ Crashlytics error handling setup complete');
-      
     } catch (e) {
-      debugPrint('  ❌ Failed to setup Crashlytics: $e');
     }
   }
   
@@ -219,10 +194,8 @@ class FirebaseInitializer {
       final messaging = FirebaseMessaging.instance;
       final token = await messaging.getToken();
       _isMessagingAvailable = token != null;
-      debugPrint('  ✅ Firebase Messaging: Available (Token: ${token != null})');
     } catch (e) {
       _isMessagingAvailable = false;
-      debugPrint('  ❌ Firebase Messaging: Not available - $e');
     }
   }
   
@@ -235,10 +208,8 @@ class FirebaseInitializer {
         minimumFetchInterval: const Duration(minutes: 5),
       ));
       _isRemoteConfigAvailable = true;
-      debugPrint('  ✅ Firebase Remote Config: Available');
     } catch (e) {
       _isRemoteConfigAvailable = false;
-      debugPrint('  ❌ Firebase Remote Config: Not available - $e');
     }
   }
   
@@ -264,9 +235,7 @@ class FirebaseInitializer {
         name: name,
         parameters: firebaseParams,
       );
-      debugPrint('📊 Event logged: $name');
     } catch (e) {
-      debugPrint('❌ Failed to log event: $e');
     }
   }
   
@@ -279,9 +248,7 @@ class FirebaseInitializer {
         screenName: screenName,
         screenClass: screenClass ?? screenName,
       );
-      debugPrint('📱 Screen view logged: $screenName');
     } catch (e) {
-      debugPrint('❌ Failed to log screen view: $e');
     }
   }
   
@@ -296,10 +263,7 @@ class FirebaseInitializer {
       if (_isCrashlyticsAvailable) {
         await FirebaseCrashlytics.instance.setUserIdentifier(userId ?? 'anonymous');
       }
-      
-      debugPrint('👤 User ID set: ${userId ?? 'cleared'}');
     } catch (e) {
-      debugPrint('❌ Failed to set user ID: $e');
     }
   }
   
@@ -309,9 +273,7 @@ class FirebaseInitializer {
     
     try {
       await _analytics!.setUserProperty(name: name, value: value);
-      debugPrint('📝 User property set: $name = $value');
     } catch (e) {
-      debugPrint('❌ Failed to set user property: $e');
     }
   }
   
@@ -324,10 +286,8 @@ class FirebaseInitializer {
     try {
       final trace = _performance!.newTrace(name);
       trace.start();
-      debugPrint('⏱️ Performance trace started: $name');
       return trace;
     } catch (e) {
-      debugPrint('❌ Failed to start trace: $e');
       return null;
     }
   }
@@ -339,10 +299,8 @@ class FirebaseInitializer {
     try {
       final metric = _performance!.newHttpMetric(url, method);
       metric.start();
-      debugPrint('🌐 HTTP metric started: ${method.name} $url');
       return metric;
     } catch (e) {
-      debugPrint('❌ Failed to start HTTP metric: $e');
       return null;
     }
   }
@@ -359,9 +317,7 @@ class FirebaseInitializer {
         stack,
         fatal: fatal,
       );
-      debugPrint('🐛 Error recorded: $exception');
     } catch (e) {
-      debugPrint('❌ Failed to record error: $e');
     }
   }
   
@@ -371,9 +327,7 @@ class FirebaseInitializer {
     
     try {
       FirebaseCrashlytics.instance.log(message);
-      debugPrint('📝 Crashlytics log: $message');
     } catch (e) {
-      debugPrint('❌ Failed to log message: $e');
     }
   }
   
@@ -383,9 +337,7 @@ class FirebaseInitializer {
     
     try {
       await FirebaseCrashlytics.instance.setCustomKey(key, value);
-      debugPrint('🔑 Custom key set: $key = $value');
     } catch (e) {
-      debugPrint('❌ Failed to set custom key: $e');
     }
   }
   
@@ -397,9 +349,7 @@ class FirebaseInitializer {
     
     try {
       await _inAppMessaging!.triggerEvent(eventName);
-      debugPrint('💬 In-app message event triggered: $eventName');
     } catch (e) {
-      debugPrint('❌ Failed to trigger in-app message: $e');
     }
   }
   
@@ -409,9 +359,7 @@ class FirebaseInitializer {
     
     try {
       _inAppMessaging!.setMessagesSuppressed(suppress);
-      debugPrint('💬 In-app messages ${suppress ? 'suppressed' : 'enabled'}');
     } catch (e) {
-      debugPrint('❌ Failed to suppress messages: $e');
     }
   }
   
@@ -431,36 +379,15 @@ class FirebaseInitializer {
   
   /// طباعة حالة Firebase
   static void _printStatus() {
-    debugPrint('========== Firebase Status ==========');
-    debugPrint('Initialized: $_isInitialized');
-    debugPrint('Apps Count: ${Firebase.apps.length}');
-    
     if (Firebase.apps.isNotEmpty) {
-      debugPrint('Apps:');
       for (final app in Firebase.apps) {
-        debugPrint('  - ${app.name} (${app.options.projectId})');
       }
     }
-    
-    debugPrint('Services:');
-    debugPrint('  ✅ Core Services:');
-    debugPrint('    - Messaging: ${_isMessagingAvailable ? "✅" : "❌"}');
-    debugPrint('    - Remote Config: ${_isRemoteConfigAvailable ? "✅" : "❌"}');
-    debugPrint('  📊 Analytics & Monitoring:');
-    debugPrint('    - Analytics: ${_isAnalyticsAvailable ? "✅" : "❌"}');
-    debugPrint('    - Crashlytics: ${_isCrashlyticsAvailable ? "✅" : "❌"}');
-    debugPrint('    - Performance: ${_isPerformanceAvailable ? "✅" : "❌"}');
-    debugPrint('    - In-App Messaging: ${_isInAppMessagingAvailable ? "✅" : "❌"}');
-    
     if (_initializationTime != null) {
-      debugPrint('Initialized at: ${_initializationTime!.toIso8601String()}');
     }
     
     if (_lastError != null) {
-      debugPrint('Last Error: ${_lastError!.toString()}');
     }
-    
-    debugPrint('====================================');
   }
   
   /// معلومات التصحيح
@@ -496,7 +423,6 @@ class FirebaseInitializer {
     _analytics = null;
     _performance = null;
     _inAppMessaging = null;
-    debugPrint('🧹 FirebaseInitializer disposed');
   }
 }
 

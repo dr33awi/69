@@ -15,7 +15,6 @@ class ThemeNotifier extends ValueNotifier<ThemeMode> {
   /// تحميل الثيم المحفوظ
   Future<void> _loadTheme() async {
     try {
-      debugPrint('[ThemeNotifier] Loading saved theme...');
       final savedTheme = _storage.getString(_themeKey);
       
       if (savedTheme != null) {
@@ -23,26 +22,20 @@ class ThemeNotifier extends ValueNotifier<ThemeMode> {
         switch (savedTheme) {
           case 'light':
             value = ThemeMode.light;
-            debugPrint('[ThemeNotifier] Loaded theme: Light');
             break;
           case 'dark':
             value = ThemeMode.dark;
-            debugPrint('[ThemeNotifier] Loaded theme: Dark');
             break;
           case 'system':
             value = ThemeMode.system;
-            debugPrint('[ThemeNotifier] Loaded theme: System');
             break;
           default:
             // في حالة قيمة غير معروفة، استخدم النظام
             value = ThemeMode.system;
-            debugPrint('[ThemeNotifier] Unknown theme value, using system');
         }
       } else {
-        debugPrint('[ThemeNotifier] No saved theme found, using system default');
       }
     } catch (e) {
-      debugPrint('[ThemeNotifier] Error loading theme: $e');
       value = ThemeMode.system;
     }
   }
@@ -65,18 +58,14 @@ class ThemeNotifier extends ValueNotifier<ThemeMode> {
       }
       
       final saved = await _storage.setString(_themeKey, themeString);
-      debugPrint('[ThemeNotifier] Theme saved: $themeString - Success: $saved');
       return saved;
     } catch (e) {
-      debugPrint('[ThemeNotifier] Error saving theme: $e');
       return false;
     }
   }
   
   /// تغيير الثيم مع الحفظ
   Future<bool> setTheme(ThemeMode mode) async {
-    debugPrint('[ThemeNotifier] Changing theme to: $mode');
-    
     // تحديث القيمة
     value = mode;
     
@@ -124,7 +113,6 @@ class ThemeNotifier extends ValueNotifier<ThemeMode> {
   
   @override
   void dispose() {
-    debugPrint('[ThemeNotifier] Disposing theme notifier');
     super.dispose();
   }
 }

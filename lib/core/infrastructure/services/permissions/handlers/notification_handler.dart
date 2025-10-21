@@ -19,36 +19,27 @@ class NotificationPermissionHandler extends PermissionHandlerBase {
   @override
   Future<AppPermissionStatus> request() async {
     try {
-      debugPrint('🔔 [NotificationHandler] Requesting notification permission...');
-      
       // طلب الإذن مباشرة
       final status = await nativePermission!.request();
-      
-      debugPrint('🔔 [NotificationHandler] Permission status: ${status.toString()}');
-      
       // معالجة خاصة لـ Android
       if (Platform.isAndroid) {
         // إذا كانت الحالة granted أو limited أو provisional، نعتبرها مفعلة
         if (status.isGranted || status.isLimited || status.isProvisional) {
-          debugPrint('✅ [NotificationHandler] Permission granted on Android');
           return AppPermissionStatus.granted;
         }
         
         // إذا كانت permanentlyDenied
         if (status.isPermanentlyDenied) {
-          debugPrint('❌ [NotificationHandler] Permission permanently denied on Android');
           return AppPermissionStatus.permanentlyDenied;
         }
         
         // إذا كانت denied
         if (status.isDenied) {
-          debugPrint('❌ [NotificationHandler] Permission denied on Android');
           return AppPermissionStatus.denied;
         }
         
         // إذا كانت restricted
         if (status.isRestricted) {
-          debugPrint('⚠️ [NotificationHandler] Permission restricted on Android');
           return AppPermissionStatus.restricted;
         }
       }
@@ -57,8 +48,6 @@ class NotificationPermissionHandler extends PermissionHandlerBase {
       return mapFromNativeStatus(status);
       
     } catch (e) {
-      debugPrint('❌ [NotificationHandler] Error requesting permission: $e');
-      
       // في حالة الخطأ على Android، قد يكون الجهاز لا يدعم runtime permissions
       if (Platform.isAndroid) {
         try {
@@ -72,8 +61,6 @@ class NotificationPermissionHandler extends PermissionHandlerBase {
           
           return mapFromNativeStatus(checkStatus);
         } catch (e2) {
-          debugPrint('❌ [NotificationHandler] Fallback check also failed: $e2');
-          
           // على Android القديم جداً، نفترض أن الإشعارات مفعلة
           return AppPermissionStatus.granted;
         }
@@ -86,12 +73,7 @@ class NotificationPermissionHandler extends PermissionHandlerBase {
   @override
   Future<AppPermissionStatus> check() async {
     try {
-      debugPrint('🔍 [NotificationHandler] Checking notification permission...');
-      
       final status = await nativePermission!.status;
-      
-      debugPrint('🔍 [NotificationHandler] Current status: ${status.toString()}');
-      
       // معالجة خاصة لـ Android
       if (Platform.isAndroid) {
         // إذا كانت الحالة granted أو limited أو provisional، نعتبرها مفعلة
@@ -120,8 +102,6 @@ class NotificationPermissionHandler extends PermissionHandlerBase {
       return mapFromNativeStatus(status);
       
     } catch (e) {
-      debugPrint('❌ [NotificationHandler] Error checking permission: $e');
-      
       // في حالة الخطأ على Android القديم
       if (Platform.isAndroid) {
         // نفترض أن الإشعارات مفعلة على Android القديم

@@ -1,5 +1,4 @@
 // lib/core/infrastructure/services/share/share_service.dart - النسخة النهائية المنقحة
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -47,7 +46,6 @@ $playStoreUrl''';
     try {
       await Clipboard.setData(ClipboardData(text: text));
     } catch (e) {
-      debugPrint('ShareService Copy Error: $e');
       rethrow;
     }
   }
@@ -310,53 +308,6 @@ $playStoreUrl''';
     final content = _buildAsmaAllahText(name, explanation, meaning: meaning);
     
     await _copyToClipboard(content);
-  }
-
-  // ==================== الاقتباس اليومي ====================
-
-  /// بناء نص اقتباس يومي كامل
-  String _buildDailyQuoteText(
-    String content,
-    String source, {
-    String? theme,
-  }) {
-    final buffer = StringBuffer();
-    
-    if (theme != null) {
-      buffer.writeln('📖 $theme');
-      buffer.writeln();
-    }
-    
-    buffer.writeln('❝ $content ❞');
-    
-    buffer.writeln();
-    buffer.writeln('— $source');
-    
-    buffer.write(_shareFooterCompact);
-    
-    return buffer.toString();
-  }
-
-  /// مشاركة اقتباس يومي
-  Future<void> shareDailyQuote(
-    String content,
-    String source, {
-    String? theme,
-  }) async {
-    final text = _buildDailyQuoteText(content, source, theme: theme);
-    
-    await Share.share(text);
-  }
-
-  /// نسخ اقتباس يومي مع كل التفاصيل
-  Future<void> copyDailyQuote(
-    String content,
-    String source, {
-    String? theme,
-  }) async {
-    final text = _buildDailyQuoteText(content, source, theme: theme);
-    
-    await _copyToClipboard(text);
   }
 
   // ==================== التسبيح ====================

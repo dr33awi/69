@@ -113,13 +113,11 @@ class BatteryServiceImpl implements BatteryService {
 
   void _log(String message, [Map<String, dynamic>? data]) {
     if (kDebugMode) {
-      debugPrint('🔋 [BatteryService] $message${data != null ? " - $data" : ""}');
     }
   }
 
   void _logError(String message, dynamic error) {
     if (kDebugMode) {
-      debugPrint('🔴 [BatteryService] ERROR: $message - $error');
     }
   }
 }

@@ -16,7 +16,6 @@ dependencies:
   # --- State Management ---
   provider: ^6.1.5
   get_it: ^8.0.3
-  flutter_riverpod: ^2.4.9
 
   # --- Storage ---
   shared_preferences: ^2.2.2
@@ -48,9 +47,7 @@ dependencies:
   # --- Utilities ---
   share_plus: ^7.2.2
   battery_plus: ^6.2.1
-  sensors_plus: ^6.1.1
   in_app_review: ^2.0.10
-  equatable: ^2.0.7
   concentric_transition: ^1.0.3
   lottie: ^3.3.1
   url_launcher: ^6.3.2
