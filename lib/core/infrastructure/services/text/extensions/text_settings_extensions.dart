@@ -1,7 +1,7 @@
 // lib/core/infrastructure/services/text/extensions/text_settings_extensions.dart
 import 'package:flutter/material.dart';
 import '../../../../../app/di/service_locator.dart';
-import '../text_settings_service.dart';
+import '../service/text_settings_service.dart';
 import '../models/text_settings_models.dart';
 import '../screens/global_text_settings_screen.dart';
 

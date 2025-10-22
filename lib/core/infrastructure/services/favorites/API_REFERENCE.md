@@ -246,28 +246,6 @@ FavoriteItem.fromTasbih({
   int? recommendedCount,
   String? category,
 })
-
-/// للقرآن الكريم
-FavoriteItem.fromQuran({
-  required String verseId,
-  required String surahName,
-  required int surahNumber,
-  required int verseNumber,
-  required String arabicText,
-  String? translation,
-  String? tafseer,
-})
-
-/// للأحاديث
-FavoriteItem.fromHadith({
-  required String hadithId,
-  required String arabicText,
-  String? translation,
-  String? narrator,
-  String? source,
-  String? grade,
-  String? explanation,
-})
 ```
 
 ### 🔄 تحويل FavoriteItem

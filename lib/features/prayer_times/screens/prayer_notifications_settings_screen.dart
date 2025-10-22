@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
-import '../../../app/themes/widgets/core/app_button.dart';
 import '../../../app/di/service_locator.dart';
 import '../services/prayer_times_service.dart';
 import '../models/prayer_time_model.dart';
@@ -20,6 +19,7 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
   late final PrayerTimesService _prayerService;
   
   late PrayerNotificationSettings _notificationSettings;
+  late PrayerNotificationSettings _originalSettings;
   
   bool _isLoading = true;
   bool _isSaving = false;
@@ -41,13 +41,15 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
   void _loadSettings() {
     setState(() {
       _notificationSettings = _prayerService.notificationSettings;
+      _originalSettings = _prayerService.notificationSettings;
       _isLoading = false;
+      _hasChanges = false;
     });
   }
 
-  void _markAsChanged() {
+  void _checkForChanges() {
     setState(() {
-      _hasChanges = true;
+      _hasChanges = _notificationSettings != _originalSettings;
     });
   }
 
@@ -60,6 +62,7 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
       
       context.showSuccessSnackBar('تم حفظ إعدادات الإشعارات بنجاح');
       setState(() {
+        _originalSettings = _notificationSettings;
         _hasChanges = false;
       });
     } catch (e) {
@@ -75,19 +78,22 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.backgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildCustomAppBar(context),
-            
-            Expanded(
-              child: _isLoading
-                  ? Center(child: AppLoading.circular())
-                  : _buildContent(),
-            ),
-          ],
+    return WillPopScope(
+      onWillPop: _showUnsavedChangesDialog,
+      child: Scaffold(
+        backgroundColor: context.backgroundColor,
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildCustomAppBar(context),
+              
+              Expanded(
+                child: _isLoading
+                    ? Center(child: AppLoading.circular())
+                    : _buildContent(),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -105,10 +111,9 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
       child: Row(
         children: [
           AppBackButton(
-            onPressed: () {
-              if (_hasChanges) {
-                _showUnsavedChangesDialog();
-              } else {
+            onPressed: () async {
+              final canPop = await _showUnsavedChangesDialog();
+              if (canPop && mounted) {
                 Navigator.pop(context);
               }
             },
@@ -291,8 +296,8 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
                 _notificationSettings = _notificationSettings.copyWith(
                   enabled: value,
                 );
-                _markAsChanged();
               });
+              _checkForChanges();
             },
             activeColor: _primaryGreenColor,
           ),
@@ -307,8 +312,8 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
                       _notificationSettings = _notificationSettings.copyWith(
                         vibrate: value,
                       );
-                      _markAsChanged();
                     });
+                    _checkForChanges();
                   }
                 : null,
             activeColor: _primaryGreenColor,
@@ -441,8 +446,8 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
                   _notificationSettings = _notificationSettings.copyWith(
                     enabledPrayers: updatedPrayers,
                   );
-                  _markAsChanged();
                 });
+                _checkForChanges();
               }
             : null,
         activeColor: _primaryGreenColor,
@@ -496,8 +501,8 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
                           _notificationSettings = _notificationSettings.copyWith(
                             minutesBefore: updatedMinutes,
                           );
-                          _markAsChanged();
                         });
+                        _checkForChanges();
                       }
                     },
                   ),
@@ -511,24 +516,30 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
     );
   }
 
-  void _showUnsavedChangesDialog() async {
+  Future<bool> _showUnsavedChangesDialog() async {
+    if (!_hasChanges) return true;
+    
     final result = await AppInfoDialog.showConfirmation(
       context: context,
       title: 'تغييرات غير محفوظة',
       content: 'لديك تغييرات لم يتم حفظها. هل تريد حفظ التغييرات قبل المغادرة؟',
       confirmText: 'حفظ وخروج',
       cancelText: 'تجاهل التغييرات',
+      icon: Icons.warning_amber_rounded,
     );
-    
-    if (!mounted) return;
     
     if (result == true) {
       await _saveSettings();
-      if (mounted) {
-        Navigator.pop(context);
-      }
+      return !_hasChanges; // إذا تم الحفظ بنجاح
     } else if (result == false) {
-      Navigator.pop(context);
+      // تجاهل التغييرات - إرجاع الإعدادات للحالة الأصلية
+      setState(() {
+        _notificationSettings = _originalSettings;
+        _hasChanges = false;
+      });
+      return true; // السماح بالخروج
     }
+    
+    return false; // إلغاء
   }
 }

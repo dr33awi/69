@@ -30,11 +30,15 @@ class _AthkarNotificationSettingsScreenState
   List<AthkarCategory>? _categories;
   final Map<String, bool> _enabled = {};
   final Map<String, TimeOfDay> _customTimes = {};
+  
+  // الإعدادات الأصلية لتتبع التغييرات
+  final Map<String, bool> _originalEnabled = {};
   final Map<String, TimeOfDay> _originalTimes = {};
   
   bool _saving = false;
   bool _hasPermission = false;
   bool _isLoading = true;
+  bool _hasChanges = false;
   String? _errorMessage;
 
   @override
@@ -64,6 +68,7 @@ class _AthkarNotificationSettingsScreenState
       
       _enabled.clear();
       _customTimes.clear();
+      _originalEnabled.clear();
       _originalTimes.clear();
       
       final autoEnabledIds = <String>[];
@@ -77,6 +82,7 @@ class _AthkarNotificationSettingsScreenState
         }
         
         _enabled[category.id] = shouldEnable;
+        _originalEnabled[category.id] = shouldEnable;
         
         final customTime = savedCustomTimes[category.id];
         final time = customTime ?? 
@@ -90,6 +96,7 @@ class _AthkarNotificationSettingsScreenState
       setState(() {
         _categories = allCategories;
         _isLoading = false;
+        _hasChanges = false;
       });
       
       if (isFirstLaunch && autoEnabledIds.isNotEmpty) {
@@ -165,6 +172,67 @@ class _AthkarNotificationSettingsScreenState
     }
   }
 
+  /// التحقق من وجود تغييرات
+  void _checkForChanges() {
+    bool hasChanges = false;
+    
+    // التحقق من تغيير حالة التفعيل
+    for (final entry in _enabled.entries) {
+      if (entry.value != (_originalEnabled[entry.key] ?? false)) {
+        hasChanges = true;
+        break;
+      }
+    }
+    
+    // التحقق من تغيير الأوقات
+    if (!hasChanges) {
+      for (final entry in _customTimes.entries) {
+        final originalTime = _originalTimes[entry.key];
+        if (originalTime == null || 
+            entry.value.hour != originalTime.hour || 
+            entry.value.minute != originalTime.minute) {
+          hasChanges = true;
+          break;
+        }
+      }
+    }
+    
+    setState(() {
+      _hasChanges = hasChanges;
+    });
+  }
+
+  /// عرض dialog تأكيد الخروج مع تغييرات غير محفوظة
+  Future<bool> _showUnsavedChangesDialog() async {
+    if (!_hasChanges) return true;
+    
+    final result = await AppInfoDialog.showConfirmation(
+      context: context,
+      title: 'تغييرات غير محفوظة',
+      content: 'لديك تغييرات لم يتم حفظها. هل تريد حفظ التغييرات قبل المغادرة؟',
+      confirmText: 'حفظ وخروج',
+      cancelText: 'تجاهل التغييرات',
+      icon: Icons.warning_amber_rounded,
+    );
+    
+    if (result == true) {
+      await _saveChanges();
+      return !_hasChanges; // إذا تم الحفظ بنجاح
+    } else if (result == false) {
+      // تجاهل التغييرات - إرجاع الإعدادات للحالة الأصلية
+      setState(() {
+        _enabled.clear();
+        _enabled.addAll(_originalEnabled);
+        _customTimes.clear();
+        _customTimes.addAll(_originalTimes);
+        _hasChanges = false;
+      });
+      return true; // السماح بالخروج
+    }
+    
+    return false; // إلغاء
+  }
+
   Future<void> _requestPermission() async {
     try {
       final granted = await _permissionService.requestNotificationPermission();
@@ -190,64 +258,29 @@ class _AthkarNotificationSettingsScreenState
   }
 
   Future<void> _toggleCategory(String categoryId, bool value) async {
-    final oldValue = _enabled[categoryId];
-    
     setState(() {
       _enabled[categoryId] = value;
     });
-    
-    try {
-      await _saveChanges();
-    } catch (e) {
-      setState(() {
-        _enabled[categoryId] = oldValue ?? false;
-      });
-      rethrow;
-    }
+    _checkForChanges();
   }
 
   Future<void> _updateTime(String categoryId, TimeOfDay time) async {
-    final oldTime = _customTimes[categoryId];
-    
     setState(() {
       _customTimes[categoryId] = time;
     });
+    _checkForChanges();
     
-    try {
-      await _service.saveCustomTimes(_customTimes);
-      
-      if (_enabled[categoryId] == true && _hasPermission) {
-        final category = _categories!.firstWhere((c) => c.id == categoryId);
-        
-        await NotificationManager.instance.cancelAthkarReminder(categoryId);
-        await NotificationManager.instance.scheduleAthkarReminder(
-          categoryId: categoryId,
-          categoryName: category.title,
-          time: time,
-        );
-      }
-      
-      if (!(_enabled[categoryId] ?? false)) {
-        await _toggleCategory(categoryId, true);
-      }
-      
-      if (mounted) {
-        context.showSuccessSnackBar('تم تحديث الوقت بنجاح');
-      }
-    } catch (e) {
+    // تفعيل الفئة تلقائياً عند تغيير الوقت
+    if (!(_enabled[categoryId] ?? false)) {
       setState(() {
-        _customTimes[categoryId] = oldTime ?? 
-            AthkarConstants.getDefaultTimeForCategory(categoryId);
+        _enabled[categoryId] = true;
       });
-      
-      if (mounted) {
-        context.showErrorSnackBar('حدث خطأ في تحديث الوقت');
-      }
+      _checkForChanges();
     }
   }
 
   Future<void> _saveChanges() async {
-    if (_saving) return;
+    if (_saving || !_hasChanges) return;
     
     setState(() => _saving = true);
     
@@ -258,6 +291,7 @@ class _AthkarNotificationSettingsScreenState
           if (mounted) {
             context.showWarningSnackBar('يجب تفعيل أذونات الإشعارات أولاً');
           }
+          setState(() => _saving = false);
           return;
         }
       }
@@ -267,11 +301,17 @@ class _AthkarNotificationSettingsScreenState
         customTimes: _customTimes,
       );
       
+      // تحديث الإعدادات الأصلية
+      _originalEnabled.clear();
       _originalTimes.clear();
+      _originalEnabled.addAll(_enabled);
       _originalTimes.addAll(_customTimes);
       
       if (mounted) {
         context.showSuccessSnackBar('تم حفظ الإعدادات بنجاح');
+        setState(() {
+          _hasChanges = false;
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -333,7 +373,7 @@ class _AthkarNotificationSettingsScreenState
           _enabled[category.id] = true;
         }
       });
-      await _saveChanges();
+      _checkForChanges();
     }
   }
 
@@ -356,20 +396,23 @@ class _AthkarNotificationSettingsScreenState
           _enabled[category.id] = false;
         }
       });
-      await _saveChanges();
+      _checkForChanges();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.backgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildCustomAppBar(context),
-            Expanded(child: _buildBody()),
-          ],
+    return WillPopScope(
+      onWillPop: _showUnsavedChangesDialog,
+      child: Scaffold(
+        backgroundColor: context.backgroundColor,
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildCustomAppBar(context),
+              Expanded(child: _buildBody()),
+            ],
+          ),
         ),
       ),
     );
@@ -387,7 +430,12 @@ class _AthkarNotificationSettingsScreenState
       child: Row(
         children: [
           AppBackButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () async {
+              final canPop = await _showUnsavedChangesDialog();
+              if (canPop && mounted) {
+                Navigator.of(context).pop();
+              }
+            },
           ),
           
           SizedBox(width: 8.w),
@@ -436,6 +484,45 @@ class _AthkarNotificationSettingsScreenState
               ],
             ),
           ),
+          
+          if (_hasChanges && !_saving && _hasPermission)
+            Container(
+              margin: EdgeInsets.only(left: 6.w),
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(10.r),
+                child: InkWell(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    _saveChanges();
+                  },
+                  borderRadius: BorderRadius.circular(10.r),
+                  child: Container(
+                    padding: EdgeInsets.all(6.r),
+                    decoration: BoxDecoration(
+                      color: context.cardColor,
+                      borderRadius: BorderRadius.circular(10.r),
+                      border: Border.all(
+                        color: context.dividerColor.withOpacity(0.3),
+                        width: 1.w,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 3.r,
+                          offset: Offset(0, 1.5.h),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.save,
+                      color: ThemeConstants.primary,
+                      size: 20.sp,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           
           if (_hasPermission && (_categories?.isNotEmpty ?? false))
             _buildActionsMenu(),

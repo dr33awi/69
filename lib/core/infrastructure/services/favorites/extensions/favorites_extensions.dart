@@ -336,10 +336,6 @@ extension FavoriteContentTypeExtensions on FavoriteContentType {
         return text_models.ContentType.athkar;
       case FavoriteContentType.asmaAllah:
         return text_models.ContentType.asmaAllah;
-      case FavoriteContentType.quran:
-        return text_models.ContentType.athkar; // استخدام الأذكار للقرآن
-      case FavoriteContentType.hadith:
-        return text_models.ContentType.athkar; // استخدام الأذكار للأحاديث
       case FavoriteContentType.tasbih:
         // التسبيح يمكن أن يستخدم إعدادات الأذكار
         return text_models.ContentType.athkar;

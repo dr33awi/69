@@ -1,9 +1,9 @@
 // lib/core/infrastructure/services/text/text_settings_service.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../storage/storage_service.dart';
-import 'models/text_settings_models.dart';
-import 'constants/text_settings_constants.dart';
+import '../../storage/storage_service.dart';
+import '../models/text_settings_models.dart';
+import '../constants/text_settings_constants.dart';
 
 /// خدمة موحدة لإدارة إعدادات النصوص في التطبيق
 class TextSettingsService extends ChangeNotifier {

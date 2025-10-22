@@ -15,13 +15,7 @@ enum FavoriteContentType {
   asmaAllah('asma_allah', 'أسماء الله الحسنى', Icons.auto_awesome_rounded),
   
   /// الأذكار المخصصة للتسبيح
-  tasbih('tasbih', 'التسبيح', Icons.casino_rounded),
-  
-  /// آيات قرآنية مفضلة
-  quran('quran', 'القرآن الكريم', Icons.menu_book_outlined),
-  
-  /// الأحاديث النبوية
-  hadith('hadith', 'الأحاديث النبوية', Icons.import_contacts);
+  tasbih('tasbih', 'التسبيح', Icons.casino_rounded);
 
   const FavoriteContentType(this.key, this.displayName, this.icon);
 

@@ -28,8 +28,6 @@ class FavoritesConstants {
     'athkar': 'athkar_favorites', 
     'asma_allah': 'asma_allah_favorites',
     'tasbih': 'tasbih_favorites',
-    'quran': 'quran_favorites',
-    'hadith': 'hadith_favorites',
   };
 
   // ==================== حدود النظام ====================
@@ -147,9 +145,7 @@ class FavoritesConstants {
       'dua': 1,
       'athkar': 2,
       'asma_allah': 3,
-      'quran': 4,
-      'hadith': 5,
-      'tasbih': 6,
+      'tasbih': 4,
     };
     return priorities[contentType] ?? 999;
   }

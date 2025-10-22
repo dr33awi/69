@@ -5,7 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../app/themes/app_theme.dart';
 import '../../../../../app/di/service_locator.dart';
 import '../models/text_settings_models.dart';
-import '../text_settings_service.dart';
+import '../service/text_settings_service.dart';
 import '../constants/text_settings_constants.dart';
 
 /// شاشة إعدادات النصوص العامة والموحدة
@@ -28,9 +28,14 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
   final Map<ContentType, TextSettings> _currentSettings = {};
   final Map<ContentType, DisplaySettings> _currentDisplaySettings = {};
   
+  // الإعدادات الأصلية لتتبع التغييرات
+  final Map<ContentType, TextSettings> _originalSettings = {};
+  final Map<ContentType, DisplaySettings> _originalDisplaySettings = {};
+  
   // حالة التحميل والحفظ
   bool _isLoading = true;
   bool _isSaving = false;
+  bool _hasChanges = false;
   
   // نوع المحتوى المختار حالياً
   ContentType _selectedContentType = ContentType.athkar;
@@ -52,18 +57,73 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
     
     try {
       for (final contentType in ContentType.values) {
-        _currentSettings[contentType] = await _textService.getTextSettings(contentType);
-        _currentDisplaySettings[contentType] = await _textService.getDisplaySettings(contentType);
+        final textSettings = await _textService.getTextSettings(contentType);
+        final displaySettings = await _textService.getDisplaySettings(contentType);
+        
+        _currentSettings[contentType] = textSettings;
+        _currentDisplaySettings[contentType] = displaySettings;
+        
+        // حفظ نسخة أصلية
+        _originalSettings[contentType] = textSettings;
+        _originalDisplaySettings[contentType] = displaySettings;
       }
       
-      setState(() => _isLoading = false);
+      setState(() {
+        _isLoading = false;
+        _hasChanges = false;
+      });
     } catch (e) {
       setState(() => _isLoading = false);
     }
   }
 
+  /// التحقق من وجود تغييرات
+  void _checkForChanges() {
+    bool hasChanges = false;
+    
+    for (final contentType in ContentType.values) {
+      final current = _currentSettings[contentType];
+      final original = _originalSettings[contentType];
+      
+      if (current != original) {
+        hasChanges = true;
+        break;
+      }
+      
+      final currentDisplay = _currentDisplaySettings[contentType];
+      final originalDisplay = _originalDisplaySettings[contentType];
+      
+      if (currentDisplay != originalDisplay) {
+        hasChanges = true;
+        break;
+      }
+    }
+    
+    setState(() {
+      _hasChanges = hasChanges;
+    });
+  }
+
+  /// تحديث الإعدادات مع تتبع التغييرات
+  void _updateSettings(ContentType contentType, {
+    TextSettings? textSettings,
+    DisplaySettings? displaySettings,
+  }) {
+    setState(() {
+      if (textSettings != null) {
+        _currentSettings[contentType] = textSettings;
+      }
+      if (displaySettings != null) {
+        _currentDisplaySettings[contentType] = displaySettings;
+      }
+    });
+    _checkForChanges();
+  }
+
   /// حفظ جميع الإعدادات
   Future<void> _saveAllSettings() async {
+    if (!_hasChanges) return;
+    
     setState(() => _isSaving = true);
     
     try {
@@ -80,24 +140,19 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
         }
       }
       
+      // تحديث الإعدادات الأصلية
+      _originalSettings.clear();
+      _originalDisplaySettings.clear();
+      _originalSettings.addAll(_currentSettings);
+      _originalDisplaySettings.addAll(_currentDisplaySettings);
+      
       if (mounted) {
         HapticFeedback.mediumImpact();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
-                SizedBox(width: 12.w),
-                const Text('تم حفظ الإعدادات بنجاح'),
-              ],
-            ),
-            backgroundColor: ThemeConstants.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-            margin: EdgeInsets.all(16.r),
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        context.showSuccessSnackBar('تم حفظ الإعدادات بنجاح');
+        
+        setState(() {
+          _hasChanges = false;
+        });
       }
       
       setState(() => _isSaving = false);
@@ -105,23 +160,40 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
       setState(() => _isSaving = false);
       
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.error, color: Colors.white, size: 20.sp),
-                SizedBox(width: 12.w),
-                const Text('حدث خطأ أثناء حفظ الإعدادات'),
-              ],
-            ),
-            backgroundColor: ThemeConstants.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-            margin: EdgeInsets.all(16.r),
-          ),
-        );
+        context.showErrorSnackBar('حدث خطأ أثناء حفظ الإعدادات');
       }
     }
+  }
+
+  /// عرض dialog تأكيد الخروج مع تغييرات غير محفوظة
+  Future<bool> _showUnsavedChangesDialog() async {
+    if (!_hasChanges) return true;
+    
+    final result = await AppInfoDialog.showConfirmation(
+      context: context,
+      title: 'تغييرات غير محفوظة',
+      content: 'لديك تغييرات لم يتم حفظها. هل تريد حفظ التغييرات قبل المغادرة؟',
+      confirmText: 'حفظ وخروج',
+      cancelText: 'تجاهل التغييرات',
+      icon: Icons.warning_amber_rounded,
+    );
+    
+    if (result == true) {
+      await _saveAllSettings();
+      return !_hasChanges; // إذا تم الحفظ بنجاح
+    } else if (result == false) {
+      // تجاهل التغييرات - إرجاع الإعدادات للحالة الأصلية
+      setState(() {
+        _currentSettings.clear();
+        _currentSettings.addAll(_originalSettings);
+        _currentDisplaySettings.clear();
+        _currentDisplaySettings.addAll(_originalDisplaySettings);
+        _hasChanges = false;
+      });
+      return true; // السماح بالخروج
+    }
+    
+    return false; // إلغاء
   }
 
   /// تطبيق قالب على نوع محتوى معين
@@ -129,10 +201,7 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
     final currentSettings = _currentSettings[contentType];
     if (currentSettings != null) {
       final updatedSettings = preset.applyToSettings(currentSettings);
-      setState(() {
-        _currentSettings[contentType] = updatedSettings;
-      });
-      
+      _updateSettings(contentType, textSettings: updatedSettings);
       HapticFeedback.lightImpact();
     }
   }
@@ -144,10 +213,11 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
       final defaultSettings = TextSettingsConstants.getDefaultSettings(contentType);
       const defaultDisplaySettings = TextSettingsConstants.defaultDisplaySettings;
       
-      setState(() {
-        _currentSettings[contentType] = defaultSettings;
-        _currentDisplaySettings[contentType] = defaultDisplaySettings;
-      });
+      _updateSettings(
+        contentType,
+        textSettings: defaultSettings,
+        displaySettings: defaultDisplaySettings,
+      );
       
       HapticFeedback.mediumImpact();
     }
@@ -208,20 +278,22 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.backgroundColor,
-      appBar: _buildAppBar(context),
-      body: _isLoading
-          ? _buildLoadingIndicator()
-          : Column(
-              children: [
-                _buildContentTypeSelector(),
-                Expanded(
-                  child: _buildContentTypeSettings(_selectedContentType),
-                ),
-              ],
-            ),
-      bottomNavigationBar: _buildBottomBar(),
+    return WillPopScope(
+      onWillPop: _showUnsavedChangesDialog,
+      child: Scaffold(
+        backgroundColor: context.backgroundColor,
+        appBar: _buildAppBar(context),
+        body: _isLoading
+            ? _buildLoadingIndicator()
+            : Column(
+                children: [
+                  _buildContentTypeSelector(),
+                  Expanded(
+                    child: _buildContentTypeSettings(_selectedContentType),
+                  ),
+                ],
+              ),
+      ),
     );
   }
 
@@ -231,7 +303,12 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
       backgroundColor: context.cardColor,
       elevation: 0,
       leading: IconButton(
-        onPressed: () => Navigator.pop(context),
+        onPressed: () async {
+          final canPop = await _showUnsavedChangesDialog();
+          if (canPop && mounted) {
+            Navigator.pop(context);
+          }
+        },
         icon: Icon(
           Icons.arrow_back_ios_rounded,
           color: context.textPrimaryColor,
@@ -247,13 +324,41 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
         ),
       ),
       actions: [
-        IconButton(
-          onPressed: _showGlobalActions,
-          icon: Icon(
-            Icons.more_vert_rounded,
-            color: context.textPrimaryColor,
-            size: 24.sp,
+        if (_hasChanges && !_isSaving)
+          IconButton(
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              _saveAllSettings();
+            },
+            icon: Container(
+              padding: EdgeInsets.all(6.r),
+              decoration: BoxDecoration(
+                color: ThemeConstants.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+              child: Icon(
+                Icons.save,
+                color: ThemeConstants.primary,
+                size: 20.sp,
+              ),
+            ),
+            tooltip: 'حفظ التغييرات',
           ),
+        IconButton(
+          onPressed: () => _resetToDefault(_selectedContentType),
+          icon: Container(
+            padding: EdgeInsets.all(6.r),
+            decoration: BoxDecoration(
+              color: ThemeConstants.warning.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10.r),
+            ),
+            child: Icon(
+              Icons.restore_rounded,
+              color: ThemeConstants.warning,
+              size: 20.sp,
+            ),
+          ),
+          tooltip: 'إعادة الإعدادات الافتراضية',
         ),
         SizedBox(width: 4.w),
       ],
@@ -356,8 +461,6 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
         _buildFontSettingsSection(contentType, textSettings),
         SizedBox(height: 16.h),
         _buildDisplaySettingsSection(contentType, displaySettings),
-        SizedBox(height: 16.h),
-        _buildActionsSection(contentType),
         SizedBox(height: 20.h),
       ],
     );
@@ -509,9 +612,10 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
             divisions: 12,
             label: '${textSettings.fontSize.round()}',
             onChanged: (value) {
-              setState(() {
-                _currentSettings[contentType] = textSettings.copyWith(fontSize: value);
-              });
+              _updateSettings(
+                contentType,
+                textSettings: textSettings.copyWith(fontSize: value),
+              );
             },
           ),
           
@@ -523,9 +627,10 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
             value: textSettings.fontFamily,
             items: TextSettingsConstants.availableFonts,
             onChanged: (value) {
-              setState(() {
-                _currentSettings[contentType] = textSettings.copyWith(fontFamily: value!);
-              });
+              _updateSettings(
+                contentType,
+                textSettings: textSettings.copyWith(fontFamily: value!),
+              );
             },
           ),
           
@@ -540,9 +645,10 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
             divisions: 20,
             label: textSettings.lineHeight.toStringAsFixed(1),
             onChanged: (value) {
-              setState(() {
-                _currentSettings[contentType] = textSettings.copyWith(lineHeight: value);
-              });
+              _updateSettings(
+                contentType,
+                textSettings: textSettings.copyWith(lineHeight: value),
+              );
             },
           ),
           
@@ -557,9 +663,10 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
             divisions: 20,
             label: textSettings.letterSpacing.toStringAsFixed(1),
             onChanged: (value) {
-              setState(() {
-                _currentSettings[contentType] = textSettings.copyWith(letterSpacing: value);
-              });
+              _updateSettings(
+                contentType,
+                textSettings: textSettings.copyWith(letterSpacing: value),
+              );
             },
           ),
         ],
@@ -586,9 +693,10 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
             icon: Icons.abc_rounded,
             value: displaySettings.showTashkeel,
             onChanged: (value) {
-              setState(() {
-                _currentDisplaySettings[contentType] = displaySettings.copyWith(showTashkeel: value);
-              });
+              _updateSettings(
+                contentType,
+                displaySettings: displaySettings.copyWith(showTashkeel: value),
+              );
             },
           ),
           
@@ -598,9 +706,10 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
             icon: Icons.stars_rounded,
             value: displaySettings.showFadl,
             onChanged: (value) {
-              setState(() {
-                _currentDisplaySettings[contentType] = displaySettings.copyWith(showFadl: value);
-              });
+              _updateSettings(
+                contentType,
+                displaySettings: displaySettings.copyWith(showFadl: value),
+              );
             },
           ),
           
@@ -610,9 +719,10 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
             icon: Icons.library_books_rounded,
             value: displaySettings.showSource,
             onChanged: (value) {
-              setState(() {
-                _currentDisplaySettings[contentType] = displaySettings.copyWith(showSource: value);
-              });
+              _updateSettings(
+                contentType,
+                displaySettings: displaySettings.copyWith(showSource: value),
+              );
             },
           ),
           
@@ -623,9 +733,10 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
               icon: Icons.looks_one_rounded,
               value: displaySettings.showCounter,
               onChanged: (value) {
-                setState(() {
-                  _currentDisplaySettings[contentType] = displaySettings.copyWith(showCounter: value);
-                });
+                _updateSettings(
+                  contentType,
+                  displaySettings: displaySettings.copyWith(showCounter: value),
+                );
               },
             ),
           
@@ -635,9 +746,10 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
             icon: Icons.vibration_rounded,
             value: displaySettings.enableVibration,
             onChanged: (value) {
-              setState(() {
-                _currentDisplaySettings[contentType] = displaySettings.copyWith(enableVibration: value);
-              });
+              _updateSettings(
+                contentType,
+                displaySettings: displaySettings.copyWith(enableVibration: value),
+              );
             },
           ),
         ],
@@ -645,40 +757,7 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
     );
   }
 
-  /// بناء قسم الإجراءات
-  Widget _buildActionsSection(ContentType contentType) {
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader(
-            icon: Icons.settings_suggest_rounded,
-            title: 'إجراءات',
-            color: ThemeConstants.warning,
-          ),
-          SizedBox(height: 16.h),
-          
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => _resetToDefault(contentType),
-              icon: Icon(Icons.restore_rounded, size: 20.sp),
-              label: Text(
-                'إعادة للإعدادات الافتراضية',
-                style: TextStyle(fontSize: 14.sp, fontWeight: ThemeConstants.medium),
-              ),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: ThemeConstants.warning,
-                side: BorderSide(color: ThemeConstants.warning, width: 1.5.w),
-                padding: EdgeInsets.symmetric(vertical: 14.h),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   /// بناء عنوان القسم
   Widget _buildSectionHeader({
@@ -950,212 +1029,8 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
     );
   }
 
-  /// بناء الشريط السفلي
-  Widget _buildBottomBar() {
-    return Container(
-      padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 20.h),
-      decoration: BoxDecoration(
-        color: context.cardColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10.r,
-            offset: Offset(0, -2.h),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: _isSaving ? null : _saveAllSettings,
-            icon: _isSaving
-                ? SizedBox(
-                    width: 20.w,
-                    height: 20.h,
-                    child: CircularProgressIndicator(
-                      valueColor: const AlwaysStoppedAnimation(Colors.white),
-                      strokeWidth: 2.5.w,
-                    ),
-                  )
-                : Icon(Icons.check_circle_rounded, size: 22.sp),
-            label: Text(
-              _isSaving ? 'جاري الحفظ...' : 'حفظ الإعدادات',
-              style: TextStyle(
-                fontSize: 16.sp,
-                fontWeight: ThemeConstants.bold,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: ThemeConstants.primary,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(vertical: 16.h),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14.r),
-              ),
-              elevation: 0,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
-  /// عرض الإجراءات العامة
-  void _showGlobalActions() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: context.cardColor,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-        ),
-        padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40.w,
-              height: 4.h,
-              margin: EdgeInsets.only(bottom: 20.h),
-              decoration: BoxDecoration(
-                color: context.dividerColor.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(2.r),
-              ),
-            ),
-            Text(
-              'إجراءات عامة',
-              style: TextStyle(
-                fontSize: 18.sp,
-                fontWeight: ThemeConstants.bold,
-                color: context.textPrimaryColor,
-              ),
-            ),
-            SizedBox(height: 20.h),
-            _buildActionTile(
-              icon: Icons.font_download_rounded,
-              title: 'تعيين خط عام',
-              subtitle: 'تطبيق خط واحد على جميع الأنواع',
-              color: ThemeConstants.primary,
-              onTap: () {
-                Navigator.pop(context);
-                _showGlobalFontDialog();
-              },
-            ),
-            SizedBox(height: 12.h),
-            _buildActionTile(
-              icon: Icons.palette_rounded,
-              title: 'تطبيق قالب على الكل',
-              subtitle: 'تطبيق قالب جاهز على جميع الأنواع',
-              color: ThemeConstants.accent,
-              onTap: () {
-                Navigator.pop(context);
-                _showGlobalPresetDialog();
-              },
-            ),
-            SizedBox(height: 12.h),
-            Divider(height: 24.h),
-            _buildActionTile(
-              icon: Icons.restore_rounded,
-              title: 'إعادة تعيين الكل',
-              subtitle: 'إعادة جميع الإعدادات للافتراضي',
-              color: ThemeConstants.warning,
-              onTap: () {
-                Navigator.pop(context);
-                _showGlobalResetDialog();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  /// بناء عنصر إجراء
-  Widget _buildActionTile({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12.r),
-        child: Container(
-          padding: EdgeInsets.all(14.r),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(
-              color: color.withOpacity(0.15),
-              width: 1.w,
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(10.r),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                child: Icon(icon, color: color, size: 24.sp),
-              ),
-              SizedBox(width: 14.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: ThemeConstants.bold,
-                        color: context.textPrimaryColor,
-                      ),
-                    ),
-                    SizedBox(height: 2.h),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: context.textSecondaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 16.sp,
-                color: context.textSecondaryColor,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// عرض dialog اختيار خط عام
-  void _showGlobalFontDialog() {
-    // TODO: تنفيذ لاحقاً
-  }
-
-  /// عرض dialog اختيار قالب عام
-  void _showGlobalPresetDialog() {
-    // TODO: تنفيذ لاحقاً
-  }
-
-  /// عرض dialog إعادة تعيين عام
-  void _showGlobalResetDialog() {
-    // TODO: تنفيذ لاحقاً
-  }
 
   /// إزالة التشكيل من النص
   String _removeTashkeel(String text) {
