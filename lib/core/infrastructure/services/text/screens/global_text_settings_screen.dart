@@ -279,10 +279,6 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
         return Icons.volunteer_activism_rounded;
       case ContentType.asmaAllah:
         return Icons.star_rounded;
-      case ContentType.quran:
-        return Icons.auto_stories_rounded;
-      case ContentType.hadith:
-        return Icons.format_quote_rounded;
     }
   }
 

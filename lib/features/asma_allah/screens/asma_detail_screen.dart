@@ -1,7 +1,9 @@
-// lib/features/asma_allah/screens/asma_detail_screen.dart - محسن للشاشات الصغيرة
+// lib/features/asma_allah/screens/asma_detail_screen.dart
 import 'dart:ui';
 import 'package:athkar_app/app/themes/app_theme.dart';
 import 'package:athkar_app/core/infrastructure/services/share/share_extensions.dart';
+import 'package:athkar_app/core/infrastructure/services/text/extensions/text_settings_extensions.dart';
+import 'package:athkar_app/core/infrastructure/services/text/models/text_settings_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -31,6 +33,10 @@ class _UnifiedAsmaAllahDetailsScreenState
   late AsmaAllahModel _currentItem;
   late PageController _pageController;
   late int _currentIndex;
+  
+  // إعدادات النص الموحدة
+  TextSettings? _textSettings;
+  DisplaySettings? _displaySettings;
 
   @override
   void initState() {
@@ -42,6 +48,13 @@ class _UnifiedAsmaAllahDetailsScreenState
     _currentItem = list[_currentIndex];
 
     _pageController = PageController(initialPage: _currentIndex);
+    _loadTextSettings();
+  }
+  
+  Future<void> _loadTextSettings() async {
+    _textSettings = await context.getTextSettings(ContentType.asmaAllah);
+    _displaySettings = await context.getDisplaySettings(ContentType.asmaAllah);
+    if (mounted) setState(() {});
   }
 
   @override
@@ -153,6 +166,17 @@ class _UnifiedAsmaAllahDetailsScreenState
           ),
           
           _buildActionButton(
+            icon: Icons.text_fields_rounded,
+            onTap: () async {
+              await context.showGlobalTextSettings(
+                initialContentType: ContentType.asmaAllah,
+              );
+              await _loadTextSettings();
+            },
+            isPrimary: true,
+          ),
+          
+          _buildActionButton(
             icon: Icons.copy_rounded,
             onTap: () => _copyContent(_currentItem),
           ),
@@ -171,6 +195,7 @@ class _UnifiedAsmaAllahDetailsScreenState
     required IconData icon,
     required VoidCallback onTap,
     bool isSecondary = false,
+    bool isPrimary = false,
   }) {
     return Container(
       margin: EdgeInsets.only(left: 6.w),
@@ -199,7 +224,11 @@ class _UnifiedAsmaAllahDetailsScreenState
             ),
             child: Icon(
               icon,
-              color: isSecondary ? context.textSecondaryColor : _currentItem.getColor(),
+              color: isPrimary 
+                  ? ThemeConstants.tertiary 
+                  : isSecondary 
+                      ? context.textSecondaryColor 
+                      : _currentItem.getColor(),
               size: 20.sp,
             ),
           ),
@@ -228,6 +257,7 @@ class _UnifiedAsmaAllahDetailsScreenState
 
   Widget _buildMainNameCard(AsmaAllahModel item) {
     final color = item.getColor();
+    final showTashkeel = _displaySettings?.showTashkeel ?? true;
     
     return Container(
       width: double.infinity,
@@ -248,29 +278,25 @@ class _UnifiedAsmaAllahDetailsScreenState
         ],
       ),
       child: Center(
-        child: Text(
-          item.name,
-          style: context.displayMedium?.copyWith(
-            color: Colors.white,
-            fontWeight: ThemeConstants.bold,
-            fontFamily: ThemeConstants.fontFamilyArabic,
-            height: 1.h,
-            fontSize: 32.sp,
-            shadows: [
-              Shadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                offset: Offset(0, 2.h),
-                blurRadius: 4.r,
-              ),
-            ],
-          ),
+        child: AdaptiveText(
+          showTashkeel ? item.name : item.name.removeTashkeel(),
+          contentType: ContentType.asmaAllah,
+          color: Colors.white,
+          fontWeight: ThemeConstants.bold,
           textAlign: TextAlign.center,
+          applyDisplaySettings: false,
         ),
       ),
     );
   }
 
   Widget _buildEnhancedExplanationCard(AsmaAllahModel item) {
+    final textStyle = _textSettings?.toTextStyle() ?? TextStyle(
+      fontSize: 15.sp,
+      height: 2.0,
+      letterSpacing: 0.3,
+    );
+    
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(16.w),
@@ -333,20 +359,23 @@ class _UnifiedAsmaAllahDetailsScreenState
           
           SizedBox(height: 12.h),
           
-          _buildFormattedExplanationText(item),
+          _buildFormattedExplanationText(item, textStyle),
         ],
       ),
     );
   }
 
-  Widget _buildFormattedExplanationText(AsmaAllahModel item) {
+  Widget _buildFormattedExplanationText(AsmaAllahModel item, TextStyle baseStyle) {
+    final showTashkeel = _displaySettings?.showTashkeel ?? true;
+    final text = showTashkeel ? item.explanation : item.explanation.removeTashkeel();
+    
     return RichText(
       textAlign: TextAlign.justify,
-      text: _buildFormattedTextSpan(item.explanation, context, item.getColor()),
+      text: _buildFormattedTextSpan(text, context, item.getColor(), baseStyle),
     );
   }
 
-  TextSpan _buildFormattedTextSpan(String text, BuildContext context, Color itemColor) {
+  TextSpan _buildFormattedTextSpan(String text, BuildContext context, Color itemColor, TextStyle baseStyle) {
     final List<TextSpan> spans = [];
     
     final RegExp ayahPattern = RegExp(r'﴿([^﴾]+)﴾');
@@ -356,23 +385,19 @@ class _UnifiedAsmaAllahDetailsScreenState
       if (match.start > lastIndex) {
         spans.add(TextSpan(
           text: text.substring(lastIndex, match.start),
-          style: context.bodyLarge?.copyWith(
-            height: 2.0.sp,
-            fontSize: 15.sp,
+          style: baseStyle.copyWith(
             color: context.textPrimaryColor,
-            letterSpacing: 0.3,
           ),
         ));
       }
       
       spans.add(TextSpan(
         text: match.group(0),
-        style: context.titleMedium?.copyWith(
+        style: baseStyle.copyWith(
           color: ThemeConstants.tertiary,
           fontFamily: ThemeConstants.fontFamilyQuran,
-          fontSize: 16.sp,
+          fontSize: (baseStyle.fontSize ?? 16).sp + 1,
           fontWeight: ThemeConstants.medium,
-          height: 1.8,
           backgroundColor: ThemeConstants.tertiary.withValues(alpha: 0.08),
         ),
       ));
@@ -383,11 +408,8 @@ class _UnifiedAsmaAllahDetailsScreenState
     if (lastIndex < text.length) {
       spans.add(TextSpan(
         text: text.substring(lastIndex),
-        style: context.bodyLarge?.copyWith(
-          height: 2.0,
-          fontSize: 15.sp,
+        style: baseStyle.copyWith(
           color: context.textPrimaryColor,
-          letterSpacing: 0.3,
         ),
       ));
     }
@@ -395,11 +417,8 @@ class _UnifiedAsmaAllahDetailsScreenState
     if (spans.isEmpty) {
       spans.add(TextSpan(
         text: text,
-        style: context.bodyLarge?.copyWith(
-          height: 2.0,
-          fontSize: 15.sp,
+        style: baseStyle.copyWith(
           color: context.textPrimaryColor,
-          letterSpacing: 0.3,
         ),
       ));
     }
@@ -532,13 +551,13 @@ class _UnifiedAsmaAllahDetailsScreenState
     }
   }
 
-void _copyContent(AsmaAllahModel item) {
-  context.copyAsmaAllah(
-    item.name,
-    item.explanation,
-    meaning: item.meaning,
-  );
-}
+  void _copyContent(AsmaAllahModel item) {
+    context.copyAsmaAllah(
+      item.name,
+      item.explanation,
+      meaning: item.meaning,
+    );
+  }
 
   void _shareContent(AsmaAllahModel item) {
     context.shareAsmaAllah(

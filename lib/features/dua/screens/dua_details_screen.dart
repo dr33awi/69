@@ -1,6 +1,8 @@
 // lib/features/dua/screens/dua_details_screen.dart
 
 import 'package:athkar_app/core/infrastructure/services/share/share_extensions.dart';
+import 'package:athkar_app/core/infrastructure/services/text/extensions/text_settings_extensions.dart';
+import 'package:athkar_app/core/infrastructure/services/text/models/text_settings_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -31,7 +33,9 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
   List<DuaItem> _categoryDuas = [];
   int _currentIndex = 0;
   
-  double _fontSize = 20.0;
+  // إعدادات النص الموحدة
+  TextSettings? _textSettings;
+  DisplaySettings? _displaySettings;
 
   @override
   void initState() {
@@ -53,12 +57,19 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
     if (_currentIndex < 0) _currentIndex = 0;
     
     _pageController = PageController(initialPage: _currentIndex);
-    _fontSize = await _service.getSavedFontSize();
+    
+    // تحميل الإعدادات الموحدة للدعاء
+    await _loadTextSettings();
     
     await _service.markAsRead(_currentDua.id);
     await _service.saveLastViewed(_currentDua.id, widget.category.id);
     
     if (mounted) setState(() {});
+  }
+
+  Future<void> _loadTextSettings() async {
+    _textSettings = await context.getTextSettings(ContentType.dua);
+    _displaySettings = await context.getDisplaySettings(ContentType.dua);
   }
 
   Future<void> _toggleFavorite() async {
@@ -76,17 +87,17 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
     );
   }
 
-void _copyDua() {
-  context.copyDua(
-    _currentDua.title,
-    _currentDua.arabicText,
-    transliteration: _currentDua.transliteration,
-    translation: _currentDua.translation,
-    virtue: _currentDua.virtue,
-    source: _currentDua.source,
-    reference: _currentDua.reference,
-  );
-}
+  void _copyDua() {
+    context.copyDua(
+      _currentDua.title,
+      _currentDua.arabicText,
+      transliteration: _currentDua.transliteration,
+      translation: _currentDua.translation,
+      virtue: _currentDua.virtue,
+      source: _currentDua.source,
+      reference: _currentDua.reference,
+    );
+  }
 
   void _shareDua() {
     context.shareDua(
@@ -231,7 +242,7 @@ void _copyDua() {
                 case 'favorite': _toggleFavorite(); break;
                 case 'copy': _copyDua(); break;
                 case 'share': _shareDua(); break;
-                case 'font': _showFontSizeDialog(); break;
+                case 'font': _showTextSettingsDialog(); break;
               }
             },
             itemBuilder: (context) => [
@@ -277,7 +288,7 @@ void _copyDua() {
                   children: [
                     Icon(Icons.text_fields_rounded, size: 20.sp),
                     SizedBox(width: 8.w),
-                    const Text('حجم الخط'),
+                    const Text('إعدادات النص'),
                   ],
                 ),
               ),
@@ -289,6 +300,13 @@ void _copyDua() {
   }
 
   Widget _buildContentPage(DuaItem dua, Color categoryColor) {
+    final showTashkeel = _displaySettings?.showTashkeel ?? true;
+    final textStyle = _textSettings?.toTextStyle() ?? TextStyle(
+      fontSize: 20.sp,
+      fontFamily: ThemeConstants.fontFamilyArabic,
+      height: 2.2,
+    );
+    
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
       physics: const BouncingScrollPhysics(),
@@ -313,23 +331,20 @@ void _copyDua() {
                 width: 1.5.w,
               ),
             ),
-            child: Text(
-              dua.arabicText,
-              style: TextStyle(
-                fontSize: _fontSize.sp,
-                fontFamily: ThemeConstants.fontFamilyArabic,
-                height: 2.2,
-                color: context.textPrimaryColor,
-                fontWeight: ThemeConstants.medium,
-              ),
+            child: AdaptiveText(
+              showTashkeel ? dua.arabicText : dua.arabicText.removeTashkeel(),
+              contentType: ContentType.dua,
+              color: context.textPrimaryColor,
+              fontWeight: ThemeConstants.medium,
               textAlign: TextAlign.center,
+              applyDisplaySettings: false, // نطبق الإعدادات يدوياً
             ),
           ),
           
           SizedBox(height: 24.h),
           
           // النطق اللاتيني
-          if (dua.transliteration != null) ...[
+          if ((_displaySettings?.showTransliteration ?? false) && dua.transliteration != null) ...[
             _buildSectionTitle(
               'النطق اللاتيني',
               Icons.translate_rounded,
@@ -339,7 +354,7 @@ void _copyDua() {
             Text(
               dua.transliteration!,
               style: TextStyle(
-                fontSize: (_fontSize - 3).sp,
+                fontSize: ((_textSettings?.fontSize ?? 20) - 3).sp,
                 color: context.textPrimaryColor.withOpacity(0.9),
                 height: 2.0,
                 fontStyle: FontStyle.italic,
@@ -352,7 +367,7 @@ void _copyDua() {
           ],
           
           // الترجمة/المعنى
-          if (dua.translation != null) ...[
+          if ((_displaySettings?.showTranslation ?? false) && dua.translation != null) ...[
             _buildSectionTitle(
               'المعنى',
               Icons.description_outlined,
@@ -362,7 +377,7 @@ void _copyDua() {
             Text(
               dua.translation!,
               style: TextStyle(
-                fontSize: (_fontSize - 3).sp,
+                fontSize: ((_textSettings?.fontSize ?? 20) - 3).sp,
                 color: context.textPrimaryColor,
                 height: 2.0,
                 letterSpacing: 0.3,
@@ -373,7 +388,7 @@ void _copyDua() {
           ],
           
           // الفضيلة
-          if (dua.virtue != null) ...[
+          if ((_displaySettings?.showFadl ?? true) && dua.virtue != null) ...[
             _buildSectionTitle(
               'الفضيلة',
               Icons.star_rounded,
@@ -393,7 +408,7 @@ void _copyDua() {
               child: Text(
                 dua.virtue!,
                 style: TextStyle(
-                  fontSize: (_fontSize - 4).sp,
+                  fontSize: ((_textSettings?.fontSize ?? 20) - 4).sp,
                   color: context.textPrimaryColor,
                   height: 1.9,
                   letterSpacing: 0.3,
@@ -405,32 +420,34 @@ void _copyDua() {
           ],
           
           // المصدر
-          _buildSectionTitle(
-            'المصدر',
-            Icons.menu_book_rounded,
-            context.textSecondaryColor,
-          ),
-          SizedBox(height: 12.h),
-          Container(
-            padding: EdgeInsets.all(14.w),
-            decoration: BoxDecoration(
-              color: context.cardColor,
-              borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(
-                color: context.dividerColor.withOpacity(0.3),
-                width: 1.w,
+          if (_displaySettings?.showSource ?? true) ...[
+            _buildSectionTitle(
+              'المصدر',
+              Icons.menu_book_rounded,
+              context.textSecondaryColor,
+            ),
+            SizedBox(height: 12.h),
+            Container(
+              padding: EdgeInsets.all(14.w),
+              decoration: BoxDecoration(
+                color: context.cardColor,
+                borderRadius: BorderRadius.circular(12.r),
+                border: Border.all(
+                  color: context.dividerColor.withOpacity(0.3),
+                  width: 1.w,
+                ),
+              ),
+              child: Text(
+                '${dua.source} - ${dua.reference}',
+                style: TextStyle(
+                  color: context.textPrimaryColor,
+                  fontWeight: ThemeConstants.medium,
+                  fontSize: 14.sp,
+                  height: 1.5,
+                ),
               ),
             ),
-            child: Text(
-              '${dua.source} - ${dua.reference}',
-              style: TextStyle(
-                color: context.textPrimaryColor,
-                fontWeight: ThemeConstants.medium,
-                fontSize: 14.sp,
-                height: 1.5,
-              ),
-            ),
-          ),
+          ],
           
           SizedBox(height: 32.h),
         ],
@@ -562,36 +579,13 @@ void _copyDua() {
     );
   }
 
-  void _showFontSizeDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-        title: const Text('حجم الخط'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildFontSizeOption('صغير', 16.0),
-            _buildFontSizeOption('متوسط', 20.0),
-            _buildFontSizeOption('كبير', 24.0),
-            _buildFontSizeOption('كبير جداً', 28.0),
-          ],
-        ),
-      ),
+  void _showTextSettingsDialog() async {
+    await context.showGlobalTextSettings(
+      initialContentType: ContentType.dua,
     );
-  }
-
-  Widget _buildFontSizeOption(String label, double size) {
-    final isSelected = _fontSize == size;
-    return ListTile(
-      title: Text(label, style: TextStyle(fontSize: size.sp, fontWeight: isSelected ? ThemeConstants.semiBold : null)),
-      trailing: isSelected ? Icon(Icons.check_circle, color: ThemeConstants.tertiary) : null,
-      onTap: () async {
-        setState(() => _fontSize = size);
-        await _service.saveFontSize(size);
-        Navigator.pop(context);
-      },
-    );
+    // إعادة تحميل الإعدادات عند العودة
+    await _loadTextSettings();
+    setState(() {});
   }
 
   Color _getCategoryColor(String categoryId) {

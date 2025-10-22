@@ -1,7 +1,8 @@
 // lib/features/athkar/screens/athkar_details_screen.dart
 import 'package:athkar_app/core/infrastructure/services/share/share_extensions.dart';
+import 'package:athkar_app/core/infrastructure/services/text/extensions/text_settings_extensions.dart';
+import 'package:athkar_app/core/infrastructure/services/text/models/text_settings_models.dart';
 import 'package:athkar_app/features/athkar/utils/athkar_extensions.dart';
-import 'package:athkar_app/features/athkar/screens/text_settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -39,16 +40,9 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
   bool _allCompleted = false;
   bool _wasCompletedOnLoad = false;
   
-  // إعدادات النص
-  double _fontSize = 18.0;
-  String _fontFamily = 'Cairo';
-  double _lineHeight = 1.8;
-  double _letterSpacing = 0.3;
-  bool _showTashkeel = true;
-  bool _showFadl = true;
-  bool _showSource = true;
-  bool _showCounter = true;
-  bool _enableVibration = true;
+  // إعدادات النص الموحدة
+  TextSettings? _textSettings;
+  DisplaySettings? _displaySettings;
 
   @override
   void initState() {
@@ -73,7 +67,7 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
       
       final savedProgress = _loadSavedProgress();
       
-      // تحميل جميع إعدادات النص
+      // تحميل الإعدادات الموحدة للأذكار
       await _loadTextSettings();
       
       bool wasAlreadyCompleted = false;
@@ -121,16 +115,9 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
   }
 
   Future<void> _loadTextSettings() async {
-    // تحميل جميع إعدادات النص من التخزين
-    _fontSize = await _service.getSavedFontSize();
-    _fontFamily = _storage.getString('athkar_font_family') ?? 'Cairo';
-    _lineHeight = _storage.getDouble('athkar_line_height') ?? 1.8;
-    _letterSpacing = _storage.getDouble('athkar_letter_spacing') ?? 0.3;
-    _showTashkeel = _storage.getBool('athkar_show_tashkeel') ?? true;
-    _showFadl = _storage.getBool('athkar_show_fadl') ?? true;
-    _showSource = _storage.getBool('athkar_show_source') ?? true;
-    _showCounter = _storage.getBool('athkar_show_counter') ?? true;
-    _enableVibration = _storage.getBool('athkar_enable_vibration') ?? true;
+    // تحميل الإعدادات الموحدة من TextSettingsService
+    _textSettings = await context.getTextSettings(ContentType.athkar);
+    _displaySettings = await context.getDisplaySettings(ContentType.athkar);
   }
 
   void _updateVisibleItems() {
@@ -173,7 +160,7 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
   }
 
   void _onItemTap(AthkarItem item) {
-    if (_enableVibration) {
+    if (_displaySettings?.enableVibration ?? true) {
       HapticFeedback.lightImpact();
     }
     
@@ -184,7 +171,7 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
         
         if (_counts[item.id]! >= item.count) {
           _completedItems.add(item.id);
-          if (_enableVibration) {
+          if (_displaySettings?.enableVibration ?? true) {
             HapticFeedback.mediumImpact();
           }
           _updateVisibleItems();
@@ -197,7 +184,7 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
   }
 
   void _onItemLongPress(AthkarItem item) {
-    if (_enableVibration) {
+    if (_displaySettings?.enableVibration ?? true) {
       HapticFeedback.mediumImpact();
     }
     
@@ -248,103 +235,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
       fadl: item.fadl,
       source: item.source,
       categoryTitle: _category!.title,
-    );
-  }
-
-  void _showFontSizeDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
-        ),
-        contentPadding: EdgeInsets.all(16.r),
-        title: Row(
-          children: [
-            Icon(
-              Icons.text_fields_rounded,
-              color: ThemeConstants.primary,
-              size: 20.sp,
-            ),
-            SizedBox(width: 6.w),
-            Text('حجم الخط', style: TextStyle(fontSize: 16.sp)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildFontSizeOption('صغير', 16.0),
-            _buildFontSizeOption('متوسط', 18.0),
-            _buildFontSizeOption('كبير', 22.0),
-            _buildFontSizeOption('كبير جداً', 26.0),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFontSizeOption(String label, double size) {
-    final isSelected = _fontSize == size;
-    
-    return Container(
-      margin: EdgeInsets.only(bottom: 6.h),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(10.r),
-        child: InkWell(
-          onTap: () async {
-            HapticFeedback.lightImpact();
-            setState(() => _fontSize = size);
-            
-            await _service.saveFontSize(size);
-            
-            if (mounted) Navigator.pop(context);
-          },
-          borderRadius: BorderRadius.circular(10.r),
-          child: Container(
-            padding: EdgeInsets.all(12.r),
-            decoration: BoxDecoration(
-              color: isSelected 
-                  ? ThemeConstants.primary.withOpacity(0.1)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(10.r),
-              border: Border.all(
-                color: isSelected 
-                    ? ThemeConstants.primary.withOpacity(0.3)
-                    : context.dividerColor.withOpacity(0.2),
-                width: 1.w,
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                  color: isSelected ? ThemeConstants.primary : context.textSecondaryColor,
-                  size: 18.sp,
-                ),
-                SizedBox(width: 10.w),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: size.sp,
-                      fontWeight: isSelected ? ThemeConstants.semiBold : ThemeConstants.regular,
-                      color: isSelected ? ThemeConstants.primary : context.textPrimaryColor,
-                    ),
-                  ),
-                ),
-                Text(
-                  '${size.toInt()}px',
-                  style: TextStyle(
-                    color: context.textSecondaryColor,
-                    fontSize: 10.sp,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -480,28 +370,24 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
           ),
           
           if (category != null) ...[
-            // زر إعدادات النص الشاملة
+            // زر إعدادات النص الموحدة
             Container(
               margin: EdgeInsets.only(left: 6.w),
               child: Material(
                 color: Colors.transparent,
                 borderRadius: BorderRadius.circular(10.r),
                 child: InkWell(
-                  onTap: () {
-                    if (_enableVibration) {
+                  onTap: () async {
+                    if (_displaySettings?.enableVibration ?? true) {
                       HapticFeedback.lightImpact();
                     }
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AthkarTextSettingsScreen(),
-                      ),
-                    ).then((value) {
-                      // إعادة تحميل جميع الإعدادات عند العودة
-                      _loadTextSettings().then((_) {
-                        setState(() {});
-                      });
-                    });
+                    // فتح شاشة الإعدادات الموحدة مع التركيز على الأذكار
+                    await context.showGlobalTextSettings(
+                      initialContentType: ContentType.athkar,
+                    );
+                    // إعادة تحميل الإعدادات عند العودة
+                    await _loadTextSettings();
+                    setState(() {});
                   },
                   borderRadius: BorderRadius.circular(10.r),
                   child: Container(
@@ -683,14 +569,8 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
               isCompleted: isCompleted,
               number: number,
               color: CategoryUtils.getCategoryThemeColor(category.id),
-              fontSize: _fontSize,
-              fontFamily: _fontFamily,
-              lineHeight: _lineHeight,
-              letterSpacing: _letterSpacing,
-              showTashkeel: _showTashkeel,
-              showFadl: _showFadl,
-              showSource: _showSource,
-              showCounter: _showCounter,
+              textSettings: _textSettings,
+              displaySettings: _displaySettings,
               onTap: () => _onItemTap(item),
               onLongPress: () => _onItemLongPress(item),
               onShare: () => _shareItem(item),

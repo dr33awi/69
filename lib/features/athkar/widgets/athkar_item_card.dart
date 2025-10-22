@@ -1,4 +1,5 @@
 // lib/features/athkar/widgets/athkar_item_card.dart
+import 'package:athkar_app/core/infrastructure/services/text/models/text_settings_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -12,14 +13,8 @@ class AthkarItemCard extends StatelessWidget {
   final bool isCompleted;
   final int number;
   final Color? color;
-  final double fontSize;
-  final String fontFamily;
-  final double lineHeight;
-  final double letterSpacing;
-  final bool showTashkeel;
-  final bool showFadl;
-  final bool showSource;
-  final bool showCounter;
+  final TextSettings? textSettings;
+  final DisplaySettings? displaySettings;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
   final VoidCallback? onShare;
@@ -31,21 +26,14 @@ class AthkarItemCard extends StatelessWidget {
     required this.isCompleted,
     required this.number,
     this.color,
-    required this.fontSize,
-    this.fontFamily = 'Cairo',
-    this.lineHeight = 1.8,
-    this.letterSpacing = 0.3,
-    this.showTashkeel = true,
-    this.showFadl = true,
-    this.showSource = true,
-    this.showCounter = true,
+    this.textSettings,
+    this.displaySettings,
     required this.onTap,
     required this.onLongPress,
     this.onShare,
   });
 
   String _removeTashkeel(String text) {
-    // إزالة التشكيل من النص
     final tashkeelRegex = RegExp(r'[\u0617-\u061A\u064B-\u0652]');
     return text.replaceAll(tashkeelRegex, '');
   }
@@ -53,6 +41,10 @@ class AthkarItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectiveColor = color ?? ThemeConstants.primary;
+    final showTashkeel = displaySettings?.showTashkeel ?? true;
+    final showFadl = displaySettings?.showFadl ?? true;
+    final showSource = displaySettings?.showSource ?? true;
+    final showCounter = displaySettings?.showCounter ?? true;
     
     return InkWell(
       onTap: onTap,
@@ -142,17 +134,21 @@ class AthkarItemCard extends StatelessWidget {
                               ),
                               child: Text(
                                 showTashkeel ? item.text : _removeTashkeel(item.text),
-                                style: TextStyle(
-                                  fontSize: fontSize.sp,
-                                  height: lineHeight,
-                                  fontFamily: fontFamily,
+                                style: textSettings?.toTextStyle(
+                                  color: isCompleted 
+                                      ? effectiveColor.darken(0.2)
+                                      : context.textPrimaryColor,
+                                ) ?? TextStyle(
+                                  fontSize: 18.sp,
+                                  height: 1.8,
+                                  fontFamily: 'Cairo',
                                   color: isCompleted 
                                       ? effectiveColor.darken(0.2)
                                       : context.textPrimaryColor,
                                   fontWeight: isCompleted 
                                       ? ThemeConstants.medium 
                                       : ThemeConstants.regular,
-                                  letterSpacing: letterSpacing,
+                                  letterSpacing: 0.3,
                                 ),
                                 textAlign: TextAlign.center,
                                 textDirection: TextDirection.rtl,
@@ -205,7 +201,7 @@ class AthkarItemCard extends StatelessWidget {
                                             style: TextStyle(
                                               color: context.textSecondaryColor,
                                               height: 1.4,
-                                              fontSize: (fontSize * 0.75).sp.clamp(11.sp, 18.sp),
+                                              fontSize: ((textSettings?.fontSize ?? 18) * 0.75).sp.clamp(11.sp, 18.sp),
                                             ),
                                           ),
                                         ],
@@ -273,7 +269,6 @@ class AthkarItemCard extends StatelessWidget {
                         if (onShare != null) SizedBox(width: 10.w),
                       ],
                       
-                      // زر المشاركة
                       if (onShare != null) ...[
                         _ActionButton(
                           icon: Icons.share_rounded,

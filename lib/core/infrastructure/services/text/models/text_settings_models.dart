@@ -5,9 +5,7 @@ import 'package:flutter/material.dart';
 enum ContentType {
   athkar('athkar', 'أذكار'),
   dua('dua', 'دعاء'),
-  asmaAllah('asma_allah', 'أسماء الله'),
-  quran('quran', 'قرآن'),
-  hadith('hadith', 'حديث');
+  asmaAllah('asma_allah', 'أسماء الله');
 
   const ContentType(this.key, this.displayName);
   final String key;

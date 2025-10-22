@@ -44,16 +44,12 @@ class TextSettingsConstants {
   static const Map<String, String> availableFonts = {
     'Cairo': 'القاهرة',
     'Amiri': 'أميري',
-    'AmiriQuran': 'أميري قرآن',
     'Scheherazade': 'شهرزاد',
     'Lateef': 'لطيف',
   };
   
   /// الخط الافتراضي
   static const String defaultFontFamily = 'Cairo';
-  
-  /// خط القرآن المفضل
-  static const String quranFontFamily = 'Amiri';
   
   // ==================== الإعدادات الافتراضية حسب نوع المحتوى ====================
   
@@ -99,34 +95,6 @@ class TextSettingsConstants {
     contentType: ContentType.asmaAllah,
   );
   
-  /// إعدادات القرآن الافتراضية
-  static const TextSettings defaultQuranSettings = TextSettings(
-    fontSize: 24.0,
-    fontFamily: 'Amiri',
-    lineHeight: 2.2,
-    letterSpacing: 0.6,
-    showTashkeel: true,
-    showFadl: false,
-    showSource: true,
-    showCounter: false,
-    enableVibration: true,
-    contentType: ContentType.quran,
-  );
-  
-  /// إعدادات الحديث الافتراضية
-  static const TextSettings defaultHadithSettings = TextSettings(
-    fontSize: 19.0,
-    fontFamily: 'Cairo',
-    lineHeight: 1.9,
-    letterSpacing: 0.4,
-    showTashkeel: true,
-    showFadl: true,
-    showSource: true,
-    showCounter: false,
-    enableVibration: true,
-    contentType: ContentType.hadith,
-  );
-  
   // ==================== خريطة الإعدادات الافتراضية ====================
   
   /// الحصول على الإعدادات الافتراضية لنوع محتوى معين
@@ -138,10 +106,6 @@ class TextSettingsConstants {
         return defaultDuaSettings;
       case ContentType.asmaAllah:
         return defaultAsmaAllahSettings;
-      case ContentType.quran:
-        return defaultQuranSettings;
-      case ContentType.hadith:
-        return defaultHadithSettings;
     }
   }
   
@@ -240,10 +204,6 @@ class TextSettingsConstants {
         return duaPresets;
       case ContentType.asmaAllah:
         return asmaAllahPresets;
-      case ContentType.quran:
-        return duaPresets; // استخدام نفس إعدادات الدعاء للقرآن
-      case ContentType.hadith:
-        return athkarPresets; // استخدام نفس إعدادات الأذكار للحديث
     }
   }
   
@@ -285,12 +245,9 @@ class TextSettingsConstants {
   /// الحصول على الخط المناسب لنوع المحتوى
   static String getRecommendedFontFamily(ContentType contentType) {
     switch (contentType) {
-      case ContentType.quran:
-        return quranFontFamily;
       case ContentType.athkar:
       case ContentType.dua:
       case ContentType.asmaAllah:
-      case ContentType.hadith:
         return defaultFontFamily;
     }
   }

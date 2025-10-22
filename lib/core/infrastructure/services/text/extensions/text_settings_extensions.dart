@@ -1,6 +1,5 @@
-// lib\core\infrastructure\services\text\extensions\text_settings_extensions.dart
+// lib/core/infrastructure/services/text/extensions/text_settings_extensions.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../../../../app/di/service_locator.dart';
 import '../text_settings_service.dart';
 import '../models/text_settings_models.dart';
@@ -89,20 +88,6 @@ extension TextSettingsContextExtensions on BuildContext {
     );
   }
   
-  /// الحصول على TextStyle للقرآن
-  Future<TextStyle> getQuranTextStyle({
-    Color? color,
-    FontWeight? fontWeight,
-    double? fontSize,
-  }) async {
-    return await getContentTextStyle(
-      ContentType.quran,
-      color: color,
-      fontWeight: fontWeight,
-      fontSize: fontSize,
-    );
-  }
-  
   // ==================== تحديث سريع للإعدادات ====================
   
   /// تحديث حجم الخط لنوع محتوى معين
@@ -184,54 +169,9 @@ extension TextSettingsContextExtensions on BuildContext {
       builder: (context) => QuickTextSettingsSheet(contentType: contentType),
     );
   }
-  
-  // ==================== Share and Copy helpers ====================
-  
-  /// نسخ ذكر مع التفاصيل
-  Future<void> copyAthkar(
-    String text, {
-    String? fadl,
-    String? source,
-    String? categoryTitle,
-  }) async {
-    final formattedText = text.formatForSharing(
-      source: source,
-      fadl: fadl,
-      categoryTitle: categoryTitle,
-    );
-    
-    await Clipboard.setData(ClipboardData(text: formattedText));
-    
-    if (mounted) {
-      ScaffoldMessenger.of(this).showSnackBar(
-        SnackBar(
-          content: const Text('تم نسخ الذكر بنجاح'),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
-  }
-  
-  /// مشاركة ذكر مع التفاصيل
-  Future<void> shareAthkar(
-    String text, {
-    String? fadl,
-    String? source,
-    String? categoryTitle,
-  }) async {
-    final formattedText = text.formatForSharing(
-      source: source,
-      fadl: fadl,
-      categoryTitle: categoryTitle,
-    );
-    
-    // استخدام Share plugin هنا (سيحتاج إلى تنفيذ لاحقاً)
-    debugPrint('Share: $formattedText');
-  }
 }
 
-/// Extensions للنصوص مع إزالة التشكيل
+/// Extensions للنصوص مع إزالة التشكيل والمعالجة
 extension TextProcessingExtensions on String {
   
   /// إزالة التشكيل من النص العربي
@@ -250,48 +190,6 @@ extension TextProcessingExtensions on String {
     }
     
     return processedText;
-  }
-  
-  /// تنسيق النص للمشاركة أو النسخ
-  String formatForSharing({
-    String? source,
-    String? fadl,
-    String? categoryTitle,
-    bool includeAppInfo = true,
-  }) {
-    final buffer = StringBuffer();
-    
-    // إضافة عنوان الفئة إذا كان متوفراً
-    if (categoryTitle != null) {
-      buffer.writeln('📿 $categoryTitle');
-      buffer.writeln();
-    }
-    
-    // إضافة النص الأساسي
-    buffer.writeln(this);
-    
-    // إضافة الفضيلة إذا كانت متوفرة
-    if (fadl != null && fadl.isNotEmpty) {
-      buffer.writeln();
-      buffer.writeln('✨ الفضيلة:');
-      buffer.writeln(fadl);
-    }
-    
-    // إضافة المصدر إذا كان متوفراً
-    if (source != null && source.isNotEmpty) {
-      buffer.writeln();
-      buffer.writeln('📚 المصدر: $source');
-    }
-    
-    // إضافة معلومات التطبيق
-    if (includeAppInfo) {
-      buffer.writeln();
-      buffer.writeln('━━━━━━━━━━━━━');
-      buffer.writeln('🌙 تطبيق ذكرني');
-      buffer.writeln('للأذكار والأدعية الصحيحة');
-    }
-    
-    return buffer.toString();
   }
 }
 
@@ -376,9 +274,7 @@ class AdaptiveText extends StatelessWidget {
   }
 }
 
-// تم نقل GlobalTextSettingsScreen إلى ملف منفصل
-// import '../screens/global_text_settings_screen.dart';
-
+/// Dialog لاختيار القوالب الجاهزة
 class TextPresetDialog extends StatelessWidget {
   final ContentType contentType;
   
@@ -403,6 +299,7 @@ class TextPresetDialog extends StatelessWidget {
   }
 }
 
+/// Bottom Sheet للإعدادات السريعة
 class QuickTextSettingsSheet extends StatelessWidget {
   final ContentType contentType;
   
