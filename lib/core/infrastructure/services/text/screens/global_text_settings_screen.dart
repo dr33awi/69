@@ -21,10 +21,8 @@ class GlobalTextSettingsScreen extends StatefulWidget {
   State<GlobalTextSettingsScreen> createState() => _GlobalTextSettingsScreenState();
 }
 
-class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
-    with TickerProviderStateMixin {
+class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
   late final TextSettingsService _textService;
-  late TabController _tabController;
   
   // الإعدادات الحالية لكل نوع محتوى
   final Map<ContentType, TextSettings> _currentSettings = {};
@@ -34,6 +32,9 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
   bool _isLoading = true;
   bool _isSaving = false;
   
+  // نوع المحتوى المختار حالياً
+  ContentType _selectedContentType = ContentType.athkar;
+  
   // معاينة النص
   final String _previewText = 'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ • الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ';
   
@@ -41,18 +42,8 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
   void initState() {
     super.initState();
     _textService = getIt<TextSettingsService>();
-    _tabController = TabController(
-      length: ContentType.values.length,
-      vsync: this,
-      initialIndex: widget.initialContentType?.index ?? 0,
-    );
+    _selectedContentType = widget.initialContentType ?? ContentType.athkar;
     _loadAllSettings();
-  }
-  
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   /// تحميل جميع الإعدادات
@@ -90,10 +81,20 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
       }
       
       if (mounted) {
+        HapticFeedback.mediumImpact();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('تم حفظ الإعدادات بنجاح'),
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
+                SizedBox(width: 12.w),
+                const Text('تم حفظ الإعدادات بنجاح'),
+              ],
+            ),
             backgroundColor: ThemeConstants.success,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+            margin: EdgeInsets.all(16.r),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -106,8 +107,17 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('حدث خطأ أثناء حفظ الإعدادات'),
+            content: Row(
+              children: [
+                Icon(Icons.error, color: Colors.white, size: 20.sp),
+                SizedBox(width: 12.w),
+                const Text('حدث خطأ أثناء حفظ الإعدادات'),
+              ],
+            ),
             backgroundColor: ThemeConstants.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+            margin: EdgeInsets.all(16.r),
           ),
         );
       }
@@ -139,7 +149,7 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
         _currentDisplaySettings[contentType] = defaultDisplaySettings;
       });
       
-      HapticFeedback.lightImpact();
+      HapticFeedback.mediumImpact();
     }
   }
 
@@ -148,30 +158,48 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
     return await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
         title: Row(
           children: [
-            Icon(Icons.restore, color: ThemeConstants.warning, size: 20.sp),
-            SizedBox(width: 8.w),
-            Text('إعادة تعيين ${contentType.displayName}', style: TextStyle(fontSize: 16.sp)),
+            Container(
+              padding: EdgeInsets.all(8.r),
+              decoration: BoxDecoration(
+                color: ThemeConstants.warning.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+              child: Icon(Icons.restore, color: ThemeConstants.warning, size: 24.sp),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                'إعادة تعيين ${contentType.displayName}',
+                style: TextStyle(fontSize: 16.sp, fontWeight: ThemeConstants.bold),
+              ),
+            ),
           ],
         ),
         content: Text(
           'هل تريد إعادة جميع إعدادات ${contentType.displayName} إلى القيم الافتراضية؟',
-          style: TextStyle(fontSize: 14.sp),
+          style: TextStyle(fontSize: 14.sp, height: 1.6),
         ),
+        actionsPadding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('إلغاء'),
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+            ),
+            child: Text('إلغاء', style: TextStyle(fontSize: 14.sp)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: ThemeConstants.warning,
               foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
             ),
-            child: const Text('إعادة تعيين'),
+            child: Text('إعادة تعيين', style: TextStyle(fontSize: 14.sp)),
           ),
         ],
       ),
@@ -187,25 +215,20 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
           ? _buildLoadingIndicator()
           : Column(
               children: [
-                _buildTabBar(),
+                _buildContentTypeSelector(),
                 Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: ContentType.values.map((contentType) {
-                      return _buildContentTypeSettings(contentType);
-                    }).toList(),
-                  ),
+                  child: _buildContentTypeSettings(_selectedContentType),
                 ),
               ],
             ),
-      floatingActionButton: _buildSaveButton(),
+      bottomNavigationBar: _buildBottomBar(),
     );
   }
 
   /// بناء شريط التطبيق
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      backgroundColor: context.backgroundColor,
+      backgroundColor: context.cardColor,
       elevation: 0,
       leading: IconButton(
         onPressed: () => Navigator.pop(context),
@@ -227,43 +250,75 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
         IconButton(
           onPressed: _showGlobalActions,
           icon: Icon(
-            Icons.more_vert,
+            Icons.more_vert_rounded,
             color: context.textPrimaryColor,
-            size: 20.sp,
+            size: 24.sp,
           ),
         ),
+        SizedBox(width: 4.w),
       ],
     );
   }
 
-  /// بناء شريط التبويبات
-  Widget _buildTabBar() {
+  /// بناء محدد نوع المحتوى
+  Widget _buildContentTypeSelector() {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      margin: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 8.h),
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: context.dividerColor.withOpacity(0.3),
-          width: 1.w,
-        ),
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10.r,
+            offset: Offset(0, 2.h),
+          ),
+        ],
       ),
-      child: TabBar(
-        controller: _tabController,
-        labelColor: ThemeConstants.primary,
-        unselectedLabelColor: context.textSecondaryColor,
-        labelStyle: TextStyle(fontSize: 12.sp, fontWeight: ThemeConstants.medium),
-        unselectedLabelStyle: TextStyle(fontSize: 11.sp),
-        indicator: BoxDecoration(
-          color: ThemeConstants.primary.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(10.r),
-        ),
-        indicatorSize: TabBarIndicatorSize.tab,
-        dividerColor: Colors.transparent,
-        tabs: ContentType.values.map((contentType) {
-          return Tab(
-            text: contentType.displayName,
-            icon: Icon(_getContentTypeIcon(contentType), size: 16.sp),
+      child: Row(
+        children: ContentType.values.map((contentType) {
+          final isSelected = _selectedContentType == contentType;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () {
+                setState(() => _selectedContentType = contentType);
+                HapticFeedback.selectionClick();
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 14.h),
+                decoration: BoxDecoration(
+                  color: isSelected 
+                      ? ThemeConstants.primary 
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(14.r),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _getContentTypeIcon(contentType),
+                      size: 22.sp,
+                      color: isSelected 
+                          ? Colors.white 
+                          : context.textSecondaryColor,
+                    ),
+                    SizedBox(height: 6.h),
+                    Text(
+                      contentType.displayName,
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: isSelected 
+                            ? ThemeConstants.bold 
+                            : ThemeConstants.medium,
+                        color: isSelected 
+                            ? Colors.white 
+                            : context.textSecondaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           );
         }).toList(),
       ),
@@ -291,62 +346,51 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
       return const Center(child: CircularProgressIndicator());
     }
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(16.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildPreviewSection(textSettings, displaySettings),
-          SizedBox(height: 16.h),
-          _buildPresetsSection(contentType, textSettings),
-          SizedBox(height: 16.h),
-          _buildFontSettingsSection(contentType, textSettings),
-          SizedBox(height: 16.h),
-          _buildDisplaySettingsSection(contentType, displaySettings),
-          SizedBox(height: 16.h),
-          _buildActionsSection(contentType),
-          SizedBox(height: 100.h), // مساحة للـ FAB
-        ],
-      ),
+    return ListView(
+      padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 24.h),
+      children: [
+        _buildPreviewSection(textSettings, displaySettings),
+        SizedBox(height: 16.h),
+        _buildPresetsSection(contentType, textSettings),
+        SizedBox(height: 16.h),
+        _buildFontSettingsSection(contentType, textSettings),
+        SizedBox(height: 16.h),
+        _buildDisplaySettingsSection(contentType, displaySettings),
+        SizedBox(height: 16.h),
+        _buildActionsSection(contentType),
+        SizedBox(height: 20.h),
+      ],
     );
   }
 
   /// بناء قسم المعاينة
   Widget _buildPreviewSection(TextSettings textSettings, DisplaySettings displaySettings) {
     return AppCard(
-      padding: EdgeInsets.all(16.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.preview_rounded,
-                color: ThemeConstants.primary,
-                size: 20.sp,
-              ),
-              SizedBox(width: 8.w),
-              Text(
-                'معاينة النص',
-                style: TextStyle(
-                  fontWeight: ThemeConstants.bold,
-                  fontSize: 14.sp,
-                ),
-              ),
-            ],
+          _buildSectionHeader(
+            icon: Icons.visibility_rounded,
+            title: 'معاينة النص',
+            color: ThemeConstants.primary,
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: 16.h),
           Container(
             width: double.infinity,
-            padding: EdgeInsets.all(12.r),
+            padding: EdgeInsets.all(20.r),
             decoration: BoxDecoration(
-              color: context.isDarkMode
-                  ? ThemeConstants.primary.withOpacity(0.08)
-                  : ThemeConstants.primary.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(12.r),
+              gradient: LinearGradient(
+                colors: [
+                  ThemeConstants.primary.withOpacity(0.05),
+                  ThemeConstants.primary.withOpacity(0.08),
+                ],
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+              ),
+              borderRadius: BorderRadius.circular(16.r),
               border: Border.all(
-                color: ThemeConstants.primary.withOpacity(0.2),
-                width: 1.w,
+                color: ThemeConstants.primary.withOpacity(0.15),
+                width: 1.5.w,
               ),
             ),
             child: Text(
@@ -370,33 +414,24 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
   /// بناء قسم القوالب الجاهزة
   Widget _buildPresetsSection(ContentType contentType, TextSettings textSettings) {
     return AppCard(
-      padding: EdgeInsets.all(16.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.auto_fix_high_rounded,
-                color: ThemeConstants.accent,
-                size: 20.sp,
-              ),
-              SizedBox(width: 8.w),
-              Text(
-                'القوالب الجاهزة',
-                style: TextStyle(
-                  fontWeight: ThemeConstants.bold,
-                  fontSize: 14.sp,
-                ),
-              ),
-            ],
+          _buildSectionHeader(
+            icon: Icons.palette_rounded,
+            title: 'القوالب الجاهزة',
+            color: ThemeConstants.accent,
           ),
-          SizedBox(height: 12.h),
-          Wrap(
-            spacing: 8.w,
-            runSpacing: 8.h,
+          SizedBox(height: 16.h),
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            mainAxisSpacing: 12.h,
+            crossAxisSpacing: 12.w,
+            childAspectRatio: 2.2,
             children: TextStylePresets.all.map((preset) {
-              return _buildPresetButton(contentType, preset);
+              return _buildPresetCard(contentType, preset);
             }).toList(),
           ),
         ],
@@ -404,39 +439,45 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
     );
   }
 
-  /// بناء زر قالب جاهز
-  Widget _buildPresetButton(ContentType contentType, TextStylePreset preset) {
+  /// بناء بطاقة قالب جاهز
+  Widget _buildPresetCard(ContentType contentType, TextStylePreset preset) {
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(8.r),
       child: InkWell(
         onTap: () => _applyPreset(contentType, preset),
-        borderRadius: BorderRadius.circular(8.r),
+        borderRadius: BorderRadius.circular(12.r),
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+          padding: EdgeInsets.all(12.r),
           decoration: BoxDecoration(
-            color: ThemeConstants.tertiary.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8.r),
+            gradient: LinearGradient(
+              colors: [
+                ThemeConstants.accent.withOpacity(0.08),
+                ThemeConstants.accent.withOpacity(0.12),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
-              color: ThemeConstants.tertiary.withOpacity(0.3),
+              color: ThemeConstants.accent.withOpacity(0.2),
               width: 1.w,
             ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 preset.icon,
-                size: 16.sp,
-                color: ThemeConstants.tertiary,
+                size: 24.sp,
+                color: ThemeConstants.accent,
               ),
-              SizedBox(width: 4.w),
+              SizedBox(height: 6.h),
               Text(
                 preset.name,
                 style: TextStyle(
-                  fontSize: 12.sp,
-                  fontWeight: ThemeConstants.medium,
-                  color: ThemeConstants.tertiary,
+                  fontSize: 13.sp,
+                  fontWeight: ThemeConstants.bold,
+                  color: context.textPrimaryColor,
                 ),
               ),
             ],
@@ -449,31 +490,19 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
   /// بناء قسم إعدادات الخط
   Widget _buildFontSettingsSection(ContentType contentType, TextSettings textSettings) {
     return AppCard(
-      padding: EdgeInsets.all(16.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.font_download_rounded,
-                color: ThemeConstants.info,
-                size: 20.sp,
-              ),
-              SizedBox(width: 8.w),
-              Text(
-                'إعدادات الخط',
-                style: TextStyle(
-                  fontWeight: ThemeConstants.bold,
-                  fontSize: 14.sp,
-                ),
-              ),
-            ],
+          _buildSectionHeader(
+            icon: Icons.text_fields_rounded,
+            title: 'إعدادات الخط',
+            color: ThemeConstants.info,
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: 20.h),
           
           _buildSliderSetting(
             title: 'حجم الخط',
+            icon: Icons.format_size_rounded,
             value: textSettings.fontSize,
             min: TextSettingsConstants.minFontSize,
             max: TextSettingsConstants.maxFontSize,
@@ -486,10 +515,11 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
             },
           ),
           
-          SizedBox(height: 16.h),
+          SizedBox(height: 20.h),
           
           _buildDropdownSetting(
             title: 'نوع الخط',
+            icon: Icons.font_download_rounded,
             value: textSettings.fontFamily,
             items: TextSettingsConstants.availableFonts,
             onChanged: (value) {
@@ -499,10 +529,11 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
             },
           ),
           
-          SizedBox(height: 16.h),
+          SizedBox(height: 20.h),
           
           _buildSliderSetting(
             title: 'تباعد الأسطر',
+            icon: Icons.format_line_spacing_rounded,
             value: textSettings.lineHeight,
             min: TextSettingsConstants.minLineHeight,
             max: TextSettingsConstants.maxLineHeight,
@@ -515,10 +546,11 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
             },
           ),
           
-          SizedBox(height: 16.h),
+          SizedBox(height: 20.h),
           
           _buildSliderSetting(
             title: 'تباعد الأحرف',
+            icon: Icons.space_bar_rounded,
             value: textSettings.letterSpacing,
             min: TextSettingsConstants.minLetterSpacing,
             max: TextSettingsConstants.maxLetterSpacing,
@@ -538,32 +570,20 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
   /// بناء قسم إعدادات العرض
   Widget _buildDisplaySettingsSection(ContentType contentType, DisplaySettings displaySettings) {
     return AppCard(
-      padding: EdgeInsets.all(16.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.visibility_rounded,
-                color: ThemeConstants.success,
-                size: 20.sp,
-              ),
-              SizedBox(width: 8.w),
-              Text(
-                'إعدادات العرض',
-                style: TextStyle(
-                  fontWeight: ThemeConstants.bold,
-                  fontSize: 14.sp,
-                ),
-              ),
-            ],
+          _buildSectionHeader(
+            icon: Icons.tune_rounded,
+            title: 'إعدادات العرض',
+            color: ThemeConstants.success,
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: 12.h),
           
           _buildSwitchSetting(
             title: 'إظهار التشكيل',
             subtitle: 'عرض الحركات والتشكيل على النص',
+            icon: Icons.abc_rounded,
             value: displaySettings.showTashkeel,
             onChanged: (value) {
               setState(() {
@@ -575,6 +595,7 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
           _buildSwitchSetting(
             title: 'إظهار الفضيلة',
             subtitle: 'عرض فضل الذكر إن وجد',
+            icon: Icons.stars_rounded,
             value: displaySettings.showFadl,
             onChanged: (value) {
               setState(() {
@@ -586,6 +607,7 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
           _buildSwitchSetting(
             title: 'إظهار المصدر',
             subtitle: 'عرض مصدر النص',
+            icon: Icons.library_books_rounded,
             value: displaySettings.showSource,
             onChanged: (value) {
               setState(() {
@@ -598,6 +620,7 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
             _buildSwitchSetting(
               title: 'إظهار العداد',
               subtitle: 'عرض عداد التكرار للأذكار',
+              icon: Icons.looks_one_rounded,
               value: displaySettings.showCounter,
               onChanged: (value) {
                 setState(() {
@@ -609,6 +632,7 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
           _buildSwitchSetting(
             title: 'الاهتزاز',
             subtitle: 'تفعيل الاهتزاز عند اللمس',
+            icon: Icons.vibration_rounded,
             value: displaySettings.enableVibration,
             onChanged: (value) {
               setState(() {
@@ -624,38 +648,30 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
   /// بناء قسم الإجراءات
   Widget _buildActionsSection(ContentType contentType) {
     return AppCard(
-      padding: EdgeInsets.all(16.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.settings_rounded,
-                color: ThemeConstants.warning,
-                size: 20.sp,
-              ),
-              SizedBox(width: 8.w),
-              Text(
-                'إجراءات',
-                style: TextStyle(
-                  fontWeight: ThemeConstants.bold,
-                  fontSize: 14.sp,
-                ),
-              ),
-            ],
+          _buildSectionHeader(
+            icon: Icons.settings_suggest_rounded,
+            title: 'إجراءات',
+            color: ThemeConstants.warning,
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: 16.h),
           
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: () => _resetToDefault(contentType),
-              icon: Icon(Icons.restore, size: 18.sp),
-              label: Text('إعادة للافتراضي'),
+              icon: Icon(Icons.restore_rounded, size: 20.sp),
+              label: Text(
+                'إعادة للإعدادات الافتراضية',
+                style: TextStyle(fontSize: 14.sp, fontWeight: ThemeConstants.medium),
+              ),
               style: OutlinedButton.styleFrom(
                 foregroundColor: ThemeConstants.warning,
-                side: BorderSide(color: ThemeConstants.warning),
+                side: BorderSide(color: ThemeConstants.warning, width: 1.5.w),
+                padding: EdgeInsets.symmetric(vertical: 14.h),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
               ),
             ),
           ),
@@ -664,9 +680,39 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
     );
   }
 
+  /// بناء عنوان القسم
+  Widget _buildSectionHeader({
+    required IconData icon,
+    required String title,
+    required Color color,
+  }) {
+    return Row(
+      children: [
+        Container(
+          padding: EdgeInsets.all(8.r),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+          child: Icon(icon, color: color, size: 20.sp),
+        ),
+        SizedBox(width: 12.w),
+        Text(
+          title,
+          style: TextStyle(
+            fontWeight: ThemeConstants.bold,
+            fontSize: 15.sp,
+            color: context.textPrimaryColor,
+          ),
+        ),
+      ],
+    );
+  }
+
   /// بناء إعداد منزلق
   Widget _buildSliderSetting({
     required String title,
+    required IconData icon,
     required double value,
     required double min,
     required double max,
@@ -678,39 +724,55 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 13.sp,
-                fontWeight: ThemeConstants.medium,
+            Icon(icon, size: 18.sp, color: ThemeConstants.primary),
+            SizedBox(width: 10.w),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: ThemeConstants.medium,
+                  color: context.textPrimaryColor,
+                ),
               ),
             ),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
               decoration: BoxDecoration(
-                color: ThemeConstants.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(6.r),
+                gradient: LinearGradient(
+                  colors: [
+                    ThemeConstants.primary.withOpacity(0.1),
+                    ThemeConstants.primary.withOpacity(0.15),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(8.r),
+                border: Border.all(
+                  color: ThemeConstants.primary.withOpacity(0.2),
+                  width: 1.w,
+                ),
               ),
               child: Text(
                 label,
                 style: TextStyle(
-                  fontSize: 12.sp,
-                  fontWeight: ThemeConstants.medium,
+                  fontSize: 13.sp,
+                  fontWeight: ThemeConstants.bold,
                   color: ThemeConstants.primary,
                 ),
               ),
             ),
           ],
         ),
+        SizedBox(height: 8.h),
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
             activeTrackColor: ThemeConstants.primary,
-            inactiveTrackColor: ThemeConstants.primary.withOpacity(0.3),
+            inactiveTrackColor: ThemeConstants.primary.withOpacity(0.2),
             thumbColor: ThemeConstants.primary,
-            overlayColor: ThemeConstants.primary.withOpacity(0.2),
-            trackHeight: 4.h,
+            overlayColor: ThemeConstants.primary.withOpacity(0.15),
+            trackHeight: 6.h,
+            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10.r),
+            overlayShape: RoundSliderOverlayShape(overlayRadius: 20.r),
           ),
           child: Slider(
             value: value,
@@ -727,6 +789,7 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
   /// بناء إعداد قائمة منسدلة
   Widget _buildDropdownSetting({
     required String title,
+    required IconData icon,
     required String value,
     required Map<String, String> items,
     required ValueChanged<String?> onChanged,
@@ -734,23 +797,30 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 13.sp,
-            fontWeight: ThemeConstants.medium,
-          ),
+        Row(
+          children: [
+            Icon(icon, size: 18.sp, color: ThemeConstants.primary),
+            SizedBox(width: 10.w),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: ThemeConstants.medium,
+                color: context.textPrimaryColor,
+              ),
+            ),
+          ],
         ),
-        SizedBox(height: 8.h),
+        SizedBox(height: 12.h),
         Container(
           width: double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: 12.w),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
           decoration: BoxDecoration(
             color: context.cardColor,
-            borderRadius: BorderRadius.circular(8.r),
+            borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
-              color: context.dividerColor.withOpacity(0.5),
-              width: 1.w,
+              color: context.dividerColor.withOpacity(0.3),
+              width: 1.5.w,
             ),
           ),
           child: DropdownButton<String>(
@@ -760,14 +830,19 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
                 value: entry.key,
                 child: Text(
                   entry.value,
-                  style: TextStyle(fontSize: 14.sp),
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: ThemeConstants.medium,
+                  ),
                 ),
               );
             }).toList(),
             onChanged: onChanged,
             isExpanded: true,
             underline: const SizedBox.shrink(),
-            icon: Icon(Icons.arrow_drop_down, size: 20.sp),
+            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 24.sp),
+            dropdownColor: context.cardColor,
+            borderRadius: BorderRadius.circular(12.r),
           ),
         ),
       ],
@@ -778,13 +853,44 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
   Widget _buildSwitchSetting({
     required String title,
     required String subtitle,
+    required IconData icon,
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4.h),
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 6.h),
+      padding: EdgeInsets.all(12.r),
+      decoration: BoxDecoration(
+        color: value 
+            ? ThemeConstants.primary.withOpacity(0.05)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: value 
+              ? ThemeConstants.primary.withOpacity(0.15)
+              : context.dividerColor.withOpacity(0.2),
+          width: 1.w,
+        ),
+      ),
       child: Row(
         children: [
+          Container(
+            padding: EdgeInsets.all(8.r),
+            decoration: BoxDecoration(
+              color: value 
+                  ? ThemeConstants.primary.withOpacity(0.1)
+                  : context.dividerColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Icon(
+              icon,
+              size: 20.sp,
+              color: value 
+                  ? ThemeConstants.primary
+                  : context.textSecondaryColor,
+            ),
+          ),
+          SizedBox(width: 12.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -794,8 +900,10 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: ThemeConstants.medium,
+                    color: context.textPrimaryColor,
                   ),
                 ),
+                SizedBox(height: 2.h),
                 Text(
                   subtitle,
                   style: TextStyle(
@@ -806,10 +914,12 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
               ],
             ),
           ),
+          SizedBox(width: 8.w),
           Switch(
             value: value,
             onChanged: onChanged,
             activeColor: ThemeConstants.primary,
+            activeTrackColor: ThemeConstants.primary.withOpacity(0.5),
           ),
         ],
       ),
@@ -824,12 +934,14 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
         children: [
           CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation(ThemeConstants.primary),
+            strokeWidth: 3.w,
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: 24.h),
           Text(
             'جاري تحميل الإعدادات...',
             style: TextStyle(
               fontSize: 14.sp,
+              fontWeight: ThemeConstants.medium,
               color: context.textSecondaryColor,
             ),
           ),
@@ -838,25 +950,53 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
     );
   }
 
-  /// بناء زر الحفظ
-  Widget _buildSaveButton() {
-    return FloatingActionButton.extended(
-      onPressed: _isSaving ? null : _saveAllSettings,
-      backgroundColor: ThemeConstants.primary,
-      foregroundColor: Colors.white,
-      icon: _isSaving
-          ? SizedBox(
-              width: 16.w,
-              height: 16.h,
-              child: const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation(Colors.white),
-                strokeWidth: 2,
+  /// بناء الشريط السفلي
+  Widget _buildBottomBar() {
+    return Container(
+      padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 20.h),
+      decoration: BoxDecoration(
+        color: context.cardColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10.r,
+            offset: Offset(0, -2.h),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: _isSaving ? null : _saveAllSettings,
+            icon: _isSaving
+                ? SizedBox(
+                    width: 20.w,
+                    height: 20.h,
+                    child: CircularProgressIndicator(
+                      valueColor: const AlwaysStoppedAnimation(Colors.white),
+                      strokeWidth: 2.5.w,
+                    ),
+                  )
+                : Icon(Icons.check_circle_rounded, size: 22.sp),
+            label: Text(
+              _isSaving ? 'جاري الحفظ...' : 'حفظ الإعدادات',
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: ThemeConstants.bold,
               ),
-            )
-          : Icon(Icons.save_rounded, size: 20.sp),
-      label: Text(
-        _isSaving ? 'جاري الحفظ...' : 'حفظ الإعدادات',
-        style: TextStyle(fontSize: 14.sp, fontWeight: ThemeConstants.medium),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ThemeConstants.primary,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(vertical: 16.h),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14.r),
+              ),
+              elevation: 0,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -865,40 +1005,138 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
   void _showGlobalActions() {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (context) => Container(
-        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(
+          color: context.cardColor,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+        ),
+        padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              leading: Icon(Icons.font_download_rounded, color: ThemeConstants.primary),
-              title: const Text('تعيين خط عام'),
-              subtitle: const Text('تطبيق خط واحد على جميع الأنواع'),
+            Container(
+              width: 40.w,
+              height: 4.h,
+              margin: EdgeInsets.only(bottom: 20.h),
+              decoration: BoxDecoration(
+                color: context.dividerColor.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(2.r),
+              ),
+            ),
+            Text(
+              'إجراءات عامة',
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: ThemeConstants.bold,
+                color: context.textPrimaryColor,
+              ),
+            ),
+            SizedBox(height: 20.h),
+            _buildActionTile(
+              icon: Icons.font_download_rounded,
+              title: 'تعيين خط عام',
+              subtitle: 'تطبيق خط واحد على جميع الأنواع',
+              color: ThemeConstants.primary,
               onTap: () {
                 Navigator.pop(context);
                 _showGlobalFontDialog();
               },
             ),
-            ListTile(
-              leading: Icon(Icons.auto_fix_high_rounded, color: ThemeConstants.accent),
-              title: const Text('تطبيق قالب على الكل'),
-              subtitle: const Text('تطبيق قالب جاهز على جميع الأنواع'),
+            SizedBox(height: 12.h),
+            _buildActionTile(
+              icon: Icons.palette_rounded,
+              title: 'تطبيق قالب على الكل',
+              subtitle: 'تطبيق قالب جاهز على جميع الأنواع',
+              color: ThemeConstants.accent,
               onTap: () {
                 Navigator.pop(context);
                 _showGlobalPresetDialog();
               },
             ),
-            const Divider(),
-            ListTile(
-              leading: Icon(Icons.restore_rounded, color: ThemeConstants.warning),
-              title: const Text('إعادة تعيين الكل'),
-              subtitle: const Text('إعادة جميع الإعدادات للافتراضي'),
+            SizedBox(height: 12.h),
+            Divider(height: 24.h),
+            _buildActionTile(
+              icon: Icons.restore_rounded,
+              title: 'إعادة تعيين الكل',
+              subtitle: 'إعادة جميع الإعدادات للافتراضي',
+              color: ThemeConstants.warning,
               onTap: () {
                 Navigator.pop(context);
                 _showGlobalResetDialog();
               },
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// بناء عنصر إجراء
+  Widget _buildActionTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12.r),
+        child: Container(
+          padding: EdgeInsets.all(14.r),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(
+              color: color.withOpacity(0.15),
+              width: 1.w,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(10.r),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Icon(icon, color: color, size: 24.sp),
+              ),
+              SizedBox(width: 14.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: ThemeConstants.bold,
+                        color: context.textPrimaryColor,
+                      ),
+                    ),
+                    SizedBox(height: 2.h),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: context.textSecondaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16.sp,
+                color: context.textSecondaryColor,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -943,19 +1181,19 @@ class AppCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: padding,
+      padding: padding ?? EdgeInsets.all(20.r),
       margin: margin,
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
-          color: context.dividerColor.withOpacity(0.3),
+          color: context.dividerColor.withOpacity(0.2),
           width: 1.w,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 8.r,
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10.r,
             offset: Offset(0, 2.h),
           ),
         ],

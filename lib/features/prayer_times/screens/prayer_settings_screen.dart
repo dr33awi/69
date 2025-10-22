@@ -100,10 +100,6 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
                         ),
                         
                         SliverToBoxAdapter(
-                          child: _buildSaveButton(),
-                        ),
-                        
-                        SliverToBoxAdapter(
                           child: SizedBox(height: 20.h),
                         ),
                       ],
@@ -412,20 +408,6 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
       );
       _markAsChanged();
     });
-  }
-
-  Widget _buildSaveButton() {
-    return Padding(
-      padding: EdgeInsets.all(12.r),
-      child: AppButton.primary(
-        text: 'حفظ الإعدادات',
-        onPressed: _isSaving || !_hasChanges ? null : _saveSettings,
-        isLoading: _isSaving,
-        isFullWidth: true,
-        icon: Icons.save,
-        backgroundColor: ThemeConstants.success,
-      ),
-    );
   }
 }
 

@@ -215,10 +215,6 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
         ),
         
         SliverToBoxAdapter(
-          child: _buildSaveButton(),
-        ),
-        
-        SliverToBoxAdapter(
           child: SizedBox(height: 60.h),
         ),
       ],
@@ -512,20 +508,6 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
             ),
           ),
       ],
-    );
-  }
-
-  Widget _buildSaveButton() {
-    return Padding(
-      padding: EdgeInsets.all(12.r),
-      child: AppButton.primary(
-        text: 'حفظ الإعدادات',
-        onPressed: _isSaving || !_hasChanges ? null : _saveSettings,
-        isLoading: _isSaving,
-        isFullWidth: true,
-        icon: Icons.save,
-        backgroundColor: ThemeConstants.success,
-      ),
     );
   }
 
