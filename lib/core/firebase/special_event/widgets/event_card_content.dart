@@ -1,5 +1,5 @@
-// lib/core/infrastructure/firebase/special_event/widgets/event_card_content.dart
-// ✅ محدث - تمرير حقل isGif للخلفية
+// lib/core/firebase/special_event/widgets/event_card_content.dart
+// ✅ محدث - دعم العنوان الفارغ
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -71,6 +71,8 @@ class EventCardContent extends StatelessWidget {
   Widget _buildContent(BuildContext context) {
     final hasDescription = event.descriptionLines.isNotEmpty && 
                            event.descriptionLines.any((line) => line.trim().isNotEmpty);
+    final hasTitle = event.title.isNotEmpty;
+    final hasIcon = event.icon.isNotEmpty;
     
     return Stack(
       children: [
@@ -78,7 +80,7 @@ class EventCardContent extends StatelessWidget {
         if (event.backgroundImage.isNotEmpty)
           EventBackground(
             imageUrl: event.backgroundImage,
-            isGif: event.isGif, // ✅ تمرير حقل isGif
+            isGif: event.isGif,
           ),
         
         // المحتوى الرئيسي
@@ -87,13 +89,19 @@ class EventCardContent extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              EventHeader(event: event),
+              // ✅ عرض الهيدر إذا كان هناك عنوان أو أيقونة
+              if (hasTitle || hasIcon)
+                EventHeader(event: event),
               
-              if (hasDescription) ...[
+              // ✅ مسافة بين الهيدر والوصف فقط إذا كان الاثنان موجودان
+              if ((hasTitle || hasIcon) && hasDescription)
                 SizedBox(height: 12.h),
-                EventDescription(event: event),
-              ],
               
+              // ✅ عرض الوصف
+              if (hasDescription)
+                EventDescription(event: event),
+              
+              // ✅ زر الإجراء
               if (event.actionText.isNotEmpty && event.actionUrl.isNotEmpty) ...[
                 SizedBox(height: 16.h),
                 EventActionButton(

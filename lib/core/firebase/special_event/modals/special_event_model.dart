@@ -1,5 +1,5 @@
-// lib/core/infrastructure/firebase/special_event/modals/special_event_model.dart
-// ✅ محدث - إضافة دعم GIF
+// lib/core/firebase/special_event/modals/special_event_model.dart
+// ✅ محدث - إضافة دعم GIF ودعم العنوان الفارغ
 
 import 'package:flutter/material.dart';
 import '../../../../app/themes/app_theme.dart';
@@ -99,9 +99,13 @@ class SpecialEventModel {
     return lines.join(' • ');
   }
 
-  /// التحقق من صلاحية المناسبة
+  /// ✅ التحقق من صلاحية المناسبة (محدث)
   bool get isValid {
-    if (!isActive || title.isEmpty) return false;
+    // ✅ التحقق من التفعيل فقط
+    if (!isActive) return false;
+    
+    // ✅ التحقق من وجود محتوى (عنوان أو وصف)
+    if (title.isEmpty && descriptionLines.isEmpty) return false;
     
     final now = DateTime.now();
     
@@ -199,7 +203,7 @@ class SpecialEventModel {
       'description': description,
       'icon': icon,
       'background_image': backgroundImage,
-      'is_gif': isGif, // ✅ إضافة الحقل الجديد
+      'is_gif': isGif,
       'gradient_colors': gradientColors.map((c) => '#${c.value.toRadixString(16).substring(2)}').toList(),
       'action_text': actionText,
       'action_url': actionUrl,

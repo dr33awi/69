@@ -1,5 +1,5 @@
-// lib/core/infrastructure/firebase/special_event/widgets/event_widgets.dart
-// ✅ محدث - دعم GIF
+// lib/core/firebase/special_event/widgets/event_widgets.dart
+// ✅ محدث - دعم GIF ودعم العنوان الفارغ
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -18,32 +18,46 @@ class EventHeader extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
+    // ✅ إخفاء الهيدر كاملاً إذا لم يكن هناك أيقونة ولا عنوان
+    if (event.icon.isEmpty && event.title.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    
     return Row(
       children: [
-        _buildIconContainer(),
+        if (event.icon.isNotEmpty)
+          _buildIconContainer(),
         
-        if (event.icon.isNotEmpty) SizedBox(width: 12.w),
+        if (event.icon.isNotEmpty && event.title.isNotEmpty) 
+          SizedBox(width: 12.w),
         
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildTitle(context),
-              
-              if (event.remainingTime != null)
-                EventRemainingBadge(duration: event.remainingTime!),
-            ],
+        // ✅ عرض العنوان فقط إذا كان موجوداً
+        if (event.title.isNotEmpty)
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildTitle(context),
+                
+                if (event.remainingTime != null)
+                  EventRemainingBadge(duration: event.remainingTime!),
+              ],
+            ),
           ),
-        ),
+        
+        // ✅ إذا كان فقط الأيقونة موجودة وهناك وقت متبقي
+        if (event.icon.isNotEmpty && event.title.isEmpty && event.remainingTime != null)
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: EventRemainingBadge(duration: event.remainingTime!),
+            ),
+          ),
       ],
     );
   }
   
   Widget _buildIconContainer() {
-    if (event.icon.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    
     return Container(
       width: 48.r,
       height: 48.r,
@@ -80,7 +94,7 @@ class EventHeader extends StatelessWidget {
           ),
         ],
       ),
-      maxLines: 1,
+      maxLines: 2, // ✅ زيادة عدد الأسطر
       overflow: TextOverflow.ellipsis,
     );
   }
@@ -252,9 +266,6 @@ class EventBackground extends StatelessWidget {
           },
           loadingBuilder: (context, child, loadingProgress) {
             if (loadingProgress == null) {
-              // ✅ عرض مؤشر للـ GIF
-              if (isGif) {
-              }
               return child;
             }
             

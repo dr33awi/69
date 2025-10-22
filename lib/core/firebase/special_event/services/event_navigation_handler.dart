@@ -1,5 +1,5 @@
-// lib/core/infrastructure/firebase/special_event/services/event_navigation_handler.dart
-// ✅ محدث - إلغاء عرض EventDetailsModal
+// lib/core/firebase/special_event/services/event_navigation_handler.dart
+// ✅ محدث - إضافة دعم feedback و contact-us
 
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -13,17 +13,19 @@ class EventNavigationHandler {
     required String url,
     required SpecialEventModel event,
   }) async {
-    // ✅ إذا كان الرابط فارغاً، لا نفعل شيء (بدلاً من عرض Modal)
     if (url.isEmpty) {
       return;
     }
     
     if (url.startsWith('athkar://')) {
       _handleInternalNavigation(context, url, event);
+    } else if (url.startsWith('mailto:')) {
+      // ✅ معالجة روابط البريد الإلكتروني
+      await _handleMailto(context, url);
     } else if (url.startsWith('http://') || url.startsWith('https://')) {
       await _handleExternalUrl(context, url, event);
     } else {
-      // ✅ رابط غير معروف - لا نفعل شيء
+      // رابط غير معروف - لا نفعل شيء
     }
   }
   
@@ -37,6 +39,12 @@ class EventNavigationHandler {
       final uri = Uri.parse(url);
       final path = uri.host;
       switch (path) {
+        // ========== تواصل معنا / Feedback ========== 
+        case 'contact-us':
+        case 'feedback':
+          _handleFeedback(context);
+          break;
+          
         // ========== روابط رمضان ==========
         case 'ramadan-duas':
           Navigator.pushNamed(context, '/dua', arguments: {'category': 'ramadan'});
@@ -168,10 +176,58 @@ class EventNavigationHandler {
           
         // ========== افتراضي ==========
         default:
-          // ✅ لا نعرض Modal، فقط نتجاهل
+          // لا نفعل شيء
       }
     } catch (e) {
-      // ✅ لا نعرض Modal عند الخطأ
+      // خطأ في المعالجة
+    }
+  }
+  
+  /// ✅ معالجة رابط "ملاحظاتك / تواصل معنا"
+  static Future<void> _handleFeedback(BuildContext context) async {
+    final Uri emailUri = Uri(
+      scheme: 'mailto',
+      path: 'dhakaranifeedback@gmail.com',
+      queryParameters: {
+        'subject': 'ملاحظات على النسخة التجريبية',
+        'body': '''مرحباً فريق ذكرني،
+
+لدي الملاحظات التالية:
+
+---
+- نوع الملاحظة: (اقتراح / مشكلة / استفسار)
+- التفاصيل: 
+- الجهاز: 
+
+شكراً لكم ❤️''',
+      },
+    );
+    
+    await _handleMailto(context, emailUri.toString());
+  }
+  
+  /// ✅ معالجة روابط البريد الإلكتروني
+  static Future<void> _handleMailto(BuildContext context, String mailtoUrl) async {
+    try {
+      final Uri uri = Uri.parse(mailtoUrl);
+      
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        if (context.mounted) {
+          _showErrorSnackBar(
+            context,
+            'لا يمكن فتح تطبيق البريد الإلكتروني',
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        _showErrorSnackBar(
+          context,
+          'حدث خطأ في فتح البريد الإلكتروني',
+        );
+      }
     }
   }
   
@@ -191,35 +247,41 @@ class EventNavigationHandler {
         );
       } else {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('لا يمكن فتح الرابط: $url'),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
+          _showErrorSnackBar(
+            context,
+            'لا يمكن فتح الرابط: $url',
           );
         }
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('حدث خطأ في فتح الرابط'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
+        _showErrorSnackBar(
+          context,
+          'حدث خطأ في فتح الرابط',
         );
       }
     }
+  }
+  
+  /// ✅ عرض رسالة خطأ
+  static void _showErrorSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
   }
   
   /// التحقق من نوع الرابط
   static LinkType getLinkType(String url) {
     if (url.isEmpty) return LinkType.none;
     if (url.startsWith('athkar://')) return LinkType.internal;
+    if (url.startsWith('mailto:')) return LinkType.email;
     if (url.startsWith('http://') || url.startsWith('https://')) return LinkType.external;
     return LinkType.unknown;
   }
@@ -230,5 +292,6 @@ enum LinkType {
   none,       // لا يوجد رابط
   internal,   // رابط داخلي
   external,   // رابط خارجي
+  email,      // ✅ رابط بريد إلكتروني
   unknown,    // نوع غير معروف
 }
