@@ -1,4 +1,5 @@
 // lib/core/infrastructure/services/permissions/widgets/permission_monitor.dart
+// محدث: حل مشكلة عدم ظهور الإشعار عند تعطيل الأذونات
 
 import 'dart:async';
 import 'dart:ui';
@@ -13,17 +14,17 @@ import '../permission_service.dart';
 import '../permission_constants.dart';
 import '../models/permission_state.dart';
 
-/// مراقب الأذونات بنمط أنيق وبسيط - محدث بدون تكرار
+/// مراقب الأذونات بنمط أنيق وبسيط - محدث للكشف عن تعطيل الأذونات
 class PermissionMonitor extends StatefulWidget {
   final Widget child;
   final bool showNotifications;
-  final bool skipInitialCheck; // إضافة خيار لتخطي الفحص الأولي
+  final bool skipInitialCheck;
   
   const PermissionMonitor({
     super.key,
     required this.child,
     this.showNotifications = true,
-    this.skipInitialCheck = false, // القيمة الافتراضية
+    this.skipInitialCheck = false,
   });
 
   @override
@@ -43,12 +44,14 @@ class _PermissionMonitorState extends State<PermissionMonitor>
   bool _isProcessing = false;
   bool _userWentToSettings = false;
   
-  // ==================== متغيرات محدثة لمنع التكرار ====================
   bool _hasPerformedInitialCheck = false;
   bool _isSubscribedToManager = false;
   DateTime? _lastResumeCheckTime;
-  static const Duration _resumeCheckThrottle = Duration(seconds: 5);
-  // ========================================================================
+  static const Duration _resumeCheckThrottle = Duration(seconds: 3); // تقليل الوقت
+  
+  // إضافة Timer للفحص الدوري
+  Timer? _periodicCheckTimer;
+  static const Duration _periodicCheckInterval = Duration(seconds: 10); // فحص كل 10 ثواني
   
   final Map<AppPermissionType, DateTime> _dismissedPermissions = {};
   DateTime? _lastCheckTime;
@@ -68,16 +71,81 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     debugPrint('[PermissionMonitor]   - showNotifications: ${widget.showNotifications}');
     
     _listenToPermissionChanges();
+    _startPeriodicCheck(); // بدء الفحص الدوري
     
-    // فحص أولي فقط إذا لم يُطلب تخطيه
     if (!widget.skipInitialCheck) {
       Future.delayed(const Duration(milliseconds: 3000), () {
         _performInitialCheck();
       });
     } else {
       debugPrint('[PermissionMonitor] ℹ️ Skipping initial check as requested');
-      // فقط نستخدم النتيجة الموجودة إن وجدت
       _useExistingResultIfAvailable();
+    }
+  }
+  
+  // إضافة دالة الفحص الدوري
+  void _startPeriodicCheck() {
+    _periodicCheckTimer?.cancel();
+    _periodicCheckTimer = Timer.periodic(_periodicCheckInterval, (_) {
+      if (mounted && !_isProcessing) {
+        _performBackgroundCheck();
+      }
+    });
+  }
+  
+  // فحص صامت في الخلفية
+  Future<void> _performBackgroundCheck() async {
+    try {
+      debugPrint('[PermissionMonitor] 🔄 Background permission check...');
+      
+      // فحص سريع للأذونات الحرجة
+      final currentStatuses = await _permissionService.checkAllPermissions();
+      
+      bool hasChanges = false;
+      final newMissing = <AppPermissionType>[];
+      
+      for (final entry in currentStatuses.entries) {
+        final permission = entry.key;
+        final newStatus = entry.value;
+        final oldStatus = _cachedStatuses[permission];
+        
+        // إذا كان الإذن حرج
+        if (PermissionConstants.isCritical(permission)) {
+          if (newStatus != AppPermissionStatus.granted) {
+            newMissing.add(permission);
+            
+            // إذا تغير من ممنوح إلى غير ممنوح
+            if (oldStatus == AppPermissionStatus.granted) {
+              hasChanges = true;
+              debugPrint('[PermissionMonitor] ⚠️ Permission revoked: $permission');
+            }
+          }
+        }
+        
+        _cachedStatuses[permission] = newStatus;
+      }
+      
+      // تحديث قائمة الأذونات المفقودة
+      setState(() {
+        _missingPermissions = newMissing;
+      });
+      
+      // إذا كان هناك تغييرات وهناك أذونات مفقودة، اعرض الإشعار
+      if (hasChanges || (newMissing.isNotEmpty && !_isShowingNotification)) {
+        if (widget.showNotifications && newMissing.isNotEmpty && !_isShowingNotification) {
+          debugPrint('[PermissionMonitor] 🔔 Showing notification for revoked permissions');
+          _showNotificationForPermission(newMissing.first);
+        }
+      }
+      
+      // إذا تم منح جميع الأذونات وكان الإشعار معروض، أخفه
+      if (newMissing.isEmpty && _isShowingNotification) {
+        debugPrint('[PermissionMonitor] ✅ All permissions restored - hiding notification');
+        _hideNotification(success: true);
+      }
+      
+    } catch (e) {
+      debugPrint('[PermissionMonitor] ❌ Background check error: $e');
     }
   }
   
@@ -92,6 +160,7 @@ class _PermissionMonitorState extends State<PermissionMonitor>
       debugPrint('[PermissionMonitor] 📨 Received state update from manager');
       debugPrint('[PermissionMonitor]   - Missing: ${result.missingCount}');
       debugPrint('[PermissionMonitor]   - Granted: ${result.grantedCount}');
+      debugPrint('[PermissionMonitor]   - All granted: ${result.allGranted}');
       _processCheckResult(result);
     });
     
@@ -128,7 +197,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     }
   }
   
-  // دالة جديدة لاستخدام النتيجة الموجودة
   void _useExistingResultIfAvailable() {
     if (_manager.lastCheckResult != null) {
       debugPrint('[PermissionMonitor] ✅ Using existing result from manager');
@@ -144,7 +212,6 @@ class _PermissionMonitorState extends State<PermissionMonitor>
       return;
     }
     
-    // إضافة فحص إذا كان يجب التخطي
     if (widget.skipInitialCheck) {
       debugPrint('[PermissionMonitor] ℹ️ Skipping initial check as requested (double check)');
       _useExistingResultIfAvailable();
@@ -155,13 +222,11 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     
     debugPrint('[PermissionMonitor] 🔍 Performing initial check...');
     
-    // استخدام النتيجة الموجودة من Manager بدلاً من فحص جديد
     if (_manager.lastCheckResult != null) {
       debugPrint('[PermissionMonitor] ✅ Using existing manager result');
       _processCheckResult(_manager.lastCheckResult!);
     } else {
       debugPrint('[PermissionMonitor] ℹ️ No existing result, waiting for manager to check');
-      // لا نقوم بفحص جديد، ننتظر النتيجة من Manager عبر Stream
     }
   }
   
@@ -171,21 +236,33 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     debugPrint('[PermissionMonitor] 📊 Processing result:');
     debugPrint('[PermissionMonitor]   - Missing: ${result.missingCount} permissions');
     debugPrint('[PermissionMonitor]   - Granted: ${result.grantedCount} permissions');
+    debugPrint('[PermissionMonitor]   - All granted: ${result.allGranted}');
     
     setState(() {
+      // تحديث الأذونات المفقودة - فقط الحرجة
       _missingPermissions = result.missingPermissions
           .where((p) => PermissionConstants.isCritical(p))
           .toList();
       
       _cachedStatuses = Map.from(result.statuses);
+      
+      // إذا كانت جميع الأذونات ممنوحة، تأكد من إخفاء الإشعار
+      if (result.allGranted || _missingPermissions.isEmpty) {
+        if (_isShowingNotification) {
+          debugPrint('[PermissionMonitor] ✅ All permissions granted - hiding notification');
+          _hideNotification(success: true);
+        }
+      }
     });
     
+    // عرض الإشعار فقط إذا كانت هناك أذونات مفقودة
     if (_missingPermissions.isNotEmpty && 
         widget.showNotifications && 
         !_isShowingNotification) {
       
       Future.delayed(const Duration(milliseconds: 800), () {
         if (mounted && !_isShowingNotification && _missingPermissions.isNotEmpty) {
+          debugPrint('[PermissionMonitor] 🔔 Showing notification for missing permissions');
           _showNotificationForPermission(_missingPermissions.first);
         }
       });
@@ -194,11 +271,14 @@ class _PermissionMonitorState extends State<PermissionMonitor>
   
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    debugPrint('[PermissionMonitor] 📱 App lifecycle state: $state');
+    
     switch (state) {
       case AppLifecycleState.resumed:
-        _onAppResumedThrottled();
+        _onAppResumed();
         break;
       case AppLifecycleState.paused:
+        // تسجيل أن المستخدم قد يكون ذهب للإعدادات
         if (_isShowingNotification || _missingPermissions.isNotEmpty) {
           _userWentToSettings = true;
         }
@@ -210,38 +290,71 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     }
   }
   
-  // دالة محدثة مع Throttling
-  void _onAppResumedThrottled() {
-    // تطبيق throttling للفحص عند العودة
-    if (_lastResumeCheckTime != null) {
-      final timeSince = DateTime.now().difference(_lastResumeCheckTime!);
-      if (timeSince < _resumeCheckThrottle) {
-        debugPrint('[PermissionMonitor] ⏱️ Resume check throttled (${timeSince.inSeconds}s < ${_resumeCheckThrottle.inSeconds}s)');
-        return;
+  // تحسين دالة العودة للتطبيق
+  void _onAppResumed() {
+    // فحص فوري عند العودة للتطبيق بغض النظر عن المصدر
+    debugPrint('[PermissionMonitor] 🔄 App resumed - checking permissions immediately');
+    
+    // تأخير بسيط للتأكد من استقرار النظام
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        _recheckPermissionsAfterResume();
       }
-    }
-    
-    _lastResumeCheckTime = DateTime.now();
-    
-    if (_userWentToSettings) {
-      _userWentToSettings = false;
-      debugPrint('[PermissionMonitor] 🔄 App resumed from settings - checking permissions');
-      _recheckPermissionsAfterSettings();
-    }
+    });
   }
   
-  Future<void> _recheckPermissionsAfterSettings() async {
+  Future<void> _recheckPermissionsAfterResume() async {
     try {
-      debugPrint('[PermissionMonitor] 🔍 Using manager quick check after settings');
+      debugPrint('[PermissionMonitor] 🔍 Rechecking permissions after resume');
       
-      // استخدام performQuickCheck من Manager بدلاً من فحص مستقل
-      final result = await _manager.performQuickCheck();
+      // فحص سريع ومباشر
+      final currentStatuses = await _permissionService.checkAllPermissions();
       
-      if (mounted) {
-        _processCheckResult(result);
+      final newMissing = <AppPermissionType>[];
+      bool hasChanges = false;
+      
+      for (final entry in currentStatuses.entries) {
+        final permission = entry.key;
+        final newStatus = entry.value;
+        final oldStatus = _cachedStatuses[permission];
+        
+        if (PermissionConstants.isCritical(permission)) {
+          if (newStatus != AppPermissionStatus.granted) {
+            newMissing.add(permission);
+          }
+          
+          // رصد التغييرات
+          if (oldStatus != newStatus) {
+            hasChanges = true;
+            debugPrint('[PermissionMonitor] 🔄 Permission changed: $permission from $oldStatus to $newStatus');
+          }
+        }
+        
+        _cachedStatuses[permission] = newStatus;
       }
+      
+      // تحديث الحالة
+      setState(() {
+        _missingPermissions = newMissing;
+      });
+      
+      // إدارة الإشعارات
+      if (newMissing.isEmpty && _isShowingNotification) {
+        // إخفاء الإشعار إذا تم منح جميع الأذونات
+        debugPrint('[PermissionMonitor] ✅ All permissions granted after resume');
+        _hideNotification(success: true);
+      } else if (newMissing.isNotEmpty && !_isShowingNotification && widget.showNotifications) {
+        // عرض الإشعار إذا كانت هناك أذونات مفقودة
+        debugPrint('[PermissionMonitor] ⚠️ Missing permissions detected after resume');
+        _showNotificationForPermission(newMissing.first);
+      }
+      
+      // أيضاً قم بفحص Manager
+      final managerResult = await _manager.performQuickCheck();
+      _processCheckResult(managerResult);
+      
     } catch (e) {
-      debugPrint('[PermissionMonitor] ❌ Error in quick check: $e');
+      debugPrint('[PermissionMonitor] ❌ Error rechecking after resume: $e');
     }
   }
   
@@ -287,17 +400,17 @@ class _PermissionMonitorState extends State<PermissionMonitor>
       _isProcessing = false;
     });
     
+    // إذا نجح الطلب، تحقق من باقي الأذونات
     if (success && _missingPermissions.isNotEmpty) {
       Future.delayed(const Duration(seconds: 1), () {
         if (mounted && !_isShowingNotification) {
-          for (final perm in _missingPermissions) {
-            final dismissedAt = _dismissedPermissions[perm];
-            if (dismissedAt == null || 
-                DateTime.now().difference(dismissedAt) > _dismissalDuration) {
-              _showNotificationForPermission(perm);
-              break;
+          // فحص كامل للتأكد من الحالة الحالية
+          debugPrint('[PermissionMonitor] 🔄 Checking for remaining missing permissions');
+          _manager.performQuickCheck().then((result) {
+            if (mounted) {
+              _processCheckResult(result);
             }
-          }
+          });
         }
       });
     }
@@ -348,18 +461,37 @@ class _PermissionMonitorState extends State<PermissionMonitor>
     HapticFeedback.lightImpact();
     
     try {
-      // استخدام Manager للطلب (الذي يستخدم Coordinator)
+      debugPrint('[PermissionMonitor] 📱 Requesting permission: $_currentPermission');
+      
+      // استخدام Manager للطلب
       final granted = await _manager.requestPermissionWithExplanation(
         context,
         _currentPermission!,
         forceRequest: true,
       );
       
+      debugPrint('[PermissionMonitor] 📊 Permission request result: $granted');
+      
       if (granted) {
-        _cachedStatuses[_currentPermission!] = AppPermissionStatus.granted;
-        _missingPermissions.remove(_currentPermission!);
+        // تحديث الحالة المحلية فوراً
+        setState(() {
+          _cachedStatuses[_currentPermission!] = AppPermissionStatus.granted;
+          _missingPermissions.remove(_currentPermission!);
+          debugPrint('[PermissionMonitor] ✅ Updated local state - remaining missing: ${_missingPermissions.length}');
+        });
+        
+        // إخفاء الإشعار
         _hideNotification(success: true);
         _showSuccessMessage(_currentPermission!);
+        
+        // فحص كامل للأذونات بعد التحديث للتأكد من الحالة
+        Future.delayed(const Duration(milliseconds: 500), () async {
+          if (mounted) {
+            debugPrint('[PermissionMonitor] 🔄 Performing full check after permission grant');
+            final result = await _manager.performQuickCheck();
+            _processCheckResult(result);
+          }
+        });
       } else {
         setState(() => _isProcessing = false);
         
@@ -407,7 +539,8 @@ class _PermissionMonitorState extends State<PermissionMonitor>
       children: [
         widget.child,
         
-        if (_isShowingNotification && _currentPermission != null)
+        // عرض الإشعار فقط إذا كان هناك إذن حالي وكانت هناك أذونات مفقودة
+        if (_isShowingNotification && _currentPermission != null && _missingPermissions.isNotEmpty)
           ..._buildNotificationOverlay(),
       ],
     );
@@ -448,6 +581,7 @@ class _PermissionMonitorState extends State<PermissionMonitor>
   @override
   void dispose() {
     debugPrint('[PermissionMonitor] 🛑 Disposing...');
+    _periodicCheckTimer?.cancel(); // إيقاف الفحص الدوري
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

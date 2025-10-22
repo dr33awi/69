@@ -165,13 +165,17 @@ class UnifiedPermissionManager {
     }
   }
   
-  /// فحص سريع عند الحاجة (عند العودة من الخلفية أو الإعدادات)
+  /// فحص سريع عند الحاجة - محسّن للتحديث الفوري
   Future<PermissionCheckResult> performQuickCheck() async {
     // التحقق من الفترة الزمنية مع Throttling محسّن
     if (_lastCheckTime != null) {
       final timeSinceLastCheck = DateTime.now().difference(_lastCheckTime!);
       if (timeSinceLastCheck < _minCheckInterval) {
         _log('⏱️ Check throttled (${timeSinceLastCheck.inMilliseconds}ms < ${_minCheckInterval.inMilliseconds}ms)');
+        // في حالة الـ throttle، قم بإرسال النتيجة الأخيرة مرة أخرى إذا كانت موجودة
+        if (_lastCheckResult != null) {
+          _stateController.add(_lastCheckResult!);
+        }
         return _lastCheckResult ?? PermissionCheckResult.success();
       }
     }
@@ -189,15 +193,11 @@ class UnifiedPermissionManager {
     try {
       final result = await _checkCriticalPermissions();
       
-      // تحديث وإرسال النتيجة فقط إذا تغيرت بشكل فعلي
-      if (_hasResultChangedSignificantly(result)) {
-        _lastCheckResult = result;
-        _lastEmittedResult = result;
-        _stateController.add(result);
-        _logCheckResult(result);
-      } else {
-        _log('ℹ️ No significant change in permissions status');
-      }
+      // دائماً قم بتحديث وإرسال النتيجة في الفحص السريع
+      _lastCheckResult = result;
+      _lastEmittedResult = result;
+      _stateController.add(result);
+      _logCheckResult(result);
       
       return result;
     } catch (e) {
@@ -245,7 +245,7 @@ class UnifiedPermissionManager {
     }
   }
   
-  /// طلب إذن محدد مع عرض الشرح - محسّن مع Coordinator
+  /// طلب إذن محدد مع عرض الشرح - محسّن لإرسال التحديث الصحيح
   Future<bool> requestPermissionWithExplanation(
     BuildContext context,
     AppPermissionType permission, {
@@ -263,6 +263,18 @@ class UnifiedPermissionManager {
       
       if (currentStatus == AppPermissionStatus.granted) {
         _log('✅ Permission already granted');
+        
+        // إرسال تحديث فوري للحالة
+        _changeController.add(PermissionChangeEvent(
+          permission: permission,
+          oldStatus: currentStatus,
+          newStatus: currentStatus,
+          wasUserInitiated: false,
+        ));
+        
+        // فحص كامل لتحديث الحالة
+        await _performQuickUpdateAfterGrant();
+        
         return true;
       }
       
@@ -312,11 +324,9 @@ class UnifiedPermissionManager {
         wasUserInitiated: true,
       ));
       
-      // فحص سريع بعد الطلب
+      // إذا تم منح الإذن، قم بفحص كامل وإرسال النتيجة
       if (granted) {
-        Future.delayed(const Duration(milliseconds: 500), () {
-          performQuickCheck();
-        });
+        await _performQuickUpdateAfterGrant();
       }
       
       return granted;
@@ -325,6 +335,52 @@ class UnifiedPermissionManager {
       _logError('Error requesting permission', e);
       return false;
     }
+  }
+  
+  /// فحص وتحديث سريع بعد منح الإذن
+  Future<void> _performQuickUpdateAfterGrant() async {
+    // فحص سريع فوري لتحديث الحالة
+    Future.delayed(const Duration(milliseconds: 100), () async {
+      try {
+        final allStatuses = await _permissionService.checkAllPermissions();
+        
+        // بناء نتيجة محدثة
+        final granted = <AppPermissionType>[];
+        final missing = <AppPermissionType>[];
+        
+        for (final entry in allStatuses.entries) {
+          if (entry.value == AppPermissionStatus.granted) {
+            granted.add(entry.key);
+          } else if (PermissionConstants.isCritical(entry.key)) {
+            missing.add(entry.key);
+          }
+        }
+        
+        final updatedResult = missing.isEmpty
+            ? PermissionCheckResult.success(
+                granted: granted,
+                statuses: allStatuses,
+              )
+            : PermissionCheckResult.partial(
+                granted: granted,
+                missing: missing,
+                statuses: allStatuses,
+              );
+        
+        // تحديث وإرسال النتيجة
+        _lastCheckResult = updatedResult;
+        _lastEmittedResult = updatedResult;
+        _stateController.add(updatedResult);
+        
+        _log('✅ Sent updated result after permission grant', {
+          'granted_count': granted.length,
+          'missing_count': missing.length,
+          'all_granted': missing.isEmpty,
+        });
+      } catch (e) {
+        _log('⚠️ Error updating after grant: $e');
+      }
+    });
   }
   
   /// طلب أذونات متعددة - محسّن مع Coordinator
