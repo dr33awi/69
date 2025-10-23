@@ -1,4 +1,4 @@
-// lib/app/di/service_locator.dart - محدث مع تهيئة سريعة للبانرات و In-App Messaging
+// lib/app/di/service_locator.dart - نسخة نظيفة ومبسطة
 import 'package:athkar_app/app/themes/core/theme_notifier.dart';
 import 'package:athkar_app/core/error/error_handler.dart';
 import 'package:athkar_app/core/firebase/firebase_messaging_service.dart';
@@ -13,8 +13,6 @@ import 'package:athkar_app/core/infrastructure/services/notifications/notificati
 import 'package:athkar_app/core/infrastructure/services/notifications/notification_service.dart';
 import 'package:athkar_app/core/infrastructure/services/notifications/notification_service_impl.dart';
 import 'package:athkar_app/core/infrastructure/services/permissions/simple_permission_service.dart';
-import 'package:athkar_app/core/infrastructure/services/permissions/legacy_permission_stub.dart';
-import 'package:athkar_app/core/infrastructure/services/permissions/permission_service.dart';
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service_impl.dart';
 import 'package:athkar_app/core/infrastructure/services/logger/app_logger.dart';
@@ -43,7 +41,7 @@ import 'package:firebase_core/firebase_core.dart';
 
 final getIt = GetIt.instance;
 
-/// Service Locator محسن مع تهيئة سريعة للبانرات و In-App Messaging
+/// Service Locator محسن مع نظام أذونات مبسط
 class ServiceLocator {
   static final ServiceLocator _instance = ServiceLocator._internal();
   factory ServiceLocator() => _instance;
@@ -229,17 +227,10 @@ class ServiceLocator {
   void _registerPermissionServices() {
     debugPrint('ServiceLocator: Registering permission services...');
 
-    // تسجيل الخدمة البسيطة الجديدة
+    // تسجيل الخدمة البسيطة الجديدة فقط
     if (!getIt.isRegistered<SimplePermissionService>()) {
       getIt.registerLazySingleton<SimplePermissionService>(
         () => SimplePermissionService(),
-      );
-    }
-
-    // تسجيل stub للتوافق مع الخدمات القديمة
-    if (!getIt.isRegistered<PermissionService>()) {
-      getIt.registerLazySingleton<PermissionService>(
-        () => LegacyPermissionStub(),
       );
     }
   }
@@ -380,7 +371,8 @@ class ServiceLocator {
           debugPrint('🕌 PrayerTimesService initialized in Essential Init');
           return PrayerTimesService(
             storage: getIt<StorageService>(),
-            permissionService: getIt<PermissionService>(),
+            // استخدم SimplePermissionService مباشرة
+            simplePermissionService: getIt<SimplePermissionService>(),
           );
         },
       );
@@ -433,7 +425,7 @@ class ServiceLocator {
           debugPrint('🔄 FACTORY: New QiblaServiceV3 instance created');
           return QiblaServiceV3(
             storage: getIt<StorageService>(),
-            permissionService: getIt<PermissionService>(),
+            simplePermissionService: getIt<SimplePermissionService>(),
           );
         },
       );
@@ -445,7 +437,7 @@ class ServiceLocator {
           debugPrint('🔄 ACTUAL LAZY LOADING: SettingsServicesManager initialized NOW');
           return SettingsServicesManager(
             storage: getIt<StorageService>(),
-            permissionService: getIt<PermissionService>(),
+            simplePermissionService: getIt<SimplePermissionService>(),
             themeNotifier: getIt<ThemeNotifier>(),
           );
         },
@@ -567,7 +559,6 @@ class ServiceLocator {
     }
   }
 
-  /// ✅ تهيئة سريعة ومحسّنة للبانرات
   Future<void> _initializeFirebaseServices() async {
     if (!_firebaseAvailable) {
       debugPrint('⚠️ Firebase not available, skipping initialization');
@@ -579,7 +570,6 @@ class ServiceLocator {
       final storage = getIt<StorageService>();
       final stopwatch = Stopwatch()..start();
       
-      // ✅ 1. تهيئة Remote Config أولاً (الأهم!)
       if (getIt.isRegistered<FirebaseRemoteConfigService>()) {
         try {
           final remoteConfig = getIt<FirebaseRemoteConfigService>();
@@ -590,7 +580,6 @@ class ServiceLocator {
             debugPrint('  ✅ RemoteConfig ready (${stopwatch.elapsedMilliseconds}ms)');
           }
           
-          // ✅ 2. تهيئة Manager
           if (getIt.isRegistered<RemoteConfigManager>()) {
             final manager = getIt<RemoteConfigManager>();
             
@@ -604,7 +593,6 @@ class ServiceLocator {
             }
           }
           
-          // ✅ 3. تهيئة Banner Manager (الأهم!)
           if (getIt.isRegistered<PromotionalBannerManager>()) {
             final bannerManager = getIt<PromotionalBannerManager>();
             
@@ -621,7 +609,6 @@ class ServiceLocator {
               debugPrint('  ✅ BannerManager ready (${stopwatch.elapsedMilliseconds}ms total)');
               debugPrint('  📊 Active banners: ${bannerManager.activeBannersCount}');
               
-              // طباعة حالة البانرات
               if (bannerManager.activeBannersCount > 0) {
                 bannerManager.printStatus();
               } else {
@@ -636,7 +623,6 @@ class ServiceLocator {
         }
       }
       
-      // 4. Firebase Messaging (اختياري)
       if (getIt.isRegistered<FirebaseMessagingService>()) {
         try {
           final messaging = getIt<FirebaseMessagingService>();
@@ -660,8 +646,6 @@ class ServiceLocator {
     }
   }
 
-  // ==================== Advanced Firebase ====================
-
   static Future<void> initializeAdvancedFirebaseServices() async {
     await _instance._initializeAdvancedFirebase();
   }
@@ -680,7 +664,6 @@ class ServiceLocator {
     try {
       debugPrint('🚀 Initializing advanced Firebase services...');
       
-      // Analytics Service
       if (!getIt.isRegistered<AnalyticsService>()) {
         getIt.registerSingleton<AnalyticsService>(AnalyticsService());
         final analytics = getIt<AnalyticsService>();
@@ -688,7 +671,6 @@ class ServiceLocator {
         debugPrint('✅ AnalyticsService ready');
       }
       
-      // Performance Service
       if (!getIt.isRegistered<PerformanceService>()) {
         getIt.registerSingleton<PerformanceService>(PerformanceService());
         final performance = getIt<PerformanceService>();
@@ -696,7 +678,6 @@ class ServiceLocator {
         debugPrint('✅ PerformanceService ready');
       }
       
-      // ✅ In-App Messaging Service - جديد!
       if (!getIt.isRegistered<InAppMessagingService>()) {
         getIt.registerSingleton<InAppMessagingService>(InAppMessagingService());
         final inAppMessaging = getIt<InAppMessagingService>();
@@ -718,7 +699,7 @@ class ServiceLocator {
     return _instance._isEssentialInitialized &&
            getIt.isRegistered<StorageService>() &&
            getIt.isRegistered<ThemeNotifier>() &&
-           getIt.isRegistered<PermissionService>() &&
+           getIt.isRegistered<SimplePermissionService>() &&
            getIt.isRegistered<BatteryService>() &&
            getIt.isRegistered<ShareService>();
   }
@@ -797,12 +778,6 @@ class ServiceLocator {
         await getIt<NotificationService>().dispose();
       }
 
-      // تم إزالة UnifiedPermissionManager
-
-      if (getIt.isRegistered<PermissionService>()) {
-        await getIt<PermissionService>().dispose();
-      }
-
       _cleanupFirebaseServices();
       _cleanupAdvancedFirebaseServices();
 
@@ -866,7 +841,6 @@ class ServiceLocator {
         }
       }
       
-      // تنظيف In-App Messaging
       if (getIt.isRegistered<InAppMessagingService>()) {
         if (_isServiceActuallyInitialized<InAppMessagingService>()) {
           getIt<InAppMessagingService>().dispose();
@@ -970,7 +944,6 @@ extension ServiceLocatorExtensions on BuildContext {
     }
   }
   
-  // ✅ إضافة In-App Messaging Service
   InAppMessagingService? get inAppMessaging {
     try {
       return ServiceLocator.isFirebaseAvailable && 
@@ -1051,7 +1024,6 @@ extension ServiceLocatorExtensions on BuildContext {
     }
   }
   
-  // ✅ وظائف In-App Messaging
   Future<void> triggerInAppMessage(String eventName) async {
     final service = inAppMessaging;
     if (service != null && service.isInitialized) {
@@ -1191,9 +1163,6 @@ extension ServiceLocatorExtensions on BuildContext {
     final manager = remoteConfigManager;
     return manager?.configStatus;
   }
-  
-  // تم إزالة الدوال القديمة للأذونات
-  // استخدم SimplePermissionService بدلاً من ذلك
   
   /// طلب إذن الإشعارات بالنظام الجديد
   Future<bool> requestNotificationPermission() async {
