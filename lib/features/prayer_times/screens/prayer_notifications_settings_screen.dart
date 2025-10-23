@@ -76,6 +76,78 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
     }
   }
 
+  Future<bool> _showUnsavedChangesDialog() async {
+    if (!_hasChanges) return true;
+    
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        title: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(8.r),
+              decoration: BoxDecoration(
+                color: ThemeConstants.warning.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+              child: Icon(Icons.warning_amber_rounded, color: ThemeConstants.warning, size: 24.sp),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                'تغييرات غير محفوظة',
+                style: TextStyle(fontSize: 16.sp, fontWeight: ThemeConstants.bold),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'لديك تغييرات لم يتم حفظها. هل تريد حفظ التغييرات قبل المغادرة؟',
+          style: TextStyle(fontSize: 14.sp, height: 1.6),
+        ),
+        actionsPadding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'discard'),
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+            ),
+            child: Text(
+              'تجاهل التغييرات', 
+              style: TextStyle(fontSize: 14.sp, color: ThemeConstants.error),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, 'save'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ThemeConstants.primary,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+            ),
+            child: Text('حفظ وخروج', style: TextStyle(fontSize: 14.sp)),
+          ),
+        ],
+      ),
+    );
+    
+    if (result == 'save') {
+      // حفظ التغييرات
+      await _saveSettings();
+      return !_hasChanges;
+    } else if (result == 'discard') {
+      // تجاهل التغييرات - إرجاع الإعدادات للحالة الأصلية
+      setState(() {
+        _notificationSettings = _originalSettings;
+        _hasChanges = false;
+      });
+      return true; // السماح بالخروج
+    }
+    
+    return false; // إلغاء (result == 'cancel' or null)
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -514,32 +586,5 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
           ),
       ],
     );
-  }
-
-  Future<bool> _showUnsavedChangesDialog() async {
-    if (!_hasChanges) return true;
-    
-    final result = await AppInfoDialog.showConfirmation(
-      context: context,
-      title: 'تغييرات غير محفوظة',
-      content: 'لديك تغييرات لم يتم حفظها. هل تريد حفظ التغييرات قبل المغادرة؟',
-      confirmText: 'حفظ وخروج',
-      cancelText: 'تجاهل التغييرات',
-      icon: Icons.warning_amber_rounded,
-    );
-    
-    if (result == true) {
-      await _saveSettings();
-      return !_hasChanges; // إذا تم الحفظ بنجاح
-    } else if (result == false) {
-      // تجاهل التغييرات - إرجاع الإعدادات للحالة الأصلية
-      setState(() {
-        _notificationSettings = _originalSettings;
-        _hasChanges = false;
-      });
-      return true; // السماح بالخروج
-    }
-    
-    return false; // إلغاء
   }
 }

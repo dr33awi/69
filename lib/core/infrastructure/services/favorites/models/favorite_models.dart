@@ -12,10 +12,7 @@ enum FavoriteContentType {
   athkar('athkar', 'الأذكار', Icons.auto_stories_rounded),
   
   /// أسماء الله الحسنى
-  asmaAllah('asma_allah', 'أسماء الله الحسنى', Icons.auto_awesome_rounded),
-  
-  /// الأذكار المخصصة للتسبيح
-  tasbih('tasbih', 'التسبيح', Icons.casino_rounded);
+  asmaAllah('asma_allah', 'أسماء الله الحسنى', Icons.auto_awesome_rounded);
 
   const FavoriteContentType(this.key, this.displayName, this.icon);
 
@@ -115,7 +112,6 @@ class FavoriteItem {
   factory FavoriteItem.fromAsmaAllah({
     required String nameId,
     required String arabicName,
-    required String meaning,
     required String explanation,
     String? transliteration,
   }) {
@@ -124,31 +120,8 @@ class FavoriteItem {
       contentType: FavoriteContentType.asmaAllah,
       title: arabicName,
       content: explanation,
-      subtitle: meaning,
       metadata: {
         'transliteration': transliteration,
-      },
-      addedAt: DateTime.now(),
-    );
-  }
-
-  /// إنشاء عنصر مفضلة من ذكر التسبيح
-  factory FavoriteItem.fromTasbih({
-    required String dhikrId,
-    required String text,
-    String? virtue,
-    int? recommendedCount,
-    String? category,
-  }) {
-    return FavoriteItem(
-      id: dhikrId,
-      contentType: FavoriteContentType.tasbih,
-      title: _extractTitle(text),
-      content: text,
-      subtitle: virtue,
-      metadata: {
-        'recommendedCount': recommendedCount,
-        'category': category,
       },
       addedAt: DateTime.now(),
     );

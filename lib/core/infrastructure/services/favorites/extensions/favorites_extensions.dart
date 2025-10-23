@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../../../app/di/service_locator.dart';
 import '../favorites_service.dart';
 import '../models/favorite_models.dart';
+import '../screens/unified_favorites_screen.dart';
 import '../../text/models/text_settings_models.dart' as text_models;
 
 /// امتدادات BuildContext للوصول السهل لخدمة المفضلة
@@ -126,14 +127,12 @@ extension FavoritesContextExtensions on BuildContext {
   Future<bool> addAsmaAllahToFavorites({
     required String nameId,
     required String arabicName,
-    required String meaning,
     required String explanation,
     String? transliteration,
   }) async {
     final favoriteItem = FavoriteItem.fromAsmaAllah(
       nameId: nameId,
       arabicName: arabicName,
-      meaning: meaning,
       explanation: explanation,
       transliteration: transliteration,
     );
@@ -153,44 +152,6 @@ extension FavoritesContextExtensions on BuildContext {
     
     if (success) {
       _showSuccessMessage('تمت إزالة الاسم من المفضلة');
-    }
-    
-    return success;
-  }
-
-  // ==================== عمليات التسبيح ====================
-
-  /// إضافة ذكر التسبيح للمفضلة
-  Future<bool> addTasbihToFavorites({
-    required String dhikrId,
-    required String text,
-    String? virtue,
-    int? recommendedCount,
-    String? category,
-  }) async {
-    final favoriteItem = FavoriteItem.fromTasbih(
-      dhikrId: dhikrId,
-      text: text,
-      virtue: virtue,
-      recommendedCount: recommendedCount,
-      category: category,
-    );
-
-    final success = await addToFavorites(favoriteItem);
-    
-    if (success) {
-      _showSuccessMessage('تمت إضافة الذكر للمفضلة');
-    }
-    
-    return success;
-  }
-
-  /// إزالة ذكر التسبيح من المفضلة
-  Future<bool> removeTasbihFromFavorites(String dhikrId) async {
-    final success = await removeFromFavorites(dhikrId);
-    
-    if (success) {
-      _showSuccessMessage('تمت إزالة الذكر من المفضلة');
     }
     
     return success;
@@ -232,10 +193,9 @@ extension FavoritesContextExtensions on BuildContext {
 
   /// فتح شاشة المفضلات الموحدة
   Future<void> openFavoritesScreen([FavoriteContentType? initialType]) async {
-    // TODO: سيتم تنفيذه عند إنشاء الشاشة
-    // Navigator.push(context, MaterialPageRoute(
-    //   builder: (_) => UnifiedFavoritesScreen(initialType: initialType),
-    // ));
+    await Navigator.push(this, MaterialPageRoute(
+      builder: (_) => UnifiedFavoritesScreen(initialType: initialType),
+    ));
   }
 
   /// فتح شاشة البحث في المفضلات
@@ -259,7 +219,7 @@ extension FavoritesContextExtensions on BuildContext {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFB85450)),
             child: const Text('حذف'),
           ),
         ],
@@ -286,7 +246,7 @@ extension FavoritesContextExtensions on BuildContext {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFB85450)),
             child: const Text('حذف'),
           ),
         ],
@@ -316,7 +276,7 @@ extension FavoritesContextExtensions on BuildContext {
     ScaffoldMessenger.of(this).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.green,
+        backgroundColor: const Color(0xFF5D7052),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -336,9 +296,6 @@ extension FavoriteContentTypeExtensions on FavoriteContentType {
         return text_models.ContentType.athkar;
       case FavoriteContentType.asmaAllah:
         return text_models.ContentType.asmaAllah;
-      case FavoriteContentType.tasbih:
-        // التسبيح يمكن أن يستخدم إعدادات الأذكار
-        return text_models.ContentType.athkar;
     }
   }
 }

@@ -18,6 +18,8 @@ class AthkarItemCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onLongPress;
   final VoidCallback? onShare;
+  final VoidCallback? onFavorite;
+  final bool isFavorite;
 
   const AthkarItemCard({
     super.key,
@@ -31,6 +33,8 @@ class AthkarItemCard extends StatelessWidget {
     required this.onTap,
     required this.onLongPress,
     this.onShare,
+    this.onFavorite,
+    this.isFavorite = false,
   });
 
   String _removeTashkeel(String text) {
@@ -267,6 +271,16 @@ class AthkarItemCard extends StatelessWidget {
                       if (showCounter) ...[
                         _buildCounter(context),
                         if (onShare != null) SizedBox(width: 10.w),
+                      ],
+                      
+                      if (onFavorite != null) ...[
+                        _ActionButton(
+                          icon: isFavorite ? Icons.bookmark : Icons.bookmark_outline,
+                          onTap: onFavorite!,
+                          tooltip: isFavorite ? 'إزالة من المفضلة' : 'إضافة للمفضلة',
+                          color: isFavorite ? ThemeConstants.accent : context.textSecondaryColor,
+                        ),
+                        if (onShare != null) SizedBox(width: 8.w),
                       ],
                       
                       if (onShare != null) ...[

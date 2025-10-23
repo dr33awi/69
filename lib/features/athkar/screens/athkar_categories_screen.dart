@@ -6,6 +6,8 @@ import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../../../app/routes/app_router.dart';
 import '../../../core/infrastructure/services/permissions/permission_service.dart';
+import '../../../core/infrastructure/services/favorites/models/favorite_models.dart';
+import '../../../core/infrastructure/services/favorites/extensions/favorites_extensions.dart';
 import '../services/athkar_service.dart';
 import '../models/athkar_model.dart';
 import '../utils/category_utils.dart';
@@ -157,6 +159,42 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
                   ),
                 ),
               ],
+            ),
+          ),
+          
+          // زر المفضلة
+          Container(
+            margin: EdgeInsets.only(left: 6.w),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(10.r),
+              child: InkWell(
+                onTap: _openFavorites,
+                borderRadius: BorderRadius.circular(10.r),
+                child: Container(
+                  padding: EdgeInsets.all(7.r),
+                  decoration: BoxDecoration(
+                    color: context.cardColor,
+                    borderRadius: BorderRadius.circular(10.r),
+                    border: Border.all(
+                      color: context.dividerColor.withOpacity(0.3),
+                      width: 1.w,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4.r,
+                        offset: Offset(0, 2.h),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.bookmark_rounded,
+                    color: ThemeConstants.accent,
+                    size: 18.sp,
+                  ),
+                ),
+              ),
             ),
           ),
           
@@ -536,5 +574,10 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
       AppRouter.athkarDetails,
       arguments: category.id,
     );
+  }
+
+  void _openFavorites() {
+    HapticFeedback.lightImpact();
+    context.openFavoritesScreen(FavoriteContentType.athkar);
   }
 }

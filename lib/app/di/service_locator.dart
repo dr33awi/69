@@ -27,6 +27,7 @@ import 'package:athkar_app/core/infrastructure/services/text/service/text_settin
 import 'package:athkar_app/core/infrastructure/services/favorites/favorites_service.dart';
 import 'package:athkar_app/features/athkar/services/athkar_service.dart';
 import 'package:athkar_app/features/dua/services/dua_service.dart';
+import 'package:athkar_app/features/asma_allah/services/asma_allah_service.dart';
 import 'package:athkar_app/features/prayer_times/services/prayer_times_service.dart';
 import 'package:athkar_app/features/qibla/services/qibla_service_v3.dart';
 import 'package:athkar_app/features/settings/services/settings_services_manager.dart';
@@ -405,6 +406,15 @@ class ServiceLocator {
         () {
           debugPrint('🔄 ACTUAL LAZY LOADING: DuaService initialized NOW');
           return DuaService(storage: getIt<StorageService>());
+        },
+      );
+    }
+
+    if (!getIt.isRegistered<AsmaAllahService>()) {
+      getIt.registerLazySingleton<AsmaAllahService>(
+        () {
+          debugPrint('🔄 ACTUAL LAZY LOADING: AsmaAllahService initialized NOW');
+          return AsmaAllahService(storage: getIt<StorageService>());
         },
       );
     }
@@ -916,6 +926,7 @@ extension ServiceLocatorExtensions on BuildContext {
   PrayerTimesService get prayerTimesService => getIt<PrayerTimesService>();
   AthkarService get athkarService => getIt<AthkarService>();
   DuaService get duaService => getIt<DuaService>();
+  AsmaAllahService get asmaAllahService => getIt<AsmaAllahService>();
   TasbihService get tasbihService => getIt<TasbihService>();
   QiblaServiceV3 get qiblaService => getIt<QiblaServiceV3>();
   SettingsServicesManager get settingsManager => getIt<SettingsServicesManager>();

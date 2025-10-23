@@ -15,6 +15,8 @@ class CompactAsmaAllahCard extends StatefulWidget {
   final VoidCallback onTap;
   final bool showQuickActions;
   final bool showExplanationPreview;
+  final VoidCallback? onFavorite;
+  final bool isFavorite;
 
   const CompactAsmaAllahCard({
     super.key,
@@ -22,6 +24,8 @@ class CompactAsmaAllahCard extends StatefulWidget {
     required this.onTap,
     this.showQuickActions = false,
     this.showExplanationPreview = true,
+    this.onFavorite,
+    this.isFavorite = false,
   });
 
   @override
@@ -187,18 +191,53 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
               ),
             ),
             
-            // أيقونة التفاعل
-            Container(
-              padding: EdgeInsets.all(5.w),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(6.r),
-              ),
-              child: Icon(
-                Icons.chevron_left_rounded,
-                color: color,
-                size: 16.sp,
-              ),
+            // أيقونة التفاعل والمفضلة
+            Row(
+              children: [
+                // زر المفضلة
+                if (widget.onFavorite != null)
+                  GestureDetector(
+                    onTap: () {
+                      widget.onFavorite?.call();
+                      HapticFeedback.lightImpact();
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(5.w),
+                      decoration: BoxDecoration(
+                        color: widget.isFavorite 
+                            ? ThemeConstants.tertiary.withValues(alpha: 0.15)
+                            : color.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6.r),
+                      ),
+                      child: Icon(
+                        widget.isFavorite 
+                            ? Icons.bookmark_rounded
+                            : Icons.bookmark_outline_rounded,
+                        color: widget.isFavorite 
+                            ? ThemeConstants.tertiary
+                            : color,
+                        size: 16.sp,
+                      ),
+                    ),
+                  ),
+                
+                if (widget.onFavorite != null)
+                  SizedBox(width: 6.w),
+                
+                // أيقونة الانتقال
+                Container(
+                  padding: EdgeInsets.all(5.w),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6.r),
+                  ),
+                  child: Icon(
+                    Icons.chevron_left_rounded,
+                    color: color,
+                    size: 16.sp,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -858,12 +897,16 @@ class UnifiedAsmaAllahCard extends StatelessWidget {
   final AsmaAllahModel item;
   final VoidCallback onTap;
   final bool showActions;
+  final VoidCallback? onFavorite;
+  final bool isFavorite;
 
   const UnifiedAsmaAllahCard({
     super.key,
     required this.item,
     required this.onTap,
     this.showActions = false,
+    this.onFavorite,
+    this.isFavorite = false,
   });
 
   @override
@@ -873,6 +916,8 @@ class UnifiedAsmaAllahCard extends StatelessWidget {
       onTap: onTap,
       showQuickActions: showActions,
       showExplanationPreview: true,
+      onFavorite: onFavorite,
+      isFavorite: isFavorite,
     );
   }
 }

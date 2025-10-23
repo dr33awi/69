@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../app/themes/app_theme.dart';
+import '../../../../../app/di/service_locator.dart';
 import '../models/favorite_models.dart';
 import '../extensions/favorites_extensions.dart';
+import '../../share/share_service.dart';
 
 /// الشاشة الموحدة للمفضلات
 class UnifiedFavoritesScreen extends StatefulWidget {
@@ -24,18 +26,19 @@ class UnifiedFavoritesScreen extends StatefulWidget {
 class _UnifiedFavoritesScreenState extends State<UnifiedFavoritesScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
+  late ShareService _shareService;
   
   List<FavoriteItem> _allFavorites = [];
   FavoritesStatistics? _statistics;
   bool _isLoading = true;
-  String _searchQuery = '';
-  
-  final _searchController = TextEditingController();
-  bool _showSearch = false;
+
 
   @override
   void initState() {
     super.initState();
+    
+    // إعداد الخدمات
+    _shareService = getIt<ShareService>();
     
     // إعداد التبويبات
     _tabController = TabController(
@@ -57,7 +60,6 @@ class _UnifiedFavoritesScreenState extends State<UnifiedFavoritesScreen>
   @override
   void dispose() {
     _tabController.dispose();
-    _searchController.dispose();
     super.dispose();
   }
 
@@ -79,15 +81,11 @@ class _UnifiedFavoritesScreenState extends State<UnifiedFavoritesScreen>
     }
   }
 
-  /// الحصول على المفضلات المفلترة للتبويب الحالي
-  List<FavoriteItem> _getFilteredFavorites() {
-    final currentType = FavoriteContentType.values[_tabController.index];
-    var favorites = _allFavorites.filterByType(currentType);
+  /// الحصول على المفضلات المفلترة لنوع معين
+  List<FavoriteItem> _getFilteredFavorites(FavoriteContentType type) {
+    var favorites = _allFavorites.filterByType(type);
     
-    // تطبيق البحث
-    if (_searchQuery.isNotEmpty) {
-      favorites = favorites.search(_searchQuery);
-    }
+
     
     return favorites;
   }
@@ -106,7 +104,7 @@ class _UnifiedFavoritesScreenState extends State<UnifiedFavoritesScreen>
     return AppBar(
       backgroundColor: context.backgroundColor,
       elevation: 0,
-      title: _showSearch ? _buildSearchField() : const Text('المفضلة'),
+      title: const Text('المفضلة'),
       leading: IconButton(
         onPressed: () => Navigator.pop(context),
         icon: Icon(
@@ -115,65 +113,6 @@ class _UnifiedFavoritesScreenState extends State<UnifiedFavoritesScreen>
           size: 20.sp,
         ),
       ),
-      actions: [
-        // زر البحث
-        IconButton(
-          onPressed: _toggleSearch,
-          icon: Icon(
-            _showSearch ? Icons.close_rounded : Icons.search_rounded,
-            color: context.textPrimaryColor,
-            size: 22.sp,
-          ),
-        ),
-        
-        // قائمة الخيارات
-        PopupMenuButton<String>(
-          onSelected: _handleMenuAction,
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              value: 'sort',
-              child: Row(
-                children: [
-                  Icon(Icons.sort_rounded, size: 20.sp),
-                  SizedBox(width: 8.w),
-                  const Text('ترتيب وفلترة'),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'statistics',
-              child: Row(
-                children: [
-                  Icon(Icons.analytics_rounded, size: 20.sp),
-                  SizedBox(width: 8.w),
-                  const Text('الإحصائيات'),
-                ],
-              ),
-            ),
-            const PopupMenuDivider(),
-            PopupMenuItem(
-              value: 'export',
-              child: Row(
-                children: [
-                  Icon(Icons.download_rounded, size: 20.sp),
-                  SizedBox(width: 8.w),
-                  const Text('تصدير'),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'clear_all',
-              child: Row(
-                children: [
-                  Icon(Icons.delete_sweep_rounded, size: 20.sp, color: Colors.red),
-                  SizedBox(width: 8.w),
-                  Text('مسح الكل', style: TextStyle(color: Colors.red)),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
       bottom: _statistics != null && _statistics!.hasFavorites
           ? TabBar(
               controller: _tabController,
@@ -217,31 +156,6 @@ class _UnifiedFavoritesScreenState extends State<UnifiedFavoritesScreen>
     );
   }
 
-  /// بناء حقل البحث
-  Widget _buildSearchField() {
-    return TextField(
-      controller: _searchController,
-      onChanged: (value) {
-        setState(() {
-          _searchQuery = value;
-        });
-      },
-      decoration: InputDecoration(
-        hintText: 'البحث في المفضلات...',
-        border: InputBorder.none,
-        hintStyle: TextStyle(
-          color: context.textSecondaryColor,
-          fontSize: 14.sp,
-        ),
-      ),
-      style: TextStyle(
-        color: context.textPrimaryColor,
-        fontSize: 14.sp,
-      ),
-      autofocus: true,
-    );
-  }
-
   /// بناء حالة التحميل
   Widget _buildLoadingState() {
     return Center(
@@ -280,7 +194,7 @@ class _UnifiedFavoritesScreenState extends State<UnifiedFavoritesScreen>
 
   /// بناء محتوى نوع معين
   Widget _buildTypeContent(FavoriteContentType type) {
-    final favorites = _getFilteredFavorites();
+    final favorites = _getFilteredFavorites(type);
     
     if (favorites.isEmpty) {
       return _buildEmptyTypeState(type);
@@ -300,37 +214,68 @@ class _UnifiedFavoritesScreenState extends State<UnifiedFavoritesScreen>
     );
   }
 
-  /// بناء كارت المفضلة
+  /// بناء كارت المفضلة بنفس تصميم البطاقة الأصلية
   Widget _buildFavoriteCard(FavoriteItem item, int index) {
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
-      child: Card(
+      child: _buildOriginalStyleCard(item),
+    );
+  }
+
+  /// بناء البطاقة بنفس الأسلوب الأصلي حسب نوع المحتوى
+  Widget _buildOriginalStyleCard(FavoriteItem item) {
+    switch (item.contentType) {
+      case FavoriteContentType.dua:
+        return _buildDuaStyleCard(item);
+      case FavoriteContentType.athkar:
+        return _buildAthkarStyleCard(item);
+      case FavoriteContentType.asmaAllah:
+        return _buildAsmaAllahStyleCard(item);
+    }
+  }
+
+  /// بطاقة بأسلوب الدعاء الأصلي
+  Widget _buildDuaStyleCard(FavoriteItem item) {
+    return Container(
+      decoration: BoxDecoration(
         color: context.cardColor,
-        elevation: 2.r,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(
+          color: ThemeConstants.primary.withOpacity(0.2),
+          width: 1.w,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 8.r,
+            offset: Offset(0, 3.h),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16.r),
         child: InkWell(
           onTap: () => _openItem(item),
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(16.r),
           child: Padding(
             padding: EdgeInsets.all(16.w),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // العنوان والأيقونة
+                // رأس البطاقة
                 Row(
                   children: [
                     Container(
-                      padding: EdgeInsets.all(8.r),
+                      padding: EdgeInsets.all(8.w),
                       decoration: BoxDecoration(
                         color: ThemeConstants.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8.r),
                       ),
                       child: Icon(
-                        item.contentType.icon,
-                        size: 16.sp,
+                        Icons.menu_book_rounded,
                         color: ThemeConstants.primary,
+                        size: 20.sp,
                       ),
                     ),
                     SizedBox(width: 12.w),
@@ -341,122 +286,454 @@ class _UnifiedFavoritesScreenState extends State<UnifiedFavoritesScreen>
                           fontSize: 16.sp,
                           fontWeight: ThemeConstants.bold,
                           color: context.textPrimaryColor,
+                          fontFamily: ThemeConstants.fontFamilyArabic,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    
-                    // قائمة الخيارات
-                    PopupMenuButton<String>(
-                      onSelected: (action) => _handleItemAction(action, item),
-                      itemBuilder: (context) => [
-                        PopupMenuItem(
-                          value: 'share',
-                          child: Row(
-                            children: [
-                              Icon(Icons.share_rounded, size: 16.sp),
-                              SizedBox(width: 8.w),
-                              const Text('مشاركة'),
-                            ],
-                          ),
-                        ),
-                        PopupMenuItem(
-                          value: 'copy',
-                          child: Row(
-                            children: [
-                              Icon(Icons.copy_rounded, size: 16.sp),
-                              SizedBox(width: 8.w),
-                              const Text('نسخ'),
-                            ],
-                          ),
-                        ),
-                        const PopupMenuDivider(),
-                        PopupMenuItem(
-                          value: 'remove',
-                          child: Row(
-                            children: [
-                              Icon(Icons.delete_rounded, size: 16.sp, color: Colors.red),
-                              SizedBox(width: 8.w),
-                              Text('حذف من المفضلة', style: TextStyle(color: Colors.red)),
-                            ],
-                          ),
-                        ),
-                      ],
-                      child: Icon(
-                        Icons.more_vert_rounded,
-                        size: 20.sp,
-                        color: context.textSecondaryColor,
-                      ),
-                    ),
+                    _buildFavoriteMenu(item),
                   ],
                 ),
                 
                 SizedBox(height: 12.h),
                 
-                // المحتوى
-                Text(
-                  item.content.length > 100 
-                      ? '${item.content.substring(0, 100)}...'
-                      : item.content,
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    color: context.textPrimaryColor,
-                    height: 1.5,
+                // المحتوى العربي
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(12.w),
+                  decoration: BoxDecoration(
+                    color: ThemeConstants.primary.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(
+                      color: ThemeConstants.primary.withOpacity(0.1),
+                      width: 1.w,
+                    ),
+                  ),
+                  child: Text(
+                    item.content,
+                    style: TextStyle(
+                      fontSize: 15.sp,
+                      color: context.textPrimaryColor,
+                      height: 1.8,
+                      fontFamily: ThemeConstants.fontFamilyArabic,
+                    ),
+                    textAlign: TextAlign.right,
                   ),
                 ),
                 
-                // العنوان الفرعي
+                // الترجمة إذا كانت موجودة
                 if (item.subtitle != null) ...[
-                  SizedBox(height: 8.h),
-                  Text(
-                    item.subtitle!,
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: context.textSecondaryColor,
-                      fontStyle: FontStyle.italic,
+                  SizedBox(height: 10.h),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(12.w),
+                    decoration: BoxDecoration(
+                      color: context.textSecondaryColor.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: Text(
+                      item.subtitle!,
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        color: context.textSecondaryColor,
+                        height: 1.5,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                   ),
                 ],
                 
                 SizedBox(height: 12.h),
                 
-                // المعلومات الإضافية
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // تاريخ الإضافة
-                    Text(
-                      _formatDate(item.addedAt),
-                      style: TextStyle(
-                        fontSize: 10.sp,
-                        color: context.textSecondaryColor,
-                      ),
-                    ),
-                    
-                    // المصدر
-                    if (item.source != null)
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                        decoration: BoxDecoration(
-                          color: context.dividerColor.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(6.r),
-                        ),
-                        child: Text(
-                          item.source!,
-                          style: TextStyle(
-                            fontSize: 10.sp,
-                            color: context.textSecondaryColor,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+                // معلومات إضافية
+                _buildCardFooter(item),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  /// بطاقة بأسلوب الأذكار الأصلي
+  Widget _buildAthkarStyleCard(FavoriteItem item) {
+    return Container(
+      decoration: BoxDecoration(
+        color: context.cardColor,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(
+          color: ThemeConstants.accent.withOpacity(0.2),
+          width: 1.w,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 8.r,
+            offset: Offset(0, 3.h),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16.r),
+        child: InkWell(
+          onTap: () => _openItem(item),
+          borderRadius: BorderRadius.circular(16.r),
+          child: Padding(
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // رأس البطاقة
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(8.w),
+                      decoration: BoxDecoration(
+                        color: ThemeConstants.accent.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Icon(
+                        Icons.auto_stories_rounded,
+                        color: ThemeConstants.accent,
+                        size: 20.sp,
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Text(
+                        'ذكر من أذكار المسلم',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: ThemeConstants.medium,
+                          color: context.textSecondaryColor,
+                        ),
+                      ),
+                    ),
+                    _buildFavoriteMenu(item),
+                  ],
+                ),
+                
+                SizedBox(height: 12.h),
+                
+                // نص الذكر
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(14.w),
+                  decoration: BoxDecoration(
+                    color: ThemeConstants.accent.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(
+                      color: ThemeConstants.accent.withOpacity(0.15),
+                      width: 1.w,
+                    ),
+                  ),
+                  child: Text(
+                    item.content,
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      color: context.textPrimaryColor,
+                      height: 1.8,
+                      fontFamily: ThemeConstants.fontFamilyArabic,
+                      fontWeight: ThemeConstants.medium,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                
+                // الفضل إذا كان موجود
+                if (item.subtitle != null) ...[
+                  SizedBox(height: 12.h),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(12.w),
+                    decoration: BoxDecoration(
+                      color: ThemeConstants.tertiary.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(10.r),
+                      border: Border.all(
+                        color: ThemeConstants.tertiary.withOpacity(0.2),
+                        width: 1.w,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.star_rounded,
+                              color: ThemeConstants.tertiary,
+                              size: 16.sp,
+                            ),
+                            SizedBox(width: 6.w),
+                            Text(
+                              'الفضل',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: ThemeConstants.bold,
+                                color: ThemeConstants.tertiary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 6.h),
+                        Text(
+                          item.subtitle!,
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: context.textPrimaryColor,
+                            height: 1.6,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                
+                SizedBox(height: 12.h),
+                
+                // معلومات إضافية
+                _buildCardFooter(item),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// بطاقة بأسلوب أسماء الله الأصلي
+  Widget _buildAsmaAllahStyleCard(FavoriteItem item) {
+    return Container(
+      decoration: BoxDecoration(
+        color: context.cardColor,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(
+          color: ThemeConstants.tertiary.withOpacity(0.2),
+          width: 1.w,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 8.r,
+            offset: Offset(0, 3.h),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16.r),
+        child: InkWell(
+          onTap: () => _openItem(item),
+          borderRadius: BorderRadius.circular(16.r),
+          child: Padding(
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // رأس البطاقة
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(8.w),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [ThemeConstants.tertiary, ThemeConstants.tertiaryLight],
+                        ),
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Icon(
+                        Icons.auto_awesome_rounded,
+                        color: Colors.white,
+                        size: 20.sp,
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Text(
+                        item.title,
+                        style: TextStyle(
+                          fontSize: 18.sp,
+                          fontWeight: ThemeConstants.bold,
+                          color: ThemeConstants.tertiary,
+                          fontFamily: ThemeConstants.fontFamilyArabic,
+                        ),
+                      ),
+                    ),
+                    _buildFavoriteMenu(item),
+                  ],
+                ),
+                
+                SizedBox(height: 12.h),
+                
+                // الشرح
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(12.w),
+                  decoration: BoxDecoration(
+                    color: context.textSecondaryColor.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(10.r),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.description_rounded,
+                            color: context.textSecondaryColor,
+                            size: 16.sp,
+                          ),
+                          SizedBox(width: 6.w),
+                          Text(
+                            'الشرح والتفسير',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: ThemeConstants.bold,
+                              color: context.textSecondaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8.h),
+                      Text(
+                        item.content.length > 200 
+                            ? '${item.content.substring(0, 200)}...'
+                            : item.content,
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          color: context.textPrimaryColor,
+                          height: 1.6,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                SizedBox(height: 12.h),
+                
+                // معلومات إضافية
+                _buildCardFooter(item),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// أيقونات خيارات المفضلة
+  Widget _buildFavoriteMenu(FavoriteItem item) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // أيقونة المشاركة
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20.r),
+            onTap: () => _handleItemAction('share', item),
+            child: Container(
+              padding: EdgeInsets.all(6.w),
+              child: Icon(
+                Icons.share_rounded,
+                size: 18.sp,
+                color: context.textSecondaryColor,
+              ),
+            ),
+          ),
+        ),
+        SizedBox(width: 4.w),
+        
+        // أيقونة النسخ
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20.r),
+            onTap: () => _handleItemAction('copy', item),
+            child: Container(
+              padding: EdgeInsets.all(6.w),
+              child: Icon(
+                Icons.copy_rounded,
+                size: 18.sp,
+                color: context.textSecondaryColor,
+              ),
+            ),
+          ),
+        ),
+        SizedBox(width: 4.w),
+        
+        // أيقونة الحذف
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20.r),
+            onTap: () => _handleItemAction('remove', item),
+            child: Container(
+              padding: EdgeInsets.all(6.w),
+              child: Icon(
+                Icons.delete_rounded,
+                size: 18.sp,
+                color: const Color(0xFFB85450),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// تذييل البطاقة مع التاريخ والمصدر
+  Widget _buildCardFooter(FavoriteItem item) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // تاريخ الإضافة
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+          decoration: BoxDecoration(
+            color: context.dividerColor.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(6.r),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.bookmark_added_rounded,
+                size: 12.sp,
+                color: context.textSecondaryColor,
+              ),
+              SizedBox(width: 4.w),
+              Text(
+                _formatDate(item.addedAt),
+                style: TextStyle(
+                  fontSize: 10.sp,
+                  color: context.textSecondaryColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+        
+        // المصدر إذا كان موجود
+        if (item.source != null)
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+            decoration: BoxDecoration(
+              color: ThemeConstants.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(6.r),
+            ),
+            child: Text(
+              item.source!,
+              style: TextStyle(
+                fontSize: 10.sp,
+                color: ThemeConstants.primary,
+                fontWeight: ThemeConstants.medium,
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -547,34 +824,7 @@ class _UnifiedFavoritesScreenState extends State<UnifiedFavoritesScreen>
 
   // ==================== الأحداث والتفاعلات ====================
 
-  /// تبديل البحث
-  void _toggleSearch() {
-    setState(() {
-      _showSearch = !_showSearch;
-      if (!_showSearch) {
-        _searchController.clear();
-        _searchQuery = '';
-      }
-    });
-  }
 
-  /// معالجة أحداث القائمة
-  void _handleMenuAction(String action) {
-    switch (action) {
-      case 'sort':
-        _showSortOptions();
-        break;
-      case 'statistics':
-        _showStatistics();
-        break;
-      case 'export':
-        _exportFavorites();
-        break;
-      case 'clear_all':
-        context.clearAllFavoritesWithConfirmation();
-        break;
-    }
-  }
 
   /// معالجة أحداث العناصر
   void _handleItemAction(String action, FavoriteItem item) {
@@ -595,41 +845,231 @@ class _UnifiedFavoritesScreenState extends State<UnifiedFavoritesScreen>
   void _openItem(FavoriteItem item) {
     HapticFeedback.lightImpact();
     context.favoritesService.markAsAccessed(item.id);
-    // TODO: التنقل للشاشة المناسبة حسب نوع العنصر
+    
+    // عرض تفاصيل العنصر في مربع حوار
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        title: Text(
+          item.title,
+          style: TextStyle(
+            fontFamily: ThemeConstants.fontFamilyArabic,
+            fontSize: 16.sp,
+            fontWeight: ThemeConstants.bold,
+          ),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // المحتوى الرئيسي
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(12.w),
+                decoration: BoxDecoration(
+                  color: item.contentType == FavoriteContentType.dua
+                      ? ThemeConstants.primary.withOpacity(0.05)
+                      : item.contentType == FavoriteContentType.athkar
+                          ? ThemeConstants.accent.withOpacity(0.05)
+                          : ThemeConstants.tertiary.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(8.r),
+                  border: Border.all(
+                    color: item.contentType == FavoriteContentType.dua
+                        ? ThemeConstants.primary.withOpacity(0.2)
+                        : item.contentType == FavoriteContentType.athkar
+                            ? ThemeConstants.accent.withOpacity(0.2)
+                            : ThemeConstants.tertiary.withOpacity(0.2),
+                    width: 1.w,
+                  ),
+                ),
+                child: Text(
+                  item.content,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    height: 1.6,
+                    fontFamily: ThemeConstants.fontFamilyArabic,
+                  ),
+                  textAlign: TextAlign.right,
+                ),
+              ),
+              
+              // الترجمة/الفضل (ليس لأسماء الله الحسنى)
+              if (item.subtitle != null && item.contentType != FavoriteContentType.asmaAllah) ...[
+                SizedBox(height: 12.h),
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(12.w),
+                  decoration: BoxDecoration(
+                    color: context.textSecondaryColor.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.contentType == FavoriteContentType.dua
+                            ? 'الترجمة'
+                            : 'الفضل',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          fontWeight: ThemeConstants.bold,
+                          color: context.textSecondaryColor,
+                        ),
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        item.subtitle!,
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              
+              // المصدر
+              if (item.source != null) ...[
+                SizedBox(height: 12.h),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.source_rounded,
+                      size: 16.sp,
+                      color: context.textSecondaryColor,
+                    ),
+                    SizedBox(width: 6.w),
+                    Text(
+                      'المصدر: ',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: ThemeConstants.bold,
+                        color: context.textSecondaryColor,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        item.source!,
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: context.textSecondaryColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          // زر الإغلاق فقط
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إغلاق'),
+          ),
+        ],
+      ),
+    );
   }
 
   /// مشاركة عنصر
-  void _shareItem(FavoriteItem item) {
-    final text = '''
-${item.title}
-
-${item.content}
-
-${item.subtitle != null ? '\n${item.subtitle}' : ''}
-${item.source != null ? '\nالمصدر: ${item.source}' : ''}
-''';
+  void _shareItem(FavoriteItem item) async {
+    HapticFeedback.lightImpact();
     
-    // TODO: استخدام خدمة المشاركة
+    try {
+      switch (item.contentType) {
+        case FavoriteContentType.dua:
+          await _shareService.shareDua(
+            item.title,
+            item.content,
+            translation: item.subtitle,
+            virtue: item.metadata?['virtue'],
+            source: item.source,
+            reference: item.metadata?['reference'],
+          );
+          break;
+          
+        case FavoriteContentType.athkar:
+          await _shareService.shareAthkar(
+            item.content,
+            fadl: item.metadata?['fadl'],
+            source: item.source,
+            categoryTitle: item.title,
+          );
+          break;
+          
+        case FavoriteContentType.asmaAllah:
+          await _shareService.shareAsmaAllah(
+            item.title,
+            item.content,
+          );
+          break;
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('حدث خطأ في المشاركة: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   /// نسخ عنصر
-  void _copyItem(FavoriteItem item) {
-    final text = '''
-${item.title}
-
-${item.content}
-
-${item.subtitle != null ? '\n${item.subtitle}' : ''}
-${item.source != null ? '\nالمصدر: ${item.source}' : ''}
-''';
+  void _copyItem(FavoriteItem item) async {
+    HapticFeedback.lightImpact();
     
-    Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تم النسخ إلى الحافظة'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+    try {
+      switch (item.contentType) {
+        case FavoriteContentType.dua:
+          await _shareService.copyDua(
+            item.title,
+            item.content,
+            translation: item.subtitle,
+            virtue: item.metadata?['virtue'],
+            source: item.source,
+            reference: item.metadata?['reference'],
+          );
+          break;
+          
+        case FavoriteContentType.athkar:
+          await _shareService.copyAthkar(
+            item.content,
+            fadl: item.metadata?['fadl'],
+            source: item.source,
+            categoryTitle: item.title,
+          );
+          break;
+          
+        case FavoriteContentType.asmaAllah:
+          await _shareService.copyAsmaAllah(
+            item.title,
+            item.content,
+          );
+          break;
+      }
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تم النسخ إلى الحافظة'),
+          duration: Duration(seconds: 2),
+          backgroundColor: Color(0xFF5D7052),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('حدث خطأ في النسخ: $e'),
+          backgroundColor: const Color(0xFFB85450),
+        ),
+      );
+    }
   }
 
   /// حذف عنصر
@@ -644,20 +1084,7 @@ ${item.source != null ? '\nالمصدر: ${item.source}' : ''}
     }
   }
 
-  /// عرض خيارات الترتيب
-  void _showSortOptions() {
-    // TODO: عرض حوار خيارات الترتيب
-  }
 
-  /// عرض الإحصائيات
-  void _showStatistics() {
-    // TODO: عرض حوار الإحصائيات
-  }
-
-  /// تصدير المفضلات
-  void _exportFavorites() {
-    // TODO: تنفيذ تصدير المفضلات
-  }
 
   /// تنسيق التاريخ
   String _formatDate(DateTime date) {

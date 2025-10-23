@@ -2,6 +2,8 @@
 import 'package:athkar_app/app/di/service_locator.dart';
 import 'package:athkar_app/app/themes/app_theme.dart';
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
+import 'package:athkar_app/core/infrastructure/services/favorites/models/favorite_models.dart';
+import 'package:athkar_app/core/infrastructure/services/favorites/extensions/favorites_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
@@ -25,12 +27,53 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   final ScrollController _scrollController = ScrollController();
+  
+  // إدارة حالة المفضلة
+  Map<int, bool> _favoriteStates = {};
 
   @override
   void initState() {
     super.initState();
     _service = AsmaAllahService(storage: getIt<StorageService>());
     _searchController.addListener(() => setState(() => _searchQuery = _searchController.text));
+    _loadFavoriteStates();
+  }
+
+  void _loadFavoriteStates() async {
+    final favoriteItems = await _service.getFavoriteAsmaAllahModels();
+    setState(() {
+      _favoriteStates = {
+        for (var item in favoriteItems) item.id: true
+      };
+    });
+  }
+
+  void _toggleFavorite(AsmaAllahModel item) async {
+    try {
+      await _service.toggleFavorite(item);
+      setState(() {
+        _favoriteStates[item.id] = !(_favoriteStates[item.id] ?? false);
+      });
+      
+      final isFavorite = _favoriteStates[item.id] ?? false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isFavorite 
+                ? 'تم إضافة "${item.name}" إلى المفضلة'
+                : 'تم إزالة "${item.name}" من المفضلة',
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('حدث خطأ أثناء تحديث المفضلة'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   @override
@@ -134,6 +177,23 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
                       ),
                     ),
                   ],
+                ),
+              ),
+              
+              // زر المفضلة الموحدة
+              IconButton(
+                onPressed: () => _openUnifiedFavorites(),
+                icon: Container(
+                  padding: EdgeInsets.all(6.w),
+                  decoration: BoxDecoration(
+                    color: ThemeConstants.tertiary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Icon(
+                    Icons.bookmark_rounded,
+                    color: ThemeConstants.tertiary,
+                    size: 18.sp,
+                  ),
                 ),
               ),
             ],
@@ -394,6 +454,8 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
                   item: item,
                   onTap: () => _openDetails(item),
                   showExplanationPreview: true,
+                  onFavorite: () => _toggleFavorite(item),
+                  isFavorite: _favoriteStates[item.id] ?? false,
                 ),
               );
             },
@@ -416,5 +478,10 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
         transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
       ),
     );
+  }
+
+  void _openUnifiedFavorites() {
+    HapticFeedback.lightImpact();
+    context.openFavoritesScreen(FavoriteContentType.asmaAllah);
   }
 }

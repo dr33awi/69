@@ -1,4 +1,4 @@
-// lib/core/infrastructure/services/text/screens/global_text_settings_screen.dart
+//lib/core/infrastructure/services/text/screens/global_text_settings_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -169,19 +169,64 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
   Future<bool> _showUnsavedChangesDialog() async {
     if (!_hasChanges) return true;
     
-    final result = await AppInfoDialog.showConfirmation(
+    final result = await showDialog<String>(
       context: context,
-      title: 'تغييرات غير محفوظة',
-      content: 'لديك تغييرات لم يتم حفظها. هل تريد حفظ التغييرات قبل المغادرة؟',
-      confirmText: 'حفظ وخروج',
-      cancelText: 'تجاهل التغييرات',
-      icon: Icons.warning_amber_rounded,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        title: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(8.r),
+              decoration: BoxDecoration(
+                color: ThemeConstants.warning.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+              child: Icon(Icons.warning_amber_rounded, color: ThemeConstants.warning, size: 24.sp),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                'تغييرات غير محفوظة',
+                style: TextStyle(fontSize: 16.sp, fontWeight: ThemeConstants.bold),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'لديك تغييرات لم يتم حفظها. هل تريد حفظ التغييرات قبل المغادرة؟',
+          style: TextStyle(fontSize: 14.sp, height: 1.6),
+        ),
+        actionsPadding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'discard'),
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+            ),
+            child: Text(
+              'تجاهل التغييرات', 
+              style: TextStyle(fontSize: 14.sp, color: ThemeConstants.error),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, 'save'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ThemeConstants.primary,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+            ),
+            child: Text('حفظ وخروج', style: TextStyle(fontSize: 14.sp)),
+          ),
+        ],
+      ),
     );
     
-    if (result == true) {
+    if (result == 'save') {
+      // حفظ التغييرات
       await _saveAllSettings();
-      return !_hasChanges; // إذا تم الحفظ بنجاح
-    } else if (result == false) {
+      return !_hasChanges;
+    } else if (result == 'discard') {
       // تجاهل التغييرات - إرجاع الإعدادات للحالة الأصلية
       setState(() {
         _currentSettings.clear();
@@ -193,7 +238,7 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
       return true; // السماح بالخروج
     }
     
-    return false; // إلغاء
+    return false; // إلغاء (result == 'cancel' or null)
   }
 
   /// تطبيق قالب على نوع محتوى معين
@@ -757,8 +802,6 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
     );
   }
 
-
-
   /// بناء عنوان القسم
   Widget _buildSectionHeader({
     required IconData icon,
@@ -1028,9 +1071,6 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
       ),
     );
   }
-
-
-
 
   /// إزالة التشكيل من النص
   String _removeTashkeel(String text) {

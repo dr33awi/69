@@ -35,6 +35,7 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
   AthkarCategory? _category;
   final Map<int, int> _counts = {};
   final Set<int> _completedItems = {};
+  final Map<String, bool> _favoriteStates = {}; // حالات المفضلة
   List<AthkarItem> _visibleItems = [];
   bool _loading = true;
   bool _allCompleted = false;
@@ -69,6 +70,7 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
       
       // تحميل الإعدادات الموحدة للأذكار
       await _loadTextSettings();
+      await _loadFavoriteStates();
       
       bool wasAlreadyCompleted = false;
       if (cat != null) {
@@ -118,6 +120,66 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
     // تحميل الإعدادات الموحدة من TextSettingsService
     _textSettings = await context.getTextSettings(ContentType.athkar);
     _displaySettings = await context.getDisplaySettings(ContentType.athkar);
+  }
+
+  /// تحميل حالات المفضلة لجميع الأذكار
+  Future<void> _loadFavoriteStates() async {
+    if (_category == null) return;
+    
+    try {
+      for (final item in _category!.athkar) {
+        final isFavorite = await _service.isFavorite(item.id.toString());
+        _favoriteStates[item.id.toString()] = isFavorite;
+      }
+      
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      // في حالة الخطأ، نتجاهل ونواصل
+    }
+  }
+
+  /// تبديل حالة المفضلة لذكر معين
+  Future<void> _toggleFavorite(AthkarItem item) async {
+    try {
+      HapticFeedback.lightImpact();
+      
+      final wasAdded = await _service.toggleFavorite(
+        athkarId: item.id.toString(),
+        text: item.text,
+        fadl: item.fadl,
+        source: _category?.title,
+        categoryId: _category?.id,
+        count: item.count,
+      );
+      
+      setState(() {
+        _favoriteStates[item.id.toString()] = wasAdded;
+      });
+      
+      // إظهار رسالة تأكيد
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              wasAdded ? 'تمت إضافة الذكر للمفضلة' : 'تمت إزالة الذكر من المفضلة',
+            ),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('حدث خطأ أثناء تحديث المفضلة'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
   }
 
   void _updateVisibleItems() {
@@ -574,6 +636,8 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
               onTap: () => _onItemTap(item),
               onLongPress: () => _onItemLongPress(item),
               onShare: () => _shareItem(item),
+              onFavorite: () => _toggleFavorite(item),
+              isFavorite: _favoriteStates[item.id.toString()] ?? false,
             ),
           );
         },

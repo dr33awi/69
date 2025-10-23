@@ -1,16 +1,17 @@
 // lib/features/dua/services/dua_service.dart
 
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/infrastructure/services/storage/storage_service.dart';
+import '../../../core/infrastructure/services/favorites/favorites_service.dart';
+import '../../../core/infrastructure/services/favorites/models/favorite_models.dart';
+import '../../../app/di/service_locator.dart';
 import '../models/dua_model.dart';
 
 class DuaService {
   final StorageService _storage;
   
-  // مفاتيح التخزين
-  static const String _favoritesKey = 'dua_favorites';
+  // مفاتيح التخزين (إزالة _favoritesKey لأننا نستخدم النظام الموحد)
   static const String _fontSizeKey = 'dua_font_size';
   static const String _lastViewedKey = 'dua_last_viewed';
   static const String _readDuasKey = 'dua_read_items';
@@ -19,15 +20,16 @@ class DuaService {
   // Cache
   List<DuaCategory>? _categoriesCache;
   Map<String, List<DuaItem>>? _duasCache;
-  Set<String>? _favoritesCache;
   Set<String>? _readDuasCache;
+  
+  // النظام الموحد للمفضلة
+  FavoritesService get _favoritesService => getIt<FavoritesService>();
   
   DuaService({required StorageService storage}) : _storage = storage {
     _initialize();
   }
 
   Future<void> _initialize() async {
-    await _loadFavorites();
     await _loadReadDuas();
   }
 
@@ -72,11 +74,13 @@ class DuaService {
       final Map<String, dynamic> duasJson = jsonData['duas'] ?? {};
       final List<dynamic> categoryDuas = duasJson[categoryId] ?? [];
       
-      final duas = categoryDuas.map((json) {
+      final duas = <DuaItem>[];
+      
+      for (final json in categoryDuas) {
         final dua = DuaItem.fromJson(json);
-        final isFavorite = _favoritesCache?.contains(dua.id) ?? false;
-        return dua.copyWith(isFavorite: isFavorite);
-      }).toList();
+        final isFavorite = await _favoritesService.isFavorite(dua.id);
+        duas.add(dua.copyWith(isFavorite: isFavorite));
+      }
       
       // حفظ في الـ Cache
       _duasCache ??= {};
@@ -102,7 +106,7 @@ class DuaService {
         if (categoryDuas is List) {
           for (final duaJson in categoryDuas) {
             final dua = DuaItem.fromJson(duaJson);
-            final isFavorite = _favoritesCache?.contains(dua.id) ?? false;
+            final isFavorite = await _favoritesService.isFavorite(dua.id);
             allDuas.add(dua.copyWith(isFavorite: isFavorite));
           }
         }
@@ -143,14 +147,17 @@ class DuaService {
   /// الحصول على الأدعية المفضلة
   Future<List<DuaItem>> getFavoriteDuas() async {
     try {
-      await _loadFavorites();
+      final favoriteItems = await _favoritesService.getFavoritesByType(FavoriteContentType.dua);
       
-      if (_favoritesCache == null || _favoritesCache!.isEmpty) {
+      if (favoriteItems.isEmpty) {
         return [];
       }
       
+      // تحويل FavoriteItem إلى DuaItem
       final allDuas = await getAllDuas();
-      return allDuas.where((dua) => _favoritesCache!.contains(dua.id)).toList();
+      final favoriteIds = favoriteItems.map((item) => item.id).toSet();
+      
+      return allDuas.where((dua) => favoriteIds.contains(dua.id)).toList();
       
     } catch (e) {
       return [];
@@ -160,32 +167,37 @@ class DuaService {
   /// إضافة/إزالة من المفضلة
   Future<bool> toggleFavorite(String duaId) async {
     try {
-      await _loadFavorites();
+      // البحث عن الدعاء لإنشاء FavoriteItem
+      final allDuas = await getAllDuas();
+      final dua = allDuas.firstWhere((d) => d.id == duaId);
       
-      _favoritesCache ??= {};
+      final favoriteItem = FavoriteItem.fromDua(
+        duaId: dua.id,
+        title: dua.title,
+        arabicText: dua.arabicText,
+        transliteration: dua.transliteration,
+        translation: dua.translation,
+        virtue: dua.virtue,
+        source: dua.source,
+        reference: dua.reference,
+      );
       
-      if (_favoritesCache!.contains(duaId)) {
-        _favoritesCache!.remove(duaId);
-      } else {
-        _favoritesCache!.add(duaId);
-      }
-      
-      // حفظ في التخزين
-      await _storage.setStringList(_favoritesKey, _favoritesCache!.toList());
+      await _favoritesService.toggleFavorite(favoriteItem);
       
       // تحديث الـ Cache
       if (_duasCache != null) {
         for (final categoryDuas in _duasCache!.values) {
           final duaIndex = categoryDuas.indexWhere((d) => d.id == duaId);
           if (duaIndex != -1) {
+            final isFavorite = await _favoritesService.isFavorite(duaId);
             categoryDuas[duaIndex] = categoryDuas[duaIndex].copyWith(
-              isFavorite: _favoritesCache!.contains(duaId),
+              isFavorite: isFavorite,
             );
           }
         }
       }
       
-      return _favoritesCache!.contains(duaId);
+      return await _favoritesService.isFavorite(duaId);
       
     } catch (e) {
       return false;
@@ -194,21 +206,7 @@ class DuaService {
 
   /// التحقق من المفضلة
   Future<bool> isFavorite(String duaId) async {
-    await _loadFavorites();
-    return _favoritesCache?.contains(duaId) ?? false;
-  }
-
-  /// تحميل المفضلات
-  Future<void> _loadFavorites() async {
-    try {
-      if (_favoritesCache != null) return;
-      
-      final favorites = _storage.getStringList(_favoritesKey) ?? [];
-      _favoritesCache = favorites.toSet();
-      
-    } catch (e) {
-      _favoritesCache = {};
-    }
+    return await _favoritesService.isFavorite(duaId);
   }
 
   /// تحديد دعاء كمقروء
@@ -327,13 +325,15 @@ class DuaService {
       final allDuas = await getAllDuas();
       final categories = await loadCategories();
       
-      await _loadFavorites();
       await _loadReadDuas();
+      
+      // الحصول على عدد المفضلات من النظام الموحد
+      final favoritesCount = await _favoritesService.getCountByType(FavoriteContentType.dua);
       
       return {
         'totalDuas': allDuas.length,
         'totalCategories': categories.length,
-        'favoritesCount': _favoritesCache?.length ?? 0,
+        'favoritesCount': favoritesCount,
         'readCount': _readDuasCache?.length ?? 0,
         'unreadCount': allDuas.length - (_readDuasCache?.length ?? 0),
         'readPercentage': allDuas.isNotEmpty 
@@ -350,7 +350,6 @@ class DuaService {
   void dispose() {
     _categoriesCache = null;
     _duasCache = null;
-    _favoritesCache = null;
     _readDuasCache = null;
   }
 }

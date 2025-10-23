@@ -87,43 +87,18 @@ class FavoritesUsageExamples {
   static Future<void> exampleAddAsmaAllahToFavorites(BuildContext context) async {
     const nameId = 'asma_001_rahman';
     const arabicName = 'الرحمن';
-    const meaning = 'الذي وسعت رحمته كل شيء';
-    const explanation = 'اسم من أسماء الله الحسنى يدل على سعة رحمته سبحانه وتعالى';
+    const explanation = 'الذي وسعت رحمته كل شيء. اسم من أسماء الله الحسنى يدل على سعة رحمته سبحانه وتعالى';
     const transliteration = 'Ar-Rahman';
 
     final success = await context.addAsmaAllahToFavorites(
       nameId: nameId,
       arabicName: arabicName,
-      meaning: meaning,
       explanation: explanation,
       transliteration: transliteration,
     );
 
     if (success) {
       print('✅ تم إضافة الاسم للمفضلة');
-    }
-  }
-
-  // ==================== أمثلة التسبيح ====================
-
-  /// مثال: إضافة ذكر التسبيح للمفضلة
-  static Future<void> exampleAddTasbihToFavorites(BuildContext context) async {
-    const dhikrId = 'tasbih_subhan_allah';
-    const text = 'سبحان الله';
-    const virtue = 'تسبيحة تنظف القلب وتزيد من الأجر';
-    const recommendedCount = 33;
-    const category = 'تسبيح';
-
-    final success = await context.addTasbihToFavorites(
-      dhikrId: dhikrId,
-      text: text,
-      virtue: virtue,
-      recommendedCount: recommendedCount,
-      category: category,
-    );
-
-    if (success) {
-      print('✅ تم إضافة ذكر التسبيح للمفضلة');
     }
   }
 
@@ -248,8 +223,7 @@ class FavoritesUsageExamples {
       FavoriteItem.fromAsmaAllah(
         nameId: 'asma_001',
         arabicName: 'الرحمن',
-        meaning: 'الرحيم',
-        explanation: 'اسم من أسماء الله الحسنى',
+        explanation: 'الرحيم - اسم من أسماء الله الحسنى',
       ),
     ];
 

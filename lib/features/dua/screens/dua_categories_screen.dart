@@ -6,11 +6,12 @@ import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
+import '../../../core/infrastructure/services/favorites/models/favorite_models.dart';
+import '../../../core/infrastructure/services/favorites/extensions/favorites_extensions.dart';
 import '../services/dua_service.dart';
 import '../models/dua_model.dart';
 import 'dua_list_screen.dart';
 import 'dua_search_screen.dart';
-import 'dua_favorites_screen.dart';
 
 class DuaCategoriesScreen extends StatefulWidget {
   const DuaCategoriesScreen({super.key});
@@ -669,12 +670,8 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
   }
 
   void _openFavorites() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const DuaFavoritesScreen(),
-      ),
-    );
+    HapticFeedback.lightImpact();
+    context.openFavoritesScreen(FavoriteContentType.dua);
   }
 }
 
