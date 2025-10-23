@@ -38,6 +38,7 @@ import 'features/home/screens/home_screen.dart';
 import 'features/onboarding/screens/onboarding_screen.dart';
 import 'features/onboarding/screens/permissions_setup_screen.dart';
 
+
 NotificationAppLaunchDetails? _notificationAppLaunchDetails;
 NotificationTapEvent? _pendingNotificationEvent;
 bool _isOfflineMode = false;
@@ -647,7 +648,7 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
     }
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: getIt<ThemeNotifier>(),
@@ -660,11 +661,9 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
             return MaterialApp(
               title: 'حصن المسلم',
               debugShowCheckedModeBanner: false,
-              
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
               themeMode: themeMode,
-              
               locale: const Locale('ar'),
               supportedLocales: const [Locale('ar')],
               localizationsDelegates: const [
@@ -672,14 +671,17 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
                 GlobalWidgetsLocalizations.delegate,
                 GlobalCupertinoLocalizations.delegate,
               ],
-              
               navigatorKey: AppRouter.navigatorKey,
               home: _buildInitialScreen(),
               onGenerateRoute: AppRouter.onGenerateRoute,
-              
               builder: (context, child) {
-                return child ?? const Scaffold(
-                  body: Center(child: CircularProgressIndicator()),
+                return PermissionCheckWidget(
+                  showWarningCard: true,
+                  child: child ?? const Scaffold(
+                    body: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
                 );
               },
             );
@@ -688,59 +690,3 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
       },
     );
   }
-}
-
-// ==================== شاشة الخطأ ====================
-class _ErrorApp extends StatelessWidget {
-  const _ErrorApp({required this.error});
-
-  final String error;
-
-  @override
-  Widget build(BuildContext context) {
-    return ScreenUtilInit(
-      designSize: const Size(375, 812),
-      builder: (context, _) {
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          home: Directionality(
-            textDirection: TextDirection.rtl,
-            child: Scaffold(
-              body: SafeArea(
-                child: Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(24.w),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.error_outline, size: 80.sp, color: Colors.red),
-                        SizedBox(height: 24.h),
-                        Text(
-                          'عذراً، حدث خطأ',
-                          style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 16.h),
-                        Text(
-                          'يرجى إعادة المحاولة',
-                          style: TextStyle(fontSize: 16.sp),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: 32.h),
-                        ElevatedButton.icon(
-                          onPressed: () => main(),
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('إعادة المحاولة'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}

@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/di/service_locator.dart';
 import '../../../app/themes/app_theme.dart';
-import '../../../core/infrastructure/services/permissions/permission_service.dart';
+import '../../../core/infrastructure/services/permissions/simple_permission_service.dart';
 import '../../../core/infrastructure/services/storage/storage_service.dart';
 import '../services/athkar_service.dart';
 import '../models/athkar_model.dart';
@@ -24,7 +24,7 @@ class AthkarNotificationSettingsScreen extends StatefulWidget {
 class _AthkarNotificationSettingsScreenState 
     extends State<AthkarNotificationSettingsScreen> {
   late final AthkarService _service;
-  late final PermissionService _permissionService;
+  late final SimplePermissionService _permissionService;
   late final StorageService _storage;
   
   List<AthkarCategory>? _categories;
@@ -45,7 +45,7 @@ class _AthkarNotificationSettingsScreenState
   void initState() {
     super.initState();
     _service = getIt<AthkarService>();
-    _permissionService = getIt<PermissionService>();
+    _permissionService = getIt<SimplePermissionService>();
     _storage = getIt<StorageService>();
     _loadData();
   }
@@ -128,6 +128,7 @@ class _AthkarNotificationSettingsScreenState
   }
 
   Future<void> _migrateSettings(int fromVersion) async {
+    // Migration logic if needed
   }
 
   Future<void> _saveInitialSettings(List<String> autoEnabledIds) async {
@@ -169,14 +170,13 @@ class _AthkarNotificationSettingsScreenState
         await _service.scheduleCategoryReminders();
       }
     } catch (e) {
+      debugPrint('Error validating notifications: $e');
     }
   }
 
-  /// التحقق من وجود تغييرات
   void _checkForChanges() {
     bool hasChanges = false;
     
-    // التحقق من تغيير حالة التفعيل
     for (final entry in _enabled.entries) {
       if (entry.value != (_originalEnabled[entry.key] ?? false)) {
         hasChanges = true;
@@ -184,7 +184,6 @@ class _AthkarNotificationSettingsScreenState
       }
     }
     
-    // التحقق من تغيير الأوقات
     if (!hasChanges) {
       for (final entry in _customTimes.entries) {
         final originalTime = _originalTimes[entry.key];
@@ -202,7 +201,6 @@ class _AthkarNotificationSettingsScreenState
     });
   }
 
-  /// عرض dialog تأكيد الخروج مع تغييرات غير محفوظة
   Future<bool> _showUnsavedChangesDialog() async {
     if (!_hasChanges) return true;
     
@@ -260,11 +258,9 @@ class _AthkarNotificationSettingsScreenState
     );
     
     if (result == 'save') {
-      // حفظ التغييرات
       await _saveChanges();
       return !_hasChanges;
     } else if (result == 'discard') {
-      // تجاهل التغييرات - إرجاع الإعدادات للحالة الأصلية
       setState(() {
         _enabled.clear();
         _enabled.addAll(_originalEnabled);
@@ -272,15 +268,15 @@ class _AthkarNotificationSettingsScreenState
         _customTimes.addAll(_originalTimes);
         _hasChanges = false;
       });
-      return true; // السماح بالخروج
+      return true;
     }
     
-    return false; // إلغاء (result == 'cancel' or null)
+    return false;
   }
 
   Future<void> _requestPermission() async {
     try {
-      final granted = await _permissionService.requestNotificationPermission();
+      final granted = await _permissionService.requestNotificationPermission(context);
       setState(() => _hasPermission = granted);
       
       if (granted) {
@@ -315,7 +311,6 @@ class _AthkarNotificationSettingsScreenState
     });
     _checkForChanges();
     
-    // تفعيل الفئة تلقائياً عند تغيير الوقت
     if (!(_enabled[categoryId] ?? false)) {
       setState(() {
         _enabled[categoryId] = true;
@@ -346,7 +341,6 @@ class _AthkarNotificationSettingsScreenState
         customTimes: _customTimes,
       );
       
-      // تحديث الإعدادات الأصلية
       _originalEnabled.clear();
       _originalTimes.clear();
       _originalEnabled.addAll(_enabled);

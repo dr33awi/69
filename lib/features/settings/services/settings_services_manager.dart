@@ -1,17 +1,15 @@
 // lib/features/settings/services/settings_services_manager.dart
-// محدث: حذف reloadSettings غير المستخدمة
 
 import 'package:flutter/material.dart';
 import '../../../core/infrastructure/services/storage/storage_service.dart';
-import '../../../core/infrastructure/services/permissions/permission_service.dart';
+import '../../../core/infrastructure/services/permissions/simple_permission_service.dart';
 import '../../../app/themes/core/theme_notifier.dart';
 import '../models/app_settings.dart';
 
-/// مدير خدمات الإعدادات المبسط
-/// يدير فقط الإعدادات التي لا تتعلق بالأذونات
+/// مدير خدمات الإعدادات مع نظام الأذونات الجديد
 class SettingsServicesManager {
   final StorageService _storage;
-  final PermissionService _permissionService;
+  final SimplePermissionService _permissionService;
   final ThemeNotifier _themeNotifier;
 
   // مفاتيح الإعدادات
@@ -22,10 +20,10 @@ class SettingsServicesManager {
 
   SettingsServicesManager({
     required StorageService storage,
-    required PermissionService permissionService,
+    required SimplePermissionService simplePermissionService,
     required ThemeNotifier themeNotifier,
   }) : _storage = storage,
-       _permissionService = permissionService,
+       _permissionService = simplePermissionService,
        _themeNotifier = themeNotifier {
     _loadSettings();
   }
@@ -34,22 +32,24 @@ class SettingsServicesManager {
   
   Future<void> _loadSettings() async {
     try {
-      // تحميل الإعدادات العامة من التخزين
       final settingsJson = _storage.getMap(_settingsKey);
       if (settingsJson != null) {
         _currentSettings = AppSettings.fromJson(settingsJson);
+        debugPrint('Settings loaded successfully');
       } else {
+        debugPrint('No saved settings found, using defaults');
       }
-      
-      // ThemeNotifier يحمل الثيم الخاص به بشكل منفصل
     } catch (e) {
+      debugPrint('Error loading settings: $e');
     }
   }
 
   Future<void> _saveSettings() async {
     try {
       final saved = await _storage.setMap(_settingsKey, _currentSettings.toJson());
+      debugPrint('Settings saved: $saved');
     } catch (e) {
+      debugPrint('Error saving settings: $e');
     }
   }
 
@@ -66,24 +66,23 @@ class SettingsServicesManager {
   bool get soundEnabled => _currentSettings.soundEnabled;
   double get fontSize => _currentSettings.fontSize;
   
-  // Getter للوصول المباشر لخدمة الأذونات
-  PermissionService get permissionService => _permissionService;
+  // Getter للوصول المباشر لخدمة الأذونات الجديدة
+  SimplePermissionService get permissionService => _permissionService;
 
   // ==================== Theme Settings ====================
   
-  /// تغيير الثيم مع الحفظ التلقائي
   Future<bool> changeTheme(ThemeMode mode) async {
-    // استخدام ThemeNotifier's setTheme method الذي يحفظ تلقائياً
     final saved = await _themeNotifier.setTheme(mode);
     
     if (saved) {
+      debugPrint('Theme changed to: ${mode.name}');
     } else {
+      debugPrint('Failed to change theme');
     }
     
     return saved;
   }
   
-  /// تبديل بين الوضع الليلي والنهاري
   Future<bool> toggleDarkMode() async {
     final newMode = _themeNotifier.isDarkMode ? ThemeMode.light : ThemeMode.dark;
     return await changeTheme(newMode);
@@ -101,10 +100,10 @@ class SettingsServicesManager {
     await _saveSettings();
     
     if (enabled) {
-      // طلب إذن الإشعارات إذا لزم الأمر
-      final status = await _permissionService.checkPermissionStatus(AppPermissionType.notification);
-      if (status != AppPermissionStatus.granted) {
-        await _permissionService.requestPermission(AppPermissionType.notification);
+      // فحص الإذن فقط، الطلب يتم من UI
+      final hasPermission = await _permissionService.checkNotificationPermission();
+      if (!hasPermission) {
+        debugPrint('Notification permission needed - handle in UI');
       }
     }
   }
@@ -135,19 +134,18 @@ class SettingsServicesManager {
   
   Future<void> resetSettings() async {
     try {
-      // إعادة تعيين الإعدادات العامة
       _currentSettings = const AppSettings();
       await _storage.remove(_settingsKey);
-      
-      // إعادة تعيين الثيم إلى النظام
       await _themeNotifier.setTheme(ThemeMode.system);
+      debugPrint('Settings reset successfully');
     } catch (e) {
+      debugPrint('Error resetting settings: $e');
     }
   }
 
   // ==================== Cleanup ====================
   
   void dispose() {
-    // لا نحتاج dispose للـ ThemeNotifier هنا لأنه مسجل منفصل في ServiceLocator
+    debugPrint('SettingsServicesManager disposed');
   }
 }

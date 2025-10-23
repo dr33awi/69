@@ -1,4 +1,4 @@
-// lib/features/qibla/screens/qibla_screen.dart - محسن مع الخدمة الجديدة V2
+// lib/features/qibla/screens/qibla_screen.dart - محسن مع نظام الأذونات الجديد
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
@@ -8,13 +8,13 @@ import 'package:provider/provider.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../../../core/infrastructure/services/storage/storage_service.dart';
-import '../../../core/infrastructure/services/permissions/permission_service.dart';
-import '../services/qibla_service_v3.dart'; // الخدمة المحسنة V3 مع flutter_qiblah
+import '../../../core/infrastructure/services/permissions/simple_permission_service.dart';
+import '../services/qibla_service_v3.dart';
 import '../widgets/qibla_compass.dart';
 import '../widgets/qibla_info_card.dart';
 import '../widgets/phone_calibration_animation.dart';
 
-/// شاشة القبلة - محسنة للشاشات الصغيرة
+/// شاشة القبلة - محسنة مع نظام الأذونات الجديد
 class QiblaScreen extends StatefulWidget {
   const QiblaScreen({super.key});
 
@@ -41,7 +41,7 @@ class _QiblaScreenState extends State<QiblaScreen>
     try {      
       _qiblaService = QiblaServiceV3(
         storage: getIt<StorageService>(),
-        permissionService: getIt<PermissionService>(),
+        simplePermissionService: getIt<SimplePermissionService>(),
       );
 
       _refreshController = AnimationController(
@@ -58,6 +58,7 @@ class _QiblaScreenState extends State<QiblaScreen>
         }
       });
     } catch (e) {
+      debugPrint('Error initializing Qibla screen: $e');
     }
   }
 
@@ -371,7 +372,7 @@ class _QiblaScreenState extends State<QiblaScreen>
               qiblaDirection: service.qiblaData!.qiblaDirection,
               currentDirection: service.currentDirection,
               accuracy: service.compassAccuracy,
-              isCalibrated: true, // المعايرة تلقائية الآن
+              isCalibrated: true,
             ),
           ),
           
@@ -700,7 +701,6 @@ class _QiblaScreenState extends State<QiblaScreen>
     );
   }
 
-  /// عرض نافذة معايرة البوصلة
   void _showCalibrationDialog(BuildContext context, QiblaServiceV3 service) {
     showDialog(
       context: context,
@@ -768,7 +768,6 @@ class _QiblaScreenState extends State<QiblaScreen>
               ),
               SizedBox(height: 16.h),
               
-              // أنيميشن شكل 8
               Container(
                 height: 140.h,
                 decoration: BoxDecoration(

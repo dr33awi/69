@@ -1,19 +1,15 @@
 // lib/core/infrastructure/services/permissions/simple_permission_service.dart
-// خدمة أذونات مبسطة باستخدام smart_permission
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:smart_permission/smart_permission.dart';
-import 'package:permission_handler/permission_handler.dart' as handler;
+import 'package:permission_handler/permission_handler.dart';
+import 'package:app_settings/app_settings.dart' as app_settings;
 
-/// خدمة أذونات مبسطة ونظيفة
+/// خدمة أذونات مبسطة
 class SimplePermissionService {
   static final SimplePermissionService _instance = SimplePermissionService._internal();
   factory SimplePermissionService() => _instance;
-  SimplePermissionService._internal() {
-    _setupSmartPermissionConfig();
-  }
+  SimplePermissionService._internal();
 
   // Stream controller للإشعار بالتغييرات
   final StreamController<PermissionChange> _changeController = 
@@ -32,65 +28,140 @@ class SimplePermissionService {
     debugPrint('🔐 SimplePermissionService initialized');
   }
 
-  /// إعداد SmartPermission بالتكوين المناسب
-  void _setupSmartPermissionConfig() {
-    SmartPermission.config
-      ..titleProvider = (permission) {
-        if (permission == Permission.notification) return 'أذونات الإشعارات';
-        if (permission == Permission.locationWhenInUse) return 'أذونات الموقع';
-        return null;
-      }
-      ..descriptionProvider = (permission) {
-        if (permission == Permission.notification) {
-          return 'نحتاج إذن الإشعارات لتذكيرك بمواقيت الصلاة والأذكار اليومية';
-        }
-        if (permission == Permission.locationWhenInUse) {
-          return 'نحتاج إذن الموقع لحساب مواقيت الصلاة بدقة وتحديد اتجاه القبلة';
-        }
-        return null;
-      };
+  /// فحص الأذونات عند العودة للتطبيق
+  Future<PermissionResults> checkPermissionsOnResume() async {
+    debugPrint('🔄 Checking permissions on resume');
+    clearCache();
+    
+    try {
+      final notificationStatus = await Permission.notification.status;
+      final notificationGranted = notificationStatus.isGranted;
+      _updateCache(PermissionType.notification, notificationGranted);
+      _notifyChange(PermissionType.notification, notificationGranted);
+      
+      final locationStatus = await Permission.locationWhenInUse.status;
+      final locationGranted = locationStatus.isGranted;
+      _updateCache(PermissionType.location, locationGranted);
+      _notifyChange(PermissionType.location, locationGranted);
+      
+      debugPrint('📱 Notification permission: $notificationGranted');
+      debugPrint('📍 Location permission: $locationGranted');
+      
+      return PermissionResults(
+        notification: notificationGranted,
+        location: locationGranted,
+      );
+    } catch (e) {
+      debugPrint('❌ Error checking permissions on resume: $e');
+      return const PermissionResults(notification: false, location: false);
+    }
   }
 
-  /// طلب إذن الإشعارات مع context
+  /// طلب إذن الإشعارات
   Future<bool> requestNotificationPermission(BuildContext context) async {
     try {
       debugPrint('📱 Requesting notification permission...');
       
-      final result = await SmartPermission.request(
-        context,
-        permission: Permission.notification,
-        style: PermissionDialogStyle.adaptive,
-      );
+      final currentStatus = await Permission.notification.status;
+      
+      if (currentStatus.isGranted) {
+        _updateCache(PermissionType.notification, true);
+        return true;
+      }
+      
+      if (currentStatus.isPermanentlyDenied) {
+        if (context.mounted) {
+          final shouldOpenSettings = await _showPermanentlyDeniedDialog(
+            context,
+            'الإشعارات',
+            'تم رفض إذن الإشعارات نهائياً. يرجى تفعيله من إعدادات التطبيق.',
+          );
+          
+          if (shouldOpenSettings) {
+            await app_settings.AppSettings.openAppSettings();
+            await Future.delayed(const Duration(seconds: 1));
+            final newStatus = await Permission.notification.status;
+            final result = newStatus.isGranted;
+            _updateCache(PermissionType.notification, result);
+            _notifyChange(PermissionType.notification, result);
+            return result;
+          }
+        }
+        return false;
+      }
+      
+      final status = await Permission.notification.request();
+      final result = status.isGranted;
       
       _updateCache(PermissionType.notification, result);
       _notifyChange(PermissionType.notification, result);
       
       debugPrint('📱 Notification permission result: $result');
       return result;
-      
     } catch (e) {
       debugPrint('❌ Error requesting notification permission: $e');
       return false;
     }
   }
 
-  /// طلب إذن الموقع مع context
+  /// طلب إذن الموقع
   Future<bool> requestLocationPermission(BuildContext context) async {
     try {
       debugPrint('📍 Requesting location permission...');
       
-      final result = await SmartPermission.request(
-        context,
-        permission: Permission.locationWhenInUse,
-        style: PermissionDialogStyle.adaptive,
-      );
+      final currentStatus = await Permission.locationWhenInUse.status;
+      
+      if (currentStatus.isGranted) {
+        _updateCache(PermissionType.location, true);
+        return true;
+      }
+      
+      if (currentStatus.isPermanentlyDenied) {
+        if (context.mounted) {
+          final shouldOpenSettings = await _showPermanentlyDeniedDialog(
+            context,
+            'الموقع',
+            'تم رفض إذن الموقع نهائياً. يرجى تفعيله من إعدادات التطبيق.',
+          );
+          
+          if (shouldOpenSettings) {
+            await app_settings.AppSettings.openAppSettings();
+            await Future.delayed(const Duration(seconds: 1));
+            final newStatus = await Permission.locationWhenInUse.status;
+            final result = newStatus.isGranted;
+            _updateCache(PermissionType.location, result);
+            _notifyChange(PermissionType.location, result);
+            return result;
+          }
+        }
+        return false;
+      }
+      
+      final serviceStatus = await Permission.location.serviceStatus;
+      if (!serviceStatus.isEnabled) {
+        if (context.mounted) {
+          final shouldOpenSettings = await _showServiceDisabledDialog(
+            context,
+            'خدمة الموقع معطلة',
+            'يرجى تفعيل خدمة الموقع في الجهاز للاستمرار.',
+          );
+          
+          if (shouldOpenSettings) {
+            await app_settings.AppSettings.openAppSettings();
+            await Future.delayed(const Duration(seconds: 1));
+          }
+        }
+        return false;
+      }
+      
+      final status = await Permission.locationWhenInUse.request();
+      final result = status.isGranted;
       
       _updateCache(PermissionType.location, result);
       _notifyChange(PermissionType.location, result);
       
       debugPrint('📍 Location permission result: $result');
       return result;
-      
     } catch (e) {
       debugPrint('❌ Error requesting location permission: $e');
       return false;
@@ -129,22 +200,6 @@ class SimplePermissionService {
     }
   }
 
-  /// طلب جميع الأذونات الضرورية مع context
-  Future<PermissionResults> requestAllPermissions(BuildContext context) async {
-    debugPrint('🔐 Requesting all critical permissions...');
-    
-    final notificationGranted = await requestNotificationPermission(context);
-    final locationGranted = await requestLocationPermission(context);
-    
-    final results = PermissionResults(
-      notification: notificationGranted,
-      location: locationGranted,
-    );
-    
-    debugPrint('🔐 All permissions result: ${results.allGranted}');
-    return results;
-  }
-
   /// فحص جميع الأذونات
   Future<PermissionResults> checkAllPermissions() async {
     final notificationGranted = await checkNotificationPermission();
@@ -156,51 +211,52 @@ class SimplePermissionService {
     );
   }
 
-  /// طلب أذونات متعددة بطريقة مجمعة
-  Future<PermissionResults> requestMultiplePermissions(BuildContext context) async {
+  /// طلب جميع الأذونات
+  Future<PermissionResults> requestAllPermissions(BuildContext context) async {
+    debugPrint('🔐 Requesting all critical permissions...');
+    
+    final notificationGranted = await requestNotificationPermission(context);
+    await Future.delayed(const Duration(milliseconds: 500));
+    final locationGranted = await requestLocationPermission(context);
+    
+    final results = PermissionResults(
+      notification: notificationGranted,
+      location: locationGranted,
+    );
+    
+    debugPrint('🔐 All permissions result: ${results.allGranted}');
+    return results;
+  }
+
+  /// فتح إعدادات التطبيق
+  Future<bool> openAppSettings() async {
     try {
-      debugPrint('🔐 Requesting multiple permissions...');
-      
-      final result = await SmartPermission.requestMultiple(
-        context,
-        permissions: [
-          Permission.notification,
-          Permission.locationWhenInUse,
-        ],
-      );
-      
-      final notificationGranted = result[Permission.notification] ?? false;
-      final locationGranted = result[Permission.locationWhenInUse] ?? false;
-      
-      // Update cache
-      _updateCache(PermissionType.notification, notificationGranted);
-      _updateCache(PermissionType.location, locationGranted);
-      
-      // Notify changes
-      _notifyChange(PermissionType.notification, notificationGranted);
-      _notifyChange(PermissionType.location, locationGranted);
-      
-      final results = PermissionResults(
-        notification: notificationGranted,
-        location: locationGranted,
-      );
-      
-      debugPrint('🔐 Multiple permissions result: ${results.allGranted}');
-      return results;
-      
+      await app_settings.AppSettings.openAppSettings();
+      return true;
     } catch (e) {
-      debugPrint('❌ Error requesting multiple permissions: $e');
-      return const PermissionResults(notification: false, location: false);
+      debugPrint('❌ Error opening app settings: $e');
+      return false;
     }
   }
 
-  /// فتح إعدادات التطبيق 
-  Future<bool> openAppSettings() async {
+  /// فتح إعدادات الإشعارات
+  Future<bool> openNotificationSettings() async {
     try {
-      // استخدام permission_handler مباشرة لفتح الإعدادات
-      return await handler.openAppSettings();
+      await app_settings.AppSettings.openAppSettings();
+      return true;
     } catch (e) {
-      debugPrint('❌ Error opening app settings: $e');
+      debugPrint('❌ Error opening notification settings: $e');
+      return false;
+    }
+  }
+
+  /// فتح إعدادات الموقع
+  Future<bool> openLocationSettings() async {
+    try {
+      await app_settings.AppSettings.openAppSettings();
+      return true;
+    } catch (e) {
+      debugPrint('❌ Error opening location settings: $e');
       return false;
     }
   }
@@ -246,17 +302,96 @@ class SimplePermissionService {
     );
     _changeController.add(change);
   }
+
+  /// عرض dialog للأذونات المرفوضة نهائياً
+  Future<bool> _showPermanentlyDeniedDialog(
+    BuildContext context,
+    String permissionName,
+    String message,
+  ) async {
+    return await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+            const SizedBox(width: 8),
+            Text('إذن $permissionName مطلوب'),
+          ],
+        ),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).primaryColor,
+            ),
+            child: const Text('فتح الإعدادات'),
+          ),
+        ],
+      ),
+    ) ?? false;
+  }
+
+  /// عرض dialog لخدمة معطلة
+  Future<bool> _showServiceDisabledDialog(
+    BuildContext context,
+    String title,
+    String message,
+  ) async {
+    return await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.location_off, color: Colors.red),
+            const SizedBox(width: 8),
+            Expanded(child: Text(title)),
+          ],
+        ),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).primaryColor,
+            ),
+            child: const Text('فتح الإعدادات'),
+          ),
+        ],
+      ),
+    ) ?? false;
+  }
 }
 
 // ==================== Models ====================
 
-/// نوع الإذن
 enum PermissionType {
   notification,
   location,
 }
 
-/// نتائج فحص الأذونات
+enum PermissionStatus {
+  granted,
+  denied,
+  permanentlyDenied,
+  restricted,
+  limited,
+  unknown,
+}
+
 class PermissionResults {
   final bool notification;
   final bool location;
@@ -266,13 +401,9 @@ class PermissionResults {
     required this.location,
   });
 
-  /// هل جميع الأذونات مُمنوحة؟
   bool get allGranted => notification && location;
-
-  /// هل أي إذن مُمنوح؟
   bool get anyGranted => notification || location;
-
-  /// عدد الأذونات الممنوحة
+  
   int get grantedCount {
     int count = 0;
     if (notification) count++;
@@ -280,7 +411,6 @@ class PermissionResults {
     return count;
   }
 
-  /// قائمة الأذونات المرفوضة
   List<PermissionType> get deniedPermissions {
     final denied = <PermissionType>[];
     if (!notification) denied.add(PermissionType.notification);
@@ -294,7 +424,6 @@ class PermissionResults {
   }
 }
 
-/// تغيير في حالة الإذن
 class PermissionChange {
   final PermissionType type;
   final bool isGranted;
@@ -310,32 +439,4 @@ class PermissionChange {
   String toString() {
     return 'PermissionChange(${type.name}: $isGranted at $timestamp)';
   }
-}
-
-// ==================== Extensions ====================
-
-/// توسيعات مفيدة لـ PermissionType
-extension PermissionTypeExtension on PermissionType {
-  /// اسم الإذن بالعربية
-  String get arabicName {
-    switch (this) {
-      case PermissionType.notification:
-        return 'الإشعارات';
-      case PermissionType.location:
-        return 'الموقع';
-    }
-  }
-
-  /// وصف الإذن
-  String get description {
-    switch (this) {
-      case PermissionType.notification:
-        return 'لتذكيرك بمواقيت الصلاة والأذكار اليومية';
-      case PermissionType.location:
-        return 'لحساب مواقيت الصلاة بدقة وتحديد اتجاه القبلة';
-    }
-  }
-
-  /// هل الإذن مهم؟
-  bool get isCritical => true; // كل الأذونات الحالية مهمة
 }

@@ -9,15 +9,15 @@ import 'package:adhan/adhan.dart' as adhan;
 
 import '../../../core/infrastructure/services/storage/storage_service.dart';
 import '../../../core/infrastructure/services/notifications/notification_manager.dart';
-import '../../../core/infrastructure/services/permissions/permission_service.dart';
+import '../../../core/infrastructure/services/permissions/simple_permission_service.dart';
 import '../../../core/error/exceptions.dart';
 import '../models/prayer_time_model.dart';
-import '../utils/prayer_utils.dart'; // استخدام Utils الموحد فقط
+import '../utils/prayer_utils.dart';
 
-/// خدمة مواقيت الصلاة المحدثة
+/// خدمة مواقيت الصلاة المحدثة مع نظام الأذونات الجديد
 class PrayerTimesService {
   final StorageService _storage;
-  final PermissionService _permissionService;
+  final SimplePermissionService _permissionService;
   
   // مفاتيح التخزين
   static const String _locationKey = 'prayer_location';
@@ -51,9 +51,9 @@ class PrayerTimesService {
 
   PrayerTimesService({
     required StorageService storage,
-    required PermissionService permissionService,
+    required SimplePermissionService simplePermissionService,
   }) : _storage = storage,
-       _permissionService = permissionService {
+       _permissionService = simplePermissionService {
     _initializeControllers();
     _initialize();
   }
@@ -77,6 +77,7 @@ class PrayerTimesService {
         await _checkAndUpdateData();
       }
     } catch (e) {
+      debugPrint('Error initializing PrayerTimesService: $e');
     }
   }
 
@@ -93,6 +94,7 @@ class PrayerTimesService {
         _lastDataUpdate = DateTime.tryParse(lastDataStr);
       }
     } catch (e) {
+      debugPrint('Error loading last update times: $e');
     }
   }
 
@@ -167,7 +169,8 @@ class PrayerTimesService {
         return _currentLocation!;
       }
     }
-    // التحقق من الأذونات - نظام محسّن مثل القبلة
+
+    // التحقق من الأذونات - نظام محسّن
     final hasPermission = await _checkLocationPermission();
     if (!hasPermission) {
       throw LocationException('لم يتم منح إذن الوصول إلى الموقع', code: 'PERMISSION_DENIED');
@@ -183,7 +186,7 @@ class PrayerTimesService {
       // الحصول على الموقع بدقة عالية مع نظام fallback محسّن
       Position position;
       try {
-        // أولاً: محاولة الحصول على موقع بدقة عالية (مثل نظام القبلة)
+        // أولاً: محاولة الحصول على موقع بدقة عالية
         position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
           timeLimit: const Duration(seconds: 15),
@@ -246,7 +249,7 @@ class PrayerTimesService {
         countryName: cityInfo['country'],
         timezone: timezone,
         altitude: position.altitude,
-        accuracy: position.accuracy, // إضافة دقة الموقع
+        accuracy: position.accuracy,
       );
       
       // حفظ الموقع
@@ -263,7 +266,7 @@ class PrayerTimesService {
     }
   }
 
-  /// حفظ وقت تحديث الموقع - محسّن مثل نظام القبلة
+  /// حفظ وقت تحديث الموقع
   Future<void> _saveLocationUpdateTime() async {
     try {
       _lastLocationUpdate = DateTime.now();
@@ -272,7 +275,7 @@ class PrayerTimesService {
         _lastLocationUpdate!.toIso8601String(),
       );
     } catch (e) {
-      // في حالة فشل الحفظ، نحتفظ بالوقت في الذاكرة على الأقل
+      debugPrint('Error saving location update time: $e');
     }
   }
 
@@ -300,6 +303,7 @@ class PrayerTimesService {
       if (_currentLocation == null) {
         throw DataNotFoundException('لم يتم تحديد الموقع');
       }
+
       // تحقق من وجود المواقيت في الذاكرة المؤقتة
       if (_timesCache.containsKey(dateKey)) {
         final cachedTimes = _timesCache[dateKey]!.updatePrayerStates();
@@ -350,6 +354,7 @@ class PrayerTimesService {
       
       // جدولة التنبيهات
       await _scheduleNotifications(dailyTimes);
+      
       return dailyTimes;
     } catch (e) {
       rethrow;
@@ -367,6 +372,7 @@ class PrayerTimesService {
         _lastDataUpdate!.toIso8601String(),
       );
     } catch (e) {
+      debugPrint('Error saving data update time: $e');
     }
   }
 
@@ -402,6 +408,7 @@ class PrayerTimesService {
         }
       }
     } catch (e) {
+      debugPrint('Error updating prayer states: $e');
     }
   }
 
@@ -433,8 +440,7 @@ class PrayerTimesService {
     }
   }
 
-  // تحميل الموقع المحفوظ
-  /// تحميل الموقع المحفوظ - محسّن مع معالجة أفضل للأخطاء
+  /// تحميل الموقع المحفوظ
   Future<void> _loadSavedLocation() async {
     try {
       final locationJson = _storage.getMap(_locationKey);
@@ -442,9 +448,7 @@ class PrayerTimesService {
         _currentLocation = PrayerLocation.fromJson(locationJson);
       }
     } catch (e) {
-      // في حالة فساد البيانات المحفوظة، نعيد تعيين الموقع
       _currentLocation = null;
-      // وننظف البيانات المخزنة
       try {
         await _storage.remove(_locationKey);
       } catch (cleanupError) {
@@ -453,33 +457,21 @@ class PrayerTimesService {
     }
   }
 
-  // حفظ الموقع
-  /// حفظ بيانات الموقع - محسّن مع معلومات إضافية
+  /// حفظ بيانات الموقع
   Future<void> _saveLocation(PrayerLocation location) async {
     try {
       await _storage.setMap(_locationKey, location.toJson());
     } catch (e) {
-      // في حالة فشل الحفظ، نحتفظ بالموقع في الذاكرة على الأقل
+      debugPrint('Error saving location: $e');
     }
   }
 
-  // التحقق من أذونات الموقع
-  /// التحقق من صلاحية الموقع - محسّن مثل نظام القبلة
+  /// التحقق من صلاحية الموقع - محسّن مع النظام الجديد
   Future<bool> _checkLocationPermission() async {
     try {
-      final status = await _permissionService.checkPermissionStatus(
-        AppPermissionType.location,
-      );
-
-      if (status != AppPermissionStatus.granted) {
-        final result = await _permissionService.requestPermission(
-          AppPermissionType.location,
-        );
-        return result == AppPermissionStatus.granted;
-      }
-
-      return true;
+      return await _permissionService.checkLocationPermission();
     } catch (e) {
+      debugPrint('Error checking location permission: $e');
       return false;
     }
   }
@@ -505,8 +497,7 @@ class PrayerTimesService {
     }
   }
 
-  // الحصول على معلومات المدينة
-  /// الحصول على معلومات المدينة والدولة - محسّن
+  /// الحصول على معلومات المدينة والدولة
   Future<Map<String, String>> _getCityInfo(double latitude, double longitude) async {
     try {
       if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
@@ -518,7 +509,6 @@ class PrayerTimesService {
         if (placemarks.isNotEmpty) {
           final placemark = placemarks.first;
           
-          // ترتيب أولوية أفضل لاسم المدينة (مثل نظام القبلة)
           String? cityName = placemark.locality ?? 
                            placemark.administrativeArea ?? 
                            placemark.subAdministrativeArea ?? 
@@ -534,7 +524,6 @@ class PrayerTimesService {
       }
       return {'city': 'غير محدد', 'country': 'غير محدد'};
     } catch (e) {
-      // في حالة الخطأ، نعيد قيم افتراضية مع معلومات الإحداثيات
       return {
         'city': 'موقع مخصص', 
         'country': 'الإحداثيات: ${latitude.toStringAsFixed(4)}°, ${longitude.toStringAsFixed(4)}°',
@@ -656,6 +645,7 @@ class PrayerTimesService {
       final key = '${_cachedTimesKey}_${times.date.toIso8601String().split('T')[0]}';
       await _storage.setMap(key, times.toJson());
     } catch (e) {
+      debugPrint('Error caching prayer times: $e');
     }
   }
 
@@ -710,6 +700,7 @@ class PrayerTimesService {
         );
       }
     } catch (e) {
+      debugPrint('Error scheduling notifications: $e');
     }
   }
 
@@ -723,6 +714,7 @@ class PrayerTimesService {
       try {
         return DailyPrayerTimes.fromJson(json);
       } catch (e) {
+        debugPrint('Error loading cached prayer times: $e');
       }
     }
     return null;
@@ -740,6 +732,7 @@ class PrayerTimesService {
         await updatePrayerTimes();
       }
     } catch (e) {
+      debugPrint('Error updating calculation settings: $e');
     }
   }
 
@@ -754,6 +747,7 @@ class PrayerTimesService {
         await _scheduleNotifications(_currentTimes!);
       }
     } catch (e) {
+      debugPrint('Error updating notification settings: $e');
     }
   }
 
@@ -767,6 +761,7 @@ class PrayerTimesService {
       _timesCache.clear();
       await updatePrayerTimes();
     } catch (e) {
+      debugPrint('Error setting custom location: $e');
     }
   }
 

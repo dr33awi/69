@@ -5,7 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../../../app/routes/app_router.dart';
-import '../../../core/infrastructure/services/permissions/permission_service.dart';
+import '../../../core/infrastructure/services/permissions/simple_permission_service.dart';
 import '../../../core/infrastructure/services/favorites/models/favorite_models.dart';
 import '../../../core/infrastructure/services/favorites/extensions/favorites_extensions.dart';
 import '../services/athkar_service.dart';
@@ -22,7 +22,7 @@ class AthkarCategoriesScreen extends StatefulWidget {
 
 class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
   late final AthkarService _service;
-  late final PermissionService _permissionService;
+  late final SimplePermissionService _permissionService;
   
   late Future<List<AthkarCategory>> _futureCategories;
 
@@ -30,7 +30,7 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
   void initState() {
     super.initState();
     _service = getIt<AthkarService>();
-    _permissionService = getIt<PermissionService>();
+    _permissionService = getIt<SimplePermissionService>();
     
     _initialize();
   }
@@ -41,9 +41,7 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
   }
 
   Future<void> _checkNotificationPermission() async {
-    await _permissionService.checkPermissionStatus(
-      AppPermissionType.notification,
-    );
+    await _permissionService.checkNotificationPermission();
   }
 
   Future<void> _refreshData() async {
