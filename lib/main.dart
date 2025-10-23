@@ -18,8 +18,7 @@ import 'core/firebase/firebase_initializer.dart';
 
 import 'app/di/service_locator.dart';
 import 'app/themes/core/theme_notifier.dart';
-import 'core/infrastructure/services/permissions/permission_manager.dart';
-import 'core/infrastructure/services/permissions/widgets/permission_monitor.dart';
+
 import 'core/infrastructure/services/storage/storage_service.dart';
 
 import 'core/infrastructure/services/notifications/notification_manager.dart';
@@ -30,7 +29,7 @@ import 'core/infrastructure/config/development_config.dart';
 import 'core/infrastructure/services/preview/device_preview_config.dart';
 
 import 'core/firebase/remote_config_manager.dart';
-import 'core/firebase/widgets/app_status_monitor.dart';
+
 
 import 'app/themes/app_theme.dart';
 import 'app/routes/app_router.dart';
@@ -115,7 +114,7 @@ Future<bool> _checkInternetConnection() async {
   try {
     // Method 1: استخدام Connectivity Plus
     final connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none) {
+    if (connectivityResult.contains(ConnectivityResult.none)) {
       return false;
     }
     
@@ -198,7 +197,7 @@ Future<void> _unifiedBootstrap({bool isOffline = false}) async {
     stopwatch.stop();
     debugPrint('⚡ ========== Bootstrap Completed in ${stopwatch.elapsedMilliseconds}ms ========== ⚡');
     
-  } catch (e, s) {
+  } catch (e) {
     stopwatch.stop();
     debugPrint('❌ Bootstrap Failed after ${stopwatch.elapsedMilliseconds}ms');
     debugPrint('Error: $e');
@@ -414,8 +413,7 @@ class AthkarApp extends StatefulWidget {
 
 class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
   RemoteConfigManager? _configManager;
-  bool _configManagerReady = false;
-  late final UnifiedPermissionManager _permissionManager;
+  // تم إزالة UnifiedPermissionManager - الآن نستخدم SimplePermissionService
   StreamSubscription? _connectivitySubscription;
   bool _hasShownOfflineMessage = false;
 
@@ -424,7 +422,7 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
     super.initState();
     
     WidgetsBinding.instance.addObserver(this);
-    _permissionManager = getIt<UnifiedPermissionManager>();
+    // تم إزالة تهيئة UnifiedPermissionManager
     
     _initializeConfigManager();
     _scheduleInitialPermissionCheck();
@@ -441,7 +439,7 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
 
   void _monitorConnectivity() {
     _connectivitySubscription = Connectivity().onConnectivityChanged.listen((result) async {
-      if (result != ConnectivityResult.none && _isOfflineMode) {
+      if (!result.contains(ConnectivityResult.none) && _isOfflineMode) {
         debugPrint('📡 Internet connection restored!');
         
         // محاولة تهيئة Firebase إذا لم تكن مهيأة
@@ -460,7 +458,7 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
             debugPrint('⚠️ Failed to initialize Firebase after reconnection: $e');
           }
         }
-      } else if (result == ConnectivityResult.none && !_isOfflineMode) {
+      } else if (result.contains(ConnectivityResult.none) && !_isOfflineMode) {
         debugPrint('📡 Internet connection lost!');
         _isOfflineMode = true;
         
@@ -595,12 +593,11 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
         _configManager = getIt<RemoteConfigManager>();
         
         if (_configManager!.isInitialized) {
-          setState(() => _configManagerReady = true);
           debugPrint('✅ Config Manager ready');
         } else {
           Future.delayed(const Duration(seconds: 1), () {
             if (mounted && _configManager!.isInitialized) {
-              setState(() => _configManagerReady = true);
+              debugPrint('✅ Config Manager ready (delayed)');
             }
           });
         }
@@ -620,9 +617,9 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
         final permissionsCompleted = storage.getBool('permissions_setup_completed') ?? false;
         
         if (onboardingCompleted && permissionsCompleted) {
-          if (!_permissionManager.hasCheckedThisSession) {
-            await _permissionManager.performInitialCheck();
-          }
+          // تم إزالة فحص الأذونات القديم
+          // النظام الجديد سيتولى الأمر تلقائياً
+          debugPrint('✅ Permissions already completed - using new simple system');
         }
       } catch (e) {
         debugPrint('⚠️ Permission check error: $e');
@@ -631,9 +628,6 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
   }
 
   Widget _buildInitialScreen() {
-    Widget screen;
-    bool skipPermissionCheck = false;
-    
     try {
       final storage = getIt<StorageService>();
       final onboardingCompleted = storage.getBool('onboarding_completed') ?? false;
@@ -644,34 +638,13 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
       } else if (!permissionsCompleted) {
         return const PermissionsSetupScreen();
       } else {
-        skipPermissionCheck = _permissionManager.hasCheckedThisSession;
-        screen = PermissionMonitor(
-          showNotifications: true,
-          skipInitialCheck: skipPermissionCheck,
-          child: const HomeScreen(),
-        );
+        // استخدام النظام البسيط الجديد
+        return const HomeScreen();
       }
     } catch (e) {
       debugPrint('❌ Error determining screen: $e');
-      screen = const PermissionMonitor(
-        showNotifications: true,
-        skipInitialCheck: true,
-        child: HomeScreen(),
-      );
+      return const HomeScreen(); // استخدام الشاشة الرئيسية مباشرة
     }
-    
-    return _wrapWithAppMonitor(screen);
-  }
-
-  Widget _wrapWithAppMonitor(Widget screen) {
-    // لا نستخدم AppStatusMonitor في وضع Offline
-    if (!_isOfflineMode && _configManagerReady && _configManager != null) {
-      return AppStatusMonitor(
-        configManager: _configManager,
-        child: screen,
-      );
-    }
-    return screen;
   }
 
   @override

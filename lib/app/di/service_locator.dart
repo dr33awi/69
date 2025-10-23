@@ -12,9 +12,9 @@ import 'package:athkar_app/core/infrastructure/services/device/battery/battery_s
 import 'package:athkar_app/core/infrastructure/services/notifications/notification_manager.dart';
 import 'package:athkar_app/core/infrastructure/services/notifications/notification_service.dart';
 import 'package:athkar_app/core/infrastructure/services/notifications/notification_service_impl.dart';
-import 'package:athkar_app/core/infrastructure/services/permissions/permission_manager.dart';
+import 'package:athkar_app/core/infrastructure/services/permissions/simple_permission_service.dart';
+import 'package:athkar_app/core/infrastructure/services/permissions/legacy_permission_stub.dart';
 import 'package:athkar_app/core/infrastructure/services/permissions/permission_service.dart';
-import 'package:athkar_app/core/infrastructure/services/permissions/permission_service_impl.dart';
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service_impl.dart';
 import 'package:athkar_app/core/infrastructure/services/logger/app_logger.dart';
@@ -229,18 +229,17 @@ class ServiceLocator {
   void _registerPermissionServices() {
     debugPrint('ServiceLocator: Registering permission services...');
 
-    if (!getIt.isRegistered<PermissionService>()) {
-      getIt.registerLazySingleton<PermissionService>(
-        () => PermissionServiceImpl(storage: getIt<StorageService>()),
+    // تسجيل الخدمة البسيطة الجديدة
+    if (!getIt.isRegistered<SimplePermissionService>()) {
+      getIt.registerLazySingleton<SimplePermissionService>(
+        () => SimplePermissionService(),
       );
     }
 
-    if (!getIt.isRegistered<UnifiedPermissionManager>()) {
-      getIt.registerLazySingleton<UnifiedPermissionManager>(
-        () => UnifiedPermissionManager.getInstance(
-          permissionService: getIt<PermissionService>(),
-          storage: getIt<StorageService>(),
-        ),
+    // تسجيل stub للتوافق مع الخدمات القديمة
+    if (!getIt.isRegistered<PermissionService>()) {
+      getIt.registerLazySingleton<PermissionService>(
+        () => LegacyPermissionStub(),
       );
     }
   }
@@ -720,7 +719,6 @@ class ServiceLocator {
            getIt.isRegistered<StorageService>() &&
            getIt.isRegistered<ThemeNotifier>() &&
            getIt.isRegistered<PermissionService>() &&
-           getIt.isRegistered<UnifiedPermissionManager>() &&
            getIt.isRegistered<BatteryService>() &&
            getIt.isRegistered<ShareService>();
   }
@@ -799,9 +797,7 @@ class ServiceLocator {
         await getIt<NotificationService>().dispose();
       }
 
-      if (getIt.isRegistered<UnifiedPermissionManager>()) {
-        getIt<UnifiedPermissionManager>().dispose();
-      }
+      // تم إزالة UnifiedPermissionManager
 
       if (getIt.isRegistered<PermissionService>()) {
         await getIt<PermissionService>().dispose();
@@ -914,8 +910,6 @@ extension ServiceLocatorExtensions on BuildContext {
   
   StorageService get storageService => getIt<StorageService>();
   NotificationService get notificationService => getIt<NotificationService>();
-  PermissionService get permissionService => getIt<PermissionService>();
-  UnifiedPermissionManager get permissionManager => getIt<UnifiedPermissionManager>();
   AppErrorHandler get errorHandler => getIt<AppErrorHandler>();
   BatteryService get batteryService => getIt<BatteryService>();
   ThemeNotifier get themeNotifier => getIt<ThemeNotifier>();
@@ -930,6 +924,9 @@ extension ServiceLocatorExtensions on BuildContext {
   TasbihService get tasbihService => getIt<TasbihService>();
   QiblaServiceV3 get qiblaService => getIt<QiblaServiceV3>();
   SettingsServicesManager get settingsManager => getIt<SettingsServicesManager>();
+  
+  // خدمة الأذونات البسيطة الجديدة
+  SimplePermissionService get simplePermissionService => getIt<SimplePermissionService>();
   
   FirebaseRemoteConfigService? get firebaseRemoteConfig {
     try {
@@ -1195,21 +1192,26 @@ extension ServiceLocatorExtensions on BuildContext {
     return manager?.configStatus;
   }
   
-  Future<bool> requestPermission(
-    AppPermissionType permission, {
-    String? customMessage,
-    bool forceRequest = false,
-  }) async {
-    return await permissionManager.requestPermissionWithExplanation(
-      this,
-      permission,
-      customMessage: customMessage,
-      forceRequest: forceRequest,
-    );
+  // تم إزالة الدوال القديمة للأذونات
+  // استخدم SimplePermissionService بدلاً من ذلك
+  
+  /// طلب إذن الإشعارات بالنظام الجديد
+  Future<bool> requestNotificationPermission() async {
+    return await simplePermissionService.requestNotificationPermission(this);
   }
   
-  Future<bool> hasPermission(AppPermissionType permission) async {
-    final status = await permissionService.checkPermissionStatus(permission);
-    return status == AppPermissionStatus.granted;
+  /// طلب إذن الموقع بالنظام الجديد
+  Future<bool> requestLocationPermission() async {
+    return await simplePermissionService.requestLocationPermission(this);
+  }
+  
+  /// فحص إذن الإشعارات
+  Future<bool> hasNotificationPermission() async {
+    return await simplePermissionService.checkNotificationPermission();
+  }
+  
+  /// فحص إذن الموقع
+  Future<bool> hasLocationPermission() async {
+    return await simplePermissionService.checkLocationPermission();
   }
 }
