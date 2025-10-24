@@ -104,11 +104,14 @@ class _QiblaScreenState extends State<QiblaScreen>
             _refreshController.reset();
           }
         });
+        
+        // عرض رسالة نجاح عند التحديث اليدوي
+        if (forceUpdate && mounted) {
+          context.showSuccessSnackBar('تم تحديث اتجاه القبلة بنجاح');
+        }
       }
     } catch (e) {
-      if (mounted) {
-        _showErrorSnackbar(e.toString());
-      }
+      // الأخطاء تُعرض في UI
     }
   }
 
@@ -430,7 +433,7 @@ class _QiblaScreenState extends State<QiblaScreen>
     if (service.isLoading) {
       return 'جاري التحديث...';
     } else if (service.errorMessage != null) {
-      return 'خطأ في التحديث';
+      return 'حدث خطأ';
     } else if (service.qiblaData != null) {
       return 'الاتجاه: ${service.qiblaData!.qiblaDirection.toStringAsFixed(1)}°';
     }
@@ -530,48 +533,18 @@ class _QiblaScreenState extends State<QiblaScreen>
   }
 
   Widget _buildLoadingState() {
-    return Container(
-      constraints: BoxConstraints(
-        minHeight: 220.h,
-        maxHeight: 280.h,
-      ),
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 100.w,
-            height: 100.w,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: context.cardColor.withOpacity(0.8),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4.r,
-                  offset: Offset(0, 2.h),
-                ),
-              ],
-            ),
-            child: Center(
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5.w,
-              ),
-            ),
-          ),
+          AppLoading.circular(size: LoadingSize.large),
           SizedBox(height: 16.h),
           Text(
             'جاري تحديد موقعك...',
             style: TextStyle(
+              fontWeight: ThemeConstants.medium,
+              color: context.textSecondaryColor,
               fontSize: 14.sp,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: 4.h),
-          Text(
-            'يرجى الانتظار لحظات قليلة',
-            style: TextStyle(
-              fontSize: 11.sp,
-              color: Colors.grey.shade600,
             ),
           ),
         ],
@@ -580,69 +553,59 @@ class _QiblaScreenState extends State<QiblaScreen>
   }
 
   Widget _buildErrorState(QiblaServiceV3 service) {
-    return Container(
-      constraints: BoxConstraints(
-        minHeight: 220.h,
-        maxHeight: 280.h,
-      ),
-      child: Center(
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(20.w),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(16.w),
+              padding: EdgeInsets.all(20.w),
               decoration: BoxDecoration(
                 color: ThemeConstants.error.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.error_outline,
-                size: 36.sp,
+                size: 48.sp,
                 color: ThemeConstants.error,
               ),
             ),
-            SizedBox(height: 12.h),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.w),
-              child: Text(
-                service.errorMessage ?? 'فشل تحميل البيانات',
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w600,
-                  color: ThemeConstants.error,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            SizedBox(height: 4.h),
-            Text(
-              'تأكد من تفعيل الموقع والاتصال بالإنترنت',
-              style: TextStyle(
-                fontSize: 11.sp,
-                color: Colors.grey.shade600,
-              ),
-              textAlign: TextAlign.center,
-            ),
             SizedBox(height: 16.h),
+            Text(
+              'حدث خطأ',
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: context.textPrimaryColor,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              service.errorMessage ?? 'حدث خطأ في تحميل البيانات',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: context.textSecondaryColor,
+              ),
+            ),
+            SizedBox(height: 20.h),
             ElevatedButton.icon(
               onPressed: () => _updateQiblaData(forceUpdate: true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ThemeConstants.error,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(
-                  horizontal: 16.w,
-                  vertical: 8.h,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.r),
-                ),
-              ),
-              icon: Icon(Icons.refresh, size: 16.sp),
+              icon: Icon(Icons.refresh, size: 20.sp),
               label: Text(
                 'إعادة المحاولة',
-                style: TextStyle(
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w600,
+                style: TextStyle(fontSize: 15.sp),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ThemeConstants.primary,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 24.w,
+                  vertical: 12.h,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
               ),
             ),

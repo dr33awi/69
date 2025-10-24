@@ -1,10 +1,11 @@
-// lib/features/prayer_times/widgets/location_header.dart
+// lib/features/prayer_times/widgets/location_header.dart - محسن مع نظام الأذونات الموحد
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
+import '../../../core/infrastructure/services/permissions/simple_permission_service.dart';
 import '../models/prayer_time_model.dart';
 import '../services/prayer_times_service.dart';
 
@@ -31,6 +32,7 @@ class _LocationHeaderState extends State<LocationHeader>
   
   PrayerLocation? _currentLocation;
   bool _isUpdating = false;
+  bool _hasLocationPermission = false;
   dynamic _lastError;
 
   @override
@@ -52,10 +54,126 @@ class _LocationHeaderState extends State<LocationHeader>
         });
       }
     });
+    
+    // التحقق من إذن الموقع
+    _checkLocationPermission();
+  }
+
+  /// التحقق من إذن الموقع
+  Future<void> _checkLocationPermission() async {
+    try {
+      final permissionService = getIt<SimplePermissionService>();
+      final hasPermission = await permissionService.checkLocationPermission();
+      
+      if (mounted) {
+        setState(() {
+          _hasLocationPermission = hasPermission;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error checking location permission: $e');
+      if (mounted) {
+        setState(() {
+          _hasLocationPermission = false;
+        });
+      }
+    }
+  }
+
+  /// التحقق من إذن الموقع وطلبه إذا لم يكن ممنوحاً
+  Future<bool> _checkAndRequestLocationPermission() async {
+    try {
+      final permissionService = getIt<SimplePermissionService>();
+      
+      // فحص الإذن أولاً
+      final hasPermission = await permissionService.checkLocationPermission();
+      
+      if (mounted) {
+        setState(() {
+          _hasLocationPermission = hasPermission;
+        });
+      }
+      
+      if (hasPermission) {
+        return true;
+      }
+
+      // طلب الإذن باستخدام smart_permission
+      if (!mounted) return false;
+      
+      final granted = await permissionService.requestLocationPermission(context);
+      
+      if (mounted) {
+        setState(() {
+          _hasLocationPermission = granted;
+        });
+      }
+      
+      if (granted && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Text(
+                    'تم منح إذن الموقع بنجاح',
+                    style: TextStyle(fontSize: 13.sp),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: ThemeConstants.success,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+            margin: EdgeInsets.all(16.w),
+          ),
+        );
+      } else if (!granted && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.location_off, color: Colors.white, size: 20.sp),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Text(
+                    'إذن الموقع مطلوب لتحديد موقعك',
+                    style: TextStyle(fontSize: 13.sp),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: ThemeConstants.error,
+            behavior: SnackBarBehavior.floating,
+            action: SnackBarAction(
+              label: 'الإعدادات',
+              textColor: Colors.white,
+              onPressed: () => permissionService.openAppSettings(),
+            ),
+            duration: const Duration(seconds: 4),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+            margin: EdgeInsets.all(16.w),
+          ),
+        );
+      }
+      
+      return granted;
+    } catch (e) {
+      debugPrint('Error checking/requesting location permission: $e');
+      return false;
+    }
   }
 
   Future<void> _updateLocation() async {
     if (_isUpdating || !mounted) return;
+    
+    // التحقق من الإذن أولاً
+    if (!await _checkAndRequestLocationPermission()) {
+      return;
+    }
     
     setState(() {
       _isUpdating = true;
@@ -109,6 +227,7 @@ class _LocationHeaderState extends State<LocationHeader>
   @override
   Widget build(BuildContext context) {
     final hasError = _lastError != null;
+    final needsPermission = !_hasLocationPermission && !_isUpdating;
     
     return Container(
       margin: EdgeInsets.all(10.w),
@@ -118,7 +237,9 @@ class _LocationHeaderState extends State<LocationHeader>
         border: Border.all(
           color: hasError 
             ? ThemeConstants.error.withOpacity(0.3)
-            : context.dividerColor.withOpacity(0.2),
+            : needsPermission
+              ? ThemeConstants.warning.withOpacity(0.3)
+              : context.dividerColor.withOpacity(0.2),
           width: 1.w,
         ),
         boxShadow: [
@@ -151,12 +272,18 @@ class _LocationHeaderState extends State<LocationHeader>
                           end: Alignment.bottomRight,
                           colors: hasError
                             ? [ThemeConstants.error, ThemeConstants.error.darken(0.1)]
-                            : [context.primaryColor, context.primaryColor.darken(0.1)],
+                            : needsPermission
+                              ? [ThemeConstants.warning, ThemeConstants.warning.darken(0.1)]
+                              : [context.primaryColor, context.primaryColor.darken(0.1)],
                         ),
                         borderRadius: BorderRadius.circular(10.r),
                         boxShadow: [
                           BoxShadow(
-                            color: (hasError ? ThemeConstants.error : context.primaryColor)
+                            color: (hasError 
+                                ? ThemeConstants.error 
+                                : needsPermission
+                                  ? ThemeConstants.warning
+                                  : context.primaryColor)
                                 .withOpacity(0.3),
                             blurRadius: 4.r,
                             offset: Offset(0, 2.h),
@@ -164,7 +291,11 @@ class _LocationHeaderState extends State<LocationHeader>
                         ],
                       ),
                       child: Icon(
-                        hasError ? Icons.location_off_rounded : Icons.location_on_rounded,
+                        hasError 
+                          ? Icons.location_off_rounded 
+                          : needsPermission
+                            ? Icons.location_disabled_rounded
+                            : Icons.location_on_rounded,
                         color: Colors.white,
                         size: 22.sp,
                       ),
@@ -186,7 +317,9 @@ class _LocationHeaderState extends State<LocationHeader>
                                     fontWeight: ThemeConstants.bold,
                                     color: hasError 
                                       ? ThemeConstants.error 
-                                      : context.textPrimaryColor,
+                                      : needsPermission
+                                        ? ThemeConstants.warning
+                                        : context.textPrimaryColor,
                                     fontSize: 13.sp,
                                   ),
                                   overflow: TextOverflow.ellipsis,
@@ -218,6 +351,15 @@ class _LocationHeaderState extends State<LocationHeader>
                                 fontSize: 10.sp,
                               ),
                             )
+                          else if (needsPermission)
+                            Text(
+                              'يتطلب إذن الوصول إلى الموقع',
+                              style: TextStyle(
+                                color: ThemeConstants.warning,
+                                fontWeight: ThemeConstants.medium,
+                                fontSize: 10.sp,
+                              ),
+                            )
                           else
                             Text(
                               _getCoordinatesText(),
@@ -227,7 +369,7 @@ class _LocationHeaderState extends State<LocationHeader>
                               ),
                             ),
                           
-                          if (_currentLocation?.timezone != null && !hasError) ...[
+                          if (_currentLocation?.timezone != null && !hasError && !needsPermission) ...[
                             SizedBox(height: 2.h),
                             Row(
                               children: [
@@ -256,19 +398,35 @@ class _LocationHeaderState extends State<LocationHeader>
                       Container(
                         padding: EdgeInsets.all(5.w),
                         decoration: BoxDecoration(
-                          color: (hasError ? ThemeConstants.error : context.primaryColor)
+                          color: (hasError 
+                              ? ThemeConstants.error 
+                              : needsPermission
+                                ? ThemeConstants.warning
+                                : context.primaryColor)
                               .withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8.r),
                           border: Border.all(
-                            color: (hasError ? ThemeConstants.error : context.primaryColor)
+                            color: (hasError 
+                                ? ThemeConstants.error 
+                                : needsPermission
+                                  ? ThemeConstants.warning
+                                  : context.primaryColor)
                                 .withOpacity(0.2),
                           ),
                         ),
                         child: Icon(
                           _isUpdating 
                             ? Icons.hourglass_empty 
-                            : (hasError ? Icons.error_outline : Icons.refresh_rounded),
-                          color: hasError ? ThemeConstants.error : context.primaryColor,
+                            : hasError 
+                              ? Icons.error_outline
+                              : needsPermission
+                                ? Icons.lock_outline
+                                : Icons.refresh_rounded,
+                          color: hasError 
+                            ? ThemeConstants.error 
+                            : needsPermission
+                              ? ThemeConstants.warning
+                              : context.primaryColor,
                           size: 18.sp,
                         ),
                       ),
@@ -276,7 +434,7 @@ class _LocationHeaderState extends State<LocationHeader>
                   ],
                 ),
                 
-                if (hasError) ...[
+                if (hasError || needsPermission) ...[
                   SizedBox(height: 8.h),
                   ElevatedButton.icon(
                     onPressed: _isUpdating ? null : _updateLocation,
@@ -289,13 +447,22 @@ class _LocationHeaderState extends State<LocationHeader>
                               valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
-                        : Icon(Icons.refresh, size: 18.sp),
+                        : Icon(
+                            needsPermission ? Icons.lock_open : Icons.refresh,
+                            size: 18.sp,
+                          ),
                     label: Text(
-                      _isUpdating ? 'جاري المحاولة...' : 'إعادة المحاولة',
+                      _isUpdating 
+                        ? 'جاري المحاولة...' 
+                        : needsPermission
+                          ? 'منح إذن الموقع'
+                          : 'إعادة المحاولة',
                       style: TextStyle(fontSize: 13.sp),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: ThemeConstants.primary,
+                      backgroundColor: needsPermission 
+                        ? ThemeConstants.warning
+                        : ThemeConstants.primary,
                       foregroundColor: Colors.white,
                       padding: EdgeInsets.symmetric(
                         horizontal: 14.w,
@@ -322,6 +489,10 @@ class _LocationHeaderState extends State<LocationHeader>
     
     if (_lastError != null) {
       return 'خطأ في تحديد الموقع';
+    }
+    
+    if (!_hasLocationPermission) {
+      return 'يتطلب إذن الموقع';
     }
     
     if (_currentLocation == null) {

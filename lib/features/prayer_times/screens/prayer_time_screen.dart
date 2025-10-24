@@ -1,4 +1,4 @@
-// lib/features/prayer_times/screens/prayer_time_screen.dart
+// lib/features/prayer_times/screens/prayer_time_screen.dart - محسن مع نظام الأذونات الموحد
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:async';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
+import '../../../core/infrastructure/services/permissions/simple_permission_service.dart';
 import '../services/prayer_times_service.dart';
 import '../models/prayer_time_model.dart';
 import 'package:athkar_app/features/prayer_times/widgets/prayer_times_card.dart';
@@ -30,6 +31,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   bool _isLoading = true;
   bool _isRefreshing = false;
   String? _errorMessage;
+  bool _hasLocationPermission = false;
   
   StreamSubscription<DailyPrayerTimes>? _timesSubscription;
   StreamSubscription<PrayerTime?>? _nextPrayerSubscription;
@@ -82,6 +84,16 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       _errorMessage = null;
     });
     
+    // التحقق من إذن الموقع أولاً
+    await _checkLocationPermission();
+    
+    if (!_hasLocationPermission) {
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
+    
     try {
       final cachedTimes = await _prayerService.getCachedPrayerTimes(DateTime.now());
       if (cachedTimes != null && mounted) {
@@ -105,8 +117,77 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     }
   }
 
+  /// التحقق من إذن الموقع
+  Future<void> _checkLocationPermission() async {
+    try {
+      final permissionService = getIt<SimplePermissionService>();
+      final hasPermission = await permissionService.checkLocationPermission();
+      
+      if (mounted) {
+        setState(() {
+          _hasLocationPermission = hasPermission;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error checking location permission: $e');
+      if (mounted) {
+        setState(() {
+          _hasLocationPermission = false;
+        });
+      }
+    }
+  }
+
+  /// طلب إذن الموقع باستخدام النظام الموحد
+  Future<bool> _requestLocationPermission() async {
+    try {
+      final permissionService = getIt<SimplePermissionService>();
+      final granted = await permissionService.requestLocationPermission(context);
+      
+      if (mounted) {
+        setState(() {
+          _hasLocationPermission = granted;
+        });
+        
+        if (granted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Text(
+                      'تم منح إذن الموقع بنجاح',
+                      style: TextStyle(fontSize: 13.sp),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: ThemeConstants.success,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+              margin: EdgeInsets.all(16.w),
+            ),
+          );
+        }
+      }
+      
+      return granted;
+    } catch (e) {
+      debugPrint('Error requesting location permission: $e');
+      return false;
+    }
+  }
+
   Future<void> _requestLocation() async {
     if (!mounted) return;
+    
+    // التحقق من الإذن أولاً
+    if (!await _checkAndRequestLocationPermission()) {
+      return;
+    }
     
     try {
       await _prayerService.getCurrentLocation(forceUpdate: true);
@@ -124,6 +205,93 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     }
   }
 
+  /// التحقق من إذن الموقع وطلبه إذا لم يكن ممنوحاً
+  Future<bool> _checkAndRequestLocationPermission() async {
+    try {
+      final permissionService = getIt<SimplePermissionService>();
+      
+      // فحص الإذن أولاً
+      final hasPermission = await permissionService.checkLocationPermission();
+      
+      if (mounted) {
+        setState(() {
+          _hasLocationPermission = hasPermission;
+        });
+      }
+      
+      if (hasPermission) {
+        return true;
+      }
+
+      // طلب الإذن باستخدام smart_permission
+      if (!mounted) return false;
+      
+      final granted = await permissionService.requestLocationPermission(context);
+      
+      if (mounted) {
+        setState(() {
+          _hasLocationPermission = granted;
+        });
+      }
+      
+      if (granted && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Text(
+                    'تم منح إذن الموقع بنجاح',
+                    style: TextStyle(fontSize: 13.sp),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: ThemeConstants.success,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+            margin: EdgeInsets.all(16.w),
+          ),
+        );
+      } else if (!granted && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.location_off, color: Colors.white, size: 20.sp),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Text(
+                    'إذن الموقع مطلوب لحساب مواقيت الصلاة',
+                    style: TextStyle(fontSize: 13.sp),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: ThemeConstants.error,
+            behavior: SnackBarBehavior.floating,
+            action: SnackBarAction(
+              label: 'الإعدادات',
+              textColor: Colors.white,
+              onPressed: () => permissionService.openAppSettings(),
+            ),
+            duration: const Duration(seconds: 4),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+            margin: EdgeInsets.all(16.w),
+          ),
+        );
+      }
+      
+      return granted;
+    } catch (e) {
+      debugPrint('Error checking/requesting location permission: $e');
+      return false;
+    }
+  }
+
   Future<void> _refreshPrayerTimes() async {
     if (_isRefreshing || !mounted) return;
     
@@ -133,6 +301,14 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     });
     
     HapticFeedback.lightImpact();
+    
+    // التحقق من الإذن
+    if (!await _checkAndRequestLocationPermission()) {
+      setState(() {
+        _isRefreshing = false;
+      });
+      return;
+    }
     
     try {
       await _prayerService.getCurrentLocation(forceUpdate: true);
@@ -180,7 +356,12 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                   controller: _scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
-                    if (_isLoading && _dailyTimes == null)
+                    // عرض بطاقة تحذير الإذن إذا لم يكن ممنوحاً
+                    if (!_hasLocationPermission && !_isLoading)
+                      SliverToBoxAdapter(
+                        child: _buildPermissionWarningCard(),
+                      )
+                    else if (_isLoading && _dailyTimes == null)
                       SliverFillRemaining(
                         child: Center(
                           child: Column(
@@ -327,6 +508,86 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// بطاقة تحذير إذن الموقع
+  Widget _buildPermissionWarningCard() {
+    return Container(
+      margin: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(20.w),
+      decoration: BoxDecoration(
+        color: ThemeConstants.warning.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(
+          color: ThemeConstants.warning.withOpacity(0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: EdgeInsets.all(16.w),
+            decoration: BoxDecoration(
+              color: ThemeConstants.warning.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.location_off,
+              size: 48.sp,
+              color: ThemeConstants.warning,
+            ),
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            'إذن الموقع مطلوب',
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              color: context.textPrimaryColor,
+            ),
+          ),
+          SizedBox(height: 12.h),
+          Text(
+            'لحساب مواقيت الصلاة بدقة لمدينتك، يجب منح التطبيق إذن الوصول إلى موقعك الحالي',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13.sp,
+              color: context.textSecondaryColor,
+              height: 1.5,
+            ),
+          ),
+          SizedBox(height: 20.h),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                final granted = await _requestLocationPermission();
+                if (granted && mounted) {
+                  await _loadPrayerTimes();
+                }
+              },
+              icon: Icon(Icons.location_on, size: 20.sp),
+              label: Text(
+                'منح إذن الموقع',
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ThemeConstants.warning,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(vertical: 14.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                elevation: 0,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
