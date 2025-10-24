@@ -29,7 +29,7 @@ class SimplePermissionService {
   
   // تتبع محاولات الطلب
   final Map<PermissionType, int> _requestAttempts = {};
-  static const int _maxRetryAttempts = 20; // ✅ زيادة من 10 إلى 20 محاولات
+  static const int _maxRetryAttempts = 3; // ✅ تقليل المحاولات إلى 3
 
   // ✅ قفل لمنع الطلبات المتزامنة (Mutex)
   final Map<PermissionType, Completer<bool>?> _activeRequests = {};
@@ -89,7 +89,9 @@ class SimplePermissionService {
   /// فحص الأذونات عند العودة للتطبيق
   Future<PermissionResults> checkPermissionsOnResume() async {
     debugPrint('🔄 Checking permissions on app resume');
-    _clearExpiredCache();
+    
+    // ✅ مسح الـ Cache لإجبار الفحص الفعلي من النظام
+    clearCache();
     
     try {
       final notificationGranted = await checkNotificationPermission();
@@ -312,8 +314,14 @@ class SimplePermissionService {
   }
 
 /// فتح إعدادات التطبيق
-Future<bool> openAppSettings() async {
+Future<bool> openAppSettings({PermissionType? permissionType}) async {
   try {
+    // مسح الـ Cache للإذن المحدد قبل فتح الإعدادات
+    if (permissionType != null) {
+      _statusCache.remove(permissionType);
+      debugPrint('🧹 Cleared cache for ${permissionType.name} before opening settings');
+    }
+    
     await AppSettings.openAppSettings();
     return true; // نعتبر أن الفتح نجح إذا لم يحدث خطأ
   } catch (e) {
@@ -326,16 +334,6 @@ Future<bool> openAppSettings() async {
   void resetRequestAttempts(PermissionType type) {
     _requestAttempts.remove(type);
     debugPrint('🔄 Reset request attempts for ${type.name}');
-  }
-
-  /// مسح الـ Cache المنتهي
-  void _clearExpiredCache() {
-    final now = DateTime.now();
-    _statusCache.removeWhere((key, entry) {
-      final expired = now.difference(entry.timestamp) > _cacheExpiration;
-      if (expired) debugPrint('🧹 Cleared expired cache for ${key.name}');
-      return expired;
-    });
   }
 
   /// تنظيف الـ Cache بالكامل
@@ -392,7 +390,13 @@ Future<bool> openAppSettings() async {
     await showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
+      builder: (dialogContext) => WillPopScope(
+        onWillPop: () async {
+          // عند إغلاق الـ Dialog، تحقق من الإذن
+          await _recheckPermissionAfterDialog(type);
+          return true;
+        },
+        child: AlertDialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(ThemeConstants.radius2xl),
         ),
@@ -485,7 +489,13 @@ Future<bool> openAppSettings() async {
             text: 'فتح الإعدادات الآن',
             onPressed: () async {
               Navigator.pop(dialogContext);
-              await AppSettings.openAppSettings();
+              // فتح الإعدادات مع مسح الـ Cache
+              await openAppSettings(permissionType: type);
+              // إعادة تعيين المحاولات لإعطاء المستخدم فرصة جديدة
+              resetRequestAttempts(type);
+              // الانتظار قليلاً ثم فحص الإذن
+              await Future.delayed(const Duration(milliseconds: 500));
+              await _recheckPermissionAfterDialog(type);
             },
             icon: Icons.settings,
             size: ButtonSize.medium,
@@ -499,13 +509,45 @@ Future<bool> openAppSettings() async {
           // زر الإغلاق - استخدام AppButton
           AppButton.text(
             text: 'إغلاق',
-            onPressed: () => Navigator.pop(dialogContext),
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              await _recheckPermissionAfterDialog(type);
+            },
             size: ButtonSize.medium,
             color: context.textSecondaryColor,
           ),
         ],
       ),
+      ),
     );
+  }
+
+  /// إعادة فحص الإذن بعد إغلاق Dialog أو العودة من الإعدادات
+  Future<void> _recheckPermissionAfterDialog(PermissionType type) async {
+    debugPrint('🔄 Rechecking ${type.name} permission after settings...');
+    
+    // مسح الـ Cache
+    _statusCache.remove(type);
+    
+    // فحص الإذن مباشرة
+    Permission permission;
+    if (type == PermissionType.notification) {
+      permission = Permission.notification;
+    } else {
+      permission = Permission.locationWhenInUse;
+    }
+    
+    final granted = await _checkPermissionStatus(permission);
+    
+    // تحديث الحالة
+    _updateCache(type, granted);
+    _notifyChange(type, granted);
+    
+    if (granted) {
+      debugPrint('✅ ${type.name} permission now GRANTED after settings!');
+    } else {
+      debugPrint('⚠️ ${type.name} permission still DENIED');
+    }
   }
 
   Widget _buildStep(BuildContext context, String text) {

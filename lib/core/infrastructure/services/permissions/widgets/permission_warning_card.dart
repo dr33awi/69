@@ -1,6 +1,4 @@
 // lib/core/infrastructure/services/permissions/widgets/permission_warning_card.dart
-// Widget موحد لعرض تحذير الأذونات - محسّن مع الثيم الموحد
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../app/themes/theme_constants.dart';
@@ -38,7 +36,7 @@ class PermissionWarningCard extends StatelessWidget {
     return PermissionWarningCard(
       permissionName: 'الموقع',
       icon: Icons.location_off,
-      description: 'لحساب مواقيت الصلاة بدقة لمدينتك، يجب منح التطبيق إذن الوصول إلى موقعك الحالي',
+      description: 'لحساب مواقيت الصلاة بدقة',
       onGrantPermission: onGrantPermission,
       margin: margin,
       padding: padding,
@@ -56,7 +54,7 @@ class PermissionWarningCard extends StatelessWidget {
     return PermissionWarningCard(
       permissionName: 'الإشعارات',
       icon: Icons.notifications_off,
-      description: 'لإرسال تنبيهات أوقات الصلاة والأذكار، يجب منح التطبيق إذن الإشعارات',
+      description: 'لإرسال تنبيهات الصلاة والأذكار',
       onGrantPermission: onGrantPermission,
       margin: margin,
       padding: padding,
@@ -74,72 +72,126 @@ class PermissionWarningCard extends StatelessWidget {
 
   Widget _buildFullCard(BuildContext context) {
     return Container(
-      margin: margin ?? EdgeInsets.all(ThemeConstants.space4),
-      padding: padding ?? EdgeInsets.all(ThemeConstants.space5),
+      width: 1.sw,
+      margin: margin ?? EdgeInsets.symmetric(
+        horizontal: 16.w,
+        vertical: 12.h,
+      ),
+      padding: padding ?? EdgeInsets.all(20.w),
       decoration: BoxDecoration(
-        color: ThemeConstants.warning.withOpacity(ThemeConstants.opacity10),
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusLg),
+        color: ThemeConstants.warning.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
-          color: ThemeConstants.warning.withOpacity(ThemeConstants.opacity30),
+          color: ThemeConstants.warning.withOpacity(0.3),
           width: 1.5.w,
         ),
-        boxShadow: ThemeConstants.shadowSm,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8.r,
+            offset: Offset(0, 2.h),
+          ),
+        ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // أيقونة التحذير
           Container(
-            padding: EdgeInsets.all(ThemeConstants.space4),
+            padding: EdgeInsets.all(16.w),
             decoration: BoxDecoration(
-              color: ThemeConstants.warning.withOpacity(ThemeConstants.opacity20),
+              color: ThemeConstants.warning.withOpacity(0.2),
               shape: BoxShape.circle,
-              boxShadow: ThemeConstants.shadowMd,
+              boxShadow: [
+                BoxShadow(
+                  color: ThemeConstants.warning.withOpacity(0.2),
+                  blurRadius: 8.r,
+                  offset: Offset(0, 2.h),
+                ),
+              ],
             ),
             child: Icon(
               icon,
-              size: ThemeConstants.icon2xl,
+              size: 48.sp,
               color: ThemeConstants.warning,
             ),
           ),
           
-          SizedBox(height: ThemeConstants.space4),
+          SizedBox(height: 16.h),
           
           // العنوان
           Text(
             'إذن $permissionName مطلوب',
             style: TextStyle(
-              fontSize: ThemeConstants.textSizeXl,
-              fontWeight: ThemeConstants.bold,
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
               color: context.textPrimaryColor,
             ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           
-          SizedBox(height: ThemeConstants.space3),
+          SizedBox(height: 8.h),
           
           // الوصف
           Text(
             description,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: ThemeConstants.textSizeSm,
+              fontSize: 13.sp,
               color: context.textSecondaryColor,
               height: 1.5,
             ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
           
-          SizedBox(height: ThemeConstants.space5),
+          SizedBox(height: 20.h),
           
-          // الزر - استخدام AppButton
+          // ✅ الزر - تم تحسينه
           SizedBox(
             width: double.infinity,
-            child: AppButton.custom(
-              text: 'منح إذن $permissionName',
+            height: 52.h, // ✅ زيادة الارتفاع
+            child: ElevatedButton(
               onPressed: onGrantPermission,
-              icon: icon,
-              size: ButtonSize.large,
-              isFullWidth: true,
-              backgroundColor: ThemeConstants.warning,
-              textColor: Colors.white,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ThemeConstants.warning,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 16.w,
+                  vertical: 12.h,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon == Icons.notifications_off 
+                        ? Icons.notifications_active 
+                        : Icons.location_on,
+                    size: 20.sp,
+                  ),
+                  SizedBox(width: 8.w),
+                  Flexible( // ✅ استخدام Flexible
+                    child: Text(
+                      'منح إذن $permissionName',
+                      style: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -149,61 +201,81 @@ class PermissionWarningCard extends StatelessWidget {
 
   Widget _buildCompactCard(BuildContext context) {
     return Container(
-      margin: margin ?? EdgeInsets.symmetric(horizontal: ThemeConstants.space3),
-      padding: padding ?? EdgeInsets.all(ThemeConstants.space3 + ThemeConstants.space1),
+      width: 1.sw,
+      margin: margin ?? EdgeInsets.symmetric(
+        horizontal: 12.w,
+        vertical: 8.h,
+      ),
+      padding: padding ?? EdgeInsets.all(14.w),
       decoration: BoxDecoration(
-        color: ThemeConstants.warning.withOpacity(ThemeConstants.opacity10),
-        borderRadius: BorderRadius.circular(ThemeConstants.radius2xl),
+        color: ThemeConstants.warning.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
-          color: ThemeConstants.warning.withOpacity(ThemeConstants.opacity30),
-          width: ThemeConstants.borderLight,
+          color: ThemeConstants.warning.withOpacity(0.3),
+          width: 1.w,
         ),
-        boxShadow: ThemeConstants.shadowSm,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 6.r,
+            offset: Offset(0, 2.h),
+          ),
+        ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // أيقونة
               Container(
-                padding: EdgeInsets.all(ThemeConstants.space2),
+                padding: EdgeInsets.all(10.w),
                 decoration: BoxDecoration(
-                  color: ThemeConstants.warning.withOpacity(ThemeConstants.opacity20),
-                  borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
-                  boxShadow: ThemeConstants.shadowSm,
+                  color: ThemeConstants.warning.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(10.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 4.r,
+                      offset: Offset(0, 1.h),
+                    ),
+                  ],
                 ),
                 child: Icon(
                   icon,
                   color: ThemeConstants.warning,
-                  size: ThemeConstants.iconSm,
+                  size: 20.sp,
                 ),
               ),
               
-              SizedBox(width: ThemeConstants.space2 + ThemeConstants.space1),
+              SizedBox(width: 10.w),
               
               // النص
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       'إذن $permissionName مطلوب',
                       style: TextStyle(
                         color: ThemeConstants.warning,
-                        fontWeight: ThemeConstants.bold,
-                        fontSize: ThemeConstants.textSizeMd,
-                      ),
-                    ),
-                    SizedBox(height: 3.h),
-                    Text(
-                      description.length > 50 
-                          ? '${description.substring(0, 47)}...'
-                          : description,
-                      style: TextStyle(
-                        color: context.textSecondaryColor,
-                        fontSize: ThemeConstants.textSizeXs,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14.sp,
                       ),
                       maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 2.h),
+                    Text(
+                      description,
+                      style: TextStyle(
+                        color: context.textSecondaryColor,
+                        fontSize: 11.sp,
+                        height: 1.3,
+                      ),
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
@@ -212,20 +284,50 @@ class PermissionWarningCard extends StatelessWidget {
             ],
           ),
           
-          SizedBox(height: ThemeConstants.space2 + ThemeConstants.space1),
+          SizedBox(height: 12.h),
           
-          // الزر المدمج - استخدام AppButton
+          // ✅ الزر - تم تحسينه
           SizedBox(
             width: double.infinity,
-            height: 36.h,
-            child: AppButton.custom(
-              text: 'منح إذن $permissionName',
+            height: 44.h, // ✅ زيادة الارتفاع
+            child: ElevatedButton(
               onPressed: onGrantPermission,
-              icon: icon,
-              size: ButtonSize.small,
-              isFullWidth: true,
-              backgroundColor: ThemeConstants.warning,
-              textColor: Colors.white,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ThemeConstants.warning,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 12.w,
+                  vertical: 10.h,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon == Icons.notifications_off 
+                        ? Icons.notifications_active 
+                        : Icons.location_on,
+                    size: 18.sp,
+                  ),
+                  SizedBox(width: 6.w),
+                  Flexible( // ✅ استخدام Flexible
+                    child: Text(
+                      'منح إذن $permissionName',
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

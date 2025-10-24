@@ -5,7 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
-import '../../../core/infrastructure/services/permissions/simple_permission_service.dart';
+import '../../../core/infrastructure/services/permissions/simple_permission_extensions.dart';
+import '../../../core/infrastructure/services/permissions/widgets/permission_warning_card.dart';
 import '../services/prayer_times_service.dart';
 import '../models/prayer_time_model.dart';
 
@@ -16,9 +17,9 @@ class PrayerNotificationsSettingsScreen extends StatefulWidget {
   State<PrayerNotificationsSettingsScreen> createState() => _PrayerNotificationsSettingsScreenState();
 }
 
-class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsSettingsScreen> {
+class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsSettingsScreen> 
+    with WidgetsBindingObserver {
   late final PrayerTimesService _prayerService;
-  late final SimplePermissionService _permissionService;
   
   late PrayerNotificationSettings _notificationSettings;
   late PrayerNotificationSettings _originalSettings;
@@ -34,13 +35,39 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
   void initState() {
     super.initState();
     _initializeServices();
+    WidgetsBinding.instance.addObserver(this);
     _loadSettings();
     _checkNotificationPermission();
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkPermissionOnResume();
+    }
+  }
+
+  Future<void> _checkPermissionOnResume() async {
+    final hasPermission = await context.checkNotificationPermission();
+    if (mounted && hasPermission != _hasNotificationPermission) {
+      setState(() {
+        _hasNotificationPermission = hasPermission;
+      });
+      
+      if (hasPermission) {
+        context.showPermissionGrantedMessage('الإشعارات');
+      }
+    }
+  }
+
   void _initializeServices() {
     _prayerService = getIt<PrayerTimesService>();
-    _permissionService = getIt<SimplePermissionService>();
   }
 
   void _loadSettings() {
@@ -52,14 +79,31 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
     });
   }
 
-  /// التحقق من إذن الإشعارات
   Future<void> _checkNotificationPermission() async {
-    final hasPermission = await _permissionService.checkNotificationPermission();
+    final hasPermission = await context.checkNotificationPermission();
     if (mounted) {
       setState(() {
         _hasNotificationPermission = hasPermission;
       });
     }
+  }
+
+  // ✅ طلب إذن الإشعارات مع رسالة موحدة عند الرفض
+  Future<bool> _requestNotificationPermission() async {
+    final granted = await context.requestNotificationPermission();
+    
+    if (granted) {
+      setState(() {
+        _hasNotificationPermission = true;
+      });
+    } else {
+      // ✅ عرض رسالة الرفض الموحدة
+      if (mounted) {
+        context.showPermissionDeniedMessage('الإشعارات');
+      }
+    }
+    
+    return granted;
   }
 
   void _checkForChanges() {
@@ -69,6 +113,14 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
   }
 
   Future<void> _saveSettings() async {
+    // ✅ التحقق من الإذن قبل الحفظ
+    if (!_hasNotificationPermission) {
+      final granted = await _requestNotificationPermission();
+      if (!granted) {
+        return;
+      }
+    }
+    
     setState(() => _isSaving = true);
     
     try {
@@ -98,6 +150,7 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        backgroundColor: context.cardColor,
         title: Row(
           children: [
             Container(
@@ -123,44 +176,34 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
         ),
         actionsPadding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
         actions: [
-          TextButton(
+          AppButton.text(
+            text: 'تجاهل التغييرات',
             onPressed: () => Navigator.pop(context, 'discard'),
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-            ),
-            child: Text(
-              'تجاهل التغييرات', 
-              style: TextStyle(fontSize: 14.sp, color: ThemeConstants.error),
-            ),
+            size: ButtonSize.medium,
+            color: ThemeConstants.error,
           ),
-          ElevatedButton(
+          SizedBox(width: ThemeConstants.space2),
+          AppButton.primary(
+            text: 'حفظ وخروج',
             onPressed: () => Navigator.pop(context, 'save'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: ThemeConstants.primary,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
-            ),
-            child: Text('حفظ وخروج', style: TextStyle(fontSize: 14.sp)),
+            size: ButtonSize.medium,
           ),
         ],
       ),
     );
     
     if (result == 'save') {
-      // حفظ التغييرات
       await _saveSettings();
       return !_hasChanges;
     } else if (result == 'discard') {
-      // تجاهل التغييرات - إرجاع الإعدادات للحالة الأصلية
       setState(() {
         _notificationSettings = _originalSettings;
         _hasChanges = false;
       });
-      return true; // السماح بالخروج
+      return true;
     }
     
-    return false; // إلغاء (result == 'cancel' or null)
+    return false;
   }
 
   @override
@@ -298,6 +341,18 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
   Widget _buildContent() {
     return CustomScrollView(
       slivers: [
+        // ✅ عرض بطاقة التحذير إذا لم يكن هناك إذن
+        if (!_hasNotificationPermission)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(12.w),
+              child: PermissionWarningCard.notification(
+                onGrantPermission: _requestNotificationPermission,
+                isCompact: false,
+              ),
+            ),
+          ),
+        
         if (_hasNotificationPermission)
           SliverToBoxAdapter(
             child: _buildPrayerNotificationsSection(),

@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/di/service_locator.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../core/infrastructure/services/permissions/simple_permission_extensions.dart';
+import '../../../core/infrastructure/services/permissions/widgets/permission_warning_card.dart';
 import '../../../core/infrastructure/services/storage/storage_service.dart';
 import '../services/athkar_service.dart';
 import '../models/athkar_model.dart';
@@ -22,7 +23,7 @@ class AthkarNotificationSettingsScreen extends StatefulWidget {
 }
 
 class _AthkarNotificationSettingsScreenState 
-    extends State<AthkarNotificationSettingsScreen> {
+    extends State<AthkarNotificationSettingsScreen> with WidgetsBindingObserver {
   late final AthkarService _service;
   late final StorageService _storage;
   
@@ -45,7 +46,35 @@ class _AthkarNotificationSettingsScreenState
     super.initState();
     _service = getIt<AthkarService>();
     _storage = getIt<StorageService>();
+    WidgetsBinding.instance.addObserver(this);
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkPermissionOnResume();
+    }
+  }
+
+  Future<void> _checkPermissionOnResume() async {
+    final hasPermission = await context.checkNotificationPermission();
+    if (mounted && hasPermission != _hasPermission) {
+      setState(() {
+        _hasPermission = hasPermission;
+      });
+      
+      if (hasPermission) {
+        context.showPermissionGrantedMessage('الإشعارات');
+        _loadData();
+      }
+    }
   }
 
   Future<void> _loadData() async {
@@ -285,10 +314,36 @@ class _AthkarNotificationSettingsScreenState
   }
 
   Future<void> _toggleCategory(String categoryId, bool value) async {
+    // ✅ إذا كان المستخدم يريد تفعيل التذكير وليس لديه إذن
+    if (value && !_hasPermission) {
+      final granted = await _requestNotificationPermission();
+      if (!granted) {
+        return; // لا تفعل التذكير إذا رفض الإذن
+      }
+    }
+    
     setState(() {
       _enabled[categoryId] = value;
     });
     _checkForChanges();
+  }
+
+  // ✅ دالة موحدة لطلب إذن الإشعارات مع رسالة عند الرفض
+  Future<bool> _requestNotificationPermission() async {
+    final granted = await context.requestNotificationPermission();
+    
+    if (granted) {
+      setState(() {
+        _hasPermission = true;
+      });
+    } else {
+      // ✅ عرض رسالة الرفض الموحدة
+      if (mounted) {
+        context.showPermissionDeniedMessage('الإشعارات');
+      }
+    }
+    
+    return granted;
   }
 
   Future<void> _updateTime(String categoryId, TimeOfDay time) async {
@@ -315,7 +370,8 @@ class _AthkarNotificationSettingsScreenState
         final enabledCount = _enabled.values.where((e) => e).length;
         if (enabledCount > 0) {
           if (mounted) {
-            context.showWarningSnackBar('يجب تفعيل أذونات الإشعارات أولاً');
+            // ✅ استخدام الرسالة الموحدة
+            context.showPermissionDeniedMessage('الإشعارات');
           }
           setState(() => _saving = false);
           return;
@@ -382,6 +438,14 @@ class _AthkarNotificationSettingsScreenState
 
   Future<void> _enableAllReminders() async {
     HapticFeedback.mediumImpact();
+    
+    // ✅ التحقق من الإذن قبل تفعيل الكل
+    if (!_hasPermission) {
+      final granted = await _requestNotificationPermission();
+      if (!granted) {
+        return;
+      }
+    }
     
     final shouldEnable = await AppInfoDialog.showConfirmation(
       context: context,
@@ -655,6 +719,15 @@ class _AthkarNotificationSettingsScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ✅ عرض بطاقة التحذير إذا لم يكن هناك إذن
+            if (!_hasPermission) ...[
+              PermissionWarningCard.notification(
+                onGrantPermission: _requestNotificationPermission,
+                isCompact: false,
+              ),
+              SizedBox(height: ThemeConstants.space3),
+            ],
+            
             if (_hasPermission) ...[
               if (categories.isEmpty)
                 _buildNoCategoriesMessage()
@@ -695,6 +768,8 @@ class _AthkarNotificationSettingsScreenState
     );
   }
 
+  // ... باقي الـ widgets (نفس الكود السابق)
+  
   Widget _buildQuickStats(List<AthkarCategory> categories) {
     final enabledCount = _enabled.values.where((e) => e).length;
     final disabledCount = categories.length - enabledCount;

@@ -7,8 +7,6 @@ import 'package:athkar_app/core/firebase/remote_config_service.dart';
 import 'package:athkar_app/core/firebase/analytics/analytics_service.dart';
 import 'package:athkar_app/core/firebase/performance/performance_service.dart';
 import 'package:athkar_app/core/firebase/messaging/in_app_messaging_service.dart';
-import 'package:athkar_app/core/infrastructure/services/device/battery/battery_service.dart';
-import 'package:athkar_app/core/infrastructure/services/device/battery/battery_service_impl.dart';
 import 'package:athkar_app/core/infrastructure/services/notifications/notification_manager.dart';
 import 'package:athkar_app/core/infrastructure/services/notifications/notification_service.dart';
 import 'package:athkar_app/core/infrastructure/services/notifications/notification_service_impl.dart';
@@ -96,7 +94,6 @@ class ServiceLocator {
       _registerThemeServices();
       _registerPermissionServices();
       await _registerNotificationServices();
-      _registerDeviceServices();
       _registerErrorHandler();
       _registerShareService();
       _registerTextSettingsService();
@@ -255,15 +252,7 @@ class ServiceLocator {
     }
   }
 
-  void _registerDeviceServices() {
-    debugPrint('ServiceLocator: Registering device services...');
 
-    if (!getIt.isRegistered<BatteryService>()) {
-      getIt.registerLazySingleton<BatteryService>(
-        () => BatteryServiceImpl(battery: getIt<Battery>()),
-      );
-    }
-  }
 
   void _registerErrorHandler() {
     debugPrint('ServiceLocator: Registering error handler...');
@@ -699,7 +688,6 @@ class ServiceLocator {
            getIt.isRegistered<StorageService>() &&
            getIt.isRegistered<ThemeNotifier>() &&
            getIt.isRegistered<SimplePermissionService>() &&
-           getIt.isRegistered<BatteryService>() &&
            getIt.isRegistered<ShareService>();
   }
 
@@ -769,9 +757,7 @@ class ServiceLocator {
         }
       }
 
-      if (getIt.isRegistered<BatteryService>()) {
-        await getIt<BatteryService>().dispose();
-      }
+
 
       if (getIt.isRegistered<NotificationService>()) {
         await getIt<NotificationService>().dispose();
@@ -884,7 +870,6 @@ extension ServiceLocatorExtensions on BuildContext {
   StorageService get storageService => getIt<StorageService>();
   NotificationService get notificationService => getIt<NotificationService>();
   AppErrorHandler get errorHandler => getIt<AppErrorHandler>();
-  BatteryService get batteryService => getIt<BatteryService>();
   ThemeNotifier get themeNotifier => getIt<ThemeNotifier>();
   ShareService get shareService => getIt<ShareService>();
   ReviewService get reviewService => getIt<ReviewService>();
