@@ -9,8 +9,6 @@ import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../services/prayer_times_service.dart';
 import '../models/prayer_time_model.dart';
-import '../utils/prayer_utils.dart';
-import '../widgets/shared/prayer_state_widgets.dart';
 import 'package:athkar_app/features/prayer_times/widgets/prayer_times_card.dart';
 import '../widgets/next_prayer_countdown.dart';
 import 'package:athkar_app/features/prayer_times/widgets/location_header.dart';
@@ -30,10 +28,8 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   DailyPrayerTimes? _dailyTimes;
   PrayerTime? _nextPrayer;
   bool _isLoading = true;
-  bool _isRetryingLocation = false;
   bool _isRefreshing = false;
   String? _errorMessage;
-  dynamic _lastError;
   
   StreamSubscription<DailyPrayerTimes>? _timesSubscription;
   StreamSubscription<PrayerTime?>? _nextPrayerSubscription;
@@ -56,15 +52,12 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
             _isLoading = false;
             _isRefreshing = false;
             _errorMessage = null;
-            _lastError = null;
           });
         }
       },
       onError: (error) {
         if (mounted) {
           setState(() {
-            _lastError = error;
-            _errorMessage = PrayerUtils.getErrorMessage(error);
             _isLoading = false;
             _isRefreshing = false;
           });
@@ -87,7 +80,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
-      _lastError = null;
     });
     
     try {
@@ -107,8 +99,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       }
     } catch (e) {
       setState(() {
-        _lastError = e;
-        _errorMessage = PrayerUtils.getErrorMessage(e);
+        _errorMessage = 'حدث خطأ في تحميل المواقيت';
         _isLoading = false;
       });
     }
@@ -117,37 +108,18 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   Future<void> _requestLocation() async {
     if (!mounted) return;
     
-    setState(() {
-      _isRetryingLocation = true;
-    });
-    
     try {
-      final location = await _prayerService.getCurrentLocation(forceUpdate: true);
+      await _prayerService.getCurrentLocation(forceUpdate: true);
       await _prayerService.updatePrayerTimes();
       
       if (mounted) {
-        setState(() {
-          _isRetryingLocation = false;
-        });
-        
         context.showSuccessSnackBar('تم تحديد الموقع وتحميل المواقيت بنجاح');
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _lastError = e;
-          _errorMessage = PrayerUtils.getErrorMessage(e);
           _isLoading = false;
-          _isRetryingLocation = false;
         });
-        
-        context.showErrorSnackBar(
-          PrayerUtils.getErrorMessage(e),
-          action: SnackBarAction(
-            label: 'حاول مجدداً',
-            onPressed: _requestLocation,
-          ),
-        );
       }
     }
   }
@@ -158,7 +130,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     setState(() {
       _isRefreshing = true;
       _errorMessage = null;
-      _lastError = null;
     });
     
     HapticFeedback.lightImpact();
@@ -173,10 +144,8 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _lastError = e;
-          _errorMessage = PrayerUtils.getErrorMessage(e);
+          _errorMessage = 'فشل في تحديث المواقيت';
         });
-        context.showErrorSnackBar('فشل التحديث: ${PrayerUtils.getErrorMessage(e)}');
       }
     } finally {
       if (mounted) {
@@ -212,29 +181,144 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
                     if (_isLoading && _dailyTimes == null)
-                      const SliverFillRemaining(
-                        child: PrayerLoadingWidget(
-                          message: 'جاري تحميل مواقيت الصلاة...',
+                      SliverFillRemaining(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              AppLoading.circular(size: LoadingSize.large),
+                              SizedBox(height: 16.h),
+                              Text(
+                                'جاري تحميل مواقيت الصلاة...',
+                                style: TextStyle(
+                                  fontWeight: ThemeConstants.medium,
+                                  color: context.textSecondaryColor,
+                                  fontSize: 14.sp,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       )
                     else if (_errorMessage != null && _dailyTimes == null)
                       SliverFillRemaining(
-                        child: PrayerErrorWidget(
-                          error: _lastError,
-                          onRetry: _loadPrayerTimes,
-                          showSettings: true,
+                        child: Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(20.w),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(20.w),
+                                  decoration: BoxDecoration(
+                                    color: ThemeConstants.error.withOpacity(0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.error_outline,
+                                    size: 48.sp,
+                                    color: ThemeConstants.error,
+                                  ),
+                                ),
+                                SizedBox(height: 16.h),
+                                Text(
+                                  'حدث خطأ',
+                                  style: TextStyle(
+                                    fontSize: 18.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: context.textPrimaryColor,
+                                  ),
+                                ),
+                                SizedBox(height: 8.h),
+                                Text(
+                                  _errorMessage!,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    color: context.textSecondaryColor,
+                                  ),
+                                ),
+                                SizedBox(height: 20.h),
+                                ElevatedButton.icon(
+                                  onPressed: _loadPrayerTimes,
+                                  icon: Icon(Icons.refresh, size: 20.sp),
+                                  label: Text(
+                                    'إعادة المحاولة',
+                                    style: TextStyle(fontSize: 15.sp),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: ThemeConstants.primary,
+                                    foregroundColor: Colors.white,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 24.w,
+                                      vertical: 12.h,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12.r),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       )
                     else if (_dailyTimes != null)
                       ..._buildContent()
                     else
                       SliverFillRemaining(
-                        child: PrayerEmptyWidget(
-                          title: 'لم يتم تحديد الموقع',
-                          message: 'نحتاج لتحديد موقعك لعرض مواقيت الصلاة الصحيحة',
-                          icon: Icons.location_off,
-                          actionText: 'تحديد الموقع',
-                          onAction: _requestLocation,
+                        child: Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(20.w),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.location_off,
+                                  size: 64.sp,
+                                  color: context.textSecondaryColor.withOpacity(0.5),
+                                ),
+                                SizedBox(height: 16.h),
+                                Text(
+                                  'لم يتم تحديد الموقع',
+                                  style: TextStyle(
+                                    fontSize: 18.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: context.textPrimaryColor,
+                                  ),
+                                ),
+                                SizedBox(height: 8.h),
+                                Text(
+                                  'نحتاج لتحديد موقعك لعرض مواقيت الصلاة الصحيحة',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    color: context.textSecondaryColor,
+                                  ),
+                                ),
+                                SizedBox(height: 20.h),
+                                ElevatedButton.icon(
+                                  onPressed: _requestLocation,
+                                  icon: Icon(Icons.location_on, size: 20.sp),
+                                  label: Text(
+                                    'تحديد الموقع',
+                                    style: TextStyle(fontSize: 15.sp),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: ThemeConstants.primary,
+                                    foregroundColor: Colors.white,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 24.w,
+                                      vertical: 12.h,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12.r),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                   ],

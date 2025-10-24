@@ -437,7 +437,6 @@ class ServiceLocator {
           debugPrint('🔄 ACTUAL LAZY LOADING: SettingsServicesManager initialized NOW');
           return SettingsServicesManager(
             storage: getIt<StorageService>(),
-            simplePermissionService: getIt<SimplePermissionService>(),
             themeNotifier: getIt<ThemeNotifier>(),
           );
         },

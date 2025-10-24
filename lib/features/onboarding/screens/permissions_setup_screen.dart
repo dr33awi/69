@@ -8,6 +8,13 @@ import '../../../app/routes/app_router.dart';
 import '../../../core/infrastructure/services/permissions/simple_permission_service.dart';
 import '../../../core/infrastructure/services/storage/storage_service.dart';
 
+/// شاشة إعداد الأذونات - مُحدّثة لاستخدام smart_permission
+///
+/// المميزات:
+/// - استخدام SimplePermissionService المحسّن
+/// - Dialogs تكيفية من smart_permission
+/// - Retry logic تلقائي
+/// - Cache ذكي لمدة ساعة
 class PermissionsSetupScreen extends StatefulWidget {
   const PermissionsSetupScreen({super.key});
 

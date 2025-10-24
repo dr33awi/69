@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
+import '../../../core/infrastructure/services/permissions/simple_permission_service.dart';
 import '../services/prayer_times_service.dart';
 import '../models/prayer_time_model.dart';
 
@@ -17,6 +18,7 @@ class PrayerNotificationsSettingsScreen extends StatefulWidget {
 
 class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsSettingsScreen> {
   late final PrayerTimesService _prayerService;
+  late final SimplePermissionService _permissionService;
   
   late PrayerNotificationSettings _notificationSettings;
   late PrayerNotificationSettings _originalSettings;
@@ -24,6 +26,7 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
   bool _isLoading = true;
   bool _isSaving = false;
   bool _hasChanges = false;
+  bool _hasNotificationPermission = false;
 
   final Color _primaryGreenColor = ThemeConstants.success;
 
@@ -32,10 +35,12 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
     super.initState();
     _initializeServices();
     _loadSettings();
+    _checkNotificationPermission();
   }
 
   void _initializeServices() {
     _prayerService = getIt<PrayerTimesService>();
+    _permissionService = getIt<SimplePermissionService>();
   }
 
   void _loadSettings() {
@@ -45,6 +50,16 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
       _isLoading = false;
       _hasChanges = false;
     });
+  }
+
+  /// التحقق من إذن الإشعارات
+  Future<void> _checkNotificationPermission() async {
+    final hasPermission = await _permissionService.checkNotificationPermission();
+    if (mounted) {
+      setState(() {
+        _hasNotificationPermission = hasPermission;
+      });
+    }
   }
 
   void _checkForChanges() {
@@ -283,117 +298,15 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
   Widget _buildContent() {
     return CustomScrollView(
       slivers: [
-        SliverToBoxAdapter(
-          child: _buildMainSettingsSection(),
-        ),
-        
-        SliverToBoxAdapter(
-          child: _buildPrayerNotificationsSection(),
-        ),
+        if (_hasNotificationPermission)
+          SliverToBoxAdapter(
+            child: _buildPrayerNotificationsSection(),
+          ),
         
         SliverToBoxAdapter(
           child: SizedBox(height: 60.h),
         ),
       ],
-    );
-  }
-
-  Widget _buildMainSettingsSection() {
-    return Container(
-      margin: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12.r),
-        color: context.cardColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8.r,
-            offset: Offset(0, 3.h),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.all(12.w),
-            child: Row(
-              children: [
-                Container(
-                  padding: EdgeInsets.all(8.w),
-                  decoration: BoxDecoration(
-                    color: _primaryGreenColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10.r),
-                  ),
-                  child: Icon(
-                    Icons.notifications_active,
-                    color: _primaryGreenColor,
-                    size: 20.sp,
-                  ),
-                ),
-                SizedBox(width: 10.w),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'إعدادات الإشعارات العامة',
-                        style: TextStyle(
-                          fontWeight: ThemeConstants.semiBold,
-                          fontSize: 14.sp,
-                        ),
-                      ),
-                      Text(
-                        'تفعيل أو تعطيل الإشعارات لجميع الصلوات',
-                        style: TextStyle(
-                          color: context.textSecondaryColor,
-                          fontSize: 10.sp,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
-          const Divider(),
-          
-          SwitchListTile(
-            title: Text('تفعيل الإشعارات', style: TextStyle(fontSize: 13.sp)),
-            subtitle: Text('تلقي تنبيهات أوقات الصلاة', style: TextStyle(fontSize: 10.sp)),
-            value: _notificationSettings.enabled,
-            onChanged: (value) {
-              setState(() {
-                _notificationSettings = _notificationSettings.copyWith(
-                  enabled: value,
-                );
-              });
-              _checkForChanges();
-            },
-            activeColor: _primaryGreenColor,
-          ),
-          
-          SwitchListTile(
-            title: Text('الاهتزاز', style: TextStyle(fontSize: 13.sp)),
-            subtitle: Text('اهتزاز الجهاز عند التنبيه', style: TextStyle(fontSize: 10.sp)),
-            value: _notificationSettings.vibrate,
-            onChanged: _notificationSettings.enabled
-                ? (value) {
-                    setState(() {
-                      _notificationSettings = _notificationSettings.copyWith(
-                        vibrate: value,
-                      );
-                    });
-                    _checkForChanges();
-                  }
-                : null,
-            activeColor: _primaryGreenColor,
-          ),
-          
-          SizedBox(height: 6.h),
-        ],
-      ),
     );
   }
 

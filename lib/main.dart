@@ -30,13 +30,13 @@ import 'core/infrastructure/services/preview/device_preview_config.dart';
 
 import 'core/firebase/remote_config_manager.dart';
 
-
 import 'app/themes/app_theme.dart';
 import 'app/routes/app_router.dart';
 
 import 'features/home/screens/home_screen.dart';
 import 'features/onboarding/screens/onboarding_screen.dart';
 import 'features/onboarding/screens/permissions_setup_screen.dart';
+import 'core/infrastructure/services/permissions/widgets/permission_check_widget.dart';
 
 
 NotificationAppLaunchDetails? _notificationAppLaunchDetails;
@@ -404,6 +404,78 @@ Future<void> _setupNotificationHandler() async {
   }
 }
 
+// ==================== Widget للأخطاء ====================
+class _ErrorApp extends StatelessWidget {
+  final String error;
+  
+  const _ErrorApp({required this.error});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: Colors.red.shade50,
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 80,
+                    color: Colors.red.shade700,
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'حدث خطأ في تشغيل التطبيق',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red.shade900,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'يرجى إعادة تشغيل التطبيق',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey.shade700,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.red.shade200),
+                    ),
+                    child: Text(
+                      error,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: 'monospace',
+                        color: Colors.grey.shade800,
+                      ),
+                      textDirection: TextDirection.ltr,
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // ==================== التطبيق الرئيسي ====================
 class AthkarApp extends StatefulWidget {
   const AthkarApp({super.key});
@@ -414,7 +486,6 @@ class AthkarApp extends StatefulWidget {
 
 class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
   RemoteConfigManager? _configManager;
-  // تم إزالة UnifiedPermissionManager - الآن نستخدم SimplePermissionService
   StreamSubscription? _connectivitySubscription;
   bool _hasShownOfflineMessage = false;
 
@@ -423,7 +494,6 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
     super.initState();
     
     WidgetsBinding.instance.addObserver(this);
-    // تم إزالة تهيئة UnifiedPermissionManager
     
     _initializeConfigManager();
     _scheduleInitialPermissionCheck();
@@ -618,8 +688,6 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
         final permissionsCompleted = storage.getBool('permissions_setup_completed') ?? false;
         
         if (onboardingCompleted && permissionsCompleted) {
-          // تم إزالة فحص الأذونات القديم
-          // النظام الجديد سيتولى الأمر تلقائياً
           debugPrint('✅ Permissions already completed - using new simple system');
         }
       } catch (e) {
@@ -639,16 +707,15 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
       } else if (!permissionsCompleted) {
         return const PermissionsSetupScreen();
       } else {
-        // استخدام النظام البسيط الجديد
         return const HomeScreen();
       }
     } catch (e) {
       debugPrint('❌ Error determining screen: $e');
-      return const HomeScreen(); // استخدام الشاشة الرئيسية مباشرة
+      return const HomeScreen();
     }
   }
 
- @override
+  @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: getIt<ThemeNotifier>(),
@@ -690,3 +757,4 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
       },
     );
   }
+}

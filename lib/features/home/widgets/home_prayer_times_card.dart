@@ -156,7 +156,7 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
         setState(() {
           _lastError = e;
         });
-        context.showErrorSnackBar('فشل في تحديث المواقيت: ${PrayerUtils.getErrorMessage(e)}');
+        context.showErrorSnackBar('فشل في تحديث المواقيت');
       }
     }
   }
@@ -483,7 +483,7 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
               SizedBox(width: 6.w),
               Expanded(
                 child: Text(
-                  PrayerUtils.getErrorMessage(_lastError),
+                  'حدث خطأ في تحميل المواقيت',
                   style: context.bodySmall?.copyWith(
                     color: ThemeConstants.error,
                     fontSize: 11.sp,

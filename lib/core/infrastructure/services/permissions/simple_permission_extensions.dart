@@ -25,11 +25,6 @@ extension SimplePermissionContext on BuildContext {
     return await permissionService.requestAllPermissions(this);
   }
 
-  /// طلب أذونات متعددة بطريقة مجمعة
-  Future<PermissionResults> requestMultiplePermissions() async {
-    return await permissionService.requestMultiplePermissions(this);
-  }
-
   /// فحص الأذونات بدون طلب
   Future<PermissionResults> checkAllPermissions() async {
     return await permissionService.checkAllPermissions();

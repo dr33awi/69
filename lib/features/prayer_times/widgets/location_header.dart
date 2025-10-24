@@ -7,8 +7,6 @@ import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../models/prayer_time_model.dart';
 import '../services/prayer_times_service.dart';
-import '../utils/prayer_utils.dart';
-import 'shared/prayer_state_widgets.dart';
 
 class LocationHeader extends StatefulWidget {
   final PrayerLocation? initialLocation;
@@ -87,7 +85,7 @@ class _LocationHeaderState extends State<LocationHeader>
         setState(() {
           _lastError = e;
         });
-        context.showErrorSnackBar('فشل تحديث الموقع: ${PrayerUtils.getErrorMessage(e)}');
+        context.showErrorSnackBar('فشل تحديث الموقع');
       }
     } finally {
       if (mounted) {
@@ -213,7 +211,7 @@ class _LocationHeaderState extends State<LocationHeader>
                           
                           if (hasError)
                             Text(
-                              PrayerUtils.getErrorMessage(_lastError),
+                              'حدث خطأ في تحديد الموقع',
                               style: TextStyle(
                                 color: ThemeConstants.error,
                                 fontWeight: ThemeConstants.medium,
@@ -280,9 +278,33 @@ class _LocationHeaderState extends State<LocationHeader>
                 
                 if (hasError) ...[
                   SizedBox(height: 8.h),
-                  RetryButton(
-                    onRetry: _updateLocation,
-                    isLoading: _isUpdating,
+                  ElevatedButton.icon(
+                    onPressed: _isUpdating ? null : _updateLocation,
+                    icon: _isUpdating
+                        ? SizedBox(
+                            width: 16.w,
+                            height: 16.w,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.w,
+                              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : Icon(Icons.refresh, size: 18.sp),
+                    label: Text(
+                      _isUpdating ? 'جاري المحاولة...' : 'إعادة المحاولة',
+                      style: TextStyle(fontSize: 13.sp),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: ThemeConstants.primary,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 14.w,
+                        vertical: 10.h,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
+                    ),
                   ),
                 ],
               ],

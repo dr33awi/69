@@ -1,10 +1,15 @@
 // lib/core/infrastructure/services/permissions/simple_permission_initializer.dart
-// تهيئة نظام الأذونات البسيط
+// تهيئة نظام الأذونات المحسّن - Smart Permission
 
 import 'package:flutter/foundation.dart';
 import 'simple_permission_service.dart';
 
-/// فئة تهيئة نظام الأذونات البسيط
+/// فئة تهيئة نظام الأذونات المحسّن
+///
+/// استخدام:
+/// ```dart
+/// await SimplePermissionInitializer.initialize();
+/// ```
 class SimplePermissionInitializer {
   static SimplePermissionService? _service;
 
@@ -14,19 +19,23 @@ class SimplePermissionInitializer {
     return _service!;
   }
 
-  /// تهيئة النظام
+  /// تهيئة النظام المحسّن
   static Future<void> initialize() async {
     try {
-      debugPrint('🔐 Initializing Simple Permission System...');
+      debugPrint('🔐 Initializing Smart Permission System...');
       
       // الحصول على الخدمة وتهيئتها
       final service = SimplePermissionInitializer.service;
       await service.initialize();
       
-      debugPrint('✅ Simple Permission System initialized successfully');
+      debugPrint('✅ Smart Permission System initialized successfully');
+      debugPrint('   - Adaptive Dialogs: ✅');
+      debugPrint('   - Cache Duration: 1 hour');
+      debugPrint('   - Retry Logic: 3 attempts');
+      debugPrint('   - Analytics: Enabled');
       
     } catch (e) {
-      debugPrint('❌ Error initializing Simple Permission System: $e');
+      debugPrint('❌ Error initializing Smart Permission System: $e');
       rethrow;
     }
   }
@@ -35,12 +44,12 @@ class SimplePermissionInitializer {
   static void reset() {
     _service?.dispose();
     _service = null;
-    debugPrint('🔄 Simple Permission System reset');
+    debugPrint('🔄 Smart Permission System reset');
   }
 }
 
 /// Extension سهل للاستخدام في التطبيق
 extension SimplePermissionGlobal on Object {
-  /// الحصول على خدمة الأذونات البسيطة من أي مكان
+  /// الحصول على خدمة الأذونات المحسّنة من أي مكان
   SimplePermissionService get simplePermissions => SimplePermissionInitializer.service;
 }

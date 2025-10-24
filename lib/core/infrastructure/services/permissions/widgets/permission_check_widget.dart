@@ -1,9 +1,8 @@
-// lib/core/widgets/permission_check_widget.dart
+// lib/core/infrastructure/services/permissions/widgets/permission_check_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../app/di/service_locator.dart';
-import '../../app/themes/app_theme.dart';
-import '../infrastructure/services/permissions/simple_permission_service.dart';
+import '../../../../../app/di/service_locator.dart';
+import '../simple_permission_service.dart';
 
 /// Widget لفحص الأذونات عند العودة للتطبيق فقط
 class PermissionCheckWidget extends StatefulWidget {

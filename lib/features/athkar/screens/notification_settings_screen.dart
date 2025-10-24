@@ -274,30 +274,6 @@ class _AthkarNotificationSettingsScreenState
     return false;
   }
 
-  Future<void> _requestPermission() async {
-    try {
-      final granted = await _permissionService.requestNotificationPermission(context);
-      setState(() => _hasPermission = granted);
-      
-      if (granted) {
-        context.showSuccessSnackBar('تم منح إذن الإشعارات');
-        
-        final enabledIds = _enabled.entries
-            .where((e) => e.value)
-            .map((e) => e.key)
-            .toList();
-            
-        if (enabledIds.isNotEmpty) {
-          await _service.scheduleCategoryReminders();
-        }
-      } else {
-        context.showErrorSnackBar('تم رفض إذن الإشعارات');
-      }
-    } catch (e) {
-      context.showErrorSnackBar('حدث خطأ أثناء طلب الإذن');
-    }
-  }
-
   Future<void> _toggleCategory(String categoryId, bool value) async {
     setState(() {
       _enabled[categoryId] = value;
@@ -678,9 +654,12 @@ class _AthkarNotificationSettingsScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildPermissionSection(),
+            // بطاقة تحذير الإذن
+            if (!_hasPermission)
+              _buildPermissionWarningCard(),
             
-            SizedBox(height: 16.h),
+            if (!_hasPermission)
+              SizedBox(height: 16.h),
             
             if (_hasPermission) ...[
               if (categories.isEmpty)
@@ -715,8 +694,7 @@ class _AthkarNotificationSettingsScreenState
                   _buildCategoryTile(category)
                 ),
               ],
-            ] else
-              _buildPermissionRequiredMessage(),
+            ],
           ],
         ),
       ),
@@ -774,60 +752,8 @@ class _AthkarNotificationSettingsScreenState
     );
   }
 
-  Widget _buildPermissionSection() {
-    return AppCard(
-      padding: EdgeInsets.all(12.r),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                _hasPermission ? Icons.notifications_active : Icons.notifications_off,
-                color: _hasPermission ? ThemeConstants.success : ThemeConstants.warning,
-                size: 20.sp,
-              ),
-              SizedBox(width: 10.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _hasPermission ? 'الإشعارات مفعلة' : 'الإشعارات معطلة',
-                      style: TextStyle(
-                        fontWeight: ThemeConstants.semiBold,
-                        color: _hasPermission ? ThemeConstants.success : ThemeConstants.warning,
-                        fontSize: 13.sp,
-                      ),
-                    ),
-                    Text(
-                      _hasPermission 
-                          ? 'يمكنك تخصيص التذكيرات'
-                          : 'فعّل الإشعارات للتذكيرات',
-                      style: TextStyle(
-                        color: context.textSecondaryColor,
-                        fontSize: 11.sp,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          if (!_hasPermission) ...[
-            SizedBox(height: 10.h),
-            SizedBox(
-              width: double.infinity,
-              child: AppButton.primary(
-                text: 'تفعيل الإشعارات',
-                onPressed: _requestPermission,
-                icon: Icons.notifications,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
+  Widget _buildPermissionWarningCard() {
+    return const SizedBox.shrink();
   }
 
   Widget _buildNoCategoriesMessage() {
@@ -856,45 +782,6 @@ class _AthkarNotificationSettingsScreenState
               fontSize: 12.sp,
             ),
             textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPermissionRequiredMessage() {
-    return AppCard(
-      padding: EdgeInsets.all(16.r),
-      child: Column(
-        children: [
-          Icon(
-            Icons.notifications_off_outlined,
-            size: 40.sp,
-            color: ThemeConstants.warning,
-          ),
-          SizedBox(height: 10.h),
-          Text(
-            'الإشعارات مطلوبة',
-            style: TextStyle(
-              color: ThemeConstants.warning,
-              fontWeight: ThemeConstants.bold,
-              fontSize: 14.sp,
-            ),
-          ),
-          SizedBox(height: 6.h),
-          Text(
-            'فعّل الإشعارات لإعداد التذكيرات',
-            style: TextStyle(
-              color: context.textSecondaryColor,
-              fontSize: 12.sp,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 12.h),
-          AppButton.primary(
-            text: 'تفعيل الإشعارات الآن',
-            onPressed: _requestPermission,
-            icon: Icons.notifications_active,
           ),
         ],
       ),

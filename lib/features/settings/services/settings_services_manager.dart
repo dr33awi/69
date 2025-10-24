@@ -2,14 +2,12 @@
 
 import 'package:flutter/material.dart';
 import '../../../core/infrastructure/services/storage/storage_service.dart';
-import '../../../core/infrastructure/services/permissions/simple_permission_service.dart';
 import '../../../app/themes/core/theme_notifier.dart';
 import '../models/app_settings.dart';
 
-/// مدير خدمات الإعدادات مع نظام الأذونات الجديد
+/// مدير خدمات الإعدادات - مسؤول عن حفظ وتحميل الإعدادات والثيم
 class SettingsServicesManager {
   final StorageService _storage;
-  final SimplePermissionService _permissionService;
   final ThemeNotifier _themeNotifier;
 
   // مفاتيح الإعدادات
@@ -20,10 +18,8 @@ class SettingsServicesManager {
 
   SettingsServicesManager({
     required StorageService storage,
-    required SimplePermissionService simplePermissionService,
     required ThemeNotifier themeNotifier,
   }) : _storage = storage,
-       _permissionService = simplePermissionService,
        _themeNotifier = themeNotifier {
     _loadSettings();
   }
@@ -65,9 +61,6 @@ class SettingsServicesManager {
   bool get athkarNotificationsEnabled => _currentSettings.athkarNotificationsEnabled;
   bool get soundEnabled => _currentSettings.soundEnabled;
   double get fontSize => _currentSettings.fontSize;
-  
-  // Getter للوصول المباشر لخدمة الأذونات الجديدة
-  SimplePermissionService get permissionService => _permissionService;
 
   // ==================== Theme Settings ====================
   
@@ -98,14 +91,6 @@ class SettingsServicesManager {
   Future<void> toggleNotifications(bool enabled) async {
     _currentSettings = _currentSettings.copyWith(notificationsEnabled: enabled);
     await _saveSettings();
-    
-    if (enabled) {
-      // فحص الإذن فقط، الطلب يتم من UI
-      final hasPermission = await _permissionService.checkNotificationPermission();
-      if (!hasPermission) {
-        debugPrint('Notification permission needed - handle in UI');
-      }
-    }
   }
 
   Future<void> togglePrayerNotifications(bool enabled) async {
