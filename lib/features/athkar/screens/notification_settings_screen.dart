@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/di/service_locator.dart';
 import '../../../app/themes/app_theme.dart';
-import '../../../core/infrastructure/services/permissions/simple_permission_service.dart';
+import '../../../core/infrastructure/services/permissions/simple_permission_extensions.dart';
 import '../../../core/infrastructure/services/storage/storage_service.dart';
 import '../services/athkar_service.dart';
 import '../models/athkar_model.dart';
@@ -24,7 +24,6 @@ class AthkarNotificationSettingsScreen extends StatefulWidget {
 class _AthkarNotificationSettingsScreenState 
     extends State<AthkarNotificationSettingsScreen> {
   late final AthkarService _service;
-  late final SimplePermissionService _permissionService;
   late final StorageService _storage;
   
   List<AthkarCategory>? _categories;
@@ -45,7 +44,6 @@ class _AthkarNotificationSettingsScreenState
   void initState() {
     super.initState();
     _service = getIt<AthkarService>();
-    _permissionService = getIt<SimplePermissionService>();
     _storage = getIt<StorageService>();
     _loadData();
   }
@@ -58,7 +56,7 @@ class _AthkarNotificationSettingsScreenState
       });
       
       await _checkSettingsVersion();
-      _hasPermission = await _permissionService.checkNotificationPermission();
+      _hasPermission = await context.checkNotificationPermission();
       
       final allCategories = await _service.loadCategories();
       final enabledIds = _service.getEnabledReminderCategories();
@@ -207,51 +205,63 @@ class _AthkarNotificationSettingsScreenState
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(ThemeConstants.radius2xl),
+        ),
+        backgroundColor: context.cardColor,
         title: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(8.r),
+              padding: EdgeInsets.all(ThemeConstants.space2),
               decoration: BoxDecoration(
-                color: ThemeConstants.warning.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10.r),
+                color: ThemeConstants.warning.withOpacity(ThemeConstants.opacity10),
+                borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
               ),
-              child: Icon(Icons.warning_amber_rounded, color: ThemeConstants.warning, size: 24.sp),
+              child: Icon(
+                Icons.warning_amber_rounded,
+                color: ThemeConstants.warning,
+                size: ThemeConstants.iconMd,
+              ),
             ),
-            SizedBox(width: 12.w),
+            SizedBox(width: ThemeConstants.space3),
             Expanded(
               child: Text(
                 'تغييرات غير محفوظة',
-                style: TextStyle(fontSize: 16.sp, fontWeight: ThemeConstants.bold),
+                style: TextStyle(
+                  fontSize: ThemeConstants.textSizeLg,
+                  fontWeight: ThemeConstants.bold,
+                  color: context.textPrimaryColor,
+                ),
               ),
             ),
           ],
         ),
         content: Text(
           'لديك تغييرات لم يتم حفظها. هل تريد حفظ التغييرات قبل المغادرة؟',
-          style: TextStyle(fontSize: 14.sp, height: 1.6),
-        ),
-        actionsPadding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'discard'),
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-            ),
-            child: Text(
-              'تجاهل التغييرات', 
-              style: TextStyle(fontSize: 14.sp, color: ThemeConstants.error),
-            ),
+          style: TextStyle(
+            fontSize: ThemeConstants.textSizeMd,
+            height: 1.6,
+            color: context.textPrimaryColor,
           ),
-          ElevatedButton(
+        ),
+        actionsPadding: EdgeInsets.fromLTRB(
+          ThemeConstants.space4,
+          0,
+          ThemeConstants.space4,
+          ThemeConstants.space4,
+        ),
+        actions: [
+          AppButton.text(
+            text: 'تجاهل التغييرات',
+            onPressed: () => Navigator.pop(context, 'discard'),
+            size: ButtonSize.medium,
+            color: ThemeConstants.error,
+          ),
+          SizedBox(width: ThemeConstants.space2),
+          AppButton.primary(
+            text: 'حفظ وخروج',
             onPressed: () => Navigator.pop(context, 'save'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: ThemeConstants.primary,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
-            ),
-            child: Text('حفظ وخروج', style: TextStyle(fontSize: 14.sp)),
+            size: ButtonSize.medium,
           ),
         ],
       ),
@@ -356,7 +366,7 @@ class _AthkarNotificationSettingsScreenState
               dialBackgroundColor: context.cardColor,
               helpTextStyle: TextStyle(
                 color: context.textPrimaryColor,
-                fontSize: 14.sp,
+                fontSize: ThemeConstants.textSizeMd,
               ),
             ),
           ),
@@ -441,7 +451,10 @@ class _AthkarNotificationSettingsScreenState
     );
     
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: ThemeConstants.space3,
+        vertical: ThemeConstants.space3,
+      ),
       child: Row(
         children: [
           AppBackButton(
@@ -453,29 +466,23 @@ class _AthkarNotificationSettingsScreenState
             },
           ),
           
-          SizedBox(width: 8.w),
+          SizedBox(width: ThemeConstants.space2),
           
           Container(
-            padding: EdgeInsets.all(6.r),
+            padding: EdgeInsets.all(ThemeConstants.space2 - 2.w),
             decoration: BoxDecoration(
               gradient: gradient,
-              borderRadius: BorderRadius.circular(10.r),
-              boxShadow: [
-                BoxShadow(
-                  color: ThemeConstants.primary.withOpacity(0.25),
-                  blurRadius: 6.r,
-                  offset: Offset(0, 3.h),
-                ),
-              ],
+              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              boxShadow: ThemeConstants.shadowSm,
             ),
             child: Icon(
               Icons.notifications_active,
               color: Colors.white,
-              size: 20.sp,
+              size: ThemeConstants.iconSm,
             ),
           ),
           
-          SizedBox(width: 8.w),
+          SizedBox(width: ThemeConstants.space2),
           
           Expanded(
             child: Column(
@@ -502,37 +509,31 @@ class _AthkarNotificationSettingsScreenState
           
           if (_hasChanges && !_saving && _hasPermission)
             Container(
-              margin: EdgeInsets.only(left: 6.w),
+              margin: EdgeInsets.only(left: ThemeConstants.space2 - 2.w),
               child: Material(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
                 child: InkWell(
                   onTap: () {
                     HapticFeedback.lightImpact();
                     _saveChanges();
                   },
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
                   child: Container(
-                    padding: EdgeInsets.all(6.r),
+                    padding: EdgeInsets.all(ThemeConstants.space2 - 2.w),
                     decoration: BoxDecoration(
                       color: context.cardColor,
-                      borderRadius: BorderRadius.circular(10.r),
+                      borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
                       border: Border.all(
-                        color: context.dividerColor.withOpacity(0.3),
-                        width: 1.w,
+                        color: context.dividerColor.withOpacity(ThemeConstants.opacity30),
+                        width: ThemeConstants.borderLight,
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 3.r,
-                          offset: Offset(0, 1.5.h),
-                        ),
-                      ],
+                      boxShadow: ThemeConstants.shadowSm,
                     ),
                     child: Icon(
                       Icons.save,
                       color: ThemeConstants.primary,
-                      size: 20.sp,
+                      size: ThemeConstants.iconSm,
                     ),
                   ),
                 ),
@@ -544,10 +545,10 @@ class _AthkarNotificationSettingsScreenState
           
           if (_saving)
             Container(
-              margin: EdgeInsets.only(left: 6.w),
+              margin: EdgeInsets.only(left: ThemeConstants.space2 - 2.w),
               child: SizedBox(
-                width: 20.w,
-                height: 20.w,
+                width: ThemeConstants.iconSm,
+                height: ThemeConstants.iconSm,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.w,
                   valueColor: const AlwaysStoppedAnimation<Color>(ThemeConstants.primary),
@@ -561,32 +562,26 @@ class _AthkarNotificationSettingsScreenState
 
   Widget _buildActionsMenu() {
     return Container(
-      margin: EdgeInsets.only(left: 6.w),
+      margin: EdgeInsets.only(left: ThemeConstants.space2 - 2.w),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
         child: PopupMenuButton<String>(
           icon: Container(
-            padding: EdgeInsets.all(6.r),
+            padding: EdgeInsets.all(ThemeConstants.space2 - 2.w),
             decoration: BoxDecoration(
               color: context.cardColor,
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
               border: Border.all(
-                color: context.dividerColor.withOpacity(0.3),
-                width: 1.w,
+                color: context.dividerColor.withOpacity(ThemeConstants.opacity30),
+                width: ThemeConstants.borderLight,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 3.r,
-                  offset: Offset(0, 1.5.h),
-                ),
-              ],
+              boxShadow: ThemeConstants.shadowSm,
             ),
             child: Icon(
               Icons.more_vert,
               color: context.textPrimaryColor,
-              size: 20.sp,
+              size: ThemeConstants.iconSm,
             ),
           ),
           onSelected: (value) {
@@ -604,9 +599,12 @@ class _AthkarNotificationSettingsScreenState
               value: 'enable_all',
               child: Row(
                 children: [
-                  Icon(Icons.notifications_active, size: 18.sp),
-                  SizedBox(width: 8.w),
-                  Text('تفعيل الكل', style: TextStyle(fontSize: 13.sp)),
+                  Icon(Icons.notifications_active, size: ThemeConstants.iconSm),
+                  SizedBox(width: ThemeConstants.space2),
+                  Text(
+                    'تفعيل الكل',
+                    style: TextStyle(fontSize: ThemeConstants.textSizeSm),
+                  ),
                 ],
               ),
             ),
@@ -614,9 +612,12 @@ class _AthkarNotificationSettingsScreenState
               value: 'disable_all',
               child: Row(
                 children: [
-                  Icon(Icons.notifications_off, size: 18.sp),
-                  SizedBox(width: 8.w),
-                  Text('إيقاف الكل', style: TextStyle(fontSize: 13.sp)),
+                  Icon(Icons.notifications_off, size: ThemeConstants.iconSm),
+                  SizedBox(width: ThemeConstants.space2),
+                  Text(
+                    'إيقاف الكل',
+                    style: TextStyle(fontSize: ThemeConstants.textSizeSm),
+                  ),
                 ],
               ),
             ),
@@ -650,45 +651,38 @@ class _AthkarNotificationSettingsScreenState
       onRefresh: _loadData,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.all(12.r),
+        padding: EdgeInsets.all(ThemeConstants.space3),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // بطاقة تحذير الإذن
-            if (!_hasPermission)
-              _buildPermissionWarningCard(),
-            
-            if (!_hasPermission)
-              SizedBox(height: 16.h),
-            
             if (_hasPermission) ...[
               if (categories.isEmpty)
                 _buildNoCategoriesMessage()
               else ...[
                 _buildQuickStats(categories),
                 
-                SizedBox(height: 12.h),
+                SizedBox(height: ThemeConstants.space3),
                 
                 Text(
                   'جميع فئات الأذكار (${categories.length})',
                   style: TextStyle(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
-                    fontSize: 14.sp,
+                    fontSize: ThemeConstants.textSizeMd,
                   ),
                 ),
                 
-                SizedBox(height: 6.h),
+                SizedBox(height: ThemeConstants.space2 - 2.h),
                 
                 Text(
                   'فعّل التذكيرات وخصص أوقاتها',
                   style: TextStyle(
                     color: context.textSecondaryColor,
-                    fontSize: 11.sp,
+                    fontSize: ThemeConstants.textSizeXs,
                   ),
                 ),
                 
-                SizedBox(height: 12.h),
+                SizedBox(height: ThemeConstants.space3),
                 
                 ...categories.map((category) => 
                   _buildCategoryTile(category)
@@ -706,7 +700,7 @@ class _AthkarNotificationSettingsScreenState
     final disabledCount = categories.length - enabledCount;
     
     return AppCard(
-      padding: EdgeInsets.all(12.r),
+      padding: EdgeInsets.all(ThemeConstants.space3),
       child: Row(
         children: [
           Expanded(
@@ -719,7 +713,7 @@ class _AthkarNotificationSettingsScreenState
           ),
           
           Container(
-            width: 1.w,
+            width: ThemeConstants.borderLight,
             height: 32.h,
             color: context.dividerColor,
           ),
@@ -734,7 +728,7 @@ class _AthkarNotificationSettingsScreenState
           ),
           
           Container(
-            width: 1.w,
+            width: ThemeConstants.borderLight,
             height: 32.h,
             color: context.dividerColor,
           ),
@@ -752,34 +746,30 @@ class _AthkarNotificationSettingsScreenState
     );
   }
 
-  Widget _buildPermissionWarningCard() {
-    return const SizedBox.shrink();
-  }
-
   Widget _buildNoCategoriesMessage() {
     return AppCard(
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(ThemeConstants.space4),
       child: Column(
         children: [
           Icon(
             Icons.menu_book_outlined,
-            size: 40.sp,
-            color: context.textSecondaryColor.withOpacity(0.5),
+            size: ThemeConstants.icon2xl,
+            color: context.textSecondaryColor.withOpacity(ThemeConstants.opacity50),
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: ThemeConstants.space2 + ThemeConstants.space1),
           Text(
             'لا توجد فئات أذكار',
             style: TextStyle(
               color: context.textSecondaryColor,
-              fontSize: 14.sp,
+              fontSize: ThemeConstants.textSizeMd,
             ),
           ),
-          SizedBox(height: 6.h),
+          SizedBox(height: ThemeConstants.space2 - 2.h),
           Text(
             'لم يتم العثور على أي فئات',
             style: TextStyle(
               color: context.textSecondaryColor.withOpacity(0.7),
-              fontSize: 12.sp,
+              fontSize: ThemeConstants.textSizeSm,
             ),
             textAlign: TextAlign.center,
           ),
@@ -799,9 +789,9 @@ class _AthkarNotificationSettingsScreenState
     final categoryIcon = CategoryUtils.getCategoryIcon(category.id);
 
     return Padding(
-      padding: EdgeInsets.only(bottom: 10.h),
+      padding: EdgeInsets.only(bottom: ThemeConstants.space2 + ThemeConstants.space1),
       child: AppCard(
-        padding: EdgeInsets.all(12.r),
+        padding: EdgeInsets.all(ThemeConstants.space3),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -811,17 +801,17 @@ class _AthkarNotificationSettingsScreenState
                   width: 32.r,
                   height: 32.r,
                   decoration: BoxDecoration(
-                    color: categoryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10.r),
+                    color: categoryColor.withOpacity(ThemeConstants.opacity10),
+                    borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
                   ),
                   child: Icon(
                     categoryIcon,
                     color: categoryColor,
-                    size: 18.sp,
+                    size: ThemeConstants.iconSm,
                   ),
                 ),
                 
-                SizedBox(width: 10.w),
+                SizedBox(width: ThemeConstants.space2 + ThemeConstants.space1),
                 
                 Expanded(
                   child: Column(
@@ -834,7 +824,7 @@ class _AthkarNotificationSettingsScreenState
                               category.title,
                               style: TextStyle(
                                 fontWeight: ThemeConstants.semiBold,
-                                fontSize: 13.sp,
+                                fontSize: ThemeConstants.textSizeSm,
                               ),
                             ),
                           ),
@@ -855,7 +845,7 @@ class _AthkarNotificationSettingsScreenState
                           category.description!,
                           style: TextStyle(
                             color: context.textSecondaryColor,
-                            fontSize: 11.sp,
+                            fontSize: ThemeConstants.textSizeXs,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -888,7 +878,7 @@ class _AthkarNotificationSettingsScreenState
             ),
             
             if (isEnabled) ...[
-              SizedBox(height: 10.h),
+              SizedBox(height: ThemeConstants.space2 + ThemeConstants.space1),
               _buildTimeSelector(
                 category: category,
                 currentTime: currentTime,
@@ -903,14 +893,14 @@ class _AthkarNotificationSettingsScreenState
 
   Widget _buildBadge(String label, Color color) {
     return Container(
-      margin: EdgeInsets.only(left: 6.w),
+      margin: EdgeInsets.only(left: ThemeConstants.space2 - 2.w),
       padding: EdgeInsets.symmetric(
-        horizontal: 6.w,
+        horizontal: ThemeConstants.space2 - 2.w,
         vertical: 3.h,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(4.r),
+        color: color.withOpacity(ThemeConstants.opacity10),
+        borderRadius: BorderRadius.circular(ThemeConstants.radiusXs),
       ),
       child: Text(
         label,
@@ -929,25 +919,25 @@ class _AthkarNotificationSettingsScreenState
     required bool isEssential,
   }) {
     return Container(
-      padding: EdgeInsets.all(10.r),
+      padding: EdgeInsets.all(ThemeConstants.space2 + ThemeConstants.space1),
       decoration: BoxDecoration(
         color: (isEssential ? ThemeConstants.success : ThemeConstants.primary)
-            .withOpacity(0.1),
-        borderRadius: BorderRadius.circular(10.r),
+            .withOpacity(ThemeConstants.opacity10),
+        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
         border: Border.all(
           color: (isEssential ? ThemeConstants.success : ThemeConstants.primary)
-              .withOpacity(0.2),
-          width: 1.w,
+              .withOpacity(ThemeConstants.opacity20),
+          width: ThemeConstants.borderLight,
         ),
       ),
       child: Row(
         children: [
           Icon(
             Icons.access_time,
-            size: 16.sp,
+            size: ThemeConstants.iconSm,
             color: isEssential ? ThemeConstants.success : ThemeConstants.primary,
           ),
-          SizedBox(width: 6.w),
+          SizedBox(width: ThemeConstants.space2 - 2.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -957,7 +947,7 @@ class _AthkarNotificationSettingsScreenState
                   style: TextStyle(
                     color: isEssential ? ThemeConstants.success : ThemeConstants.primary,
                     fontWeight: ThemeConstants.medium,
-                    fontSize: 12.sp,
+                    fontSize: ThemeConstants.textSizeSm,
                   ),
                 ),
                 if (category.notifyTime == null)
@@ -977,10 +967,10 @@ class _AthkarNotificationSettingsScreenState
             style: TextButton.styleFrom(
               minimumSize: Size(0, 28.h),
               padding: EdgeInsets.symmetric(
-                horizontal: 10.w,
+                horizontal: ThemeConstants.space2 + ThemeConstants.space1,
               ),
             ),
-            child: Text('تغيير', style: TextStyle(fontSize: 11.sp)),
+            child: Text('تغيير', style: TextStyle(fontSize: ThemeConstants.textSizeXs)),
           ),
         ],
       ),
@@ -1008,7 +998,7 @@ class _StatItem extends StatelessWidget {
         Icon(
           icon,
           color: color,
-          size: 16.sp,
+          size: ThemeConstants.iconSm,
         ),
         SizedBox(height: 3.h),
         Text(
@@ -1016,7 +1006,7 @@ class _StatItem extends StatelessWidget {
           style: TextStyle(
             color: color,
             fontWeight: ThemeConstants.bold,
-            fontSize: 14.sp,
+            fontSize: ThemeConstants.textSizeMd,
           ),
         ),
         Text(

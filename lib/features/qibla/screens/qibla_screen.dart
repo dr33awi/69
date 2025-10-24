@@ -1,4 +1,4 @@
-// lib/features/qibla/screens/qibla_screen.dart - محسن مع نظام الأذونات الجديد
+// lib/features/qibla/screens/qibla_screen.dart - محسن مع نظام الأذونات الموحد
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
@@ -8,13 +8,14 @@ import 'package:provider/provider.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../../../core/infrastructure/services/storage/storage_service.dart';
-import '../../../core/infrastructure/services/permissions/simple_permission_service.dart';
+import '../../../core/infrastructure/services/permissions/simple_permission_extensions.dart';
+import '../../../core/infrastructure/services/permissions/widgets/permission_warning_card.dart';
 import '../services/qibla_service_v3.dart';
 import '../widgets/qibla_compass.dart';
 import '../widgets/qibla_info_card.dart';
 import '../widgets/phone_calibration_animation.dart';
 
-/// شاشة القبلة - محسنة مع نظام الأذونات الجديد
+/// شاشة القبلة - محسنة مع نظام الأذونات الموحد
 class QiblaScreen extends StatefulWidget {
   const QiblaScreen({super.key});
 
@@ -42,7 +43,7 @@ class _QiblaScreenState extends State<QiblaScreen>
     try {      
       _qiblaService = QiblaServiceV3(
         storage: getIt<StorageService>(),
-        simplePermissionService: getIt<SimplePermissionService>(),
+        simplePermissionService: getIt(),
       );
 
       _refreshController = AnimationController(
@@ -67,8 +68,7 @@ class _QiblaScreenState extends State<QiblaScreen>
   }
 
   Future<void> _checkLocationPermission() async {
-    final permissionService = getIt<SimplePermissionService>();
-    final hasPermission = await permissionService.checkLocationPermission();
+    final hasPermission = await context.checkLocationPermission();
     if (mounted) {
       setState(() {
         _hasLocationPermission = hasPermission;
@@ -90,9 +90,12 @@ class _QiblaScreenState extends State<QiblaScreen>
   Future<void> _updateQiblaData({bool forceUpdate = false}) async {
     if (_disposed || _qiblaService.isLoading) return;
 
-    // التحقق من إذن الموقع وطلبه إذا لزم الأمر
-    if (!await _checkAndRequestLocationPermission()) {
-      return;
+    // التحقق من إذن الموقع وطلبه إذا لزم الأمر - استخدام النظام الموحد
+    if (!_hasLocationPermission) {
+      final granted = await _requestLocationPermission();
+      if (!granted) {
+        return;
+      }
     }
 
     try {
@@ -105,7 +108,7 @@ class _QiblaScreenState extends State<QiblaScreen>
           }
         });
         
-        // عرض رسالة نجاح عند التحديث اليدوي
+        // عرض رسالة نجاح عند التحديث اليدوي - استخدام النظام الموحد
         if (forceUpdate && mounted) {
           context.showSuccessSnackBar('تم تحديث اتجاه القبلة بنجاح');
         }
@@ -115,107 +118,20 @@ class _QiblaScreenState extends State<QiblaScreen>
     }
   }
 
-  /// التحقق من إذن الموقع وطلبه إذا لم يكن ممنوحاً
-  Future<bool> _checkAndRequestLocationPermission() async {
-    try {
-      final permissionService = getIt<SimplePermissionService>();
-      
-      // فحص الإذن أولاً
-      final hasPermission = await permissionService.checkLocationPermission();
-      
-      if (mounted) {
-        setState(() {
-          _hasLocationPermission = hasPermission;
-        });
-      }
-      
-      if (hasPermission) {
-        return true;
-      }
-
-      // طلب الإذن باستخدام smart_permission
-      if (!mounted) return false;
-      
-      final granted = await permissionService.requestLocationPermission(context);
-      
-      if (mounted) {
-        setState(() {
-          _hasLocationPermission = granted;
-        });
-      }
-      
-      if (granted && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: Text(
-                    'تم منح إذن الموقع بنجاح',
-                    style: TextStyle(fontSize: 13.sp),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: ThemeConstants.success,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 2),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-            margin: EdgeInsets.all(16.w),
-          ),
-        );
-      } else if (!granted && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.location_off, color: Colors.white, size: 20.sp),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: Text(
-                    'إذن الموقع مطلوب لتحديد اتجاه القبلة',
-                    style: TextStyle(fontSize: 13.sp),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: ThemeConstants.error,
-            behavior: SnackBarBehavior.floating,
-            action: SnackBarAction(
-              label: 'الإعدادات',
-              textColor: Colors.white,
-              onPressed: () => permissionService.openAppSettings(),
-            ),
-            duration: const Duration(seconds: 4),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-            margin: EdgeInsets.all(16.w),
-          ),
-        );
-      }
-      
-      return granted;
-    } catch (e) {
-      debugPrint('Error checking/requesting location permission: $e');
-      return false;
-    }
-  }
-
-  void _showErrorSnackbar(String message) {
-    if (!mounted) return;
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: TextStyle(fontSize: 12.sp)),
-        backgroundColor: ThemeConstants.error,
-        action: SnackBarAction(
-          label: 'إعادة المحاولة',
-          onPressed: () => _updateQiblaData(forceUpdate: true),
-          textColor: Colors.white,
-        ),
-      ),
+  /// طلب إذن الموقع باستخدام النظام الموحد
+  Future<bool> _requestLocationPermission() async {
+    final granted = await context.requestPermissionWithMessages(
+      requestFunction: () => context.requestLocationPermission(),
+      permissionName: 'الموقع',
     );
+    
+    if (mounted) {
+      setState(() {
+        _hasLocationPermission = granted;
+      });
+    }
+    
+    return granted;
   }
 
   @override
@@ -448,9 +364,17 @@ class _QiblaScreenState extends State<QiblaScreen>
   }
 
   Widget _buildMainContent(QiblaServiceV3 service) {
-    // التحقق من إذن الموقع أولاً
+    // التحقق من إذن الموقع أولاً - استخدام Widget الموحد
     if (!_hasLocationPermission) {
-      return _buildPermissionWarningCard();
+      return PermissionWarningCard.location(
+        onGrantPermission: () async {
+          final granted = await _requestLocationPermission();
+          if (granted && mounted) {
+            await _updateQiblaData(forceUpdate: true);
+          }
+        },
+        isCompact: false,
+      );
     }
     
     if (service.qiblaData != null) {
@@ -773,136 +697,6 @@ class _QiblaScreenState extends State<QiblaScreen>
         ),
       ),
     );
-  }
-
-  /// بطاقة تحذير إذن الموقع
-  Widget _buildPermissionWarningCard() {
-    return Container(
-      constraints: BoxConstraints(
-        minHeight: 220.h,
-        maxHeight: 320.h,
-      ),
-      margin: EdgeInsets.symmetric(vertical: 20.h),
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: ThemeConstants.warning.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(
-          color: ThemeConstants.warning.withOpacity(0.3),
-          width: 1.5,
-        ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: EdgeInsets.all(16.w),
-            decoration: BoxDecoration(
-              color: ThemeConstants.warning.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.location_off,
-              size: 48.sp,
-              color: ThemeConstants.warning,
-            ),
-          ),
-          SizedBox(height: 16.h),
-          Text(
-            'إذن الموقع مطلوب',
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-              color: context.textPrimaryColor,
-            ),
-          ),
-          SizedBox(height: 12.h),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            child: Text(
-              'لتحديد اتجاه القبلة، يجب منح التطبيق إذن الوصول إلى موقعك الحالي',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13.sp,
-                color: context.textSecondaryColor,
-                height: 1.5,
-              ),
-            ),
-          ),
-          SizedBox(height: 20.h),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () async {
-                final granted = await _requestLocationPermission();
-                if (granted && mounted) {
-                  await _updateQiblaData(forceUpdate: true);
-                }
-              },
-              icon: Icon(Icons.location_on, size: 20.sp),
-              label: Text(
-                'منح إذن الموقع',
-                style: TextStyle(
-                  fontSize: 15.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ThemeConstants.warning,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(vertical: 14.h),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                elevation: 0,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<bool> _requestLocationPermission() async {
-    try {
-      final permissionService = getIt<SimplePermissionService>();
-      final granted = await permissionService.requestLocationPermission(context);
-      
-      if (mounted) {
-        setState(() {
-          _hasLocationPermission = granted;
-        });
-        
-        if (granted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: Text(
-                      'تم منح إذن الموقع بنجاح',
-                      style: TextStyle(fontSize: 13.sp),
-                    ),
-                  ),
-                ],
-              ),
-              backgroundColor: ThemeConstants.success,
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 2),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-              margin: EdgeInsets.all(16.w),
-            ),
-          );
-        }
-      }
-      
-      return granted;
-    } catch (e) {
-      debugPrint('Error requesting location permission: $e');
-      return false;
-    }
   }
 
   void _showCalibrationDialog(BuildContext context, QiblaServiceV3 service) {

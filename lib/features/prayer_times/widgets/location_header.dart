@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
-import '../../../core/infrastructure/services/permissions/simple_permission_service.dart';
+import '../../../core/infrastructure/services/permissions/simple_permission_extensions.dart';
 import '../models/prayer_time_model.dart';
 import '../services/prayer_times_service.dart';
 
@@ -61,118 +61,39 @@ class _LocationHeaderState extends State<LocationHeader>
 
   /// التحقق من إذن الموقع
   Future<void> _checkLocationPermission() async {
-    try {
-      final permissionService = getIt<SimplePermissionService>();
-      final hasPermission = await permissionService.checkLocationPermission();
-      
-      if (mounted) {
-        setState(() {
-          _hasLocationPermission = hasPermission;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error checking location permission: $e');
-      if (mounted) {
-        setState(() {
-          _hasLocationPermission = false;
-        });
-      }
+    final hasPermission = await context.checkLocationPermission();
+    if (mounted) {
+      setState(() {
+        _hasLocationPermission = hasPermission;
+      });
     }
   }
 
-  /// التحقق من إذن الموقع وطلبه إذا لم يكن ممنوحاً
-  Future<bool> _checkAndRequestLocationPermission() async {
-    try {
-      final permissionService = getIt<SimplePermissionService>();
-      
-      // فحص الإذن أولاً
-      final hasPermission = await permissionService.checkLocationPermission();
-      
-      if (mounted) {
-        setState(() {
-          _hasLocationPermission = hasPermission;
-        });
-      }
-      
-      if (hasPermission) {
-        return true;
-      }
-
-      // طلب الإذن باستخدام smart_permission
-      if (!mounted) return false;
-      
-      final granted = await permissionService.requestLocationPermission(context);
-      
-      if (mounted) {
-        setState(() {
-          _hasLocationPermission = granted;
-        });
-      }
-      
-      if (granted && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: Text(
-                    'تم منح إذن الموقع بنجاح',
-                    style: TextStyle(fontSize: 13.sp),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: ThemeConstants.success,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 2),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-            margin: EdgeInsets.all(16.w),
-          ),
-        );
-      } else if (!granted && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.location_off, color: Colors.white, size: 20.sp),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: Text(
-                    'إذن الموقع مطلوب لتحديد موقعك',
-                    style: TextStyle(fontSize: 13.sp),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: ThemeConstants.error,
-            behavior: SnackBarBehavior.floating,
-            action: SnackBarAction(
-              label: 'الإعدادات',
-              textColor: Colors.white,
-              onPressed: () => permissionService.openAppSettings(),
-            ),
-            duration: const Duration(seconds: 4),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-            margin: EdgeInsets.all(16.w),
-          ),
-        );
-      }
-      
-      return granted;
-    } catch (e) {
-      debugPrint('Error checking/requesting location permission: $e');
-      return false;
+  /// طلب إذن الموقع باستخدام النظام الموحد
+  Future<bool> _requestLocationPermission() async {
+    final granted = await context.requestPermissionWithMessages(
+      requestFunction: () => context.requestLocationPermission(),
+      permissionName: 'الموقع',
+    );
+    
+    if (mounted) {
+      setState(() {
+        _hasLocationPermission = granted;
+      });
     }
+    
+    return granted;
   }
 
   Future<void> _updateLocation() async {
     if (_isUpdating || !mounted) return;
     
     // التحقق من الإذن أولاً
-    if (!await _checkAndRequestLocationPermission()) {
-      return;
+    if (!_hasLocationPermission) {
+      final granted = await _requestLocationPermission();
+      if (!granted) {
+        return;
+      }
     }
     
     setState(() {

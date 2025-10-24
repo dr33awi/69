@@ -7,7 +7,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:async';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
-import '../../../core/infrastructure/services/permissions/simple_permission_service.dart';
+import '../../../core/infrastructure/services/permissions/simple_permission_extensions.dart';
+import '../../../core/infrastructure/services/permissions/widgets/permission_warning_card.dart';
 import '../../prayer_times/models/prayer_time_model.dart';
 import '../../prayer_times/services/prayer_times_service.dart';
 import '../../prayer_times/utils/prayer_utils.dart';
@@ -100,66 +101,28 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
 
   /// التحقق من إذن الموقع
   Future<void> _checkLocationPermission() async {
-    try {
-      final permissionService = getIt<SimplePermissionService>();
-      final hasPermission = await permissionService.checkLocationPermission();
-      
-      if (mounted) {
-        setState(() {
-          _hasLocationPermission = hasPermission;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error checking location permission: $e');
-      if (mounted) {
-        setState(() {
-          _hasLocationPermission = false;
-        });
-      }
+    final hasPermission = await context.checkLocationPermission();
+    if (mounted) {
+      setState(() {
+        _hasLocationPermission = hasPermission;
+      });
     }
   }
 
   /// طلب إذن الموقع باستخدام النظام الموحد
   Future<bool> _requestLocationPermission() async {
-    try {
-      final permissionService = getIt<SimplePermissionService>();
-      final granted = await permissionService.requestLocationPermission(context);
-      
-      if (mounted) {
-        setState(() {
-          _hasLocationPermission = granted;
-        });
-        
-        if (granted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: Text(
-                      'تم منح إذن الموقع بنجاح',
-                      style: TextStyle(fontSize: 13.sp),
-                    ),
-                  ),
-                ],
-              ),
-              backgroundColor: ThemeConstants.success,
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 2),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-              margin: EdgeInsets.all(16.w),
-            ),
-          );
-        }
-      }
-      
-      return granted;
-    } catch (e) {
-      debugPrint('Error requesting location permission: $e');
-      return false;
+    final granted = await context.requestPermissionWithMessages(
+      requestFunction: () => context.requestLocationPermission(),
+      permissionName: 'الموقع',
+    );
+    
+    if (mounted) {
+      setState(() {
+        _hasLocationPermission = granted;
+      });
     }
+    
+    return granted;
   }
 
   void _setupStreamListeners() {
@@ -264,9 +227,19 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
 
   @override
   Widget build(BuildContext context) {
-    // عرض بطاقة الإذن إذا لم يكن ممنوحاً
+    // عرض بطاقة الإذن إذا لم يكن ممنوحاً - استخدام Widget الموحد
     if (!_hasLocationPermission && !_isLoading) {
-      return _buildPermissionCard(context);
+      return PermissionWarningCard.location(
+        onGrantPermission: () async {
+          final granted = await _requestLocationPermission();
+          if (granted && mounted) {
+            _initializePrayerTimes();
+          }
+        },
+        margin: EdgeInsets.symmetric(horizontal: 12.w),
+        padding: EdgeInsets.all(14.w),
+        isCompact: true,
+      );
     }
     
     if (_isLoading && _dailyTimes == null) {
@@ -282,96 +255,6 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
     }
 
     return _buildPrayerCard(context);
-  }
-
-  /// بطاقة طلب إذن الموقع
-  Widget _buildPermissionCard(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 12.w),
-      padding: EdgeInsets.all(14.w),
-      decoration: BoxDecoration(
-        color: ThemeConstants.warning.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(
-          color: ThemeConstants.warning.withOpacity(0.3),
-          width: 1.w,
-        ),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(8.r),
-                decoration: BoxDecoration(
-                  color: ThemeConstants.warning.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                child: Icon(
-                  Icons.location_off,
-                  color: ThemeConstants.warning,
-                  size: 20.sp,
-                ),
-              ),
-              
-              SizedBox(width: 10.w),
-              
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'إذن الموقع مطلوب',
-                      style: context.titleSmall?.copyWith(
-                        color: ThemeConstants.warning,
-                        fontWeight: ThemeConstants.bold,
-                        fontSize: 14.sp,
-                      ),
-                    ),
-                    SizedBox(height: 3.h),
-                    Text(
-                      'لحساب مواقيت الصلاة لمدينتك',
-                      style: context.labelSmall?.copyWith(
-                        color: context.textSecondaryColor,
-                        fontSize: 11.sp,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          
-          SizedBox(height: 10.h),
-          
-          SizedBox(
-            width: double.infinity,
-            height: 36.h,
-            child: ElevatedButton.icon(
-              onPressed: () async {
-                final granted = await _requestLocationPermission();
-                if (granted && mounted) {
-                  _initializePrayerTimes();
-                }
-              },
-              icon: Icon(Icons.location_on, size: 16.sp),
-              label: Text(
-                'منح إذن الموقع',
-                style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ThemeConstants.warning,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                elevation: 0,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildPrayerCard(BuildContext context) {

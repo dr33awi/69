@@ -1,7 +1,9 @@
 // lib/core/infrastructure/services/permissions/simple_permission_extensions.dart
-// Extensions مفيدة للخدمة البسيطة
+// Extensions مفيدة للخدمة البسيطة - محسّن مع UI موحد
 
+import 'package:athkar_app/app/themes/theme_constants.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../app/di/service_locator.dart';
 import 'simple_permission_service.dart';
 
@@ -45,6 +47,79 @@ extension SimplePermissionContext on BuildContext {
     return await permissionService.openAppSettings();
   }
 
+  // ==================== رسائل موحدة ====================
+
+  /// عرض رسالة نجاح منح الإذن - موحدة
+  void showPermissionGrantedMessage(String permissionName) {
+    ScaffoldMessenger.of(this).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white, size: 20.sp),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                'تم منح إذن $permissionName بنجاح',
+                style: TextStyle(fontSize: 13.sp),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: ThemeConstants.success,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+        margin: EdgeInsets.all(16.w),
+      ),
+    );
+  }
+
+  /// عرض رسالة رفض الإذن - موحدة
+  void showPermissionDeniedMessage(String permissionName) {
+    ScaffoldMessenger.of(this).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.location_off, color: Colors.white, size: 20.sp),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                'إذن $permissionName مطلوب لاستخدام هذه الميزة',
+                style: TextStyle(fontSize: 13.sp),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: ThemeConstants.error,
+        behavior: SnackBarBehavior.floating,
+        action: SnackBarAction(
+          label: 'الإعدادات',
+          textColor: Colors.white,
+          onPressed: () => openAppSettings(),
+        ),
+        duration: const Duration(seconds: 4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+        margin: EdgeInsets.all(16.w),
+      ),
+    );
+  }
+
+  /// طلب إذن مع رسائل موحدة
+  Future<bool> requestPermissionWithMessages({
+    required Future<bool> Function() requestFunction,
+    required String permissionName,
+  }) async {
+    final granted = await requestFunction();
+    
+    if (granted) {
+      showPermissionGrantedMessage(permissionName);
+    } else {
+      showPermissionDeniedMessage(permissionName);
+    }
+    
+    return granted;
+  }
+
   /// عرض رسالة طلب الأذونات مع إجراء
   Future<void> showPermissionRequestDialog({
     required String title,
@@ -79,27 +154,14 @@ extension SimplePermissionContext on BuildContext {
     );
   }
 
-  /// عرض رسالة خطأ الأذونات
+  /// عرض رسالة خطأ الأذونات - استخدام النظام الموحد
   void showPermissionDeniedSnackBar(String permissionName) {
-    ScaffoldMessenger.of(this).showSnackBar(
-      SnackBar(
-        content: Text('⚠️ إذن $permissionName مطلوب لعمل هذه الميزة'),
-        action: SnackBarAction(
-          label: 'الإعدادات',
-          onPressed: openAppSettings,
-        ),
-      ),
-    );
+    showPermissionDeniedMessage(permissionName);
   }
 
-  /// عرض رسالة نجاح الأذونات
+  /// عرض رسالة نجاح الأذونات - استخدام النظام الموحد
   void showPermissionGrantedSnackBar(String permissionName) {
-    ScaffoldMessenger.of(this).showSnackBar(
-      SnackBar(
-        content: Text('✅ تم منح إذن $permissionName بنجاح'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    showPermissionGrantedMessage(permissionName);
   }
 }
 
@@ -132,21 +194,15 @@ extension PermissionResultsExtension on PermissionResults {
     return denied;
   }
 
-  /// عرض نتائج الأذونات في SnackBar
+  /// عرض نتائج الأذونات في SnackBar - استخدام النظام الموحد
   void showResultInSnackBar(BuildContext context) {
-    final messenger = ScaffoldMessenger.of(context);
-    
     if (allGranted) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(description),
-          backgroundColor: Colors.green,
-        ),
-      );
+      context.showPermissionGrantedMessage('جميع الأذونات');
     } else {
-      messenger.showSnackBar(
+      final deniedList = deniedPermissionNames.join('، ');
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('المطلوب: ${deniedPermissionNames.join('، ')}'),
+          content: Text('المطلوب: $deniedList'),
           action: SnackBarAction(
             label: 'الإعدادات',
             onPressed: () => context.openAppSettings(),
@@ -159,6 +215,16 @@ extension PermissionResultsExtension on PermissionResults {
 
 /// Extensions لـ PermissionType
 extension PermissionTypeHelpers on PermissionType {
+  /// الاسم العربي للإذن
+  String get nameAr {
+    switch (this) {
+      case PermissionType.notification:
+        return 'الإشعارات';
+      case PermissionType.location:
+        return 'الموقع';
+    }
+  }
+
   /// أيقونة الإذن
   IconData get icon {
     switch (this) {

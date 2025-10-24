@@ -901,6 +901,10 @@ extension ServiceLocatorExtensions on BuildContext {
   // خدمة الأذونات البسيطة الجديدة
   SimplePermissionService get simplePermissionService => getIt<SimplePermissionService>();
   
+  // ✅ ملاحظة: تم نقل جميع methods الأذونات إلى simple_permission_extensions.dart
+  // استخدم: context.requestLocationPermission() مباشرة
+  // استخدم: context.checkLocationPermission() مباشرة
+  
   FirebaseRemoteConfigService? get firebaseRemoteConfig {
     try {
       return ServiceLocator.isFirebaseAvailable && getIt.isRegistered<FirebaseRemoteConfigService>() 
@@ -1161,25 +1165,5 @@ extension ServiceLocatorExtensions on BuildContext {
   Map<String, dynamic>? get remoteConfigStatus {
     final manager = remoteConfigManager;
     return manager?.configStatus;
-  }
-  
-  /// طلب إذن الإشعارات بالنظام الجديد
-  Future<bool> requestNotificationPermission() async {
-    return await simplePermissionService.requestNotificationPermission(this);
-  }
-  
-  /// طلب إذن الموقع بالنظام الجديد
-  Future<bool> requestLocationPermission() async {
-    return await simplePermissionService.requestLocationPermission(this);
-  }
-  
-  /// فحص إذن الإشعارات
-  Future<bool> hasNotificationPermission() async {
-    return await simplePermissionService.checkNotificationPermission();
-  }
-  
-  /// فحص إذن الموقع
-  Future<bool> hasLocationPermission() async {
-    return await simplePermissionService.checkLocationPermission();
   }
 }

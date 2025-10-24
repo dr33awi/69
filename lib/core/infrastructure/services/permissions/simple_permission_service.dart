@@ -1,21 +1,15 @@
 // lib/core/infrastructure/services/permissions/simple_permission_service.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:smart_permission/smart_permission.dart';
 import 'package:permission_handler/permission_handler.dart' as ph;
 import 'package:app_settings/app_settings.dart';
 import '../storage/storage_service.dart';
+import '../../../../app/themes/theme_constants.dart';
+import '../../../../app/themes/core/theme_extensions.dart';
+import '../../../../app/themes/widgets/core/app_button.dart';
 
-/// خدمة أذونات محسّنة باستخدام smart_permission
-/// 
-/// المميزات:
-/// ✅ استخدام smart_permission للحصول على تجربة مستخدم أفضل
-/// ✅ إدارة ذكية للـ Cache مع مدة أطول (ساعة واحدة)
-/// ✅ معالجة شاملة لجميع حالات الأذونات
-/// ✅ Retry Logic تلقائي مع حد أقصى 3 محاولات
-/// ✅ Analytics مدمج لتتبع الأذونات  
-/// ✅ حفظ الحالات في التخزين المحلي
+
 class SimplePermissionService {
   static final SimplePermissionService _instance = SimplePermissionService._internal();
   factory SimplePermissionService() => _instance;
@@ -73,18 +67,18 @@ class SimplePermissionService {
     if (permission == Permission.notification) {
       return '''نحتاج إذن الإشعارات لإرسال التنبيهات التالية:
 
-• تنبيهات أوقات الصلاة والأذان 🕌
-• تذكيرات الأذكار اليومية 📿
-• تنبيهات الأحداث الإسلامية الخاصة 🌙
+- تنبيهات أوقات الصلاة والأذان 🕌
+- تذكيرات الأذكار اليومية 📿
+- تنبيهات الأحداث الإسلامية الخاصة 🌙
 
 يمكنك التحكم الكامل بأنواع الإشعارات من الإعدادات.''';
     }
     if (permission == Permission.locationWhenInUse) {
       return '''نحتاج إذن الموقع لتوفير الخدمات التالية:
 
-• تحديد اتجاه القبلة بدقة عالية 🧭
-• حساب أوقات الصلاة لمدينتك 🕌
-• عرض المساجد القريبة منك 📍
+- تحديد اتجاه القبلة بدقة عالية 🧭
+- حساب أوقات الصلاة لمدينتك 🕌
+- عرض المساجد القريبة منك 📍
 
 ⚠️ لا نشارك موقعك مع أي جهة خارجية.
 ✅ نستخدم الموقع فقط عند الحاجة.''';
@@ -317,15 +311,16 @@ class SimplePermissionService {
     return permResults;
   }
 
-  /// فتح إعدادات التطبيق
-  Future<bool> openAppSettings() async {
-    try {
-      return await openAppSettings();
-    } catch (e) {
-      debugPrint('❌ Error opening app settings: $e');
-      return false;
-    }
+/// فتح إعدادات التطبيق
+Future<bool> openAppSettings() async {
+  try {
+    await AppSettings.openAppSettings();
+    return true; // نعتبر أن الفتح نجح إذا لم يحدث خطأ
+  } catch (e) {
+    debugPrint('❌ Error opening app settings: $e');
+    return false;
   }
+}
 
   /// إعادة تعيين محاولات الطلب
   void resetRequestAttempts(PermissionType type) {
@@ -388,7 +383,7 @@ class SimplePermissionService {
     _changeController.add(change);
   }
 
-  /// عرض dialog عند الوصول لأقصى عدد من المحاولات (10 محاولات)
+  /// عرض dialog عند الوصول لأقصى عدد من المحاولات (20 محاولات)
   Future<void> _showMaxAttemptsDialog(BuildContext context, PermissionType type) async {
     final isNotification = type == PermissionType.notification;
     final typeName = isNotification ? 'الإشعارات' : 'الموقع';
@@ -397,16 +392,35 @@ class SimplePermissionService {
     await showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(ThemeConstants.radius2xl),
+        ),
+        backgroundColor: context.cardColor,
         title: Row(
           children: [
-            Icon(icon, color: Colors.orange[700], size: 28),
-            const SizedBox(width: 12),
+            Container(
+              padding: EdgeInsets.all(ThemeConstants.space2),
+              decoration: BoxDecoration(
+                color: ThemeConstants.warning.withOpacity(ThemeConstants.opacity10),
+                borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                boxShadow: ThemeConstants.shadowSm,
+              ),
+              child: Icon(
+                icon,
+                color: ThemeConstants.warning,
+                size: ThemeConstants.iconLg,
+              ),
+            ),
+            SizedBox(width: ThemeConstants.space3),
             Expanded(
               child: Text(
                 'تم رفض إذن $typeName',
-                style: const TextStyle(fontSize: 18),
+                style: TextStyle(
+                  fontSize: ThemeConstants.textSizeLg,
+                  fontWeight: ThemeConstants.bold,
+                  color: context.textPrimaryColor,
+                ),
               ),
             ),
           ],
@@ -416,40 +430,104 @@ class SimplePermissionService {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'لقد تم رفض إذن $typeName عدة مرات متتالية.\n\n'
-              'يمكنك منح الإذن في أي وقت من خلال:\n'
-              '١. فتح إعدادات التطبيق\n'
-              '٢. الانتقال إلى "الأذونات"\n'
-              '٣. تفعيل إذن $typeName',
-              style: const TextStyle(fontSize: 14, height: 1.6),
+              'لقد تم رفض إذن $typeName عدة مرات متتالية.',
+              style: TextStyle(
+                fontSize: ThemeConstants.textSizeMd,
+                height: 1.6,
+                color: context.textPrimaryColor,
+              ),
+            ),
+            
+            SizedBox(height: ThemeConstants.space4),
+            
+            // بطاقة الخطوات
+            Container(
+              padding: EdgeInsets.all(ThemeConstants.space3),
+              decoration: BoxDecoration(
+                color: context.primaryColor.withOpacity(ThemeConstants.opacity05),
+                borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                border: Border.all(
+                  color: context.primaryColor.withOpacity(ThemeConstants.opacity20),
+                  width: ThemeConstants.borderLight,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'يمكنك منح الإذن في أي وقت من خلال:',
+                    style: TextStyle(
+                      fontSize: ThemeConstants.textSizeSm,
+                      fontWeight: ThemeConstants.semiBold,
+                      color: context.primaryColor,
+                    ),
+                  ),
+                  
+                  SizedBox(height: ThemeConstants.space2),
+                  
+                  _buildStep(context, '١. فتح إعدادات التطبيق'),
+                  _buildStep(context, '٢. الانتقال إلى "الأذونات"'),
+                  _buildStep(context, '٣. تفعيل إذن $typeName'),
+                ],
+              ),
             ),
           ],
         ),
+        actionsPadding: EdgeInsets.fromLTRB(
+          ThemeConstants.space4,
+          0,
+          ThemeConstants.space4,
+          ThemeConstants.space4,
+        ),
         actions: [
-          // زر فتح الإعدادات في الأعلى
-          ElevatedButton.icon(
+          // زر فتح الإعدادات - استخدام AppButton
+          AppButton.custom(
+            text: 'فتح الإعدادات الآن',
             onPressed: () async {
-              Navigator.pop(context);
-              // ✅ استخدام app_settings بدلاً من openAppSettings من smart_permission
+              Navigator.pop(dialogContext);
               await AppSettings.openAppSettings();
             },
-            icon: const Icon(Icons.settings, size: 18),
-            label: const Text('فتح الإعدادات الآن'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange[700],
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
+            icon: Icons.settings,
+            size: ButtonSize.medium,
+            isFullWidth: false,
+            backgroundColor: ThemeConstants.warning,
+            textColor: Colors.white,
           ),
-          // زر الإغلاق في الأسفل
-          TextButton(
-            onPressed: () => Navigator.pop(context),
+          
+          SizedBox(width: ThemeConstants.space2),
+          
+          // زر الإغلاق - استخدام AppButton
+          AppButton.text(
+            text: 'إغلاق',
+            onPressed: () => Navigator.pop(dialogContext),
+            size: ButtonSize.medium,
+            color: context.textSecondaryColor,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStep(BuildContext context, String text) {
+    return Padding(
+      padding: EdgeInsets.only(top: ThemeConstants.space1),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.check_circle_outline,
+            size: ThemeConstants.iconSm,
+            color: ThemeConstants.success,
+          ),
+          SizedBox(width: ThemeConstants.space2),
+          Expanded(
             child: Text(
-              'إغلاق',
-              style: TextStyle(color: Colors.grey[600]),
+              text,
+              style: TextStyle(
+                fontSize: ThemeConstants.textSizeSm,
+                height: 1.5,
+                color: context.textPrimaryColor,
+              ),
             ),
           ),
         ],
