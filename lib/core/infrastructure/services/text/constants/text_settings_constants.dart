@@ -44,8 +44,30 @@ class TextSettingsConstants {
   static const Map<String, String> availableFonts = {
     'Cairo': 'القاهرة',
     'Amiri': 'أميري',
-    'Scheherazade': 'شهرزاد',
+    'Scheherazade New': 'شهرزاد الجديدة',
     'Lateef': 'لطيف',
+    'Tajawal': 'تجوال',
+    'Harmattan': 'هرمتان',
+    'Aref Ruqaa': 'عارف رقعة',
+  };
+  
+  /// أوصاف الخطوط لمساعدة المستخدم
+  static const Map<String, String> fontDescriptions = {
+    'Cairo': 'خط حديث ومتوازن للاستخدام العام',
+    'Amiri': 'خط تقليدي فاخر مناسب للنصوص الدينية',
+    'Scheherazade New': 'رائع للنصوص الطويلة والقراءة المريحة',
+    'Lateef': 'واضح ومقروء بشكل ممتاز',
+    'Tajawal': 'عصري وأنيق للتصاميم الحديثة',
+    'Harmattan': 'مميز ومناسب للعناوين والنصوص البارزة',
+    'Aref Ruqaa': 'خط رقعة تقليدي وأصيل',
+  };
+  
+  /// تصنيف الخطوط حسب الاستخدام الموصى به
+  static const Map<String, List<String>> fontCategories = {
+    'reading': ['Scheherazade New', 'Lateef', 'Cairo'],
+    'traditional': ['Amiri', 'Aref Ruqaa'],
+    'modern': ['Cairo', 'Tajawal', 'Harmattan'],
+    'headers': ['Harmattan', 'Amiri', 'Aref Ruqaa'],
   };
   
   /// الخط الافتراضي
@@ -70,7 +92,7 @@ class TextSettingsConstants {
   /// إعدادات الدعاء الافتراضية
   static const TextSettings defaultDuaSettings = TextSettings(
     fontSize: 20.0,
-    fontFamily: 'Cairo',
+    fontFamily: 'Scheherazade New',
     lineHeight: 1.9,
     letterSpacing: 0.4,
     showTashkeel: true,
@@ -83,8 +105,8 @@ class TextSettingsConstants {
   
   /// إعدادات أسماء الله الافتراضية
   static const TextSettings defaultAsmaAllahSettings = TextSettings(
-    fontSize: 22.0,
-    fontFamily: 'Cairo',
+    fontSize: 30.0,
+    fontFamily: 'Amiri',
     lineHeight: 2.0,
     letterSpacing: 0.5,
     showTashkeel: true,
@@ -246,9 +268,54 @@ class TextSettingsConstants {
   static String getRecommendedFontFamily(ContentType contentType) {
     switch (contentType) {
       case ContentType.athkar:
+        return 'Cairo';
       case ContentType.dua:
+        return 'Scheherazade New';
       case ContentType.asmaAllah:
-        return defaultFontFamily;
+        return 'Amiri';
     }
+  }
+  
+  /// الحصول على وصف الخط
+  static String getFontDescription(String fontFamily) {
+    return fontDescriptions[fontFamily] ?? 'خط عربي جميل';
+  }
+  
+  /// الحصول على الخطوط الموصى بها لنوع المحتوى
+  static List<String> getRecommendedFontsForContentType(ContentType contentType) {
+    switch (contentType) {
+      case ContentType.athkar:
+        return ['Cairo', 'Lateef', 'Tajawal'];
+      case ContentType.dua:
+        return ['Scheherazade New', 'Amiri', 'Lateef'];
+      case ContentType.asmaAllah:
+        return ['Amiri', 'Harmattan', 'Aref Ruqaa'];
+    }
+  }
+  
+  /// التحقق من وجود الخط في القائمة
+  static bool isFontAvailable(String fontFamily) {
+    return availableFonts.containsKey(fontFamily);
+  }
+  
+  /// الحصول على اسم الخط بالعربي
+  static String getFontDisplayName(String fontFamily) {
+    return availableFonts[fontFamily] ?? fontFamily;
+  }
+  
+  /// الحصول على جميع الخطوط المتاحة كقائمة
+  static List<String> getAllFontFamilies() {
+    return availableFonts.keys.toList();
+  }
+  
+  /// الحصول على الخطوط حسب التصنيف
+  static List<String> getFontsByCategory(String category) {
+    return fontCategories[category] ?? [];
+  }
+  
+  /// التحقق من أن الخط موصى به لنوع المحتوى
+  static bool isRecommendedFont(String fontFamily, ContentType contentType) {
+    final recommended = getRecommendedFontsForContentType(contentType);
+    return recommended.contains(fontFamily);
   }
 }

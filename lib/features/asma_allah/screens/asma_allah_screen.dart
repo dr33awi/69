@@ -1,7 +1,9 @@
-// lib/features/asma_allah/screens/asma_allah_screen.dart - محسن للشاشات الصغيرة
+// lib/features/asma_allah/screens/asma_allah_screen.dart
 import 'package:athkar_app/app/di/service_locator.dart';
 import 'package:athkar_app/app/themes/app_theme.dart';
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
+import 'package:athkar_app/core/infrastructure/services/text/extensions/text_settings_extensions.dart';
+import 'package:athkar_app/core/infrastructure/services/text/models/text_settings_models.dart';
 import 'package:athkar_app/core/infrastructure/services/favorites/models/favorite_models.dart';
 import 'package:athkar_app/core/infrastructure/services/favorites/extensions/favorites_extensions.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +19,7 @@ import 'asma_detail_screen.dart';
 
 class AsmaAllahScreen extends StatefulWidget {
   const AsmaAllahScreen({super.key});
+  
   @override
   State<AsmaAllahScreen> createState() => _AsmaAllahScreenState();
 }
@@ -27,53 +30,12 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   final ScrollController _scrollController = ScrollController();
-  
-  // إدارة حالة المفضلة
-  Map<int, bool> _favoriteStates = {};
 
   @override
   void initState() {
     super.initState();
     _service = AsmaAllahService(storage: getIt<StorageService>());
     _searchController.addListener(() => setState(() => _searchQuery = _searchController.text));
-    _loadFavoriteStates();
-  }
-
-  void _loadFavoriteStates() async {
-    final favoriteItems = await _service.getFavoriteAsmaAllahModels();
-    setState(() {
-      _favoriteStates = {
-        for (var item in favoriteItems) item.id: true
-      };
-    });
-  }
-
-  void _toggleFavorite(AsmaAllahModel item) async {
-    try {
-      await _service.toggleFavorite(item);
-      setState(() {
-        _favoriteStates[item.id] = !(_favoriteStates[item.id] ?? false);
-      });
-      
-      final isFavorite = _favoriteStates[item.id] ?? false;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isFavorite 
-                ? 'تم إضافة "${item.name}" إلى المفضلة'
-                : 'تم إزالة "${item.name}" من المفضلة',
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('حدث خطأ أثناء تحديث المفضلة'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
   }
 
   @override
@@ -121,6 +83,16 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
   Widget _buildEnhancedAppBar() {
     return Container(
       padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: context.backgroundColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8.r,
+            offset: Offset(0, 2.h),
+          ),
+        ],
+      ),
       child: Column(
         children: [
           Row(
@@ -180,21 +152,24 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
                 ),
               ),
               
-              // زر المفضلة الموحدة
-              IconButton(
-                onPressed: () => _openUnifiedFavorites(),
-                icon: Container(
-                  padding: EdgeInsets.all(6.w),
-                  decoration: BoxDecoration(
-                    color: ThemeConstants.tertiary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  child: Icon(
-                    Icons.bookmark_rounded,
-                    color: ThemeConstants.tertiary,
-                    size: 18.sp,
-                  ),
-                ),
+              SizedBox(width: 2.w),
+              
+              // زر إعدادات النصوص
+              _buildActionButton(
+                icon: Icons.text_fields_rounded,
+                color: ThemeConstants.info,
+                tooltip: 'إعدادات النص',
+                onTap: _openTextSettings,
+              ),
+              
+              SizedBox(width: 2.w),
+              
+              // زر المفضلة
+              _buildActionButton(
+                icon: Icons.bookmark_rounded,
+                color: context.textSecondaryColor,
+                tooltip: 'المفضلة',
+                onTap: _openFavorites,
               ),
             ],
           ),
@@ -203,6 +178,51 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
           
           _buildSearchBar(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required Color color,
+    required String tooltip,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: EdgeInsets.only(left: 2.w),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(10.r),
+        child: InkWell(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            onTap();
+          },
+          borderRadius: BorderRadius.circular(10.r),
+          child: Container(
+            padding: EdgeInsets.all(6.w),
+            decoration: BoxDecoration(
+              color: context.cardColor,
+              borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(
+                color: context.dividerColor.withValues(alpha: 0.3),
+                width: 1.w,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 3.r,
+                  offset: Offset(0, 2.h),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 20.sp,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -290,7 +310,7 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
   }
 
   Widget _buildLoadingState() {
-    return Container(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -328,7 +348,7 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Container(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -402,25 +422,38 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
               horizontal: 12.w,
               vertical: 6.h,
             ),
+            padding: EdgeInsets.symmetric(
+              horizontal: 12.w,
+              vertical: 8.h,
+            ),
+            decoration: BoxDecoration(
+              color: ThemeConstants.tertiary.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(
+                color: ThemeConstants.tertiary.withValues(alpha: 0.15),
+                width: 1.w,
+              ),
+            ),
             child: Row(
               children: [
                 Icon(
                   Icons.filter_list_rounded,
                   size: 14.sp,
-                  color: context.textSecondaryColor,
+                  color: ThemeConstants.tertiary,
                 ),
-                SizedBox(width: 3.w),
+                SizedBox(width: 6.w),
                 Text(
                   'عدد النتائج: ${list.length}',
                   style: context.labelMedium?.copyWith(
-                    color: context.textSecondaryColor,
-                    fontSize: 14.sp,
+                    color: ThemeConstants.tertiary,
+                    fontSize: 13.sp,
+                    fontWeight: ThemeConstants.medium,
                   ),
                 ),
                 const Spacer(),
                 Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: 6.w,
+                    horizontal: 8.w,
                     vertical: 3.h,
                   ),
                   decoration: BoxDecoration(
@@ -441,24 +474,27 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
           ),
         
         Expanded(
-          child: ListView.builder(
-            controller: _scrollController,
-            padding: EdgeInsets.all(12.w),
-            physics: const ClampingScrollPhysics(),
-            itemCount: list.length,
-            itemBuilder: (context, index) {
-              final item = list[index];
-              return Container(
-                margin: EdgeInsets.only(bottom: 6.h),
-                child: CompactAsmaAllahCard(
-                  item: item,
-                  onTap: () => _openDetails(item),
-                  showExplanationPreview: true,
-                  onFavorite: () => _toggleFavorite(item),
-                  isFavorite: _favoriteStates[item.id] ?? false,
-                ),
-              );
+          child: RefreshIndicator(
+            onRefresh: () async {
+              setState(() {});
             },
+            color: ThemeConstants.tertiary,
+            child: ListView.builder(
+              controller: _scrollController,
+              padding: EdgeInsets.all(12.w),
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: list.length,
+              itemBuilder: (context, index) {
+                final item = list[index];
+                return Container(
+                  margin: EdgeInsets.only(bottom: 6.h),
+                  child: CompactAsmaAllahCard(
+                    item: item,
+                    onTap: () => _openDetails(item),
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ],
@@ -480,7 +516,13 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
     );
   }
 
-  void _openUnifiedFavorites() {
+  void _openTextSettings() {
+    context.showGlobalTextSettings(
+      initialContentType: ContentType.asmaAllah,
+    );
+  }
+
+  void _openFavorites() {
     HapticFeedback.lightImpact();
     context.openFavoritesScreen(FavoriteContentType.asmaAllah);
   }

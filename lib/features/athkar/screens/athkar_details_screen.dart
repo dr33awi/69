@@ -2,6 +2,8 @@
 import 'package:athkar_app/core/infrastructure/services/share/share_extensions.dart';
 import 'package:athkar_app/core/infrastructure/services/text/extensions/text_settings_extensions.dart';
 import 'package:athkar_app/core/infrastructure/services/text/models/text_settings_models.dart';
+import 'package:athkar_app/core/infrastructure/services/favorites/models/favorite_models.dart';
+import 'package:athkar_app/core/infrastructure/services/favorites/extensions/favorites_extensions.dart';
 import 'package:athkar_app/features/athkar/utils/athkar_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -432,98 +434,89 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
           ),
           
           if (category != null) ...[
-            // زر إعدادات النص الموحدة
-            Container(
-              margin: EdgeInsets.only(left: 6.w),
-              child: Material(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(10.r),
-                child: InkWell(
-                  onTap: () async {
-                    if (_displaySettings?.enableVibration ?? true) {
-                      HapticFeedback.lightImpact();
-                    }
-                    // فتح شاشة الإعدادات الموحدة مع التركيز على الأذكار
-                    await context.showGlobalTextSettings(
-                      initialContentType: ContentType.athkar,
-                    );
-                    // إعادة تحميل الإعدادات عند العودة
-                    await _loadTextSettings();
-                    setState(() {});
-                  },
-                  borderRadius: BorderRadius.circular(10.r),
-                  child: Container(
-                    padding: EdgeInsets.all(6.r),
-                    decoration: BoxDecoration(
-                      color: context.cardColor,
-                      borderRadius: BorderRadius.circular(10.r),
-                      border: Border.all(
-                        color: context.dividerColor.withOpacity(0.3),
-                        width: 1.w,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 3.r,
-                          offset: Offset(0, 1.5.h),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      Icons.text_fields_rounded,
-                      color: context.textPrimaryColor,
-                      size: 20.sp,
-                    ),
-                  ),
-                ),
-              ),
+            // زر إعدادات النص
+            _buildActionButton(
+              icon: Icons.text_fields_rounded,
+              color: ThemeConstants.info,
+              onTap: () async {
+                if (_displaySettings?.enableVibration ?? true) {
+                  HapticFeedback.lightImpact();
+                }
+                await context.showGlobalTextSettings(
+                  initialContentType: ContentType.athkar,
+                );
+                await _loadTextSettings();
+                setState(() {});
+              },
+            ),
+            
+            // زر المفضلة
+            _buildActionButton(
+              icon: Icons.bookmark_rounded,
+              color: context.textSecondaryColor,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                context.openFavoritesScreen(FavoriteContentType.athkar);
+              },
             ),
             
             // زر الإشعارات
-            Container(
-              margin: EdgeInsets.only(left: 6.w),
-              child: Material(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(10.r),
-                child: InkWell(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AthkarNotificationSettingsScreen(),
-                      ),
-                    );
-                  },
-                  borderRadius: BorderRadius.circular(10.r),
-                  child: Container(
-                    padding: EdgeInsets.all(6.r),
-                    decoration: BoxDecoration(
-                      color: context.cardColor,
-                      borderRadius: BorderRadius.circular(10.r),
-                      border: Border.all(
-                        color: context.dividerColor.withOpacity(0.3),
-                        width: 1.w,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 3.r,
-                          offset: Offset(0, 1.5.h),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      Icons.notifications_outlined,
-                      color: context.textPrimaryColor,
-                      size: 20.sp,
-                    ),
+            _buildActionButton(
+              icon: Icons.notifications_outlined,
+              color: context.textSecondaryColor,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AthkarNotificationSettingsScreen(),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: EdgeInsets.only(left: 2.w),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(10.r),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(10.r),
+          child: Container(
+            padding: EdgeInsets.all(6.w),
+            decoration: BoxDecoration(
+              color: context.cardColor,
+              borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(
+                color: context.dividerColor.withValues(alpha: 0.3),
+                width: 1.w,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 3.r,
+                  offset: Offset(0, 2.h),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 20.sp,
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -370,43 +370,66 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
       ),
       actions: [
         if (_hasChanges && !_isSaving)
-          IconButton(
+          _buildAppBarButton(
+            icon: Icons.save,
+            color: ThemeConstants.primary,
             onPressed: () {
               HapticFeedback.lightImpact();
               _saveAllSettings();
             },
-            icon: Container(
-              padding: EdgeInsets.all(6.r),
-              decoration: BoxDecoration(
-                color: ThemeConstants.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10.r),
-              ),
-              child: Icon(
-                Icons.save,
-                color: ThemeConstants.primary,
-                size: 20.sp,
-              ),
-            ),
             tooltip: 'حفظ التغييرات',
           ),
-        IconButton(
+        _buildAppBarButton(
+          icon: Icons.restore_rounded,
+          color: ThemeConstants.error,
           onPressed: () => _resetToDefault(_selectedContentType),
-          icon: Container(
-            padding: EdgeInsets.all(6.r),
-            decoration: BoxDecoration(
-              color: ThemeConstants.warning.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10.r),
-            ),
-            child: Icon(
-              Icons.restore_rounded,
-              color: ThemeConstants.warning,
-              size: 20.sp,
-            ),
-          ),
           tooltip: 'إعادة الإعدادات الافتراضية',
         ),
         SizedBox(width: 4.w),
       ],
+    );
+  }
+
+  /// بناء زر في شريط التطبيق
+  Widget _buildAppBarButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onPressed,
+    String? tooltip,
+  }) {
+    return Container(
+      margin: EdgeInsets.only(left: 2.w),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(10.r),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(10.r),
+          child: Container(
+            padding: EdgeInsets.all(6.w),
+            decoration: BoxDecoration(
+              color: context.cardColor,
+              borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(
+                color: context.dividerColor.withValues(alpha: 0.3),
+                width: 1.w,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 3.r,
+                  offset: Offset(0, 2.h),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 20.sp,
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -666,11 +689,9 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
           
           SizedBox(height: 20.h),
           
-          _buildDropdownSetting(
-            title: 'نوع الخط',
-            icon: Icons.font_download_rounded,
-            value: textSettings.fontFamily,
-            items: TextSettingsConstants.availableFonts,
+          _buildFontFamilySelector(
+            contentType: contentType,
+            currentFont: textSettings.fontFamily,
             onChanged: (value) {
               _updateSettings(
                 contentType,
@@ -716,6 +737,216 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  /// بناء محدد نوع الخط المحسّن
+  Widget _buildFontFamilySelector({
+    required ContentType contentType,
+    required String currentFont,
+    required ValueChanged<String?> onChanged,
+  }) {
+    final recommendedFonts = TextSettingsConstants.getRecommendedFontsForContentType(contentType);
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.font_download_rounded, size: 18.sp, color: ThemeConstants.primary),
+            SizedBox(width: 10.w),
+            Text(
+              'نوع الخط',
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: ThemeConstants.medium,
+                color: context.textPrimaryColor,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 12.h),
+        
+        // الخطوط الموصى بها
+        if (recommendedFonts.isNotEmpty) ...[
+          Text(
+            'خطوط موصى بها',
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: context.textSecondaryColor,
+              fontWeight: ThemeConstants.medium,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Wrap(
+            spacing: 8.w,
+            runSpacing: 8.h,
+            children: recommendedFonts.map((fontFamily) {
+              final isSelected = currentFont == fontFamily;
+              return GestureDetector(
+                onTap: () {
+                  onChanged(fontFamily);
+                  HapticFeedback.selectionClick();
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? ThemeConstants.primary
+                        : ThemeConstants.primary.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(10.r),
+                    border: Border.all(
+                      color: isSelected
+                          ? ThemeConstants.primary
+                          : ThemeConstants.primary.withOpacity(0.2),
+                      width: 1.5.w,
+                    ),
+                  ),
+                  child: Text(
+                    TextSettingsConstants.availableFonts[fontFamily] ?? fontFamily,
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      fontWeight: isSelected ? ThemeConstants.bold : ThemeConstants.medium,
+                      color: isSelected ? Colors.white : context.textPrimaryColor,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          SizedBox(height: 16.h),
+        ],
+        
+        // جميع الخطوط
+        Text(
+          'جميع الخطوط المتاحة',
+          style: TextStyle(
+            fontSize: 12.sp,
+            color: context.textSecondaryColor,
+            fontWeight: ThemeConstants.medium,
+          ),
+        ),
+        SizedBox(height: 8.h),
+        
+        Container(
+          decoration: BoxDecoration(
+            color: context.cardColor,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(
+              color: context.dividerColor.withOpacity(0.3),
+              width: 1.5.w,
+            ),
+          ),
+          child: ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: TextSettingsConstants.availableFonts.length,
+            separatorBuilder: (context, index) => Divider(
+              height: 1.h,
+              color: context.dividerColor.withOpacity(0.2),
+            ),
+            itemBuilder: (context, index) {
+              final fontEntry = TextSettingsConstants.availableFonts.entries.elementAt(index);
+              final fontFamily = fontEntry.key;
+              final fontName = fontEntry.value;
+              final description = TextSettingsConstants.getFontDescription(fontFamily);
+              final isSelected = currentFont == fontFamily;
+              final isRecommended = recommendedFonts.contains(fontFamily);
+              
+              return InkWell(
+                onTap: () {
+                  onChanged(fontFamily);
+                  HapticFeedback.selectionClick();
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? ThemeConstants.primary.withOpacity(0.08)
+                        : Colors.transparent,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  fontName,
+                                  style: TextStyle(
+                                    fontSize: 15.sp,
+                                    fontWeight: isSelected
+                                        ? ThemeConstants.bold
+                                        : ThemeConstants.medium,
+                                    color: isSelected
+                                        ? ThemeConstants.primary
+                                        : context.textPrimaryColor,
+                                    fontFamily: fontFamily,
+                                  ),
+                                ),
+                                if (isRecommended) ...[
+                                  SizedBox(width: 8.w),
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 8.w,
+                                      vertical: 2.h,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: ThemeConstants.success.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(6.r),
+                                      border: Border.all(
+                                        color: ThemeConstants.success.withOpacity(0.3),
+                                        width: 1.w,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'موصى به',
+                                      style: TextStyle(
+                                        fontSize: 10.sp,
+                                        fontWeight: ThemeConstants.bold,
+                                        color: ThemeConstants.success,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            SizedBox(height: 4.h),
+                            Text(
+                              description,
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                color: context.textSecondaryColor,
+                              ),
+                            ),
+                            SizedBox(height: 6.h),
+                            Text(
+                              'أ ب ت ث • 1 2 3 4',
+                              style: TextStyle(
+                                fontSize: 13.sp,
+                                fontFamily: fontFamily,
+                                color: context.textSecondaryColor.withOpacity(0.7),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (isSelected)
+                        Icon(
+                          Icons.check_circle_rounded,
+                          color: ThemeConstants.primary,
+                          size: 24.sp,
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -902,69 +1133,6 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
             max: max,
             divisions: divisions,
             onChanged: onChanged,
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// بناء إعداد قائمة منسدلة
-  Widget _buildDropdownSetting({
-    required String title,
-    required IconData icon,
-    required String value,
-    required Map<String, String> items,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(icon, size: 18.sp, color: ThemeConstants.primary),
-            SizedBox(width: 10.w),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 14.sp,
-                fontWeight: ThemeConstants.medium,
-                color: context.textPrimaryColor,
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 12.h),
-        Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
-          decoration: BoxDecoration(
-            color: context.cardColor,
-            borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(
-              color: context.dividerColor.withOpacity(0.3),
-              width: 1.5.w,
-            ),
-          ),
-          child: DropdownButton<String>(
-            value: value,
-            items: items.entries.map((entry) {
-              return DropdownMenuItem(
-                value: entry.key,
-                child: Text(
-                  entry.value,
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: ThemeConstants.medium,
-                  ),
-                ),
-              );
-            }).toList(),
-            onChanged: onChanged,
-            isExpanded: true,
-            underline: const SizedBox.shrink(),
-            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 24.sp),
-            dropdownColor: context.cardColor,
-            borderRadius: BorderRadius.circular(12.r),
           ),
         ),
       ],

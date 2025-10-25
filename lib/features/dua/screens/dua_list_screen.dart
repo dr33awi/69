@@ -7,6 +7,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
+import '../../../core/infrastructure/services/text/extensions/text_settings_extensions.dart';
+import '../../../core/infrastructure/services/text/models/text_settings_models.dart';
 import '../services/dua_service.dart';
 import '../models/dua_model.dart';
 import '../widgets/dua_item_card.dart';
@@ -31,7 +33,6 @@ class _DuaListScreenState extends State<DuaListScreen> {
   List<DuaItem> _duas = [];
   bool _isLoading = true;
   String? _error;
-  double _fontSize = 18.0;
 
   @override
   void initState() {
@@ -48,7 +49,6 @@ class _DuaListScreenState extends State<DuaListScreen> {
       });
 
       final duas = await _service.getDuasByCategory(widget.category.id);
-      _fontSize = await _service.getSavedFontSize();
       
       if (mounted) {
         setState(() {
@@ -76,15 +76,17 @@ class _DuaListScreenState extends State<DuaListScreen> {
       }
     });
     
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          isFavorite ? 'تمت الإضافة للمفضلة' : 'تمت الإزالة من المفضلة',
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isFavorite ? 'تمت الإضافة للمفضلة' : 'تمت الإزالة من المفضلة',
+          ),
+          duration: const Duration(seconds: 2),
+          backgroundColor: isFavorite ? ThemeConstants.success : null,
         ),
-        duration: const Duration(seconds: 2),
-        backgroundColor: isFavorite ? ThemeConstants.success : null,
-      ),
-    );
+      );
+    }
   }
 
   Future<void> _shareDua(DuaItem dua) async {
@@ -101,17 +103,17 @@ ${dua.virtue != null ? '\nالفضيلة: ${dua.virtue}' : ''}
     await Share.share(text);
   }
 
-void _copyDua(DuaItem dua) {
-  context.copyDua(
-    dua.title,
-    dua.arabicText,
-    transliteration: dua.transliteration,
-    translation: dua.translation,
-    virtue: dua.virtue,
-    source: dua.source,
-    reference: dua.reference,
-  );
-}
+  void _copyDua(DuaItem dua) {
+    context.copyDua(
+      dua.title,
+      dua.arabicText,
+      transliteration: dua.transliteration,
+      translation: dua.translation,
+      virtue: dua.virtue,
+      source: dua.source,
+      reference: dua.reference,
+    );
+  }
 
   void _openDuaDetails(DuaItem dua) {
     HapticFeedback.lightImpact();
@@ -127,11 +129,19 @@ void _copyDua(DuaItem dua) {
   }
 
   void _openSearch() {
+    HapticFeedback.lightImpact();
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => const DuaSearchScreen(),
       ),
+    );
+  }
+
+  void _openTextSettings() {
+    HapticFeedback.lightImpact();
+    context.showGlobalTextSettings(
+      initialContentType: ContentType.dua,
     );
   }
 
@@ -165,49 +175,6 @@ void _copyDua(DuaItem dua) {
     }
   }
 
-  Widget _buildActionButton({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      margin: EdgeInsets.only(left: 6.w),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(10.r),
-        child: InkWell(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            onTap();
-          },
-          borderRadius: BorderRadius.circular(10.r),
-          child: Container(
-            padding: EdgeInsets.all(7.r),
-            decoration: BoxDecoration(
-              color: context.cardColor,
-              borderRadius: BorderRadius.circular(10.r),
-              border: Border.all(
-                color: context.dividerColor.withOpacity(0.3),
-                width: 1.w,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 3.r,
-                  offset: Offset(0, 2.h),
-                ),
-              ],
-            ),
-            child: Icon(
-              icon,
-              color: context.textPrimaryColor,
-              size: 20.sp,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final categoryColor = _getCategoryColor(widget.category.id);
@@ -217,7 +184,7 @@ void _copyDua(DuaItem dua) {
       body: SafeArea(
         child: Column(
           children: [
-            _buildAppBar(),
+            _buildAppBar(categoryColor),
             Expanded(
               child: _buildContent(categoryColor),
             ),
@@ -227,7 +194,7 @@ void _copyDua(DuaItem dua) {
     );
   }
 
-  Widget _buildAppBar() {
+  Widget _buildAppBar(Color categoryColor) {
     return Container(
       padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
@@ -244,19 +211,21 @@ void _copyDua(DuaItem dua) {
         children: [
           Row(
             children: [
+              // زر الرجوع
               AppBackButton(
                 onPressed: () => Navigator.of(context).pop(),
               ),
               
               SizedBox(width: 10.w),
               
+              // أيقونة الفئة
               Container(
                 padding: EdgeInsets.all(7.r),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      _getCategoryColor(widget.category.id),
-                      _getCategoryColor(widget.category.id).withOpacity(0.8),
+                      categoryColor,
+                      categoryColor.withOpacity(0.8),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -264,7 +233,7 @@ void _copyDua(DuaItem dua) {
                   borderRadius: BorderRadius.circular(10.r),
                   boxShadow: [
                     BoxShadow(
-                      color: _getCategoryColor(widget.category.id).withOpacity(0.3),
+                      color: categoryColor.withOpacity(0.3),
                       blurRadius: 6.r,
                       offset: Offset(0, 3.h),
                     ),
@@ -279,6 +248,7 @@ void _copyDua(DuaItem dua) {
               
               SizedBox(width: 10.w),
               
+              // معلومات الفئة
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,6 +271,14 @@ void _copyDua(DuaItem dua) {
                   ],
                 ),
               ),
+              
+              // زر إعدادات النصوص
+              _buildActionButton(
+                icon: Icons.text_fields_rounded,
+                onTap: _openTextSettings,
+                color: ThemeConstants.info,
+                tooltip: 'إعدادات النص',
+              ),
             ],
           ),
           
@@ -313,12 +291,61 @@ void _copyDua(DuaItem dua) {
     );
   }
 
+  Widget _buildActionButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    Color? color,
+    String? tooltip,
+  }) {
+    return Tooltip(
+      message: tooltip ?? '',
+      child: Container(
+        margin: EdgeInsets.only(left: 6.w),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(10.r),
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              onTap();
+            },
+            borderRadius: BorderRadius.circular(10.r),
+            child: Container(
+              padding: EdgeInsets.all(7.r),
+              decoration: BoxDecoration(
+                color: color != null 
+                    ? color.withOpacity(0.1)
+                    : context.cardColor,
+                borderRadius: BorderRadius.circular(10.r),
+                border: Border.all(
+                  color: color != null 
+                      ? color.withOpacity(0.3)
+                      : context.dividerColor.withOpacity(0.3),
+                  width: 1.w,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 3.r,
+                    offset: Offset(0, 2.h),
+                  ),
+                ],
+              ),
+              child: Icon(
+                icon,
+                color: color ?? context.textPrimaryColor,
+                size: 20.sp,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSearchBar() {
     return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        _openSearch();
-      },
+      onTap: _openSearch,
       child: Container(
         padding: EdgeInsets.symmetric(
           horizontal: 14.w,
@@ -387,24 +414,28 @@ void _copyDua(DuaItem dua) {
       );
     }
 
-    return ListView.builder(
-      padding: EdgeInsets.all(16.w),
-      itemCount: _duas.length,
-      itemBuilder: (context, index) {
-        final dua = _duas[index];
-        return Container(
-          margin: EdgeInsets.only(bottom: 12.h),
-          child: DuaItemCard(
-            dua: dua,
-            fontSize: _fontSize,
-            categoryColor: categoryColor,
-            onTap: () => _openDuaDetails(dua),
-            onFavorite: () => _toggleFavorite(dua),
-            onShare: () => _shareDua(dua),
-            onCopy: () => _copyDua(dua),
-          ),
-        );
-      },
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      color: categoryColor,
+      child: ListView.builder(
+        padding: EdgeInsets.all(16.w),
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: _duas.length,
+        itemBuilder: (context, index) {
+          final dua = _duas[index];
+          return Container(
+            margin: EdgeInsets.only(bottom: 12.h),
+            child: DuaItemCard(
+              dua: dua,
+              categoryColor: categoryColor,
+              onTap: () => _openDuaDetails(dua),
+              onFavorite: () => _toggleFavorite(dua),
+              onShare: () => _shareDua(dua),
+              onCopy: () => _copyDua(dua),
+            ),
+          );
+        },
+      ),
     );
   }
 }

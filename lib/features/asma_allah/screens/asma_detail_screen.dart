@@ -197,12 +197,13 @@ class _UnifiedAsmaAllahDetailsScreenState
           _buildActionButton(
             icon: Icons.copy_rounded,
             onTap: () => _copyContent(_currentItem),
+            isSecondary: true,
           ),
           
           _buildActionButton(
             icon: _isFavorite ? Icons.bookmark : Icons.bookmark_outline,
             onTap: _toggleFavorite,
-            isPrimary: _isFavorite,
+            isSecondary: true,
           ),
           
           _buildActionButton(
@@ -220,9 +221,10 @@ class _UnifiedAsmaAllahDetailsScreenState
     required VoidCallback onTap,
     bool isSecondary = false,
     bool isPrimary = false,
+    bool isWhite = false,
   }) {
     return Container(
-      margin: EdgeInsets.only(left: 6.w),
+      margin: EdgeInsets.only(left: 2.w),
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(10.r),
@@ -248,11 +250,13 @@ class _UnifiedAsmaAllahDetailsScreenState
             ),
             child: Icon(
               icon,
-              color: isPrimary 
-                  ? ThemeConstants.tertiary 
-                  : isSecondary 
-                      ? context.textSecondaryColor 
-                      : _currentItem.getColor(),
+              color: isWhite
+                  ? Colors.white
+                  : isPrimary 
+                      ? ThemeConstants.info
+                      : isSecondary 
+                          ? context.textSecondaryColor 
+                          : _currentItem.getColor(),
               size: 20.sp,
             ),
           ),
@@ -316,7 +320,7 @@ class _UnifiedAsmaAllahDetailsScreenState
 
   Widget _buildEnhancedExplanationCard(AsmaAllahModel item) {
     final textStyle = _textSettings?.toTextStyle() ?? TextStyle(
-      fontSize: 15.sp,
+      fontSize: 50.sp,
       height: 2.0,
       letterSpacing: 0.3,
     );

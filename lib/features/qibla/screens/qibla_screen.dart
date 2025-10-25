@@ -273,16 +273,20 @@ class _QiblaScreenState extends State<QiblaScreen>
             ),
           ),
           
+          // زر المعايرة
           _buildActionButton(
             icon: Icons.explore,
+            color: context.textSecondaryColor,
             onTap: () => _showCalibrationDialog(context, service),
             tooltip: 'معايرة البوصلة',
           ),
           
+          // زر التحديث
           _buildActionButton(
             icon: service.isLoading
                 ? Icons.hourglass_empty
                 : Icons.refresh_rounded,
+            color: ThemeConstants.error,
             onTap: service.isLoading 
                 ? null 
                 : () => _updateQiblaData(forceUpdate: true),
@@ -296,48 +300,49 @@ class _QiblaScreenState extends State<QiblaScreen>
 
   Widget _buildActionButton({
     required IconData icon,
+    required Color color,
     VoidCallback? onTap,
     bool isLoading = false,
-    bool isSecondary = false,
     String? tooltip,
   }) {
     return Container(
-      margin: EdgeInsets.only(left: 4.w),
+      margin: EdgeInsets.only(left: 2.w),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(8.r),
+        borderRadius: BorderRadius.circular(10.r),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(8.r),
+          borderRadius: BorderRadius.circular(10.r),
           child: Container(
             padding: EdgeInsets.all(6.w),
             decoration: BoxDecoration(
               color: context.cardColor,
-              borderRadius: BorderRadius.circular(8.r),
+              borderRadius: BorderRadius.circular(10.r),
               border: Border.all(
-                color: context.dividerColor.withOpacity(0.3),
+                color: context.dividerColor.withValues(alpha: 0.3),
+                width: 1.w,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 2.r,
-                  offset: Offset(0, 1.h),
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 3.r,
+                  offset: Offset(0, 2.h),
                 ),
               ],
             ),
             child: isLoading
                 ? SizedBox(
-                    width: 18.w,
-                    height: 18.w,
+                    width: 20.w,
+                    height: 20.w,
                     child: CircularProgressIndicator(
                       strokeWidth: 2.w,
-                      valueColor: const AlwaysStoppedAnimation<Color>(ThemeConstants.primary),
+                      valueColor: AlwaysStoppedAnimation<Color>(color),
                     ),
                   )
                 : Icon(
                     icon,
-                    color: isSecondary ? context.textSecondaryColor : ThemeConstants.primary,
-                    size: 18.sp,
+                    color: color,
+                    size: 20.sp,
                   ),
           ),
         ),

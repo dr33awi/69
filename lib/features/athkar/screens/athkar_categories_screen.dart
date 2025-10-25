@@ -8,6 +8,8 @@ import '../../../app/routes/app_router.dart';
 import '../../../core/infrastructure/services/permissions/simple_permission_service.dart';
 import '../../../core/infrastructure/services/favorites/models/favorite_models.dart';
 import '../../../core/infrastructure/services/favorites/extensions/favorites_extensions.dart';
+import '../../../core/infrastructure/services/text/extensions/text_settings_extensions.dart';
+import '../../../core/infrastructure/services/text/models/text_settings_models.dart';
 import '../services/athkar_service.dart';
 import '../models/athkar_model.dart';
 import '../utils/category_utils.dart';
@@ -160,85 +162,71 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
             ),
           ),
           
-          // زر المفضلة
-          Container(
-            margin: EdgeInsets.only(left: 6.w),
-            child: Material(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(10.r),
-              child: InkWell(
-                onTap: _openFavorites,
-                borderRadius: BorderRadius.circular(10.r),
-                child: Container(
-                  padding: EdgeInsets.all(7.r),
-                  decoration: BoxDecoration(
-                    color: context.cardColor,
-                    borderRadius: BorderRadius.circular(10.r),
-                    border: Border.all(
-                      color: context.dividerColor.withOpacity(0.3),
-                      width: 1.w,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 4.r,
-                        offset: Offset(0, 2.h),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.bookmark_rounded,
-                    color: ThemeConstants.accent,
-                    size: 18.sp,
-                  ),
-                ),
-              ),
-            ),
+          // زر إعدادات النصوص
+          _buildActionButton(
+            icon: Icons.text_fields_rounded,
+            color: ThemeConstants.info,
+            onTap: _openTextSettings,
           ),
           
-          Container(
-            margin: EdgeInsets.only(left: 6.w),
-            child: Material(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(10.r),
-              child: InkWell(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AthkarNotificationSettingsScreen(),
-                    ),
-                  );
-                },
-                borderRadius: BorderRadius.circular(10.r),
-                child: Container(
-                  padding: EdgeInsets.all(7.r),
-                  decoration: BoxDecoration(
-                    color: context.cardColor,
-                    borderRadius: BorderRadius.circular(10.r),
-                    border: Border.all(
-                      color: context.dividerColor.withOpacity(0.3),
-                      width: 1.w,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 3.r,
-                        offset: Offset(0, 2.h),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.notifications_outlined,
-                    color: context.textPrimaryColor,
-                    size: 20.sp,
-                  ),
-                ),
-              ),
-            ),
+          // زر المفضلة
+          _buildActionButton(
+            icon: Icons.bookmark_rounded,
+            color: context.textSecondaryColor,
+            onTap: _openFavorites,
+          ),
+          
+          // زر الإشعارات
+          _buildActionButton(
+            icon: Icons.notifications_outlined,
+            color: context.textSecondaryColor,
+            onTap: _openNotificationSettings,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: EdgeInsets.only(left: 2.w),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(10.r),
+        child: InkWell(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            onTap();
+          },
+          borderRadius: BorderRadius.circular(10.r),
+          child: Container(
+            padding: EdgeInsets.all(6.w),
+            decoration: BoxDecoration(
+              color: context.cardColor,
+              borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(
+                color: context.dividerColor.withValues(alpha: 0.3),
+                width: 1.w,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 3.r,
+                  offset: Offset(0, 2.h),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 20.sp,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -577,5 +565,21 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
   void _openFavorites() {
     HapticFeedback.lightImpact();
     context.openFavoritesScreen(FavoriteContentType.athkar);
+  }
+
+  void _openTextSettings() {
+    context.showGlobalTextSettings(
+      initialContentType: ContentType.athkar,
+    );
+  }
+
+  void _openNotificationSettings() {
+    HapticFeedback.lightImpact();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AthkarNotificationSettingsScreen(),
+      ),
+    );
   }
 }

@@ -1,31 +1,25 @@
-// lib/features/asma_allah/widgets/asma_allah_widgets.dart - محسّن للشاشات الصغيرة
+// lib/features/asma_allah/widgets/asma_allah_widgets.dart
 import 'package:athkar_app/core/infrastructure/services/share/share_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:athkar_app/app/themes/app_theme.dart';
+import '../../../core/infrastructure/services/text/extensions/text_settings_extensions.dart';
+import '../../../core/infrastructure/services/text/models/text_settings_models.dart';
 import '../models/asma_allah_model.dart';
 import '../extensions/asma_allah_extensions.dart';
 
 // ============================================================================
-// CompactAsmaAllahCard - البطاقة المضغوطة المحسّنة للشاشات الصغيرة
+// CompactAsmaAllahCard - البطاقة المضغوطة البسيطة
 // ============================================================================
 class CompactAsmaAllahCard extends StatefulWidget {
   final AsmaAllahModel item;
   final VoidCallback onTap;
-  final bool showQuickActions;
-  final bool showExplanationPreview;
-  final VoidCallback? onFavorite;
-  final bool isFavorite;
 
   const CompactAsmaAllahCard({
     super.key,
     required this.item,
     required this.onTap,
-    this.showQuickActions = false,
-    this.showExplanationPreview = true,
-    this.onFavorite,
-    this.isFavorite = false,
   });
 
   @override
@@ -90,7 +84,7 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
               },
               borderRadius: BorderRadius.circular(12.r),
               child: Container(
-                padding: EdgeInsets.all(10.w),
+                padding: EdgeInsets.all(12.w),
                 decoration: BoxDecoration(
                   color: context.cardColor,
                   borderRadius: BorderRadius.circular(12.r),
@@ -110,7 +104,15 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
                     ),
                   ],
                 ),
-                child: _buildCardContent(color),
+                child: Row(
+                  children: [
+                    _buildNumberBadge(color),
+                    SizedBox(width: 12.w),
+                    Expanded(child: _buildNameSection(color)),
+                    SizedBox(width: 8.w),
+                    _buildDetailsButton(color),
+                  ],
+                ),
               ),
             ),
           ),
@@ -119,355 +121,108 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
     );
   }
 
-  Widget _buildCardContent(Color color) {
-    return Column(
-      children: [
-        // الصف الرئيسي
-        Row(
-          children: [
-            // الرقم مع الخلفية الملونة
-            Container(
-              width: 36.w,
-              height: 36.h,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [color, color.withOpacity(0.8)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(10.r),
-                boxShadow: [
-                  BoxShadow(
-                    color: color.withValues(alpha: 0.25),
-                    blurRadius: 4.r,
-                    offset: Offset(0, 2.h),
-                  ),
-                ],
-              ),
-              child: Center(
-                child: Text(
-                  '${widget.item.id}',
-                  style: context.titleSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: ThemeConstants.bold,
-                    fontSize: 12.sp,
-                  ),
-                ),
-              ),
-            ),
-            
-            SizedBox(width: 10.w),
-            
-            // محتوى الاسم والمعلومات
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // اسم الله
-                  Text(
-                    widget.item.name,
-                    style: context.titleMedium?.copyWith(
-                      color: color,
-                      fontWeight: ThemeConstants.bold,
-                      fontFamily: ThemeConstants.fontFamilyArabic,
-                      fontSize: 14.sp,
-                    ),
-                  ),
-                  
-                  SizedBox(height: 3.h),
-                  
-                  // معاينة المعنى
-                  Text(
-                    _getTruncatedText(widget.item.meaning, 45),
-                    style: context.bodySmall?.copyWith(
-                      color: context.textSecondaryColor,
-                      height: 1.3,
-                      fontSize: 11.sp,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            
-            // أيقونة التفاعل والمفضلة
-            Row(
-              children: [
-                // زر المفضلة
-                if (widget.onFavorite != null)
-                  GestureDetector(
-                    onTap: () {
-                      widget.onFavorite?.call();
-                      HapticFeedback.lightImpact();
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(5.w),
-                      decoration: BoxDecoration(
-                        color: widget.isFavorite 
-                            ? ThemeConstants.tertiary.withValues(alpha: 0.15)
-                            : color.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6.r),
-                      ),
-                      child: Icon(
-                        widget.isFavorite 
-                            ? Icons.bookmark_rounded
-                            : Icons.bookmark_outline_rounded,
-                        color: widget.isFavorite 
-                            ? ThemeConstants.tertiary
-                            : color,
-                        size: 16.sp,
-                      ),
-                    ),
-                  ),
-                
-                if (widget.onFavorite != null)
-                  SizedBox(width: 6.w),
-                
-                // أيقونة الانتقال
-                Container(
-                  padding: EdgeInsets.all(5.w),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(6.r),
-                  ),
-                  child: Icon(
-                    Icons.chevron_left_rounded,
-                    color: color,
-                    size: 16.sp,
-                  ),
-                ),
-              ],
-            ),
-          ],
+  Widget _buildNumberBadge(Color color) {
+    return Container(
+      width: 42.w,
+      height: 42.h,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [color, color.withOpacity(0.8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        
-        // معاينة الشرح المفصل (اختيارية)
-        if (widget.showExplanationPreview) ...[
-          SizedBox(height: 6.h),
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(6.w),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(6.r),
-              border: Border.all(
-                color: color.withValues(alpha: 0.15),
-                width: 1.w,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.auto_stories_rounded,
-                      size: 12.sp,
-                      color: color,
-                    ),
-                    SizedBox(width: 3.w),
-                    Text(
-                      'الشرح والتفسير',
-                      style: context.labelSmall?.copyWith(
-                        color: color,
-                        fontWeight: ThemeConstants.medium,
-                        fontSize: 10.sp,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 3.h),
-                RichText(
-                  text: _buildPreviewTextSpan(widget.item.explanation, context, 70),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
+        borderRadius: BorderRadius.circular(10.r),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.25),
+            blurRadius: 4.r,
+            offset: Offset(0, 2.h),
           ),
         ],
-        
-        // أزرار الإجراءات السريعة
-        if (widget.showQuickActions) ...[
-          SizedBox(height: 8.h),
-          _buildQuickActions(color),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildQuickActions(Color color) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildActionButton(
-            icon: Icons.copy_rounded,
-            label: 'نسخ',
-            color: ThemeConstants.primary,
-            onTap: _copyName,
-          ),
-        ),
-        SizedBox(width: 6.w),
-        Expanded(
-          child: _buildActionButton(
-            icon: Icons.share_rounded,
-            label: 'مشاركة',
-            color: color,
-            onTap: _shareName,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(6.r),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(6.r),
-        child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: 6.w,
-            vertical: 4.h,
-          ),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(6.r),
-            border: Border.all(
-              color: color.withValues(alpha: 0.2),
-              width: 1.w,
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 12.sp,
-                color: color,
-              ),
-              SizedBox(width: 3.w),
-              Text(
-                label,
-                style: context.labelSmall?.copyWith(
-                  color: color,
-                  fontWeight: ThemeConstants.medium,
-                  fontSize: 10.sp,
-                ),
-              ),
-            ],
+      ),
+      child: Center(
+        child: Text(
+          '${widget.item.id}',
+          style: context.titleSmall?.copyWith(
+            color: Colors.white,
+            fontWeight: ThemeConstants.bold,
+            fontSize: 14.sp,
           ),
         ),
       ),
     );
   }
 
-  TextSpan _buildPreviewTextSpan(String text, BuildContext context, int maxLength) {
-    String truncatedText = _getTruncatedText(text, maxLength);
-    
-    final List<TextSpan> spans = [];
-    final RegExp ayahPattern = RegExp(r'﴿([^﴾]+)﴾');
-    int lastIndex = 0;
-    
-    for (final match in ayahPattern.allMatches(truncatedText)) {
-      if (match.start > lastIndex) {
-        spans.add(TextSpan(
-          text: truncatedText.substring(lastIndex, match.start),
-          style: context.labelSmall?.copyWith(
-            color: context.textSecondaryColor,
-            height: 1.4,
-            fontSize: 10.sp,
+  Widget _buildNameSection(Color color) {
+    return FutureBuilder<TextStyle>(
+      future: context.getAsmaAllahTextStyle(
+        color: color,
+        fontWeight: ThemeConstants.bold,
+      ),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Text(
+            widget.item.name,
+            style: TextStyle(
+              color: color,
+              fontWeight: ThemeConstants.bold,
+              fontFamily: 'Amiri',
+              fontSize: 40.sp,
+            ),
+          );
+        }
+        
+        return Text(
+          widget.item.name,
+          style: snapshot.data!.copyWith(
+            color: color,
           ),
-        ));
-      }
-      
-      spans.add(TextSpan(
-        text: match.group(0),
-        style: context.labelSmall?.copyWith(
-          color: ThemeConstants.tertiary,
-          fontFamily: ThemeConstants.fontFamilyQuran,
-          fontWeight: ThemeConstants.medium,
-          height: 1.4,
-          fontSize: 10.sp,
-        ),
-      ));
-      
-      lastIndex = match.end;
-    }
-    
-    if (lastIndex < truncatedText.length) {
-      spans.add(TextSpan(
-        text: truncatedText.substring(lastIndex),
-        style: context.labelSmall?.copyWith(
-          color: context.textSecondaryColor,
-          height: 1.4,
-          fontSize: 10.sp,
-        ),
-      ));
-    }
-    
-    if (spans.isEmpty) {
-      spans.add(TextSpan(
-        text: truncatedText,
-        style: context.labelSmall?.copyWith(
-          color: context.textSecondaryColor,
-          height: 1.4,
-          fontSize: 10.sp,
-        ),
-      ));
-    }
-    
-    return TextSpan(children: spans);
-  }
-
-  String _getTruncatedText(String text, int maxLength) {
-    if (text.length <= maxLength) return text;
-    
-    final words = text.split(' ');
-    final truncatedWords = <String>[];
-    var currentLength = 0;
-    
-    for (final word in words) {
-      if (currentLength + word.length + 1 <= maxLength) {
-        truncatedWords.add(word);
-        currentLength += word.length + 1;
-      } else {
-        break;
-      }
-    }
-    
-    return '${truncatedWords.join(' ')}...';
-  }
-
-void _copyName() {
-  context.copyAsmaAllah(
-    widget.item.name,
-    widget.item.explanation,
-    meaning: widget.item.meaning,
-  );
-}
-
-  void _shareName() {
-    context.shareAsmaAllah(
-      widget.item.name,
-      widget.item.explanation,
-      meaning: widget.item.meaning,
+        );
+      },
     );
-    
-    HapticFeedback.lightImpact();
+  }
+
+  Widget _buildDetailsButton(Color color) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            color.withOpacity(0.15),
+            color.withOpacity(0.1),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1.5.w,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'التفاصيل',
+            style: TextStyle(
+              fontSize: 13.sp,
+              fontWeight: ThemeConstants.bold,
+              color: color,
+            ),
+          ),
+          SizedBox(width: 6.w),
+          Icon(
+            Icons.arrow_back_ios_rounded,
+            color: color,
+            size: 16.sp,
+          ),
+        ],
+      ),
+    );
   }
 }
 
 // ============================================================================
-// DetailedAsmaAllahCard - البطاقة المفصلة المحسّنة للشاشات الصغيرة
+// DetailedAsmaAllahCard - البطاقة المفصلة البسيطة
 // ============================================================================
 class DetailedAsmaAllahCard extends StatelessWidget {
   final AsmaAllahModel item;
@@ -492,7 +247,7 @@ class DetailedAsmaAllahCard extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(16.r),
           child: Container(
-            padding: EdgeInsets.all(12.w),
+            padding: EdgeInsets.all(14.w),
             decoration: BoxDecoration(
               color: context.cardColor,
               borderRadius: BorderRadius.circular(16.r),
@@ -508,16 +263,13 @@ class DetailedAsmaAllahCard extends StatelessWidget {
                 ),
               ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                _buildCardHeader(context, color),
-                SizedBox(height: 10.h),
-                _buildMeaningSection(context),
-                SizedBox(height: 10.h),
-                _buildExplanationPreview(context, color),
-                SizedBox(height: 10.h),
-                _buildViewDetailsButton(context, color),
+                _buildNumberBadge(context, color),
+                SizedBox(width: 14.w),
+                Expanded(child: _buildNameSection(context, color)),
+                SizedBox(width: 10.w),
+                _buildDetailsButton(color),
               ],
             ),
           ),
@@ -526,238 +278,106 @@ class DetailedAsmaAllahCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCardHeader(BuildContext context, Color color) {
-    return Row(
-      children: [
-        Container(
-          width: 42.w,
-          height: 42.h,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [color, color.withOpacity(0.8)],
-            ),
-            borderRadius: BorderRadius.circular(12.r),
-            boxShadow: [
-              BoxShadow(
-                color: color.withValues(alpha: 0.3),
-                blurRadius: 6.r,
-                offset: Offset(0, 2.h),
-              ),
-            ],
-          ),
-          child: Center(
-            child: Text(
-              '${item.id}',
-              style: context.titleMedium?.copyWith(
-                color: Colors.white,
-                fontWeight: ThemeConstants.bold,
-                fontSize: 14.sp,
-              ),
-            ),
-          ),
-        ),
-        
-        SizedBox(width: 10.w),
-        
-        Expanded(
-          child: Text(
-            item.name,
-            style: context.displaySmall?.copyWith(
-              color: color,
-              fontWeight: ThemeConstants.bold,
-              fontFamily: ThemeConstants.fontFamilyArabic,
-              fontSize: 20.sp,
-            ),
-          ),
-        ),
-        
-        Icon(
-          Icons.arrow_forward_ios_rounded,
-          color: color,
-          size: 18.sp,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMeaningSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'المعنى',
-          style: context.titleSmall?.copyWith(
-            color: context.textSecondaryColor,
-            fontWeight: ThemeConstants.medium,
-            fontSize: 12.sp,
-          ),
-        ),
-        SizedBox(height: 3.h),
-        Text(
-          item.meaning,
-          style: context.bodyMedium?.copyWith(
-            color: context.textPrimaryColor,
-            height: 1.5,
-            fontSize: 13.sp,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildExplanationPreview(BuildContext context, Color color) {
+  Widget _buildNumberBadge(BuildContext context, Color color) {
     return Container(
-      padding: EdgeInsets.all(10.w),
+      width: 48.w,
+      height: 48.h,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(
-          color: color.withValues(alpha: 0.2),
-          width: 1.w,
+        gradient: LinearGradient(
+          colors: [color, color.withOpacity(0.8)],
+        ),
+        borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.3),
+            blurRadius: 6.r,
+            offset: Offset(0, 2.h),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          '${item.id}',
+          style: context.titleMedium?.copyWith(
+            color: Colors.white,
+            fontWeight: ThemeConstants.bold,
+            fontSize: 16.sp,
+          ),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.auto_stories_rounded,
-                size: 14.sp,
-                color: color,
-              ),
-              SizedBox(width: 4.w),
-              Text(
-                'الشرح والتفسير',
-                style: context.titleSmall?.copyWith(
-                  color: color,
-                  fontWeight: ThemeConstants.medium,
-                  fontSize: 12.sp,
-                ),
-              ),
-            ],
+    );
+  }
+
+  Widget _buildNameSection(BuildContext context, Color color) {
+    return FutureBuilder<TextStyle>(
+      future: context.getAsmaAllahTextStyle(
+        color: color,
+        fontWeight: ThemeConstants.bold,
+      ),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Text(
+            item.name,
+            style: TextStyle(
+              color: color,
+              fontWeight: ThemeConstants.bold,
+              fontFamily: 'Amiri',
+              fontSize: 40.sp,
+            ),
+          );
+        }
+        
+        return Text(
+          item.name,
+          style: snapshot.data!.copyWith(
+            color: color,
           ),
-          SizedBox(height: 6.h),
-          RichText(
-            text: _buildDetailedPreviewTextSpan(item.explanation, context, 100),
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailsButton(Color color) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            color.withOpacity(0.15),
+            color.withOpacity(0.1),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1.5.w,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'عرض التفاصيل',
+            style: TextStyle(
+              fontSize: 13.sp,
+              fontWeight: ThemeConstants.bold,
+              color: color,
+            ),
+          ),
+          SizedBox(width: 6.w),
+          Icon(
+            Icons.visibility_rounded,
+            color: color,
+            size: 16.sp,
           ),
         ],
       ),
     );
   }
-
-  Widget _buildViewDetailsButton(BuildContext context, Color color) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: onTap,
-        icon: Icon(
-          Icons.visibility_rounded,
-          size: 16.sp,
-        ),
-        label: Text(
-          'عرض التفاصيل الكاملة',
-          style: TextStyle(fontSize: 12.sp),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color.withValues(alpha: 0.1),
-          foregroundColor: color,
-          elevation: 0,
-          padding: EdgeInsets.symmetric(vertical: 8.h),
-          side: BorderSide(
-            color: color.withValues(alpha: 0.3),
-            width: 1.w,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.r),
-          ),
-        ),
-      ),
-    );
-  }
-
-  TextSpan _buildDetailedPreviewTextSpan(String text, BuildContext context, int maxLength) {
-    String truncatedText = _getTruncatedText(text, maxLength);
-    
-    final List<TextSpan> spans = [];
-    final RegExp ayahPattern = RegExp(r'﴿([^﴾]+)﴾');
-    int lastIndex = 0;
-    
-    for (final match in ayahPattern.allMatches(truncatedText)) {
-      if (match.start > lastIndex) {
-        spans.add(TextSpan(
-          text: truncatedText.substring(lastIndex, match.start),
-          style: context.bodySmall?.copyWith(
-            color: context.textSecondaryColor,
-            height: 1.4,
-            fontSize: 11.sp,
-          ),
-        ));
-      }
-      
-      spans.add(TextSpan(
-        text: match.group(0),
-        style: context.bodySmall?.copyWith(
-          color: ThemeConstants.tertiary,
-          fontFamily: ThemeConstants.fontFamilyQuran,
-          fontWeight: ThemeConstants.medium,
-          height: 1.4,
-          fontSize: 11.sp,
-        ),
-      ));
-      
-      lastIndex = match.end;
-    }
-    
-    if (lastIndex < truncatedText.length) {
-      spans.add(TextSpan(
-        text: truncatedText.substring(lastIndex),
-        style: context.bodySmall?.copyWith(
-          color: context.textSecondaryColor,
-          height: 1.4,
-          fontSize: 11.sp,
-        ),
-      ));
-    }
-    
-    if (spans.isEmpty) {
-      spans.add(TextSpan(
-        text: truncatedText,
-        style: context.bodySmall?.copyWith(
-          color: context.textSecondaryColor,
-          height: 1.4,
-          fontSize: 11.sp,
-        ),
-      ));
-    }
-    
-    return TextSpan(children: spans);
-  }
-
-  String _getTruncatedText(String text, int maxLength) {
-    if (text.length <= maxLength) return text;
-    
-    final words = text.split(' ');
-    final truncatedWords = <String>[];
-    var currentLength = 0;
-    
-    for (final word in words) {
-      if (currentLength + word.length + 1 <= maxLength) {
-        truncatedWords.add(word);
-        currentLength += word.length + 1;
-      } else {
-        break;
-      }
-    }
-    
-    return '${truncatedWords.join(' ')}...';
-  }
 }
 
 // ============================================================================
-// LoadingCard - بطاقة التحميل المحسّنة
+// LoadingCard - بطاقة التحميل
 // ============================================================================
 class AsmaAllahLoadingCard extends StatefulWidget {
   const AsmaAllahLoadingCard({super.key});
@@ -797,8 +417,8 @@ class _AsmaAllahLoadingCardState extends State<AsmaAllahLoadingCard>
       animation: _shimmerAnimation,
       builder: (context, child) {
         return Container(
-          margin: EdgeInsets.only(bottom: 6.h),
-          padding: EdgeInsets.all(10.w),
+          margin: EdgeInsets.only(bottom: 12.h),
+          padding: EdgeInsets.all(12.w),
           decoration: BoxDecoration(
             color: context.cardColor,
             borderRadius: BorderRadius.circular(12.r),
@@ -810,8 +430,8 @@ class _AsmaAllahLoadingCardState extends State<AsmaAllahLoadingCard>
           child: Row(
             children: [
               Container(
-                width: 36.w,
-                height: 36.h,
+                width: 42.w,
+                height: 42.h,
                 decoration: BoxDecoration(
                   color: context.textSecondaryColor.withValues(
                     alpha: 0.1 + (_shimmerAnimation.value * 0.1),
@@ -820,45 +440,30 @@ class _AsmaAllahLoadingCardState extends State<AsmaAllahLoadingCard>
                 ),
               ),
               
-              SizedBox(width: 10.w),
+              SizedBox(width: 12.w),
               
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      height: 16.h,
-                      width: double.infinity * 0.4,
-                      decoration: BoxDecoration(
-                        color: context.textSecondaryColor.withValues(
-                          alpha: 0.1 + (_shimmerAnimation.value * 0.1),
-                        ),
-                        borderRadius: BorderRadius.circular(4.r),
-                      ),
+                child: Container(
+                  height: 20.h,
+                  decoration: BoxDecoration(
+                    color: context.textSecondaryColor.withValues(
+                      alpha: 0.1 + (_shimmerAnimation.value * 0.1),
                     ),
-                    SizedBox(height: 3.h),
-                    Container(
-                      height: 12.h,
-                      width: double.infinity * 0.8,
-                      decoration: BoxDecoration(
-                        color: context.textSecondaryColor.withValues(
-                          alpha: 0.05 + (_shimmerAnimation.value * 0.05),
-                        ),
-                        borderRadius: BorderRadius.circular(4.r),
-                      ),
-                    ),
-                    SizedBox(height: 3.h),
-                    Container(
-                      height: 12.h,
-                      width: double.infinity * 0.6,
-                      decoration: BoxDecoration(
-                        color: context.textSecondaryColor.withValues(
-                          alpha: 0.05 + (_shimmerAnimation.value * 0.05),
-                        ),
-                        borderRadius: BorderRadius.circular(4.r),
-                      ),
-                    ),
-                  ],
+                    borderRadius: BorderRadius.circular(4.r),
+                  ),
+                ),
+              ),
+              
+              SizedBox(width: 12.w),
+              
+              Container(
+                width: 80.w,
+                height: 32.h,
+                decoration: BoxDecoration(
+                  color: context.textSecondaryColor.withValues(
+                    alpha: 0.1 + (_shimmerAnimation.value * 0.1),
+                  ),
+                  borderRadius: BorderRadius.circular(10.r),
                 ),
               ),
             ],
@@ -870,7 +475,7 @@ class _AsmaAllahLoadingCardState extends State<AsmaAllahLoadingCard>
 }
 
 // ============================================================================
-// للتوافق مع الكود الموجود - Wrappers
+// Wrappers للتوافق مع الكود القديم
 // ============================================================================
 
 class EnhancedAsmaAllahCard extends StatelessWidget {
@@ -888,7 +493,6 @@ class EnhancedAsmaAllahCard extends StatelessWidget {
     return CompactAsmaAllahCard(
       item: item,
       onTap: onTap,
-      showExplanationPreview: true,
     );
   }
 }
@@ -914,10 +518,6 @@ class UnifiedAsmaAllahCard extends StatelessWidget {
     return CompactAsmaAllahCard(
       item: item,
       onTap: onTap,
-      showQuickActions: showActions,
-      showExplanationPreview: true,
-      onFavorite: onFavorite,
-      isFavorite: isFavorite,
     );
   }
 }
@@ -942,7 +542,7 @@ class AsmaAllahCard extends StatelessWidget {
 }
 
 // ============================================================================
-// Search Bar المحسن للشاشات الصغيرة
+// Search Bar المحسن
 // ============================================================================
 class EnhancedAsmaAllahSearchBar extends StatelessWidget {
   final TextEditingController controller;
@@ -979,7 +579,7 @@ class EnhancedAsmaAllahSearchBar extends StatelessWidget {
         onChanged: onChanged,
         style: context.bodyMedium?.copyWith(fontSize: 13.sp),
         decoration: InputDecoration(
-          hintText: 'ابحث في أسماء الله الحسنى أو معانيها...',
+          hintText: 'ابحث في أسماء الله الحسنى...',
           hintStyle: TextStyle(
             color: context.textSecondaryColor.withValues(alpha: 0.7),
             fontSize: 12.sp,

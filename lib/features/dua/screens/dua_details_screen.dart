@@ -3,6 +3,8 @@
 import 'package:athkar_app/core/infrastructure/services/share/share_extensions.dart';
 import 'package:athkar_app/core/infrastructure/services/text/extensions/text_settings_extensions.dart';
 import 'package:athkar_app/core/infrastructure/services/text/models/text_settings_models.dart';
+import 'package:athkar_app/core/infrastructure/services/favorites/models/favorite_models.dart';
+import 'package:athkar_app/core/infrastructure/services/favorites/extensions/favorites_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -230,71 +232,82 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
             ),
           ),
           
-          PopupMenuButton<String>(
-            icon: Icon(
-              Icons.more_vert_rounded,
-              color: context.textPrimaryColor,
-              size: 20.sp,
-            ),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-            onSelected: (value) {
-              switch (value) {
-                case 'favorite': _toggleFavorite(); break;
-                case 'copy': _copyDua(); break;
-                case 'share': _shareDua(); break;
-                case 'font': _showTextSettingsDialog(); break;
-              }
+          // زر إعدادات النصوص
+          _buildActionButton(
+            icon: Icons.text_fields_rounded,
+            color: ThemeConstants.info,
+            onTap: () async {
+              HapticFeedback.lightImpact();
+              await context.showGlobalTextSettings(
+                initialContentType: ContentType.dua,
+              );
+              await _loadTextSettings();
+              setState(() {});
             },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'favorite',
-                child: Row(
-                  children: [
-                    Icon(
-                      _currentDua.isFavorite ? Icons.bookmark : Icons.bookmark_outline,
-                      size: 20.sp,
-                      color: _currentDua.isFavorite ? ThemeConstants.accent : null,
-                    ),
-                    SizedBox(width: 8.w),
-                    Text(_currentDua.isFavorite ? 'إزالة من المفضلة' : 'إضافة للمفضلة'),
-                  ],
-                ),
-              ),
-              const PopupMenuDivider(),
-              PopupMenuItem(
-                value: 'copy',
-                child: Row(
-                  children: [
-                    Icon(Icons.copy_rounded, size: 20.sp),
-                    SizedBox(width: 8.w),
-                    const Text('نسخ'),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'share',
-                child: Row(
-                  children: [
-                    Icon(Icons.share_rounded, size: 20.sp),
-                    SizedBox(width: 8.w),
-                    const Text('مشاركة'),
-                  ],
-                ),
-              ),
-              const PopupMenuDivider(),
-              PopupMenuItem(
-                value: 'font',
-                child: Row(
-                  children: [
-                    Icon(Icons.text_fields_rounded, size: 20.sp),
-                    SizedBox(width: 8.w),
-                    const Text('إعدادات النص'),
-                  ],
-                ),
-              ),
-            ],
+          ),
+          
+          // زر النسخ
+          _buildActionButton(
+            icon: Icons.copy_rounded,
+            color: context.textSecondaryColor,
+            onTap: _copyDua,
+          ),
+          
+          // زر المفضلة
+          _buildActionButton(
+            icon: _currentDua.isFavorite ? Icons.bookmark : Icons.bookmark_outline,
+            color: context.textSecondaryColor,
+            onTap: _toggleFavorite,
+          ),
+          
+          // زر المشاركة
+          _buildActionButton(
+            icon: Icons.share_rounded,
+            color: context.textSecondaryColor,
+            onTap: _shareDua,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: EdgeInsets.only(left: 2.w),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(10.r),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(10.r),
+          child: Container(
+            padding: EdgeInsets.all(6.w),
+            decoration: BoxDecoration(
+              color: context.cardColor,
+              borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(
+                color: context.dividerColor.withValues(alpha: 0.3),
+                width: 1.w,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 3.r,
+                  offset: Offset(0, 2.h),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 20.sp,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -577,15 +590,6 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
         ],
       ),
     );
-  }
-
-  void _showTextSettingsDialog() async {
-    await context.showGlobalTextSettings(
-      initialContentType: ContentType.dua,
-    );
-    // إعادة تحميل الإعدادات عند العودة
-    await _loadTextSettings();
-    setState(() {});
   }
 
   Color _getCategoryColor(String categoryId) {

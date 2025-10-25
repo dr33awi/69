@@ -8,6 +8,8 @@ import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../../../core/infrastructure/services/favorites/models/favorite_models.dart';
 import '../../../core/infrastructure/services/favorites/extensions/favorites_extensions.dart';
+import '../../../core/infrastructure/services/text/extensions/text_settings_extensions.dart';
+import '../../../core/infrastructure/services/text/models/text_settings_models.dart';
 import '../services/dua_service.dart';
 import '../models/dua_model.dart';
 import 'dua_list_screen.dart';
@@ -156,11 +158,18 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
                 ),
               ),
               
+              // زر إعدادات النصوص
+              _buildActionButton(
+                icon: Icons.text_fields_rounded,
+                color: ThemeConstants.info,
+                onTap: _openTextSettings,
+              ),
+              
               // زر المفضلة
               _buildActionButton(
-                icon: Icons.bookmark_outline_rounded,
+                icon: Icons.bookmark_rounded,
+                color: context.textSecondaryColor,
                 onTap: _openFavorites,
-                showBadge: (_statistics['favoritesCount'] ?? 0) > 0,
               ),
             ],
           ),
@@ -223,11 +232,11 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
 
   Widget _buildActionButton({
     required IconData icon,
+    required Color color,
     required VoidCallback onTap,
-    bool showBadge = false,
   }) {
     return Container(
-      margin: EdgeInsets.only(left: 6.w),
+      margin: EdgeInsets.only(left: 2.w),
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(10.r),
@@ -238,43 +247,26 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
           },
           borderRadius: BorderRadius.circular(10.r),
           child: Container(
-            padding: EdgeInsets.all(7.r),
+            padding: EdgeInsets.all(6.w),
             decoration: BoxDecoration(
               color: context.cardColor,
               borderRadius: BorderRadius.circular(10.r),
               border: Border.all(
-                color: context.dividerColor.withOpacity(0.3),
+                color: context.dividerColor.withValues(alpha: 0.3),
                 width: 1.w,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 3.r,
                   offset: Offset(0, 2.h),
                 ),
               ],
             ),
-            child: Stack(
-              children: [
-                Icon(
-                  icon,
-                  color: context.textPrimaryColor,
-                  size: 20.sp,
-                ),
-                if (showBadge)
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: Container(
-                      width: 6.w,
-                      height: 6.h,
-                      decoration: const BoxDecoration(
-                        color: ThemeConstants.error,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-              ],
+            child: Icon(
+              icon,
+              color: color,
+              size: 20.sp,
             ),
           ),
         ),
@@ -672,6 +664,12 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
   void _openFavorites() {
     HapticFeedback.lightImpact();
     context.openFavoritesScreen(FavoriteContentType.dua);
+  }
+
+  void _openTextSettings() {
+    context.showGlobalTextSettings(
+      initialContentType: ContentType.dua,
+    );
   }
 }
 

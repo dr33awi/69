@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../../../app/di/service_locator.dart';
 import '../favorites_service.dart';
 import '../models/favorite_models.dart';
-import '../screens/unified_favorites_screen.dart';
+import '../screens/favorites_screen.dart';
 import '../../text/models/text_settings_models.dart' as text_models;
 
 /// امتدادات BuildContext للوصول السهل لخدمة المفضلة
