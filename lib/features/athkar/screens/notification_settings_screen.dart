@@ -228,90 +228,78 @@ class _AthkarNotificationSettingsScreenState
     });
   }
 
-  Future<bool> _showUnsavedChangesDialog() async {
-    if (!_hasChanges) return true;
-    
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(ThemeConstants.radius2xl),
-        ),
-        backgroundColor: context.cardColor,
-        title: Row(
-          children: [
-            Container(
-              padding: EdgeInsets.all(ThemeConstants.space2),
-              decoration: BoxDecoration(
-                color: ThemeConstants.warning.withOpacity(ThemeConstants.opacity10),
-                borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
-              ),
-              child: Icon(
-                Icons.warning_amber_rounded,
-                color: ThemeConstants.warning,
-                size: ThemeConstants.iconMd,
-              ),
+Future<bool> _showUnsavedChangesDialog() async {
+  if (!_hasChanges) return true;
+  
+  final result = await showDialog<String>(
+    context: context,
+    builder: (context) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+      title: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(8.r),
+            decoration: BoxDecoration(
+              color: ThemeConstants.warning.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10.r),
             ),
-            SizedBox(width: ThemeConstants.space3),
-            Expanded(
-              child: Text(
-                'تغييرات غير محفوظة',
-                style: TextStyle(
-                  fontSize: ThemeConstants.textSizeLg,
-                  fontWeight: ThemeConstants.bold,
-                  color: context.textPrimaryColor,
-                ),
-              ),
+            child: Icon(Icons.warning_amber_rounded, color: ThemeConstants.warning, size: 24.sp),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Text(
+              'تغييرات غير محفوظة',
+              style: TextStyle(fontSize: 16.sp, fontWeight: ThemeConstants.bold),
             ),
-          ],
-        ),
-        content: Text(
-          'لديك تغييرات لم يتم حفظها. هل تريد حفظ التغييرات قبل المغادرة؟',
-          style: TextStyle(
-            fontSize: ThemeConstants.textSizeMd,
-            height: 1.6,
-            color: context.textPrimaryColor,
-          ),
-        ),
-        actionsPadding: EdgeInsets.fromLTRB(
-          ThemeConstants.space4,
-          0,
-          ThemeConstants.space4,
-          ThemeConstants.space4,
-        ),
-        actions: [
-          AppButton.text(
-            text: 'تجاهل التغييرات',
-            onPressed: () => Navigator.pop(context, 'discard'),
-            size: ButtonSize.medium,
-            color: ThemeConstants.error,
-          ),
-          SizedBox(width: ThemeConstants.space2),
-          AppButton.primary(
-            text: 'حفظ وخروج',
-            onPressed: () => Navigator.pop(context, 'save'),
-            size: ButtonSize.medium,
           ),
         ],
       ),
-    );
-    
-    if (result == 'save') {
-      await _saveChanges();
-      return !_hasChanges;
-    } else if (result == 'discard') {
-      setState(() {
-        _enabled.clear();
-        _enabled.addAll(_originalEnabled);
-        _customTimes.clear();
-        _customTimes.addAll(_originalTimes);
-        _hasChanges = false;
-      });
-      return true;
-    }
-    
-    return false;
+      content: Text(
+        'لديك تغييرات لم يتم حفظها. هل تريد حفظ التغييرات قبل المغادرة؟',
+        style: TextStyle(fontSize: 14.sp, height: 1.6),
+      ),
+      actionsPadding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, 'discard'),
+          style: TextButton.styleFrom(
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+          ),
+          child: Text(
+            'تجاهل التغييرات', 
+            style: TextStyle(fontSize: 14.sp, color: ThemeConstants.error),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context, 'save'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: ThemeConstants.primary,
+            foregroundColor: Colors.white,
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+          ),
+          child: Text('حفظ وخروج', style: TextStyle(fontSize: 14.sp)),
+        ),
+      ],
+    ),
+  );
+  
+  if (result == 'save') {
+    await _saveChanges();
+    return !_hasChanges;
+  } else if (result == 'discard') {
+    setState(() {
+      _enabled.clear();
+      _enabled.addAll(_originalEnabled);
+      _customTimes.clear();
+      _customTimes.addAll(_originalTimes);
+      _hasChanges = false;
+    });
+    return true;
   }
+  
+  return false;
+}
 
   Future<void> _toggleCategory(String categoryId, bool value) async {
     // ✅ إذا كان المستخدم يريد تفعيل التذكير وليس لديه إذن
@@ -360,50 +348,53 @@ class _AthkarNotificationSettingsScreenState
     }
   }
 
-  Future<void> _saveChanges() async {
-    if (_saving || !_hasChanges) return;
-    
-    setState(() => _saving = true);
-    
-    try {
-      if (!_hasPermission) {
-        final enabledCount = _enabled.values.where((e) => e).length;
-        if (enabledCount > 0) {
-          if (mounted) {
-            // ✅ استخدام الرسالة الموحدة
-            context.showPermissionDeniedMessage('الإشعارات');
-          }
-          setState(() => _saving = false);
-          return;
+Future<void> _saveChanges() async {
+  if (_saving || !_hasChanges) return;
+  
+  setState(() => _saving = true);
+  
+  try {
+    if (!_hasPermission) {
+      final enabledCount = _enabled.values.where((e) => e).length;
+      if (enabledCount > 0) {
+        if (mounted) {
+          context.showPermissionDeniedMessage('الإشعارات');
         }
-      }
-
-      await _service.updateReminderSettings(
-        enabledMap: _enabled,
-        customTimes: _customTimes,
-      );
-      
-      _originalEnabled.clear();
-      _originalTimes.clear();
-      _originalEnabled.addAll(_enabled);
-      _originalTimes.addAll(_customTimes);
-      
-      if (mounted) {
-        context.showSuccessSnackBar('تم حفظ الإعدادات بنجاح');
-        setState(() {
-          _hasChanges = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        context.showErrorSnackBar('حدث خطأ في حفظ الإعدادات');
-      }
-    } finally {
-      if (mounted) {
         setState(() => _saving = false);
+        return;
       }
     }
+
+    await _service.updateReminderSettings(
+      enabledMap: _enabled,
+      customTimes: _customTimes,
+    );
+    
+    _originalEnabled.clear();
+    _originalTimes.clear();
+    _originalEnabled.addAll(_enabled);
+    _originalTimes.addAll(_customTimes);
+    
+    if (!mounted) return;
+    
+    context.showSuccessSnackBar('تم حفظ الإعدادات بنجاح');
+    setState(() {
+      _hasChanges = false;
+    });
+    
+    // ✅ إضافة هذا السطر للخروج بعد الحفظ
+    Navigator.pop(context);
+    
+  } catch (e) {
+    if (!mounted) return;
+    
+    context.showErrorSnackBar('حدث خطأ في حفظ الإعدادات');
+  } finally {
+    if (mounted) {
+      setState(() => _saving = false);
+    }
   }
+}
 
   Future<void> _selectTime(String categoryId, TimeOfDay currentTime) async {
     final selectedTime = await showTimePicker(

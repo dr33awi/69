@@ -125,6 +125,7 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
     
     try {
       await _prayerService.updateNotificationSettings(_notificationSettings);
+      
       if (!mounted) return;
       
       context.showSuccessSnackBar('تم حفظ إعدادات الإشعارات بنجاح');
@@ -132,6 +133,8 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
         _originalSettings = _notificationSettings;
         _hasChanges = false;
       });
+      
+      Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
       
@@ -150,7 +153,6 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
-        backgroundColor: context.cardColor,
         title: Row(
           children: [
             Container(
@@ -176,34 +178,44 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
         ),
         actionsPadding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
         actions: [
-          AppButton.text(
-            text: 'تجاهل التغييرات',
+          TextButton(
             onPressed: () => Navigator.pop(context, 'discard'),
-            size: ButtonSize.medium,
-            color: ThemeConstants.error,
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+            ),
+            child: Text(
+              'تجاهل التغييرات', 
+              style: TextStyle(fontSize: 14.sp, color: ThemeConstants.error),
+            ),
           ),
-          SizedBox(width: ThemeConstants.space2),
-          AppButton.primary(
-            text: 'حفظ وخروج',
+          ElevatedButton(
             onPressed: () => Navigator.pop(context, 'save'),
-            size: ButtonSize.medium,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ThemeConstants.primary,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+            ),
+            child: Text('حفظ وخروج', style: TextStyle(fontSize: 14.sp)),
           ),
         ],
       ),
     );
     
     if (result == 'save') {
+      // حفظ التغييرات
       await _saveSettings();
       return !_hasChanges;
     } else if (result == 'discard') {
+      // تجاهل التغييرات - إرجاع الإعدادات للحالة الأصلية
       setState(() {
         _notificationSettings = _originalSettings;
         _hasChanges = false;
       });
-      return true;
+      return true; // السماح بالخروج
     }
     
-    return false;
+    return false; // إلغاء (result == 'cancel' or null)
   }
 
   @override
@@ -237,7 +249,7 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
     );
     
     return Container(
-      padding: EdgeInsets.all(12.w),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
       child: Row(
         children: [
           AppBackButton(
@@ -252,13 +264,13 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
           SizedBox(width: 8.w),
           
           Container(
-            padding: EdgeInsets.all(6.w),
+            padding: EdgeInsets.all(6.r),
             decoration: BoxDecoration(
               gradient: gradient,
               borderRadius: BorderRadius.circular(10.r),
               boxShadow: [
                 BoxShadow(
-                  color: ThemeConstants.primary.withOpacity(0.3),
+                  color: ThemeConstants.primary.withOpacity(0.25),
                   blurRadius: 6.r,
                   offset: Offset(0, 3.h),
                 ),
@@ -282,14 +294,14 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
                   style: TextStyle(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
-                    fontSize: 15.sp,
+                    fontSize: 17.sp,
                   ),
                 ),
                 Text(
                   'تخصيص تنبيهات أوقات الصلاة',
                   style: TextStyle(
                     color: context.textSecondaryColor,
-                    fontSize: 10.sp,
+                    fontSize: 11.sp,
                   ),
                 ),
               ],
@@ -309,7 +321,7 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
                   },
                   borderRadius: BorderRadius.circular(10.r),
                   child: Container(
-                    padding: EdgeInsets.all(6.w),
+                    padding: EdgeInsets.all(6.r),
                     decoration: BoxDecoration(
                       color: context.cardColor,
                       borderRadius: BorderRadius.circular(10.r),
@@ -318,9 +330,9 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withOpacity(0.08),
                           blurRadius: 3.r,
-                          offset: Offset(0, 2.h),
+                          offset: Offset(0, 1.5.h),
                         ),
                       ],
                     ),

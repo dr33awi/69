@@ -22,13 +22,9 @@ class PermissionsSetupScreen extends StatefulWidget {
   State<PermissionsSetupScreen> createState() => _PermissionsSetupScreenState();
 }
 
-class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> 
-    with SingleTickerProviderStateMixin {
+class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
   late final SimplePermissionService _permissionService;
   late final StorageService _storage;
-  late final AnimationController _animationController;
-  late final Animation<double> _fadeAnimation;
-  late final Animation<double> _scaleAnimation;
 
   bool _notificationGranted = false;
   bool _locationGranted = false;
@@ -41,34 +37,11 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen>
     _permissionService = getIt<SimplePermissionService>();
     _storage = getIt<StorageService>();
     
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-    
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
-    ));
-    
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: const Interval(0.3, 1.0, curve: Curves.elasticOut),
-    ));
-    
-    _animationController.forward();
     _checkPermissions();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
     super.dispose();
   }
 
@@ -237,25 +210,14 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen>
     return Scaffold(
       backgroundColor: context.backgroundColor,
       body: SafeArea(
-        child: AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            return FadeTransition(
-              opacity: _fadeAnimation,
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: Column(
-                  children: [
-                    _buildHeader(),
-                    Expanded(
-                      child: _buildContent(),
-                    ),
-                    _buildFooter(),
-                  ],
-                ),
-              ),
-            );
-          },
+        child: Column(
+          children: [
+            _buildHeader(),
+            Expanded(
+              child: _buildContent(),
+            ),
+            _buildFooter(),
+          ],
         ),
       ),
     );
@@ -396,8 +358,7 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen>
         ? ThemeConstants.success
         : (isActive ? ThemeConstants.primary : context.textSecondaryColor);
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
+    return Container(
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(16.r),
