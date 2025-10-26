@@ -12,6 +12,7 @@ class TextPreviewWidget extends StatelessWidget {
   final DisplaySettings displaySettings;
   final Color accentColor;
   final Map<ContentType, String> previewTexts;
+  final Map<ContentType, Map<String, dynamic>>? previewMetadata;
   final ValueChanged<String>? onFontChanged;
   final ValueChanged<double>? onFontSizeChanged;
   final ValueChanged<double>? onLineHeightChanged;
@@ -26,6 +27,7 @@ class TextPreviewWidget extends StatelessWidget {
     required this.displaySettings,
     required this.accentColor,
     required this.previewTexts,
+    this.previewMetadata,
     this.onFontChanged,
     this.onFontSizeChanged,
     this.onLineHeightChanged,
@@ -37,6 +39,7 @@ class TextPreviewWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final previewText = previewTexts[contentType] ?? '';
+    final metadata = previewMetadata?[contentType];
     
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 0.w, vertical: 8.h),
@@ -80,20 +83,53 @@ class TextPreviewWidget extends StatelessWidget {
             padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 10.h),
             child: Row(
               children: [
-                Text(
-                  'معاينة مباشرة',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: ThemeConstants.bold,
-                    color: accentColor,
+                Container(
+                  padding: EdgeInsets.all(8.r),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        accentColor,
+                        accentColor.withOpacity(0.8),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(10.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: accentColor.withOpacity(0.3),
+                        blurRadius: 6,
+                        offset: Offset(0, 2.h),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.preview_rounded,
+                    color: Colors.white,
+                    size: 18.sp,
                   ),
                 ),
-                Spacer(),
-                Text(
-                  _getPreviewSubtitle(contentType),
-                  style: TextStyle(
-                    fontSize: 11.sp,
-                    color: context.textSecondaryColor,
+                SizedBox(width: 10.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'معاينة مباشرة',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: ThemeConstants.bold,
+                          color: context.textPrimaryColor,
+                        ),
+                      ),
+                      Text(
+                        _getPreviewSubtitle(contentType),
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          color: context.textSecondaryColor,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -115,23 +151,161 @@ class TextPreviewWidget extends StatelessWidget {
             ),
           ),
           
-          // النص المعاين - بدون أنيميشن
+          // محتوى الكارد (مشابه لكارد الأذكار)
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 18.h),
-            child: Text(
-              displaySettings.showTashkeel 
-                  ? previewText 
-                  : _removeTashkeel(previewText),
-              style: TextStyle(
-                fontSize: textSettings.fontSize,
-                fontFamily: textSettings.fontFamily,
-                height: textSettings.lineHeight,
-                letterSpacing: textSettings.letterSpacing,
-                color: context.textPrimaryColor,
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-              textDirection: TextDirection.rtl,
+            padding: EdgeInsets.all(12.r),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // النص المعاين داخل صندوق
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(12.r),
+                  decoration: BoxDecoration(
+                    color: context.isDarkMode 
+                        ? accentColor.withOpacity(0.08)
+                        : accentColor.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(
+                      color: accentColor.withOpacity(0.2),
+                      width: 1.w,
+                    ),
+                  ),
+                  child: Text(
+                    displaySettings.showTashkeel 
+                        ? previewText 
+                        : _removeTashkeel(previewText),
+                    style: TextStyle(
+                      fontSize: textSettings.fontSize,
+                      fontFamily: textSettings.fontFamily,
+                      height: textSettings.lineHeight,
+                      letterSpacing: textSettings.letterSpacing,
+                      color: context.textPrimaryColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                    textDirection: TextDirection.rtl,
+                  ),
+                ),
+                
+                // الفضيلة (إن كانت معروضة)
+                if (displaySettings.showFadl && metadata?['fadl'] != null) ...[
+                  SizedBox(height: 10.h),
+                  Container(
+                    padding: EdgeInsets.all(10.r),
+                    decoration: BoxDecoration(
+                      color: ThemeConstants.accent.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(10.r),
+                      border: Border.all(
+                        color: ThemeConstants.accent.withOpacity(0.2),
+                        width: 1.w,
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(4.r),
+                          decoration: BoxDecoration(
+                            color: ThemeConstants.accent.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(6.r),
+                          ),
+                          child: Icon(
+                            Icons.star_rounded,
+                            size: 16.sp,
+                            color: ThemeConstants.accent,
+                          ),
+                        ),
+                        SizedBox(width: 6.w),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'الفضيلة',
+                                style: TextStyle(
+                                  color: ThemeConstants.accent,
+                                  fontWeight: ThemeConstants.semiBold,
+                                  fontSize: 12.sp,
+                                ),
+                              ),
+                              SizedBox(height: 3.h),
+                              Text(
+                                metadata!['fadl'],
+                                style: TextStyle(
+                                  color: context.textSecondaryColor,
+                                  height: 1.4,
+                                  fontSize: ((textSettings.fontSize) * 0.75).sp.clamp(11.sp, 18.sp),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                
+                SizedBox(height: 12.h),
+                
+                // المصدر والعداد
+                Row(
+                  children: [
+                    // المصدر (إن كان معروضاً)
+                    if (displaySettings.showSource && metadata != null && metadata['source'] != null) ...[
+                      Expanded(
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 10.w,
+                            vertical: 6.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: context.textSecondaryColor.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(999.r),
+                            border: Border.all(
+                              color: context.textSecondaryColor.withOpacity(0.15),
+                              width: 1.w,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.source_rounded,
+                                size: 14.sp,
+                                color: context.textSecondaryColor,
+                              ),
+                              SizedBox(width: 4.w),
+                              Flexible(
+                                child: Text(
+                                  metadata['source'],
+                                  style: TextStyle(
+                                    color: context.textSecondaryColor,
+                                    fontWeight: ThemeConstants.medium,
+                                    fontSize: 10.sp,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (displaySettings.showCounter && 
+                          contentType == ContentType.athkar && 
+                          metadata['count'] != null) 
+                        SizedBox(width: 10.w),
+                    ],
+                    
+                    // العداد (للأذكار فقط وإن كان معروضاً)
+                    if (displaySettings.showCounter && 
+                        contentType == ContentType.athkar && 
+                        metadata != null &&
+                        metadata['count'] != null)
+                      _buildCounter(context, metadata),
+                  ],
+                ),
+              ],
             ),
           ),
           
@@ -204,6 +378,100 @@ class TextPreviewWidget extends StatelessWidget {
                 ],
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildCounter(BuildContext context, Map<String, dynamic> metadata) {
+    final count = metadata['count'] as int;
+    final currentCount = metadata['currentCount'] as int? ?? 0;
+    final progress = currentCount / count;
+    
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: 10.w,
+        vertical: 6.h,
+      ),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(999.r),
+        border: Border.all(
+          color: context.dividerColor,
+          width: 1.w,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 20.r,
+            height: 20.r,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 20.r,
+                  height: 20.r,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: context.dividerColor.withOpacity(0.5),
+                      width: 1.5.w,
+                    ),
+                  ),
+                ),
+                
+                SizedBox(
+                  width: 20.r,
+                  height: 20.r,
+                  child: CircularProgressIndicator(
+                    value: progress,
+                    strokeWidth: 1.5.w,
+                    backgroundColor: Colors.transparent,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      ThemeConstants.primary,
+                    ),
+                  ),
+                ),
+                
+                if (currentCount > 0)
+                  Container(
+                    width: 6.r,
+                    height: 6.r,
+                    decoration: const BoxDecoration(
+                      color: ThemeConstants.primary,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          
+          SizedBox(width: 6.w),
+          
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '$currentCount / $count',
+                style: TextStyle(
+                  color: context.textPrimaryColor,
+                  fontWeight: ThemeConstants.medium,
+                  fontSize: 12.sp,
+                ),
+              ),
+              if (currentCount > 0)
+                Text(
+                  'اضغط للمتابعة',
+                  style: TextStyle(
+                    color: context.textSecondaryColor,
+                    fontSize: 8.sp,
+                  ),
+                ),
+            ],
           ),
         ],
       ),

@@ -37,12 +37,12 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
   AthkarCategory? _category;
   final Map<int, int> _counts = {};
   final Set<int> _completedItems = {};
-  final Map<String, bool> _favoriteStates = {}; // حالات المفضلة
+  final Map<String, bool> _favoriteStates = {};
   List<AthkarItem> _visibleItems = [];
   bool _loading = true;
   bool _allCompleted = false;
   bool _wasCompletedOnLoad = false;
-  bool _dialogShown = false; // علم لتجنب عرض الحوار مرتين
+  bool _dialogShown = false;
   
   // إعدادات النص الموحدة
   TextSettings? _textSettings;
@@ -58,9 +58,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
 
   @override
   void dispose() {
-    if (_allCompleted && !_wasCompletedOnLoad) {
-      _resetAllSilently();
-    }
     super.dispose();
   }
 
@@ -71,7 +68,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
       
       final savedProgress = _loadSavedProgress();
       
-      // تحميل الإعدادات الموحدة للأذكار
       await _loadTextSettings();
       await _loadFavoriteStates();
       
@@ -107,6 +103,15 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
         _loading = false;
       });
       
+      // إعادة التعيين التلقائي إذا كانت الأذكار مكتملة عند فتح الصفحة
+      if (wasAlreadyCompleted && mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _resetAllAndStartAgain();
+          }
+        });
+      }
+      
     } catch (e, stackTrace) {
       if (!mounted) return;
       setState(() => _loading = false);
@@ -120,12 +125,10 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
   }
 
   Future<void> _loadTextSettings() async {
-    // تحميل الإعدادات الموحدة من TextSettingsService
     _textSettings = await context.getTextSettings(ContentType.athkar);
     _displaySettings = await context.getDisplaySettings(ContentType.athkar);
   }
 
-  /// تحميل حالات المفضلة لجميع الأذكار
   Future<void> _loadFavoriteStates() async {
     if (_category == null) return;
     
@@ -143,7 +146,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
     }
   }
 
-  /// تبديل حالة المفضلة لذكر معين
   Future<void> _toggleFavorite(AthkarItem item) async {
     try {
       HapticFeedback.lightImpact();
@@ -152,7 +154,7 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
         athkarId: item.id.toString(),
         text: item.text,
         fadl: item.fadl,
-        source: _category?.title,
+        source: item.source ?? _category?.title,
         categoryId: _category?.id,
         count: item.count,
       );
@@ -161,7 +163,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
         _favoriteStates[item.id.toString()] = wasAdded;
       });
       
-      // إظهار رسالة تأكيد
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -226,7 +227,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
       _allCompleted = isNowCompleted;
     });
     
-    // عرض حوار الإكمال عندما يكمل المستخدم لأول مرة
     if (!wasCompleted && isNowCompleted && !_dialogShown && !_wasCompletedOnLoad) {
       _dialogShown = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -274,7 +274,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
     });
     
     _saveProgress();
-    context.showAthkarInfoSnackBar('تم إعادة تعيين العداد');
   }
 
   Future<void> _shareProgress() async {
@@ -299,9 +298,19 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
       _updateVisibleItems();
     });
     _saveProgress();
-    
-    // إظهار رسالة تأكيد
-    context.showAthkarInfoSnackBar('تم إعادة تعيين جميع الأذكار');
+  }
+
+  /// إعادة تعيين جميع الأذكار والبدء من جديد فوراً
+  void _resetAllAndStartAgain() {
+    setState(() {
+      _counts.clear();
+      _completedItems.clear();
+      _allCompleted = false;
+      _wasCompletedOnLoad = false;
+      _dialogShown = false;
+      _updateVisibleItems();
+    });
+    _saveProgress();
   }
 
   Future<void> _resetAllSilently() async {
@@ -320,7 +329,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
     );
   }
 
-  /// عرض حوار الإكمال
   void _showCompletionDialog() {
     if (!mounted) return;
     
@@ -364,7 +372,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // أيقونة النجاح
                   Container(
                     width: 100.r,
                     height: 100.r,
@@ -392,7 +399,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
                   
                   SizedBox(height: 24.h),
                   
-                  // العنوان
                   Text(
                     'بارك الله فيك',
                     style: TextStyle(
@@ -405,7 +411,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
                   
                   SizedBox(height: 12.h),
                   
-                  // النص
                   Text(
                     'أتممت جميع أذكار ${_category?.title ?? 'هذه الفئة'}',
                     style: TextStyle(
@@ -417,19 +422,51 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
                   ),
                   
                   SizedBox(height: 8.h),
-                                    
-                  SizedBox(height: 28.h),
                   
-                  // الأزرار
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 12.h),
+                    padding: EdgeInsets.all(12.r),
+                    decoration: BoxDecoration(
+                      color: ThemeConstants.info.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12.r),
+                      border: Border.all(
+                        color: ThemeConstants.info.withOpacity(0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 18.sp,
+                          color: ThemeConstants.info,
+                        ),
+                        SizedBox(width: 8.w),
+                        Expanded(
+                          child: Text(
+                            'يمكنك قراءة الأذكار مرة أخرى، وعند فتح التطبيق لاحقاً ستظهر الأذكار تلقائياً',
+                            style: TextStyle(
+                              color: ThemeConstants.info,
+                              fontSize: 11.sp,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                                    
+                  SizedBox(height: 16.h),
+                  
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       AppButton.success(
-                        text: 'البدء من جديد',
+                        text: 'قراءة الأذكار مرة أخرى',
                         icon: Icons.refresh_rounded,
                         onPressed: () {
                           Navigator.pop(context);
-                          _resetAll();
+                          _resetAllAndStartAgain();
                         },
                         isFullWidth: true,
                       ),
@@ -437,11 +474,14 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
                       SizedBox(height: 12.h),
                       
                       AppButton.outline(
-                        text: 'مشاركة',
+                        text: 'مشاركة الإنجاز',
                         icon: Icons.share_rounded,
-                        onPressed: () {
-                          Navigator.pop(context);
-                          _shareProgress();
+                        onPressed: () async {
+                          await _shareProgress();
+                          if (mounted) {
+                            Navigator.pop(context);
+                            _resetAllAndStartAgain();
+                          }
                         },
                         color: ThemeConstants.success,
                         isFullWidth: true,
@@ -451,9 +491,11 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
                   
                   SizedBox(height: 12.h),
                   
-                  // زر الإغلاق
                   TextButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _resetAllAndStartAgain();
+                    },
                     style: TextButton.styleFrom(
                       padding: EdgeInsets.symmetric(
                         horizontal: 24.w,
@@ -461,7 +503,7 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
                       ),
                     ),
                     child: Text(
-                      'إغلاق',
+                      'إغلاق والبدء من جديد',
                       style: TextStyle(
                         color: context.textSecondaryColor,
                         fontSize: 14.sp,
@@ -474,7 +516,15 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
           ),
         ),
       ),
-    );
+    ).then((_) {
+      if (mounted && _allCompleted) {
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (mounted) {
+            _resetAllAndStartAgain();
+          }
+        });
+      }
+    });
   }
 
   @override
@@ -618,7 +668,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
           ),
           
           if (category != null) ...[
-            // زر إعادة التعيين
             if (_completedItems.isNotEmpty)
               _buildActionButton(
                 icon: Icons.restart_alt_rounded,
@@ -631,7 +680,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
                 },
               ),
             
-            // زر إعدادات النص
             _buildActionButton(
               icon: Icons.text_fields_rounded,
               color: ThemeConstants.info,
@@ -647,7 +695,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
               },
             ),
             
-            // زر المفضلة
             _buildActionButton(
               icon: Icons.bookmark_rounded,
               color: context.textSecondaryColor,
@@ -657,7 +704,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
               },
             ),
             
-            // زر الإشعارات
             _buildActionButton(
               icon: Icons.notifications_outlined,
               color: context.textSecondaryColor,
@@ -723,7 +769,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
     );
   }
 
-  /// عرض حوار تأكيد إعادة التعيين
   Future<bool?> _showResetConfirmationDialog() {
     return showDialog<bool>(
       context: context,

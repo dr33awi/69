@@ -61,50 +61,132 @@ class _FavoritesFilterSheetState extends State<FavoritesFilterSheet> {
       decoration: BoxDecoration(
         color: context.backgroundColor,
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(24.r),
+          top: Radius.circular(28.r),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 20.r,
+            offset: Offset(0, -4.h),
+          ),
+        ],
       ),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // المقبض
+            // المقبض مع تصميم أفضل
             Container(
               margin: EdgeInsets.only(top: 12.h),
-              width: 40.w,
-              height: 4.h,
+              width: 45.w,
+              height: 5.h,
               decoration: BoxDecoration(
-                color: context.dividerColor,
-                borderRadius: BorderRadius.circular(2.r),
+                gradient: LinearGradient(
+                  colors: [
+                    context.dividerColor.withValues(alpha: 0.4),
+                    context.dividerColor.withValues(alpha: 0.6),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(3.r),
               ),
             ),
             
             // العنوان
-            Padding(
+            Container(
               padding: EdgeInsets.all(20.w),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: context.dividerColor.withValues(alpha: 0.1),
+                    width: 1.w,
+                  ),
+                ),
+              ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.tune_rounded,
-                    color: ThemeConstants.info,
-                    size: 24.sp,
-                  ),
-                  SizedBox(width: 12.w),
-                  Text(
-                    'الترتيب والفلترة',
-                    style: context.titleLarge?.copyWith(
-                      fontWeight: ThemeConstants.bold,
-                      fontSize: 18.sp,
+                  Container(
+                    padding: EdgeInsets.all(10.w),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          ThemeConstants.info,
+                          ThemeConstants.info.withValues(alpha: 0.8),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: ThemeConstants.info.withValues(alpha: 0.3),
+                          blurRadius: 8.r,
+                          offset: Offset(0, 3.h),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.tune_rounded,
+                      color: Colors.white,
+                      size: 24.sp,
                     ),
                   ),
-                  Spacer(),
-                  TextButton(
-                    onPressed: _resetFilters,
-                    child: Text(
-                      'إعادة تعيين',
-                      style: TextStyle(
-                        color: ThemeConstants.error,
-                        fontSize: 14.sp,
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'الترتيب والفلترة',
+                          style: context.titleLarge?.copyWith(
+                            fontWeight: ThemeConstants.bold,
+                            fontSize: 18.sp,
+                          ),
+                        ),
+                        Text(
+                          'خصص طريقة عرض المفضلات',
+                          style: context.bodySmall?.copyWith(
+                            color: context.textSecondaryColor,
+                            fontSize: 12.sp,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: ThemeConstants.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: _resetFilters,
+                        borderRadius: BorderRadius.circular(10.r),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12.w,
+                            vertical: 8.h,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.refresh_rounded,
+                                color: ThemeConstants.error,
+                                size: 18.sp,
+                              ),
+                              SizedBox(width: 4.w),
+                              Text(
+                                'إعادة',
+                                style: TextStyle(
+                                  color: ThemeConstants.error,
+                                  fontSize: 13.sp,
+                                  fontWeight: ThemeConstants.semiBold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -112,30 +194,28 @@ class _FavoritesFilterSheetState extends State<FavoritesFilterSheet> {
               ),
             ),
             
-            Divider(height: 1.h),
-            
             // المحتوى
-            Padding(
+            SingleChildScrollView(
               padding: EdgeInsets.all(20.w),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // الترتيب حسب
-                  _buildSectionTitle('الترتيب حسب'),
+                  _buildSectionTitle('الترتيب حسب', Icons.sort_rounded),
                   SizedBox(height: 12.h),
                   _buildSortByOptions(),
                   
                   SizedBox(height: 24.h),
                   
                   // اتجاه الترتيب
-                  _buildSectionTitle('اتجاه الترتيب'),
+                  _buildSectionTitle('اتجاه الترتيب', Icons.swap_vert_rounded),
                   SizedBox(height: 12.h),
                   _buildSortOrderOptions(),
                   
                   SizedBox(height: 24.h),
                   
                   // الفلترة حسب النوع
-                  _buildSectionTitle('الفلترة حسب النوع'),
+                  _buildSectionTitle('الفلترة حسب النوع', Icons.category_rounded),
                   SizedBox(height: 12.h),
                   _buildFilterTypeOptions(),
                   
@@ -144,26 +224,55 @@ class _FavoritesFilterSheetState extends State<FavoritesFilterSheet> {
                   // زر التطبيق
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _applyFilters,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: ThemeConstants.accent,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: 16.h),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.r),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            ThemeConstants.accent,
+                            ThemeConstants.accentLight,
+                          ],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
                         ),
-                        elevation: 0,
+                        borderRadius: BorderRadius.circular(14.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: ThemeConstants.accent.withValues(alpha: 0.4),
+                            blurRadius: 12.r,
+                            offset: Offset(0, 4.h),
+                          ),
+                        ],
                       ),
-                      child: Text(
-                        'تطبيق',
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: ThemeConstants.semiBold,
+                      child: ElevatedButton(
+                        onPressed: _applyFilters,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          shadowColor: Colors.transparent,
+                          padding: EdgeInsets.symmetric(vertical: 16.h),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14.r),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.check_circle_rounded, size: 22.sp),
+                            SizedBox(width: 8.w),
+                            Text(
+                              'تطبيق الإعدادات',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: ThemeConstants.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
+                  SizedBox(height: 10.h),
                 ],
               ),
             ),
@@ -173,13 +282,30 @@ class _FavoritesFilterSheetState extends State<FavoritesFilterSheet> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: context.titleMedium?.copyWith(
-        fontWeight: ThemeConstants.semiBold,
-        fontSize: 15.sp,
-      ),
+  Widget _buildSectionTitle(String title, IconData icon) {
+    return Row(
+      children: [
+        Container(
+          padding: EdgeInsets.all(6.w),
+          decoration: BoxDecoration(
+            color: ThemeConstants.accent.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8.r),
+          ),
+          child: Icon(
+            icon,
+            size: 16.sp,
+            color: ThemeConstants.accent,
+          ),
+        ),
+        SizedBox(width: 8.w),
+        Text(
+          title,
+          style: context.titleMedium?.copyWith(
+            fontWeight: ThemeConstants.bold,
+            fontSize: 15.sp,
+          ),
+        ),
+      ],
     );
   }
 
@@ -287,53 +413,104 @@ class _FavoritesFilterSheetState extends State<FavoritesFilterSheet> {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(14.r),
+        splashColor: color.withValues(alpha: 0.1),
+        highlightColor: color.withValues(alpha: 0.05),
         child: Container(
           width: fullWidth ? double.infinity : null,
           padding: EdgeInsets.symmetric(
             horizontal: 16.w,
-            vertical: 12.h,
+            vertical: 14.h,
           ),
           decoration: BoxDecoration(
-            color: isSelected 
-                ? ThemeConstants.accent.withValues(alpha: 0.1)
-                : context.cardColor,
-            borderRadius: BorderRadius.circular(12.r),
+            gradient: isSelected
+                ? LinearGradient(
+                    colors: [
+                      ThemeConstants.accent.withValues(alpha: 0.12),
+                      ThemeConstants.accent.withValues(alpha: 0.08),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            color: isSelected ? null : context.cardColor,
+            borderRadius: BorderRadius.circular(14.r),
             border: Border.all(
               color: isSelected 
                   ? ThemeConstants.accent
-                  : context.dividerColor.withValues(alpha: 0.3),
+                  : context.dividerColor.withValues(alpha: 0.25),
               width: isSelected ? 2.w : 1.w,
             ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: ThemeConstants.accent.withValues(alpha: 0.15),
+                      blurRadius: 8.r,
+                      offset: Offset(0, 3.h),
+                    ),
+                  ]
+                : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 3.r,
+                      offset: Offset(0, 1.h),
+                    ),
+                  ],
           ),
           child: Row(
             mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (icon != null) ...[
-                Icon(
-                  icon,
-                  color: color,
-                  size: 18.sp,
+                Container(
+                  padding: EdgeInsets.all(4.w),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? color.withValues(alpha: 0.15)
+                        : color.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(6.r),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: 16.sp,
+                  ),
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: 10.w),
               ],
-              Text(
-                label,
-                style: context.bodyMedium?.copyWith(
-                  color: color,
-                  fontWeight: isSelected 
-                      ? ThemeConstants.semiBold 
-                      : ThemeConstants.regular,
-                  fontSize: 14.sp,
+              Flexible(
+                child: Text(
+                  label,
+                  style: context.bodyMedium?.copyWith(
+                    color: color,
+                    fontWeight: isSelected 
+                        ? ThemeConstants.bold 
+                        : ThemeConstants.medium,
+                    fontSize: 14.sp,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               if (isSelected) ...[
-                SizedBox(width: 8.w),
-                Icon(
-                  Icons.check_circle_rounded,
-                  color: color,
-                  size: 18.sp,
+                SizedBox(width: 10.w),
+                Container(
+                  padding: EdgeInsets.all(3.w),
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withValues(alpha: 0.4),
+                        blurRadius: 4.r,
+                        offset: Offset(0, 2.h),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.check_rounded,
+                    color: Colors.white,
+                    size: 14.sp,
+                  ),
                 ),
               ],
             ],

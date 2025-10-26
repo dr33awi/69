@@ -52,6 +52,23 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
     ContentType.asmaAllah: '''الرَّحْمَنُ • الرَّحِيمُ • الْمَلِكُ''',
 
   };
+  
+  // بيانات المعاينة الإضافية (الفضيلة والمصدر والعداد)
+  final Map<ContentType, Map<String, dynamic>> _previewMetadata = {
+    ContentType.athkar: {
+      'fadl': 'من قالها مائة مرة في يوم حُطَّت خطاياه وإن كانت مثل زبد البحر',
+      'source': 'متفق عليه',
+      'count': 100,
+      'currentCount': 45,
+    },
+    ContentType.dua: {
+      'fadl': 'من الأدعية الجامعة التي كان النبي ﷺ يكثر منها',
+      'source': 'البقرة: 201',
+    },
+    ContentType.asmaAllah: {
+      // أسماء الله لا تحتاج لفضيلة أو مصدر في المعاينة
+    },
+  };
 
   // خريطة الألوان
   final Map<ContentType, Color> _colorMap = {
@@ -574,6 +591,7 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
             displaySettings: displaySettings,
             accentColor: accentColor,
             previewTexts: _previewTexts,
+            previewMetadata: _previewMetadata,
             currentPresetName: _getCurrentPresetName(contentType),
             onPresetSelected: (preset) => _applyPreset(contentType, preset),
             onFontChanged: (newFont) {
