@@ -33,21 +33,31 @@ class SettingsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectiveMargin = margin ?? EdgeInsets.symmetric(
-      horizontal: 12.w,
-      vertical: 8.h,
+      horizontal: 16.w,
+      vertical: 10.h,
     );
 
-    final effectiveBorderRadius = BorderRadius.circular(16.r);
+    final effectiveBorderRadius = BorderRadius.circular(20.r);
 
     return Container(
       margin: effectiveMargin,
       decoration: BoxDecoration(
         color: backgroundColor ?? context.cardColor,
         borderRadius: effectiveBorderRadius,
+        border: Border.all(
+          color: context.dividerColor.withValues(alpha: 0.1),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8.r,
+            color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
+            spreadRadius: -2,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+            blurRadius: 6.r,
             offset: Offset(0, 2.h),
             spreadRadius: -1,
           ),

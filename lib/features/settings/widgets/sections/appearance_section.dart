@@ -1,7 +1,10 @@
 // lib/features/settings/widgets/sections/appearance_section.dart
 
+import 'package:athkar_app/core/infrastructure/services/text/extensions/text_settings_extensions.dart';
 import 'package:athkar_app/features/settings/widgets/sections/settings_section.dart';
+import 'package:athkar_app/features/settings/widgets/sections/settings_tile.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../app/themes/app_theme.dart';
 import '../../services/settings_services_manager.dart';
@@ -39,8 +42,20 @@ class _AppearanceSectionState extends State<AppearanceSection> {
                 width: 40.w,
                 height: 40.h,
                 decoration: BoxDecoration(
-                  color: context.primaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10.r),
+                  color: context.primaryColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(
+                    color: context.primaryColor.withValues(alpha: 0.15),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: context.primaryColor.withValues(alpha: 0.15),
+                      blurRadius: 8.r,
+                      offset: Offset(0, 2.h),
+                      spreadRadius: -2,
+                    ),
+                  ],
                 ),
                 child: Icon(
                   widget.manager.isDarkMode 
@@ -84,6 +99,23 @@ class _AppearanceSectionState extends State<AppearanceSection> {
               ),
             ],
           ),
+        ),
+        
+        // إعدادات النصوص والخطوط
+        SettingsTile(
+          icon: Icons.text_fields_rounded,
+          title: 'إعدادات النصوص',
+          subtitle: 'تخصيص حجم الخط وتباعد الأسطر',
+          iconColor: ThemeConstants.info,
+          trailing: Icon(
+            Icons.arrow_forward_ios,
+            color: context.textSecondaryColor,
+            size: 14.sp,
+          ),
+          onTap: () {
+            HapticFeedback.lightImpact();
+            context.showGlobalTextSettings();
+          },
         ),
       ],
     );

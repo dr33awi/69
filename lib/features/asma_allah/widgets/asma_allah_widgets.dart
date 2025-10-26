@@ -66,7 +66,7 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
           scale: _scaleAnimation.value,
           child: Material(
             color: Colors.transparent,
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(18.r),
             child: InkWell(
               onTap: widget.onTap,
               onTapDown: (_) {
@@ -82,25 +82,32 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
                 setState(() => _isPressed = false);
                 _controller.reverse();
               },
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(18.r),
               child: Container(
-                padding: EdgeInsets.all(12.w),
+                padding: EdgeInsets.all(14.w),
                 decoration: BoxDecoration(
                   color: context.cardColor,
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: BorderRadius.circular(18.r),
                   border: Border.all(
                     color: _isPressed 
-                        ? color.withOpacity(0.4)
-                        : color.withOpacity(0.2),
-                    width: 1.w,
+                        ? color.withValues(alpha: 0.4)
+                        : color.withValues(alpha: 0.15),
+                    width: 1,
                   ),
                   boxShadow: [
                     BoxShadow(
                       color: _isPressed 
-                          ? color.withValues(alpha: 0.1)
-                          : Colors.black.withValues(alpha: 0.04),
-                      blurRadius: _isPressed ? 10.r : 6.r,
-                      offset: Offset(0, _isPressed ? 3.h : 2.h),
+                          ? color.withValues(alpha: 0.15)
+                          : Colors.black.withValues(alpha: context.isDarkMode ? 0.12 : 0.05),
+                      blurRadius: _isPressed ? 14.r : 12.r,
+                      offset: Offset(0, _isPressed ? 4.h : 3.h),
+                      spreadRadius: -2,
+                    ),
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+                      blurRadius: 6.r,
+                      offset: Offset(0, 2.h),
+                      spreadRadius: -1,
                     ),
                   ],
                 ),

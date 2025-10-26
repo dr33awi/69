@@ -264,15 +264,24 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
           SizedBox(width: 8.w),
           
           Container(
-            padding: EdgeInsets.all(6.r),
+            padding: EdgeInsets.all(8.r),
             decoration: BoxDecoration(
               gradient: gradient,
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(14.r),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.2),
+                width: 1,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: ThemeConstants.primary.withOpacity(0.25),
-                  blurRadius: 6.r,
+                  color: ThemeConstants.primary.withValues(alpha: 0.3),
+                  blurRadius: 8.r,
                   offset: Offset(0, 3.h),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 4.r,
+                  offset: Offset(0, 2.h),
                 ),
               ],
             ),
@@ -313,26 +322,32 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
               margin: EdgeInsets.only(left: 6.w),
               child: Material(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(14.r),
                 child: InkWell(
                   onTap: () {
                     HapticFeedback.lightImpact();
                     _saveSettings();
                   },
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(14.r),
                   child: Container(
-                    padding: EdgeInsets.all(6.r),
+                    padding: EdgeInsets.all(8.r),
                     decoration: BoxDecoration(
                       color: context.cardColor,
-                      borderRadius: BorderRadius.circular(10.r),
+                      borderRadius: BorderRadius.circular(14.r),
                       border: Border.all(
-                        color: context.dividerColor.withOpacity(0.3),
+                        color: context.dividerColor.withValues(alpha: 0.15),
+                        width: 1,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 3.r,
-                          offset: Offset(0, 1.5.h),
+                          color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+                          blurRadius: 8.r,
+                          offset: Offset(0, 3.h),
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+                          blurRadius: 4.r,
+                          offset: Offset(0, 2.h),
                         ),
                       ],
                     ),

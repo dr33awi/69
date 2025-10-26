@@ -234,14 +234,26 @@ Future<bool> _showUnsavedChangesDialog() async {
   final result = await showDialog<String>(
     context: context,
     builder: (context) => AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24.r)),
+      backgroundColor: context.cardColor,
       title: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(8.r),
+            padding: EdgeInsets.all(10.r),
             decoration: BoxDecoration(
               color: ThemeConstants.warning.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(14.r),
+              border: Border.all(
+                color: ThemeConstants.warning.withValues(alpha: 0.2),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: ThemeConstants.warning.withValues(alpha: 0.15),
+                  blurRadius: 8.r,
+                  offset: Offset(0, 3.h),
+                ),
+              ],
             ),
             child: Icon(Icons.warning_amber_rounded, color: ThemeConstants.warning, size: 24.sp),
           ),
@@ -276,7 +288,9 @@ Future<bool> _showUnsavedChangesDialog() async {
             backgroundColor: ThemeConstants.primary,
             foregroundColor: Colors.white,
             padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
+            elevation: 0,
+            shadowColor: Colors.transparent,
           ),
           child: Text('حفظ وخروج', style: TextStyle(fontSize: 14.sp)),
         ),
@@ -527,8 +541,23 @@ Future<void> _saveChanges() async {
             padding: EdgeInsets.all(ThemeConstants.space2 - 2.w),
             decoration: BoxDecoration(
               gradient: gradient,
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
-              boxShadow: ThemeConstants.shadowSm,
+              borderRadius: BorderRadius.circular(14.r),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.2),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: ThemeConstants.primary.withValues(alpha: 0.3),
+                  blurRadius: 8.r,
+                  offset: Offset(0, 3.h),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 4.r,
+                  offset: Offset(0, 2.h),
+                ),
+              ],
             ),
             child: Icon(
               Icons.notifications_active,
@@ -567,23 +596,34 @@ Future<void> _saveChanges() async {
               margin: EdgeInsets.only(left: ThemeConstants.space2 - 2.w),
               child: Material(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                borderRadius: BorderRadius.circular(14.r),
                 child: InkWell(
                   onTap: () {
                     HapticFeedback.lightImpact();
                     _saveChanges();
                   },
-                  borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                  borderRadius: BorderRadius.circular(14.r),
                   child: Container(
                     padding: EdgeInsets.all(ThemeConstants.space2 - 2.w),
                     decoration: BoxDecoration(
                       color: context.cardColor,
-                      borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                      borderRadius: BorderRadius.circular(14.r),
                       border: Border.all(
-                        color: context.dividerColor.withOpacity(ThemeConstants.opacity30),
-                        width: ThemeConstants.borderLight,
+                        color: context.dividerColor.withValues(alpha: 0.15),
+                        width: 1,
                       ),
-                      boxShadow: ThemeConstants.shadowSm,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+                          blurRadius: 8.r,
+                          offset: Offset(0, 3.h),
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+                          blurRadius: 4.r,
+                          offset: Offset(0, 2.h),
+                        ),
+                      ],
                     ),
                     child: Icon(
                       Icons.save,
@@ -620,18 +660,29 @@ Future<void> _saveChanges() async {
       margin: EdgeInsets.only(left: ThemeConstants.space2 - 2.w),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+        borderRadius: BorderRadius.circular(14.r),
         child: PopupMenuButton<String>(
           icon: Container(
             padding: EdgeInsets.all(ThemeConstants.space2 - 2.w),
             decoration: BoxDecoration(
               color: context.cardColor,
-              borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+              borderRadius: BorderRadius.circular(14.r),
               border: Border.all(
-                color: context.dividerColor.withOpacity(ThemeConstants.opacity30),
-                width: ThemeConstants.borderLight,
+                color: context.dividerColor.withValues(alpha: 0.15),
+                width: 1,
               ),
-              boxShadow: ThemeConstants.shadowSm,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+                  blurRadius: 8.r,
+                  offset: Offset(0, 3.h),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+                  blurRadius: 4.r,
+                  offset: Offset(0, 2.h),
+                ),
+              ],
             ),
             child: Icon(
               Icons.more_vert,
@@ -765,8 +816,30 @@ Future<void> _saveChanges() async {
     final enabledCount = _enabled.values.where((e) => e).length;
     final disabledCount = categories.length - enabledCount;
     
-    return AppCard(
+    return Container(
       padding: EdgeInsets.all(ThemeConstants.space3),
+      decoration: BoxDecoration(
+        color: context.cardColor,
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(
+          color: context.dividerColor.withValues(alpha: 0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
+            spreadRadius: -2,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+            blurRadius: 6.r,
+            offset: Offset(0, 2.h),
+            spreadRadius: -1,
+          ),
+        ],
+      ),
       child: Row(
         children: [
           Expanded(
@@ -813,8 +886,30 @@ Future<void> _saveChanges() async {
   }
 
   Widget _buildNoCategoriesMessage() {
-    return AppCard(
+    return Container(
       padding: EdgeInsets.all(ThemeConstants.space4),
+      decoration: BoxDecoration(
+        color: context.cardColor,
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(
+          color: context.dividerColor.withValues(alpha: 0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
+            spreadRadius: -2,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+            blurRadius: 6.r,
+            offset: Offset(0, 2.h),
+            spreadRadius: -1,
+          ),
+        ],
+      ),
       child: Column(
         children: [
           Icon(
@@ -856,19 +951,52 @@ Future<void> _saveChanges() async {
 
     return Padding(
       padding: EdgeInsets.only(bottom: ThemeConstants.space2 + ThemeConstants.space1),
-      child: AppCard(
+      child: Container(
         padding: EdgeInsets.all(ThemeConstants.space3),
+        decoration: BoxDecoration(
+          color: context.cardColor,
+          borderRadius: BorderRadius.circular(20.r),
+          border: Border.all(
+            color: context.dividerColor.withValues(alpha: 0.1),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+              blurRadius: 12.r,
+              offset: Offset(0, 4.h),
+              spreadRadius: -2,
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+              blurRadius: 6.r,
+              offset: Offset(0, 2.h),
+              spreadRadius: -1,
+            ),
+          ],
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  width: 32.r,
-                  height: 32.r,
+                  width: 36.r,
+                  height: 36.r,
                   decoration: BoxDecoration(
                     color: categoryColor.withOpacity(ThemeConstants.opacity10),
-                    borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+                    borderRadius: BorderRadius.circular(14.r),
+                    border: Border.all(
+                      color: categoryColor.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: categoryColor.withValues(alpha: 0.15),
+                        blurRadius: 6.r,
+                        offset: Offset(0, 2.h),
+                      ),
+                    ],
                   ),
                   child: Icon(
                     categoryIcon,
@@ -961,12 +1089,16 @@ Future<void> _saveChanges() async {
     return Container(
       margin: EdgeInsets.only(left: ThemeConstants.space2 - 2.w),
       padding: EdgeInsets.symmetric(
-        horizontal: ThemeConstants.space2 - 2.w,
-        vertical: 3.h,
+        horizontal: ThemeConstants.space2,
+        vertical: 4.h,
       ),
       decoration: BoxDecoration(
         color: color.withOpacity(ThemeConstants.opacity10),
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusXs),
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(
+          color: color.withValues(alpha: 0.25),
+          width: 1,
+        ),
       ),
       child: Text(
         label,
@@ -985,16 +1117,24 @@ Future<void> _saveChanges() async {
     required bool isEssential,
   }) {
     return Container(
-      padding: EdgeInsets.all(ThemeConstants.space2 + ThemeConstants.space1),
+      padding: EdgeInsets.all(ThemeConstants.space2 + ThemeConstants.space1 + 2.w),
       decoration: BoxDecoration(
         color: (isEssential ? ThemeConstants.success : ThemeConstants.primary)
             .withOpacity(ThemeConstants.opacity10),
-        borderRadius: BorderRadius.circular(ThemeConstants.radiusMd),
+        borderRadius: BorderRadius.circular(14.r),
         border: Border.all(
           color: (isEssential ? ThemeConstants.success : ThemeConstants.primary)
-              .withOpacity(ThemeConstants.opacity20),
-          width: ThemeConstants.borderLight,
+              .withValues(alpha: 0.25),
+          width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: (isEssential ? ThemeConstants.success : ThemeConstants.primary)
+                .withValues(alpha: 0.12),
+            blurRadius: 6.r,
+            offset: Offset(0, 2.h),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -1031,10 +1171,16 @@ Future<void> _saveChanges() async {
           TextButton(
             onPressed: () => _selectTime(category.id, currentTime),
             style: TextButton.styleFrom(
-              minimumSize: Size(0, 28.h),
+              minimumSize: Size(0, 32.h),
               padding: EdgeInsets.symmetric(
-                horizontal: ThemeConstants.space2 + ThemeConstants.space1,
+                horizontal: ThemeConstants.space3,
+                vertical: ThemeConstants.space2 - 2.h,
               ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+              backgroundColor: (isEssential ? ThemeConstants.success : ThemeConstants.primary)
+                  .withOpacity(0.15),
             ),
             child: Text('تغيير', style: TextStyle(fontSize: ThemeConstants.textSizeXs)),
           ),

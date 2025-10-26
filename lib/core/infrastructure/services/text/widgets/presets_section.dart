@@ -1,6 +1,6 @@
-// lib/core/infrastructure/services/text/screens/widgets/presets_section.dart
+// lib/core/infrastructure/services/text/widgets/presets_section.dart
 import 'package:athkar_app/core/infrastructure/services/text/models/text_settings_models.dart';
-import 'package:athkar_app/core/infrastructure/services/text/service/text_settings_constants.dart';
+import 'package:athkar_app/core/infrastructure/services/text/constants/text_settings_constants.dart'; // ✅ المسار الصحيح
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

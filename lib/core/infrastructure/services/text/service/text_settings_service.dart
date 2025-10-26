@@ -1,9 +1,9 @@
-// lib/core/infrastructure/services/text/text_settings_service.dart
+// lib/core/infrastructure/services/text/service/text_settings_service.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../storage/storage_service.dart';
 import '../models/text_settings_models.dart';
-import '../constants/text_settings_constants.dart';
+import '../constants/text_settings_constants.dart'; // ✅ المسار الصحيح
 
 /// خدمة موحدة لإدارة إعدادات النصوص في التطبيق
 class TextSettingsService extends ChangeNotifier {
@@ -30,7 +30,7 @@ class TextSettingsService extends ChangeNotifier {
     _setLoading(true);
     try {
       await _loadGlobalSettings();
-      await _migrateOldSettings(); // ترحيل الإعدادات القديمة
+      await _migrateOldSettings();
       _setLoading(false);
     } catch (e) {
       _setLoading(false);
@@ -52,12 +52,10 @@ class TextSettingsService extends ChangeNotifier {
   /// الحصول على إعدادات نص لنوع محتوى معين
   Future<TextSettings> getTextSettings(ContentType contentType) async {
     try {
-      // التحقق من الـ Cache أولاً
       if (_settingsCache.containsKey(contentType)) {
         return _settingsCache[contentType]!;
       }
       
-      // تحميل من التخزين
       final key = TextSettingsConstants.getSettingsKey(contentType);
       final jsonData = _storage.getMap(key);
       
@@ -65,29 +63,23 @@ class TextSettingsService extends ChangeNotifier {
       if (jsonData != null) {
         settings = TextSettings.fromJson(jsonData, contentType);
         
-        // تطبيق الخط العام إذا كان محدداً
         if (_globalFontFamily != null) {
           settings = settings.copyWith(fontFamily: _globalFontFamily);
         }
       } else {
-        // استخدام الإعدادات الافتراضية
         settings = TextSettingsConstants.getDefaultSettings(contentType);
         
-        // تطبيق الخط العام إذا كان محدداً
         if (_globalFontFamily != null) {
           settings = settings.copyWith(fontFamily: _globalFontFamily);
         }
         
-        // حفظ الإعدادات الافتراضية
         await saveTextSettings(settings);
       }
       
-      // حفظ في الـ Cache
       _settingsCache[contentType] = settings;
       
       return settings;
     } catch (e) {
-      // في حالة الخطأ، إرجاع الإعدادات الافتراضية
       final defaultSettings = TextSettingsConstants.getDefaultSettings(contentType);
       _settingsCache[contentType] = defaultSettings;
       return defaultSettings;
@@ -100,7 +92,6 @@ class TextSettingsService extends ChangeNotifier {
       final key = TextSettingsConstants.getSettingsKey(settings.contentType);
       await _storage.setMap(key, settings.toJson());
       
-      // تحديث الـ Cache
       _settingsCache[settings.contentType] = settings;
       
       notifyListeners();
@@ -112,12 +103,10 @@ class TextSettingsService extends ChangeNotifier {
   /// الحصول على إعدادات العرض
   Future<DisplaySettings> getDisplaySettings(ContentType contentType) async {
     try {
-      // التحقق من الـ Cache أولاً
       if (_displaySettingsCache.containsKey(contentType)) {
         return _displaySettingsCache[contentType]!;
       }
       
-      // تحميل من التخزين
       final key = TextSettingsConstants.getDisplaySettingsKey(contentType);
       final jsonData = _storage.getMap(key);
       
@@ -126,11 +115,9 @@ class TextSettingsService extends ChangeNotifier {
         settings = DisplaySettings.fromJson(jsonData);
       } else {
         settings = TextSettingsConstants.defaultDisplaySettings;
-        // حفظ الإعدادات الافتراضية
         await saveDisplaySettings(contentType, settings);
       }
       
-      // حفظ في الـ Cache
       _displaySettingsCache[contentType] = settings;
       
       return settings;
@@ -147,7 +134,6 @@ class TextSettingsService extends ChangeNotifier {
       final key = TextSettingsConstants.getDisplaySettingsKey(contentType);
       await _storage.setMap(key, settings.toJson());
       
-      // تحديث الـ Cache
       _displaySettingsCache[contentType] = settings;
       
       notifyListeners();
@@ -164,21 +150,17 @@ class TextSettingsService extends ChangeNotifier {
       _globalFontFamily = fontFamily;
       
       if (fontFamily != null) {
-        // التحقق من صحة الخط
         final validatedFont = TextSettingsConstants.validateFontFamily(fontFamily);
         await _storage.setString(TextSettingsConstants.globalFontFamilyKey, validatedFont);
         
-        // تحديث جميع الإعدادات المحملة
         for (final contentType in _settingsCache.keys) {
           final currentSettings = _settingsCache[contentType]!;
           final updatedSettings = currentSettings.copyWith(fontFamily: validatedFont);
           await saveTextSettings(updatedSettings);
         }
       } else {
-        // إزالة الخط العام
         await _storage.remove(TextSettingsConstants.globalFontFamilyKey);
         
-        // إعادة تحميل الإعدادات الافتراضية لكل نوع محتوى
         for (final contentType in ContentType.values) {
           final defaultSettings = TextSettingsConstants.getDefaultSettings(contentType);
           await saveTextSettings(defaultSettings);
@@ -204,9 +186,8 @@ class TextSettingsService extends ChangeNotifier {
       
       await saveTextSettings(updatedSettings);
       
-      // حفظ القالب المستخدم
-      _lastUsedPreset = preset.id;
-      await _storage.setString(TextSettingsConstants.lastUsedPresetKey, preset.id);
+      _lastUsedPreset = preset.name;
+      await _storage.setString(TextSettingsConstants.lastUsedPresetKey, preset.name);
       
       notifyListeners();
     } catch (e) {
@@ -291,14 +272,12 @@ class TextSettingsService extends ChangeNotifier {
     try {
       final defaultSettings = TextSettingsConstants.getDefaultSettings(contentType);
       
-      // تطبيق الخط العام إذا كان محدداً
       final finalSettings = _globalFontFamily != null
           ? defaultSettings.copyWith(fontFamily: _globalFontFamily)
           : defaultSettings;
       
       await saveTextSettings(finalSettings);
       
-      // إعادة تعيين إعدادات العرض أيضاً
       const defaultDisplaySettings = TextSettingsConstants.defaultDisplaySettings;
       await saveDisplaySettings(contentType, defaultDisplaySettings);
       
@@ -315,10 +294,8 @@ class TextSettingsService extends ChangeNotifier {
         await resetToDefault(contentType);
       }
       
-      // إزالة الخط العام
       await setGlobalFontFamily(null);
       
-      // إزالة القالب المحفوظ
       await _storage.remove(TextSettingsConstants.lastUsedPresetKey);
       _lastUsedPreset = null;
       
@@ -333,13 +310,9 @@ class TextSettingsService extends ChangeNotifier {
   /// ترحيل الإعدادات من الخدمات القديمة إلى النظام الجديد
   Future<void> _migrateOldSettings() async {
     try {
-      // ترحيل إعدادات الأذكار القديمة
       await _migrateAthkarSettings();
-      
-      // ترحيل إعدادات الدعاء القديمة
       await _migrateDuaSettings();
       
-      // وضع علامة على اكتمال الترحيل
       await _storage.setInt(TextSettingsConstants.settingsVersionKey, TextSettingsConstants.currentVersion);
       
     } catch (e) {
@@ -350,7 +323,6 @@ class TextSettingsService extends ChangeNotifier {
   /// ترحيل إعدادات الأذكار القديمة
   Future<void> _migrateAthkarSettings() async {
     try {
-      // تحقق من وجود إعدادات أذكار قديمة
       final oldFontSize = _storage.getDouble('athkar_font_size');
       final oldFontFamily = _storage.getString('athkar_font_family');
       final oldLineHeight = _storage.getDouble('athkar_line_height');
@@ -416,7 +388,6 @@ class TextSettingsService extends ChangeNotifier {
   /// مسح جميع البيانات المحفوظة
   Future<void> clearAllData() async {
     try {
-      // مسح إعدادات كل نوع محتوى
       for (final contentType in ContentType.values) {
         final settingsKey = TextSettingsConstants.getSettingsKey(contentType);
         final displayKey = TextSettingsConstants.getDisplaySettingsKey(contentType);
@@ -425,12 +396,10 @@ class TextSettingsService extends ChangeNotifier {
         await _storage.remove(displayKey);
       }
       
-      // مسح الإعدادات العامة
       await _storage.remove(TextSettingsConstants.globalFontFamilyKey);
       await _storage.remove(TextSettingsConstants.lastUsedPresetKey);
       await _storage.remove(TextSettingsConstants.settingsVersionKey);
       
-      // مسح الـ Cache
       _settingsCache.clear();
       _displaySettingsCache.clear();
       _globalFontFamily = null;

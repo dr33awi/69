@@ -1,4 +1,5 @@
 // lib/core/infrastructure/services/text/extensions/text_settings_extensions.dart
+import 'package:athkar_app/core/infrastructure/services/text/constants/text_settings_constants.dart';
 import 'package:flutter/material.dart';
 import '../../../../../app/di/service_locator.dart';
 import '../service/text_settings_service.dart';

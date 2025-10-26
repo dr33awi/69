@@ -378,15 +378,24 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
           SizedBox(width: 8.w),
           
           Container(
-            padding: EdgeInsets.all(6.r),
+            padding: EdgeInsets.all(8.r),
             decoration: BoxDecoration(
               gradient: gradient,
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(14.r),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.2),
+                width: 1,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: ThemeConstants.primary.withOpacity(0.25),
-                  blurRadius: 6.r,
+                  color: ThemeConstants.primary.withValues(alpha: 0.3),
+                  blurRadius: 8.r,
                   offset: Offset(0, 3.h),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 4.r,
+                  offset: Offset(0, 2.h),
                 ),
               ],
             ),
@@ -489,23 +498,28 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
       margin: EdgeInsets.only(left: 2.w),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(14.r),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(10.r),
+          borderRadius: BorderRadius.circular(14.r),
           child: Container(
-            padding: EdgeInsets.all(6.w),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               color: context.cardColor,
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(14.r),
               border: Border.all(
-                color: context.dividerColor.withValues(alpha: 0.3),
-                width: 1.w,
+                color: context.dividerColor.withValues(alpha: 0.15),
+                width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 3.r,
+                  color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+                  blurRadius: 8.r,
+                  offset: Offset(0, 3.h),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+                  blurRadius: 4.r,
                   offset: Offset(0, 2.h),
                 ),
               ],
@@ -530,19 +544,31 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 100.r,
-                height: 100.r,
+                width: 110.r,
+                height: 110.r,
                 decoration: BoxDecoration(
                   color: ThemeConstants.success.withOpacity(0.1),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: ThemeConstants.success.withOpacity(0.3),
-                    width: 2.w,
+                    color: ThemeConstants.success.withValues(alpha: 0.3),
+                    width: 2,
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: ThemeConstants.success.withValues(alpha: 0.2),
+                      blurRadius: 12.r,
+                      offset: Offset(0, 4.h),
+                    ),
+                    BoxShadow(
+                      color: ThemeConstants.success.withValues(alpha: 0.1),
+                      blurRadius: 6.r,
+                      offset: Offset(0, 2.h),
+                    ),
+                  ],
                 ),
                 child: Icon(
                   Icons.check_circle_rounded,
-                  size: 50.sp,
+                  size: 54.sp,
                   color: ThemeConstants.success,
                 ),
               ),
@@ -604,7 +630,7 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView.builder(
-        padding: EdgeInsets.all(12.r),
+        padding: EdgeInsets.all(14.r),
         itemCount: _visibleItems.length,
         itemBuilder: (context, index) {
           final item = _visibleItems[index];
@@ -616,7 +642,7 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
           
           return Padding(
             padding: EdgeInsets.only(
-              bottom: index < _visibleItems.length - 1 ? 10.h : 0,
+              bottom: index < _visibleItems.length - 1 ? 12.h : 0,
             ),
             child: AthkarItemCard(
               item: item,

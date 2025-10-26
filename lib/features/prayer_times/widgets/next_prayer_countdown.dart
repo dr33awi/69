@@ -23,7 +23,7 @@ class _NextPrayerCountdownState extends State<NextPrayerCountdown> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(12.w),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -33,12 +33,22 @@ class _NextPrayerCountdownState extends State<NextPrayerCountdown> {
             _getPrayerColor(widget.nextPrayer.type).darken(0.2),
           ],
         ),
-        borderRadius: BorderRadius.circular(14.r),
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.2),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: _getPrayerColor(widget.nextPrayer.type).withOpacity(0.3),
-            blurRadius: 12.r,
+            color: _getPrayerColor(widget.nextPrayer.type).withValues(alpha: 0.35),
+            blurRadius: 16.r,
             offset: Offset(0, 6.h),
+            spreadRadius: -2,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 8.r,
+            offset: Offset(0, 3.h),
           ),
         ],
       ),
@@ -49,23 +59,23 @@ class _NextPrayerCountdownState extends State<NextPrayerCountdown> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                Icons.access_time_filled,
-                color: Colors.white.withOpacity(0.9),
-                size: 14.sp,
+                Icons.access_time_filled_rounded,
+                color: Colors.white.withValues(alpha: 0.95),
+                size: 16.sp,
               ),
-              SizedBox(width: 4.w),
+              SizedBox(width: 6.w),
               Text(
                 'الصلاة القادمة',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.95),
                   fontWeight: ThemeConstants.medium,
-                  fontSize: 12.sp,
+                  fontSize: 13.sp,
                 ),
               ),
             ],
           ),
           
-          SizedBox(height: 8.h),
+          SizedBox(height: 10.h),
           
           // اسم الصلاة والوقت
           Row(

@@ -102,9 +102,23 @@ class _SettingsTileState extends State<SettingsTile> {
       height: 40.h,
       decoration: BoxDecoration(
         color: widget.enabled 
-            ? iconColor.withValues(alpha: _isPressed ? 0.15 : 0.1)
+            ? iconColor.withValues(alpha: _isPressed ? 0.18 : 0.12)
             : context.textSecondaryColor.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: widget.enabled 
+              ? iconColor.withValues(alpha: 0.15)
+              : context.textSecondaryColor.withValues(alpha: 0.05),
+          width: 1,
+        ),
+        boxShadow: widget.enabled && !_isPressed ? [
+          BoxShadow(
+            color: iconColor.withValues(alpha: 0.15),
+            blurRadius: 8.r,
+            offset: Offset(0, 2.h),
+            spreadRadius: -2,
+          ),
+        ] : [],
       ),
       child: Icon(
         widget.icon,

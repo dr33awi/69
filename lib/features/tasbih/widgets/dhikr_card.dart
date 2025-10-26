@@ -26,19 +26,19 @@ class DhikrCardSimple extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14.r),
-        boxShadow: _buildShadows(),
+        borderRadius: BorderRadius.circular(18.r),
+        boxShadow: _buildShadows(context),
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(14.r),
+        borderRadius: BorderRadius.circular(18.r),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(14.r),
+          borderRadius: BorderRadius.circular(18.r),
           child: Container(
             decoration: _buildContainerDecoration(context),
             child: Padding(
-              padding: EdgeInsets.all(12.r),
+              padding: EdgeInsets.all(14.r),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -62,14 +62,34 @@ class DhikrCardSimple extends StatelessWidget {
     );
   }
 
-  List<BoxShadow> _buildShadows() {
+  List<BoxShadow> _buildShadows(BuildContext context) {
+    if (isSelected) {
+      return [
+        BoxShadow(
+          color: dhikr.primaryColor.withValues(alpha: 0.3),
+          blurRadius: 14.r,
+          offset: Offset(0, 4.h),
+          spreadRadius: -2,
+        ),
+        BoxShadow(
+          color: dhikr.primaryColor.withValues(alpha: 0.15),
+          blurRadius: 8.r,
+          offset: Offset(0, 2.h),
+        ),
+      ];
+    }
     return [
       BoxShadow(
-        color: isSelected 
-            ? dhikr.primaryColor.withOpacity(0.25)
-            : Colors.black.withOpacity(0.05),
-        blurRadius: isSelected ? 10.r : 6.r,
-        offset: Offset(0, isSelected ? 4.h : 3.h),
+        color: Colors.black.withValues(alpha: context.isDarkMode ? 0.12 : 0.05),
+        blurRadius: 12.r,
+        offset: Offset(0, 3.h),
+        spreadRadius: -2,
+      ),
+      BoxShadow(
+        color: Colors.black.withValues(alpha: context.isDarkMode ? 0.06 : 0.02),
+        blurRadius: 6.r,
+        offset: Offset(0, 2.h),
+        spreadRadius: -1,
       ),
     ];
   }
@@ -84,15 +104,15 @@ class DhikrCardSimple extends StatelessWidget {
             )
           : null,
       color: !isSelected ? context.cardColor : null,
-      borderRadius: BorderRadius.circular(14.r),
+      borderRadius: BorderRadius.circular(18.r),
       border: isSelected 
           ? Border.all(
-              color: Colors.white.withOpacity(0.3),
-              width: 1.w,
+              color: Colors.white.withValues(alpha: 0.3),
+              width: 1,
             )
           : Border.all(
-              color: context.dividerColor.withOpacity(0.2),
-              width: 1.w,
+              color: context.dividerColor.withValues(alpha: 0.12),
+              width: 1,
             ),
     );
   }

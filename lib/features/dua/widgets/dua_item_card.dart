@@ -52,26 +52,33 @@ class DuaItemCard extends StatelessWidget {
     
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(16.r),
+      borderRadius: BorderRadius.circular(20.r),
       child: InkWell(
         onTap: () {
           HapticFeedback.lightImpact();
           onTap();
         },
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(20.r),
         child: Container(
           decoration: BoxDecoration(
             color: context.cardColor,
-            borderRadius: BorderRadius.circular(16.r),
+            borderRadius: BorderRadius.circular(20.r),
             border: Border.all(
-              color: cardColor.withOpacity(0.2),
-              width: 1.w,
+              color: cardColor.withValues(alpha: 0.15),
+              width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 8.r,
-                offset: Offset(0, 3.h),
+                color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+                blurRadius: 12.r,
+                offset: Offset(0, 4.h),
+                spreadRadius: -2,
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+                blurRadius: 6.r,
+                offset: Offset(0, 2.h),
+                spreadRadius: -1,
               ),
             ],
           ),

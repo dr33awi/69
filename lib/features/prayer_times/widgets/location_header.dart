@@ -151,42 +151,49 @@ class _LocationHeaderState extends State<LocationHeader>
     final needsPermission = !_hasLocationPermission && !_isUpdating;
     
     return Container(
-      margin: EdgeInsets.all(10.w),
+      margin: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
           color: hasError 
-            ? ThemeConstants.error.withOpacity(0.3)
+            ? ThemeConstants.error.withValues(alpha: 0.3)
             : needsPermission
-              ? ThemeConstants.warning.withOpacity(0.3)
-              : context.dividerColor.withOpacity(0.2),
-          width: 1.w,
+              ? ThemeConstants.warning.withValues(alpha: 0.3)
+              : context.dividerColor.withValues(alpha: 0.1),
+          width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
+            spreadRadius: -2,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
             blurRadius: 6.r,
             offset: Offset(0, 2.h),
+            spreadRadius: -1,
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(20.r),
         child: InkWell(
           onTap: widget.showRefreshButton ? _updateLocation : widget.onTap,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(20.r),
           child: Padding(
-            padding: EdgeInsets.all(10.w),
+            padding: EdgeInsets.all(14.w),
             child: Column(
               children: [
                 Row(
                   children: [
                     // أيقونة الموقع
                     Container(
-                      width: 40.w,
-                      height: 40.w,
+                      width: 44.w,
+                      height: 44.w,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
@@ -197,7 +204,16 @@ class _LocationHeaderState extends State<LocationHeader>
                               ? [ThemeConstants.warning, ThemeConstants.warning.darken(0.1)]
                               : [context.primaryColor, context.primaryColor.darken(0.1)],
                         ),
-                        borderRadius: BorderRadius.circular(10.r),
+                        borderRadius: BorderRadius.circular(14.r),
+                        border: Border.all(
+                          color: (hasError 
+                              ? ThemeConstants.error 
+                              : needsPermission
+                                ? ThemeConstants.warning
+                                : context.primaryColor)
+                              .withValues(alpha: 0.3),
+                          width: 1,
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: (hasError 
@@ -205,9 +221,10 @@ class _LocationHeaderState extends State<LocationHeader>
                                 : needsPermission
                                   ? ThemeConstants.warning
                                   : context.primaryColor)
-                                .withOpacity(0.3),
-                            blurRadius: 4.r,
-                            offset: Offset(0, 2.h),
+                                .withValues(alpha: 0.3),
+                            blurRadius: 8.r,
+                            offset: Offset(0, 3.h),
+                            spreadRadius: -1,
                           ),
                         ],
                       ),
@@ -218,7 +235,7 @@ class _LocationHeaderState extends State<LocationHeader>
                             ? Icons.location_disabled_rounded
                             : Icons.location_on_rounded,
                         color: Colors.white,
-                        size: 22.sp,
+                        size: 24.sp,
                       ),
                     ),
                     
@@ -315,25 +332,39 @@ class _LocationHeaderState extends State<LocationHeader>
                     ),
                     
                     if (widget.showRefreshButton) ...[
-                      SizedBox(width: 8.w),
+                      SizedBox(width: 10.w),
                       Container(
-                        padding: EdgeInsets.all(5.w),
+                        padding: EdgeInsets.all(8.w),
                         decoration: BoxDecoration(
                           color: (hasError 
                               ? ThemeConstants.error 
                               : needsPermission
                                 ? ThemeConstants.warning
                                 : context.primaryColor)
-                              .withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8.r),
+                              .withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12.r),
                           border: Border.all(
                             color: (hasError 
                                 ? ThemeConstants.error 
                                 : needsPermission
                                   ? ThemeConstants.warning
                                   : context.primaryColor)
-                                .withOpacity(0.2),
+                                .withValues(alpha: 0.25),
+                            width: 1,
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: (hasError 
+                                  ? ThemeConstants.error 
+                                  : needsPermission
+                                    ? ThemeConstants.warning
+                                    : context.primaryColor)
+                                  .withValues(alpha: 0.15),
+                              blurRadius: 6.r,
+                              offset: Offset(0, 2.h),
+                              spreadRadius: -1,
+                            ),
+                          ],
                         ),
                         child: Icon(
                           _isUpdating 
@@ -348,7 +379,7 @@ class _LocationHeaderState extends State<LocationHeader>
                             : needsPermission
                               ? ThemeConstants.warning
                               : context.primaryColor,
-                          size: 18.sp,
+                          size: 20.sp,
                         ),
                       ),
                     ],

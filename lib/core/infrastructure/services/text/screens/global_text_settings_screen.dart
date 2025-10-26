@@ -1,5 +1,5 @@
 // lib/core/infrastructure/services/text/screens/global_text_settings_screen.dart
-import 'package:athkar_app/core/infrastructure/services/text/service/text_settings_constants.dart';
+import 'package:athkar_app/core/infrastructure/services/text/constants/text_settings_constants.dart'; // ✅ المسار الصحيح
 import 'package:athkar_app/core/infrastructure/services/text/widgets/content_type_selector.dart';
 import 'package:athkar_app/core/infrastructure/services/text/widgets/font_selector_widget.dart';
 import 'package:athkar_app/core/infrastructure/services/text/widgets/presets_section.dart';
@@ -14,7 +14,6 @@ import '../../../../../app/themes/widgets/layout/app_bar.dart' as app_bar;
 import '../../../../../app/di/service_locator.dart';
 import '../models/text_settings_models.dart';
 import '../service/text_settings_service.dart';
-import '../constants/text_settings_constants.dart';
 
 
 /// شاشة إعدادات النصوص المحسّنة - بدون أنيميشن
@@ -52,8 +51,8 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
     ContentType.dua: '''رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً
 وَفِي الْآخِرَةِ حَسَنَةً
 وَقِنَا عَذَابَ النَّارِ''',
-    ContentType.asmaAllah: '''الرَّحْمَنُ • الرَّحِيمُ • الْمَلِكُ
-الْمُهَيْمِنُ • الْعَزِيزُ • الْجَبَّارُ''',
+    ContentType.asmaAllah: '''الرَّحْمَنُ • الرَّحِيمُ • الْمَلِكُ''',
+
   };
 
   // خريطة الألوان

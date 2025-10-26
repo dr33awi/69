@@ -59,25 +59,31 @@ class AthkarItemCard extends StatelessWidget {
           gradient: isCompleted 
               ? LinearGradient(
                   colors: [
-                    effectiveColor.withOpacity(0.05),
-                    effectiveColor.withOpacity(0.1),
+                    effectiveColor.withValues(alpha: 0.08),
+                    effectiveColor.withValues(alpha: 0.12),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 )
               : null,
           color: isCompleted ? null : context.cardColor,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(20.r),
           border: Border.all(
-            color: effectiveColor.withOpacity(isCompleted ? 0.4 : 0.3),
-            width: isCompleted ? 1.5.w : 1.w,
+            color: effectiveColor.withValues(alpha: isCompleted ? 0.4 : 0.15),
+            width: isCompleted ? 1.5 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: effectiveColor.withOpacity(isCompleted ? 0.15 : 0.08),
-              blurRadius: isCompleted ? 12.r : 6.r,
-              offset: Offset(0, 3.h),
-              spreadRadius: isCompleted ? 0.5.r : 0,
+              color: effectiveColor.withValues(alpha: isCompleted ? 0.2 : 0.08),
+              blurRadius: isCompleted ? 16.r : 12.r,
+              offset: Offset(0, 4.h),
+              spreadRadius: -2,
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: context.isDarkMode ? 0.1 : 0.04),
+              blurRadius: 8.r,
+              offset: Offset(0, 2.h),
+              spreadRadius: -1,
             ),
           ],
         ),
@@ -89,7 +95,7 @@ class AthkarItemCard extends StatelessWidget {
                 left: 0,
                 right: 0,
                 child: Container(
-                  height: 3.h,
+                  height: 4.h,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [

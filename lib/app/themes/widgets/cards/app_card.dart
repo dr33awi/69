@@ -128,7 +128,7 @@ class AppCard extends StatelessWidget {
 
   Widget _buildCard(BuildContext context) {
     final effectiveColor = primaryColor ?? context.primaryColor;
-    final effectiveBorderRadius = borderRadius ?? 16.r;
+    final effectiveBorderRadius = borderRadius ?? 20.r;
     
     return Container(
       margin: margin ?? EdgeInsets.symmetric(
@@ -136,8 +136,8 @@ class AppCard extends StatelessWidget {
         vertical: 8.h,
       ),
       child: Material(
-        elevation: showShadow ? (elevation ?? ThemeConstants.elevation4) : 0,
-        shadowColor: showShadow ? effectiveColor.withValues(alpha: ThemeConstants.opacity20) : Colors.transparent,
+        elevation: 0,
+        shadowColor: Colors.transparent,
         borderRadius: BorderRadius.circular(effectiveBorderRadius),
         color: Colors.transparent,
         clipBehavior: Clip.antiAlias,
@@ -165,6 +165,22 @@ class AppCard extends StatelessWidget {
   BoxDecoration _getDecoration(BuildContext context, Color color, double radius) {
     final bgColor = backgroundColor ?? context.cardColor;
     
+    // ظلال محسّنة موحدة
+    final shadows = showShadow ? [
+      BoxShadow(
+        color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+        blurRadius: 12.r,
+        offset: Offset(0, 4.h),
+        spreadRadius: -2,
+      ),
+      BoxShadow(
+        color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+        blurRadius: 6.r,
+        offset: Offset(0, 2.h),
+        spreadRadius: -1,
+      ),
+    ] : <BoxShadow>[];
+    
     switch (style) {
       case CardStyle.gradient:
         return BoxDecoration(
@@ -172,6 +188,11 @@ class AppCard extends StatelessWidget {
           gradient: ThemeConstants.customGradient(
             colors: gradientColors ?? [color, color.darken(0.2)],
           ),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.2),
+            width: 1,
+          ),
+          boxShadow: shadows,
         );
         
       case CardStyle.glassmorphism:
@@ -179,9 +200,10 @@ class AppCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(radius),
           color: bgColor.withValues(alpha: ThemeConstants.opacity70),
           border: Border.all(
-            color: context.isDarkMode ? Colors.white.withValues(alpha: ThemeConstants.opacity20) : color.withValues(alpha: ThemeConstants.opacity20),
-            width: 1.w,
+            color: context.isDarkMode ? Colors.white.withValues(alpha: 0.2) : color.withValues(alpha: 0.15),
+            width: 1,
           ),
+          boxShadow: shadows,
         );
         
       case CardStyle.outlined:
@@ -189,22 +211,40 @@ class AppCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(radius),
           color: bgColor,
           border: Border.all(
-            color: color.withValues(alpha: ThemeConstants.opacity30),
-            width: 2.w,
+            color: color.withValues(alpha: 0.3),
+            width: 2,
           ),
+          boxShadow: shadows,
         );
         
       case CardStyle.elevated:
         return BoxDecoration(
           borderRadius: BorderRadius.circular(radius),
           color: bgColor,
-          boxShadow: ThemeConstants.shadowForElevation(elevation ?? 8),
+          border: Border.all(
+            color: context.dividerColor.withValues(alpha: 0.1),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.2),
+              blurRadius: 16.r,
+              offset: Offset(0, 6.h),
+              spreadRadius: -2,
+            ),
+            ...shadows,
+          ],
         );
         
       case CardStyle.normal:
         return BoxDecoration(
           borderRadius: BorderRadius.circular(radius),
           color: bgColor,
+          border: Border.all(
+            color: context.dividerColor.withValues(alpha: 0.1),
+            width: 1,
+          ),
+          boxShadow: shadows,
         );
     }
   }

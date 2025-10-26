@@ -157,13 +157,8 @@ class TextSettingsConstants {
       'lineHeight': 1.8,
       'letterSpacing': 0.3,
     },
-    'large': {
-      'fontSize': 22.0,
-      'lineHeight': 2.0,
-      'letterSpacing': 0.5,
-    },
     'accessibility': {
-      'fontSize': 26.0,
+      'fontSize': 36.0,
       'lineHeight': 2.3,
       'letterSpacing': 0.8,
     },
@@ -180,11 +175,6 @@ class TextSettingsConstants {
       'fontSize': 20.0,
       'lineHeight': 1.9,
       'letterSpacing': 0.4,
-    },
-    'large': {
-      'fontSize': 24.0,
-      'lineHeight': 2.1,
-      'letterSpacing': 0.6,
     },
     'accessibility': {
       'fontSize': 28.0,
@@ -204,11 +194,6 @@ class TextSettingsConstants {
       'fontSize': 22.0,
       'lineHeight': 2.0,
       'letterSpacing': 0.5,
-    },
-    'large': {
-      'fontSize': 26.0,
-      'lineHeight': 2.2,
-      'letterSpacing': 0.7,
     },
     'accessibility': {
       'fontSize': 30.0,
@@ -318,4 +303,69 @@ class TextSettingsConstants {
     final recommended = getRecommendedFontsForContentType(contentType);
     return recommended.contains(fontFamily);
   }
+}
+
+/// قالب نمط النص
+class TextStylePreset {
+  final String name;
+  final double fontSize;
+  final double lineHeight;
+  final double letterSpacing;
+
+  const TextStylePreset({
+    required this.name,
+    required this.fontSize,
+    required this.lineHeight,
+    required this.letterSpacing,
+  });
+
+  /// تطبيق القالب على إعدادات موجودة
+  TextSettings applyToSettings(TextSettings currentSettings) {
+    return currentSettings.copyWith(
+      fontSize: fontSize,
+      lineHeight: lineHeight,
+      letterSpacing: letterSpacing,
+    );
+  }
+}
+
+/// القوالب الجاهزة
+class TextStylePresets {
+  TextStylePresets._();
+
+  // قالب قراءة مريحة - للقراءة الطويلة والمريحة
+  static const comfortable = TextStylePreset(
+    name: 'قراءة مريحة',
+    fontSize: 32.0,
+    lineHeight: 2.0,
+    letterSpacing: 0.5,
+  );
+
+  // قالب واضح - الإعداد القياسي والافتراضي
+  static const clear = TextStylePreset(
+    name: 'واضح',
+    fontSize: 36.0,
+    lineHeight: 1.8,
+    letterSpacing: 0.3,
+  );
+
+  // قالب مضغوط - لعرض المزيد من المحتوى
+  static const compact = TextStylePreset(
+    name: 'مضغوط',
+    fontSize: 20.0,
+    lineHeight: 1.5,
+    letterSpacing: 0.2,
+  );
+
+  /// قائمة جميع القوالب المتاحة
+  /// 
+  /// للتحكم بالقوالب المعروضة:
+  /// - احذف أي سطر لإخفاء القالب
+  /// - أضف قوالب جديدة بعد تعريفها أعلاه
+  /// - رتّب القوالب حسب الأولوية
+  static const List<TextStylePreset> all = [
+    comfortable,  // قراءة مريحة
+    clear,        // واضح
+    compact,      // مضغوط
+  ];
 }

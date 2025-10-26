@@ -20,15 +20,23 @@ class SettingsHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
       decoration: BoxDecoration(
         color: context.backgroundColor,
         border: Border(
           bottom: BorderSide(
-            color: context.dividerColor.withValues(alpha: 0.1),
+            color: context.dividerColor.withValues(alpha: 0.08),
             width: 1.w,
           ),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.02),
+            blurRadius: 8.r,
+            offset: Offset(0, 2.h),
+            spreadRadius: 0,
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -42,7 +50,7 @@ class SettingsHeader extends StatelessWidget {
           // الأيقونة
           _buildIcon(context),
           
-          SizedBox(width: 8.w),
+          SizedBox(width: 10.w),
           
           // العنوان والوصف
           Expanded(
@@ -58,20 +66,30 @@ class SettingsHeader extends StatelessWidget {
 
   Widget _buildIcon(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(6.w),
+      padding: EdgeInsets.all(8.w),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
             Theme.of(context).primaryColor,
-            Theme.of(context).primaryColor.withValues(alpha: 0.8),
+            Theme.of(context).primaryColor.withValues(alpha: 0.85),
           ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(14.r),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).primaryColor.withValues(alpha: 0.25),
+            blurRadius: 8.r,
+            offset: Offset(0, 3.h),
+            spreadRadius: -1,
+          ),
+        ],
       ),
       child: Icon(
-        Icons.settings,
+        Icons.settings_rounded,
         color: Colors.white,
-        size: 20.sp,
+        size: 22.sp,
       ),
     );
   }
@@ -103,15 +121,24 @@ class SettingsHeader extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onReset,
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(12.r),
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
           decoration: BoxDecoration(
+            color: ThemeConstants.error.withValues(alpha: 0.08),
             border: Border.all(
-              color: ThemeConstants.error.withValues(alpha: 0.3),
-              width: 1.w,
+              color: ThemeConstants.error.withValues(alpha: 0.2),
+              width: 1.5,
             ),
-            borderRadius: BorderRadius.circular(10.r),
+            borderRadius: BorderRadius.circular(12.r),
+            boxShadow: [
+              BoxShadow(
+                color: ThemeConstants.error.withValues(alpha: 0.1),
+                blurRadius: 6.r,
+                offset: Offset(0, 2.h),
+                spreadRadius: -1,
+              ),
+            ],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -119,14 +146,14 @@ class SettingsHeader extends StatelessWidget {
               Icon(
                 Icons.refresh_rounded,
                 color: ThemeConstants.error,
-                size: 16.sp,
+                size: 18.sp,
               ),
-              SizedBox(width: 4.w),
+              SizedBox(width: 5.w),
               Text(
                 'إعادة تعيين',
                 style: TextStyle(
                   color: ThemeConstants.error,
-                  fontSize: 10.sp,
+                  fontSize: 11.sp,
                   fontWeight: FontWeight.w600,
                 ),
               ),

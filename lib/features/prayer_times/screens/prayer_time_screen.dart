@@ -324,8 +324,10 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                                       vertical: 12.h,
                                     ),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12.r),
+                                      borderRadius: BorderRadius.circular(14.r),
                                     ),
+                                    elevation: 0,
+                                    shadowColor: Colors.transparent,
                                   ),
                                 ),
                               ],
@@ -382,8 +384,10 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                                       vertical: 12.h,
                                     ),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12.r),
+                                      borderRadius: BorderRadius.circular(14.r),
                                     ),
+                                    elevation: 0,
+                                    shadowColor: Colors.transparent,
                                   ),
                                 ),
                               ],
@@ -419,13 +423,22 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
           SizedBox(width: 6.w),
           
           Container(
-            padding: EdgeInsets.all(6.w),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               gradient: gradient,
-              borderRadius: BorderRadius.circular(8.r),
+              borderRadius: BorderRadius.circular(14.r),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.2),
+                width: 1,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: ThemeConstants.primary.withOpacity(0.3),
+                  color: ThemeConstants.primary.withValues(alpha: 0.3),
+                  blurRadius: 8.r,
+                  offset: Offset(0, 3.h),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 4.r,
                   offset: Offset(0, 2.h),
                 ),
@@ -503,23 +516,28 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       margin: EdgeInsets.only(left: 2.w),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(14.r),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(10.r),
+          borderRadius: BorderRadius.circular(14.r),
           child: Container(
-            padding: EdgeInsets.all(6.w),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               color: context.cardColor,
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(14.r),
               border: Border.all(
-                color: context.dividerColor.withValues(alpha: 0.3),
-                width: 1.w,
+                color: context.dividerColor.withValues(alpha: 0.15),
+                width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 3.r,
+                  color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+                  blurRadius: 8.r,
+                  offset: Offset(0, 3.h),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+                  blurRadius: 4.r,
                   offset: Offset(0, 2.h),
                 ),
               ],

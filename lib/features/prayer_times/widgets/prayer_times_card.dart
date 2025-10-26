@@ -25,23 +25,37 @@ class PrayerTimeCard extends StatelessWidget {
     
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(18.r),
         boxShadow: [
-          if (isNext)
+          if (isNext) ...[
             BoxShadow(
-              color: prayer.color.withOpacity(0.2),
+              color: prayer.color.withValues(alpha: 0.25),
+              blurRadius: 12.r,
+              offset: Offset(0, 4.h),
+              spreadRadius: -2,
+            ),
+            BoxShadow(
+              color: prayer.color.withValues(alpha: 0.15),
+              blurRadius: 6.r,
+              offset: Offset(0, 2.h),
+            ),
+          ] else ...[
+            BoxShadow(
+              color: Colors.black.withValues(alpha: context.isDarkMode ? 0.12 : 0.04),
               blurRadius: 8.r,
               offset: Offset(0, 3.h),
+              spreadRadius: -2,
             ),
+          ],
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(18.r),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: () => _showPrayerDetails(context),
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(18.r),
           child: Container(
             decoration: BoxDecoration(
               gradient: useGradient ? prayer.gradient : null,
@@ -52,22 +66,22 @@ class PrayerTimeCard extends StatelessWidget {
                 : null,
               border: Border.all(
                 color: useGradient 
-                  ? Colors.white.withOpacity(0.2)
-                  : context.dividerColor.withOpacity(0.2),
-                width: isNext ? 1.5.w : 1.w,
+                  ? Colors.white.withValues(alpha: 0.25)
+                  : context.dividerColor.withValues(alpha: 0.12),
+                width: isNext ? 1.5 : 1,
               ),
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(18.r),
             ),
             child: Padding(
-              padding: EdgeInsets.all(8.w),
+              padding: EdgeInsets.all(12.w),
               child: Row(
                 children: [
                   _buildPrayerIcon(context, useGradient),
-                  SizedBox(width: 8.w),
+                  SizedBox(width: 12.w),
                   Expanded(
                     child: _buildPrayerInfo(context, useGradient),
                   ),
-                  SizedBox(width: 4.w),
+                  SizedBox(width: 8.w),
                   _buildTimeSection(context, useGradient),
                 ],
               ),
@@ -81,21 +95,28 @@ class PrayerTimeCard extends StatelessWidget {
   Widget _buildPrayerIcon(BuildContext context, bool useGradient) {
     final iconColor = useGradient ? Colors.white : prayer.color;
     final bgColor = useGradient 
-      ? Colors.white.withOpacity(0.2)
-      : prayer.color.withOpacity(0.1);
+      ? Colors.white.withValues(alpha: 0.25)
+      : prayer.color.withValues(alpha: 0.12);
     
     return Container(
-      width: 38.w,
-      height: 38.w,
+      width: 44.w,
+      height: 44.w,
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(14.r),
         border: Border.all(
           color: useGradient 
-            ? Colors.white.withOpacity(0.3)
-            : prayer.color.withOpacity(0.2),
-          width: 1.w,
+            ? Colors.white.withValues(alpha: 0.35)
+            : prayer.color.withValues(alpha: 0.2),
+          width: 1,
         ),
+        boxShadow: useGradient ? [
+          BoxShadow(
+            color: Colors.white.withValues(alpha: 0.2),
+            blurRadius: 6.r,
+            offset: Offset(0, 2.h),
+          ),
+        ] : [],
       ),
       child: Icon(
         prayer.icon,

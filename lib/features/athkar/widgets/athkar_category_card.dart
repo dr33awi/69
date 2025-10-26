@@ -28,14 +28,23 @@ class AthkarCategoryCard extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18.r),
+          borderRadius: BorderRadius.circular(22.r),
           gradient: CategoryUtils.getCategoryGradient(category.id),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.2),
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: categoryColor.withOpacity(0.25),
-              blurRadius: 12.r,
+              color: categoryColor.withValues(alpha: 0.3),
+              blurRadius: 16.r,
               offset: Offset(0, 6.h),
-              spreadRadius: 1.r,
+              spreadRadius: -2,
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 8.r,
+              offset: Offset(0, 3.h),
             ),
           ],
         ),
@@ -43,12 +52,12 @@ class AthkarCategoryCard extends StatelessWidget {
           children: [
             Positioned.fill(
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(18.r),
+                borderRadius: BorderRadius.circular(22.r),
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        Colors.white.withOpacity(0.05),
+                        Colors.white.withValues(alpha: 0.08),
                         Colors.transparent,
                       ],
                       begin: Alignment.topLeft,
@@ -60,22 +69,33 @@ class AthkarCategoryCard extends StatelessWidget {
             ),
             
             Padding(
-              padding: EdgeInsets.all(12.r),
+              padding: EdgeInsets.all(16.r),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 48.r,
-                    height: 48.r,
+                    width: 54.r,
+                    height: 54.r,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(14.r),
+                      color: Colors.white.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(16.r),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          blurRadius: 8.r,
+                          offset: Offset(0, 2.h),
+                        ),
+                      ],
                     ),
                     child: Icon(
                       categoryIcon,
                       color: Colors.white,
-                      size: 26.sp,
+                      size: 28.sp,
                     ),
                   ),
                   
