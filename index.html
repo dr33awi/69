@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="سياسة الخصوصية لتطبيق ذكرني - تطبيق الأذكار والأدعية الإسلامية">
+    <meta name="keywords" content="سياسة الخصوصية, ذكرني, تطبيق إسلامي, Privacy Policy">
+    <title>سياسة الخصوصية - تطبيق ذكرني</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 60px 40px;
+            text-align: center;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 30px;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .logo svg {
+            width: 70px;
+            height: 70px;
+            fill: white;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #718096;
+            margin-bottom: 40px;
+        }
+
+        .language-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 40px;
+            font-size: 1.1em;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-arabic {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+        }
+
+        .btn-arabic:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(72, 187, 120, 0.4);
+        }
+
+        .btn-english {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white;
+        }
+
+        .btn-english:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(66, 153, 225, 0.4);
+        }
+
+        .icon {
+            font-size: 1.4em;
+        }
+
+        .info {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 40px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .info p {
+            color: #4a5568;
+            line-height: 1.8;
+            font-size: 1.05em;
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #e2e8f0;
+            color: #718096;
+            font-size: 0.95em;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: #764ba2;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 40px 25px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .subtitle {
+                font-size: 1em;
+            }
+
+            .language-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* RTL Support */
+        [dir="rtl"] .info {
+            border-left: none;
+            border-right: 4px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+        </div>
+
+        <h1>🕌 تطبيق ذكرني</h1>
+        <p class="subtitle">سياسة الخصوصية | Privacy Policy</p>
+
+        <div class="language-buttons">
+            <a href="PRIVACY_POLICY_AR.html" class="btn btn-arabic">
+                <span class="icon">📄</span>
+                <span>سياسة الخصوصية - العربية</span>
+            </a>
+            <a href="PRIVACY_POLICY_EN.html" class="btn btn-english">
+                <span class="icon">📄</span>
+                <span>Privacy Policy - English</span>
+            </a>
+        </div>
+
+        <div class="info">
+            <h3>📋 معلومات مهمة</h3>
+            <p>
+                نحن نحترم خصوصيتك ونلتزم بحماية بياناتك الشخصية. 
+                اقرأ سياسة الخصوصية الكاملة لفهم كيفية جمع واستخدام المعلومات.
+            </p>
+            <p style="margin-top: 15px;">
+                <strong>آخر تحديث:</strong> 26 أكتوبر 2025
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>
+                <strong>تطبيق ذكرني - Athkar App</strong><br>
+                الإصدار 1.0.0<br>
+                © 2025 جميع الحقوق محفوظة
+            </p>
+            <p style="margin-top: 15px;">
+                <a href="https://github.com/dr33awi/69" target="_blank">🔗 مستودع GitHub</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Auto-redirect based on browser language (optional)
+        const userLang = navigator.language || navigator.userLanguage;
+        
+        // You can enable auto-redirect by uncommenting this:
+        /*
+        if (userLang.startsWith('ar')) {
+            window.location.href = 'PRIVACY_POLICY_AR.html';
+        } else {
+            window.location.href = 'PRIVACY_POLICY_EN.html';
+        }
+        */
+    </script>
+</body>
+</html>
