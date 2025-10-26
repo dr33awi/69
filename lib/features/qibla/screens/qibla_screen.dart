@@ -229,22 +229,37 @@ class _QiblaScreenState extends State<QiblaScreen>
           SizedBox(width: 8.w),
           
           Container(
-            padding: EdgeInsets.all(6.w),
+            padding: EdgeInsets.all(9.r),
             decoration: BoxDecoration(
               gradient: gradient,
-              borderRadius: BorderRadius.circular(8.r),
+              borderRadius: BorderRadius.circular(14.r),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.2),
+                width: 1,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: ThemeConstants.primary.withOpacity(0.3),
-                  blurRadius: 4.r,
+                  color: Colors.black.withValues(
+                    alpha: context.isDarkMode ? 0.15 : 0.06,
+                  ),
+                  blurRadius: 12.r,
+                  offset: Offset(0, 4.h),
+                  spreadRadius: -2,
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(
+                    alpha: context.isDarkMode ? 0.08 : 0.03,
+                  ),
+                  blurRadius: 6.r,
                   offset: Offset(0, 2.h),
+                  spreadRadius: -1,
                 ),
               ],
             ),
             child: Icon(
               FlutterIslamicIcons.solidQibla,
               color: Colors.white,
-              size: 18.sp,
+              size: 20.sp,
             ),
           ),
           
@@ -309,24 +324,35 @@ class _QiblaScreenState extends State<QiblaScreen>
       margin: EdgeInsets.only(left: 2.w),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(14.r),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(10.r),
+          borderRadius: BorderRadius.circular(14.r),
           child: Container(
-            padding: EdgeInsets.all(6.w),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               color: context.cardColor,
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(14.r),
               border: Border.all(
-                color: context.dividerColor.withValues(alpha: 0.3),
-                width: 1.w,
+                color: context.dividerColor.withValues(alpha: 0.15),
+                width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 3.r,
+                  color: Colors.black.withValues(
+                    alpha: context.isDarkMode ? 0.15 : 0.06,
+                  ),
+                  blurRadius: 12.r,
+                  offset: Offset(0, 4.h),
+                  spreadRadius: -2,
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(
+                    alpha: context.isDarkMode ? 0.08 : 0.03,
+                  ),
+                  blurRadius: 6.r,
                   offset: Offset(0, 2.h),
+                  spreadRadius: -1,
                 ),
               ],
             ),

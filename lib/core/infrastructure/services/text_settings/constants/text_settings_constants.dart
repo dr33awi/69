@@ -268,14 +268,27 @@ class TextSettingsConstants {
   
   /// الحصول على الخطوط الموصى بها لنوع المحتوى
   static List<String> getRecommendedFontsForContentType(ContentType contentType) {
+    // إرجاع قائمة مرتبة حسب الأولوية لكل نوع محتوى
+    // الخطوط الموصى بها أولاً، ثم باقي الخطوط
+    List<String> recommended;
+    
     switch (contentType) {
       case ContentType.athkar:
-        return ['Cairo', 'Lateef', 'Tajawal'];
+        recommended = ['Cairo', 'Lateef', 'Tajawal'];
+        break;
       case ContentType.dua:
-        return ['Scheherazade New', 'Amiri', 'Lateef'];
+        recommended = ['Scheherazade New', 'Amiri', 'Lateef'];
+        break;
       case ContentType.asmaAllah:
-        return ['Amiri', 'Harmattan', 'Aref Ruqaa'];
+        recommended = ['Amiri', 'Harmattan', 'Aref Ruqaa'];
+        break;
     }
+    
+    // إضافة باقي الخطوط التي لم تُذكر في الموصى بها
+    final allFonts = availableFonts.keys.toList();
+    final remainingFonts = allFonts.where((font) => !recommended.contains(font)).toList();
+    
+    return [...recommended, ...remainingFonts];
   }
   
   /// التحقق من وجود الخط في القائمة

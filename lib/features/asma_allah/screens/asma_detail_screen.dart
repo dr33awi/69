@@ -2,8 +2,8 @@
 import 'dart:ui';
 import 'package:athkar_app/app/themes/app_theme.dart';
 import 'package:athkar_app/core/infrastructure/services/share/share_extensions.dart';
-import 'package:athkar_app/core/infrastructure/services/text/extensions/text_settings_extensions.dart';
-import 'package:athkar_app/core/infrastructure/services/text/models/text_settings_models.dart';
+import 'package:athkar_app/core/infrastructure/services/text_settings/extensions/text_settings_extensions.dart';
+import 'package:athkar_app/core/infrastructure/services/text_settings/models/text_settings_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -131,19 +131,34 @@ class _UnifiedAsmaAllahDetailsScreenState
           SizedBox(width: 8.w),
           
           Container(
-            padding: EdgeInsets.all(6.w),
+            padding: EdgeInsets.all(9.r),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [color, color.withOpacity(0.8)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(14.r),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.2),
+                width: 1,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: color.withValues(alpha: 0.3),
+                  color: Colors.black.withValues(
+                    alpha: context.isDarkMode ? 0.15 : 0.06,
+                  ),
+                  blurRadius: 12.r,
+                  offset: Offset(0, 4.h),
+                  spreadRadius: -2,
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(
+                    alpha: context.isDarkMode ? 0.08 : 0.03,
+                  ),
                   blurRadius: 6.r,
-                  offset: Offset(0, 3.h),
+                  offset: Offset(0, 2.h),
+                  spreadRadius: -1,
                 ),
               ],
             ),
@@ -227,24 +242,35 @@ class _UnifiedAsmaAllahDetailsScreenState
       margin: EdgeInsets.only(left: 2.w),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(14.r),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(10.r),
+          borderRadius: BorderRadius.circular(14.r),
           child: Container(
-            padding: EdgeInsets.all(6.w),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               color: context.cardColor,
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(14.r),
               border: Border.all(
-                color: context.dividerColor.withValues(alpha: 0.3),
-                width: 1.w,
+                color: context.dividerColor.withValues(alpha: 0.15),
+                width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 3.r,
+                  color: Colors.black.withValues(
+                    alpha: context.isDarkMode ? 0.15 : 0.06,
+                  ),
+                  blurRadius: 12.r,
+                  offset: Offset(0, 4.h),
+                  spreadRadius: -2,
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(
+                    alpha: context.isDarkMode ? 0.08 : 0.03,
+                  ),
+                  blurRadius: 6.r,
                   offset: Offset(0, 2.h),
+                  spreadRadius: -1,
                 ),
               ],
             ),
@@ -496,7 +522,7 @@ class _UnifiedAsmaAllahDetailsScreenState
                   width: 1.w,
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(14.r),
                 ),
               ),
             ),
@@ -539,7 +565,7 @@ class _UnifiedAsmaAllahDetailsScreenState
                 foregroundColor: canNext 
                     ? Colors.white 
                     : context.textSecondaryColor.withOpacity(0.5),
-                elevation: canNext ? 2 : 0,
+                elevation: 0,
                 padding: EdgeInsets.symmetric(vertical: 10.h),
                 side: canNext 
                     ? null
@@ -548,7 +574,7 @@ class _UnifiedAsmaAllahDetailsScreenState
                         width: 1.w,
                       ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(14.r),
                 ),
                 shadowColor: canNext ? color.withValues(alpha: 0.3) : null,
               ),

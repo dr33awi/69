@@ -1,8 +1,8 @@
 // lib/features/dua/screens/dua_details_screen.dart
 
 import 'package:athkar_app/core/infrastructure/services/share/share_extensions.dart';
-import 'package:athkar_app/core/infrastructure/services/text/extensions/text_settings_extensions.dart';
-import 'package:athkar_app/core/infrastructure/services/text/models/text_settings_models.dart';
+import 'package:athkar_app/core/infrastructure/services/text_settings/extensions/text_settings_extensions.dart';
+import 'package:athkar_app/core/infrastructure/services/text_settings/models/text_settings_models.dart';
 import 'package:athkar_app/core/infrastructure/services/favorites/models/favorite_models.dart';
 import 'package:athkar_app/core/infrastructure/services/favorites/extensions/favorites_extensions.dart';
 import 'package:flutter/material.dart';
@@ -186,12 +186,27 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(14.r),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.2),
+                width: 1,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: categoryColor.withOpacity(0.3),
+                  color: Colors.black.withValues(
+                    alpha: context.isDarkMode ? 0.15 : 0.06,
+                  ),
+                  blurRadius: 12.r,
+                  offset: Offset(0, 4.h),
+                  spreadRadius: -2,
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(
+                    alpha: context.isDarkMode ? 0.08 : 0.03,
+                  ),
                   blurRadius: 6.r,
-                  offset: Offset(0, 3.h),
+                  offset: Offset(0, 2.h),
+                  spreadRadius: -1,
                 ),
               ],
             ),
@@ -280,24 +295,35 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
       margin: EdgeInsets.only(left: 2.w),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(14.r),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(10.r),
+          borderRadius: BorderRadius.circular(14.r),
           child: Container(
-            padding: EdgeInsets.all(6.w),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               color: context.cardColor,
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(14.r),
               border: Border.all(
-                color: context.dividerColor.withValues(alpha: 0.3),
-                width: 1.w,
+                color: context.dividerColor.withValues(alpha: 0.15),
+                width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 3.r,
+                  color: Colors.black.withValues(
+                    alpha: context.isDarkMode ? 0.15 : 0.06,
+                  ),
+                  blurRadius: 12.r,
+                  offset: Offset(0, 4.h),
+                  spreadRadius: -2,
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(
+                    alpha: context.isDarkMode ? 0.08 : 0.03,
+                  ),
+                  blurRadius: 6.r,
                   offset: Offset(0, 2.h),
+                  spreadRadius: -1,
                 ),
               ],
             ),
@@ -472,10 +498,32 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
     return Row(
       children: [
         Container(
-          padding: EdgeInsets.all(6.w),
+          padding: EdgeInsets.all(8.r),
           decoration: BoxDecoration(
             color: color.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(8.r),
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(
+              color: color.withValues(alpha: 0.15),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(
+                  alpha: context.isDarkMode ? 0.15 : 0.06,
+                ),
+                blurRadius: 12.r,
+                offset: Offset(0, 4.h),
+                spreadRadius: -2,
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(
+                  alpha: context.isDarkMode ? 0.08 : 0.03,
+                ),
+                blurRadius: 6.r,
+                offset: Offset(0, 2.h),
+                spreadRadius: -1,
+              ),
+            ],
           ),
           child: Icon(icon, color: color, size: 18.sp),
         ),
@@ -541,9 +589,9 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: canPrev ? categoryColor : context.surfaceColor.withOpacity(0.5),
                 foregroundColor: canPrev ? Colors.white : context.textSecondaryColor.withOpacity(0.5),
-                elevation: canPrev ? 2 : 0,
+                elevation: 0,
                 padding: EdgeInsets.symmetric(vertical: 12.h),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
                 shadowColor: canPrev ? categoryColor.withOpacity(0.3) : null,
               ),
             ),
@@ -583,7 +631,7 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
                 foregroundColor: canNext ? context.textPrimaryColor : context.textSecondaryColor.withOpacity(0.5),
                 elevation: 0,
                 padding: EdgeInsets.symmetric(vertical: 12.h),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
               ),
             ),
           ),

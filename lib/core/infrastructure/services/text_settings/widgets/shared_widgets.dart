@@ -56,11 +56,18 @@ class EnhancedSlider extends StatelessWidget {
                     color.withOpacity(0.15),
                   ],
                 ),
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(14.r),
                 border: Border.all(
-                  color: color.withOpacity(0.3),
-                  width: 1.5.w,
+                  color: color.withValues(alpha: 0.2),
+                  width: 1,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.15),
+                    blurRadius: 6.r,
+                    offset: Offset(0, 2.h),
+                  ),
+                ],
               ),
               child: Text(
                 label,
@@ -124,10 +131,10 @@ class EnhancedSwitch extends StatelessWidget {
       margin: EdgeInsets.symmetric(vertical: 8.h),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(20.r),
         child: InkWell(
           onTap: () => onChanged(!value),
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(20.r),
           child: Container(
             padding: EdgeInsets.all(14.w),
             decoration: BoxDecoration(
@@ -140,13 +147,33 @@ class EnhancedSwitch extends StatelessWidget {
                     )
                   : null,
               color: value ? null : context.backgroundColor,
-              borderRadius: BorderRadius.circular(16.r),
+              borderRadius: BorderRadius.circular(20.r),
               border: Border.all(
                 color: value
-                    ? accentColor.withOpacity(0.2)
-                    : context.dividerColor.withOpacity(0.2),
-                width: 1.5.w,
+                    ? accentColor.withValues(alpha: 0.15)
+                    : context.dividerColor.withValues(alpha: 0.1),
+                width: 1,
               ),
+              boxShadow: value
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withValues(
+                          alpha: context.isDarkMode ? 0.15 : 0.06,
+                        ),
+                        blurRadius: 12.r,
+                        offset: Offset(0, 4.h),
+                        spreadRadius: -2,
+                      ),
+                      BoxShadow(
+                        color: Colors.black.withValues(
+                          alpha: context.isDarkMode ? 0.08 : 0.03,
+                        ),
+                        blurRadius: 6.r,
+                        offset: Offset(0, 2.h),
+                        spreadRadius: -1,
+                      ),
+                    ]
+                  : null,
             ),
             child: Row(
               children: [
@@ -156,7 +183,16 @@ class EnhancedSwitch extends StatelessWidget {
                     color: value
                         ? accentColor.withOpacity(0.1)
                         : context.dividerColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10.r),
+                    borderRadius: BorderRadius.circular(14.r),
+                    boxShadow: value
+                        ? [
+                            BoxShadow(
+                              color: accentColor.withValues(alpha: 0.2),
+                              blurRadius: 8.r,
+                              offset: Offset(0, 2.h),
+                            ),
+                          ]
+                        : null,
                   ),
                   child: Icon(
                     icon,

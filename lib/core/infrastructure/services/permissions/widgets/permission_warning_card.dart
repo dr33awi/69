@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../app/themes/theme_constants.dart';
 import '../../../../../app/themes/core/theme_extensions.dart';
-import '../../../../../app/themes/widgets/core/app_button.dart';
 
 /// بطاقة تحذير موحدة لطلب الأذونات
 class PermissionWarningCard extends StatelessWidget {

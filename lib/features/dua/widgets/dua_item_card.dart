@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
-import '../../../core/infrastructure/services/text/extensions/text_settings_extensions.dart';
-import '../../../core/infrastructure/services/text/models/text_settings_models.dart';
+import '../../../core/infrastructure/services/text_settings/extensions/text_settings_extensions.dart';
+import '../../../core/infrastructure/services/text_settings/models/text_settings_models.dart';
 import '../models/dua_model.dart';
 
 class DuaItemCard extends StatelessWidget {

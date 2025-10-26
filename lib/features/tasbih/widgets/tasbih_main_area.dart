@@ -128,10 +128,29 @@ class TasbihMainArea extends StatelessWidget {
       padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: context.dividerColor.withOpacity(0.3),
+          color: context.dividerColor.withValues(alpha: 0.15),
+          width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: context.isDarkMode ? 0.15 : 0.06,
+            ),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
+            spreadRadius: -2,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: context.isDarkMode ? 0.08 : 0.03,
+            ),
+            blurRadius: 6.r,
+            offset: Offset(0, 2.h),
+            spreadRadius: -1,
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,

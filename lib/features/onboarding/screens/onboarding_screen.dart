@@ -93,21 +93,33 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             top: 40.h,
             right: 20.w,
             child: SafeArea(
-              child: TextButton(
-                onPressed: _completeOnboarding,
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.white.withOpacity(0.2),
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20.r),
-                  ),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      blurRadius: 8.r,
+                      offset: Offset(0, 3.h),
+                    ),
+                  ],
                 ),
-                child: Text(
-                  'تخطي',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                child: TextButton(
+                  onPressed: _completeOnboarding,
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.white.withOpacity(0.2),
+                    padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20.r),
+                    ),
+                  ),
+                  child: Text(
+                    'تخطي',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -307,8 +319,8 @@ class _ResponsivePageView extends StatelessWidget {
   }
 
   Widget _buildResponsiveFeaturesList(double fontSize) {
-    final double padding = OnboardingConstants.isSmallScreen(screenHeight) ? 14.w : 18.w;
-    final double borderRadius = OnboardingConstants.getBorderRadius(screenHeight);
+    final double padding = OnboardingConstants.isSmallScreen(screenHeight) ? 16.w : 20.w;
+    final double borderRadius = OnboardingConstants.isSmallScreen(screenHeight) ? 20.r : 24.r;
     final double verticalPadding = OnboardingConstants.isSmallScreen(screenHeight) ? 8.h : 10.h;
     final double bulletSize = OnboardingConstants.isSmallScreen(screenHeight) ? 7.w : 8.w;
     
@@ -318,9 +330,16 @@ class _ResponsivePageView extends StatelessWidget {
         color: Colors.white.withOpacity(0.12),
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(
-          color: Colors.white.withOpacity(0.25),
-          width: 2.w,
+          color: Colors.white.withOpacity(0.2),
+          width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

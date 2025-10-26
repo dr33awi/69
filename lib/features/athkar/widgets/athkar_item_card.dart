@@ -1,5 +1,5 @@
 // lib/features/athkar/widgets/athkar_item_card.dart
-import 'package:athkar_app/core/infrastructure/services/text/models/text_settings_models.dart';
+import 'package:athkar_app/core/infrastructure/services/text_settings/models/text_settings_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

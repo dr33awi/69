@@ -204,15 +204,22 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        width: 48.r,
-                        height: 48.r,
+                        width: 50.r,
+                        height: 50.r,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.white.withValues(alpha: 0.2),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.3),
-                            width: 1.5.w,
+                            color: Colors.white.withValues(alpha: 0.2),
+                            width: 1,
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              blurRadius: 6.r,
+                              offset: Offset(0, 2.h),
+                            ),
+                          ],
                         ),
                         child: Icon(
                           category.icon,
@@ -265,29 +272,36 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
       child: Container(
         height: 120.h,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(20.r),
           gradient: gradient,
           boxShadow: [
             BoxShadow(
-              color: gradient.colors[0].withValues(alpha: 0.25),
-              blurRadius: 10.r,
+              color: gradient.colors[0].withValues(alpha: context.isDarkMode ? 0.3 : 0.25),
+              blurRadius: 12.r,
               offset: Offset(0, 4.h),
+              spreadRadius: -2,
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+              blurRadius: 6.r,
+              offset: Offset(0, 2.h),
+              spreadRadius: -1,
             ),
           ],
         ),
         child: Material(
           color: Colors.transparent,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(20.r),
           child: InkWell(
             onTap: () => _onCategoryTap(category),
-            borderRadius: BorderRadius.circular(16.r),
+            borderRadius: BorderRadius.circular(20.r),
             child: Container(
-              padding: EdgeInsets.all(12.r),
+              padding: EdgeInsets.all(14.r),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16.r),
+                borderRadius: BorderRadius.circular(20.r),
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  width: 1.w,
+                  color: Colors.white.withValues(alpha: 0.15),
+                  width: 1,
                 ),
               ),
               child: Stack(
@@ -295,15 +309,22 @@ class _CategoryGridState extends State<CategoryGrid> with AutomaticKeepAliveClie
                   Row(
                     children: [
                       Container(
-                        width: 48.r,
-                        height: 48.r,
+                        width: 50.r,
+                        height: 50.r,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.white.withValues(alpha: 0.2),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.3),
-                            width: 1.5.w,
+                            color: Colors.white.withValues(alpha: 0.2),
+                            width: 1,
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              blurRadius: 6.r,
+                              offset: Offset(0, 2.h),
+                            ),
+                          ],
                         ),
                         child: Icon(
                           category.icon,

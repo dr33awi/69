@@ -25,12 +25,34 @@ class CustomDhikrDialogs {
           title: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(8.r),
+                padding: EdgeInsets.all(9.r),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [ThemeConstants.primary, ThemeConstants.primaryLight],
                   ),
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(14.r),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(
+                        alpha: context.isDarkMode ? 0.15 : 0.06,
+                      ),
+                      blurRadius: 12.r,
+                      offset: Offset(0, 4.h),
+                      spreadRadius: -2,
+                    ),
+                    BoxShadow(
+                      color: Colors.black.withValues(
+                        alpha: context.isDarkMode ? 0.08 : 0.03,
+                      ),
+                      blurRadius: 6.r,
+                      offset: Offset(0, 2.h),
+                      spreadRadius: -1,
+                    ),
+                  ],
                 ),
                 child: Icon(Icons.add_circle_outline, color: Colors.white, size: 20.sp),
               ),

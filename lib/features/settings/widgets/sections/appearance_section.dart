@@ -1,6 +1,6 @@
 // lib/features/settings/widgets/sections/appearance_section.dart
 
-import 'package:athkar_app/core/infrastructure/services/text/extensions/text_settings_extensions.dart';
+import 'package:athkar_app/core/infrastructure/services/text_settings/extensions/text_settings_extensions.dart';
 import 'package:athkar_app/features/settings/widgets/sections/settings_section.dart';
 import 'package:athkar_app/features/settings/widgets/sections/settings_tile.dart';
 import 'package:flutter/material.dart';

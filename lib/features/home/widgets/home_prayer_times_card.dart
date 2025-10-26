@@ -262,6 +262,20 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20.r),
         gradient: PrayerUtils.getPrayerGradient(_nextPrayer?.type ?? PrayerType.fajr),
+        boxShadow: [
+          BoxShadow(
+            color: PrayerUtils.getPrayerColor(_nextPrayer?.type ?? PrayerType.fajr).withValues(alpha: context.isDarkMode ? 0.3 : 0.25),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
+            spreadRadius: -2,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+            blurRadius: 6.r,
+            offset: Offset(0, 2.h),
+            spreadRadius: -1,
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20.r),
@@ -271,11 +285,11 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
             onTap: _navigateToPrayerTimes,
             borderRadius: BorderRadius.circular(20.r),
             child: Container(
-              padding: EdgeInsets.all(12.r),
+              padding: EdgeInsets.all(14.r),
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
-                  width: 1.w,
+                  color: Colors.white.withOpacity(0.15),
+                  width: 1,
                 ),
                 borderRadius: BorderRadius.circular(20.r),
               ),
@@ -297,10 +311,17 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
     return Row(
       children: [
         Container(
-          padding: EdgeInsets.all(8.r),
+          padding: EdgeInsets.all(10.r),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(10.r),
+            borderRadius: BorderRadius.circular(14.r),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.white.withValues(alpha: 0.15),
+                blurRadius: 6.r,
+                offset: Offset(0, 2.h),
+              ),
+            ],
           ),
           child: Icon(
             FlutterIslamicIcons.solidMosque,
@@ -384,10 +405,17 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
         ),
         
         Container(
-          padding: EdgeInsets.all(6.r),
+          padding: EdgeInsets.all(8.r),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(14.r),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.white.withValues(alpha: 0.15),
+                blurRadius: 6.r,
+                offset: Offset(0, 2.h),
+              ),
+            ],
           ),
           child: Icon(
             Icons.arrow_forward_ios_rounded,
@@ -403,13 +431,13 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
     final prayers = _dailyTimes?.prayers.where((p) => p.type != PrayerType.sunrise).toList() ?? [];
     
     return Container(
-      padding: EdgeInsets.all(8.r),
+      padding: EdgeInsets.all(10.r),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
-          width: 1.w,
+          color: Colors.white.withOpacity(0.15),
+          width: 1,
         ),
       ),
       child: Row(
@@ -497,14 +525,32 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
   Widget _buildCompactLoadingCard(BuildContext context) {
     return Container(
       height: 140.h,
-      padding: EdgeInsets.all(14.r),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: context.cardColor,
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: context.dividerColor.withOpacity(0.3),
-          width: 1.w,
+          color: context.dividerColor.withOpacity(0.1),
+          width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: context.isDarkMode ? 0.15 : 0.06,
+            ),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
+            spreadRadius: -2,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: context.isDarkMode ? 0.08 : 0.03,
+            ),
+            blurRadius: 6.r,
+            offset: Offset(0, 2.h),
+            spreadRadius: -1,
+          ),
+        ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -532,14 +578,32 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
 
   Widget _buildCompactErrorCard(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(12.r),
+      padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
         color: context.cardColor,
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: ThemeConstants.error.withOpacity(0.3),
-          width: 1.w,
+          color: ThemeConstants.error.withOpacity(0.15),
+          width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: context.isDarkMode ? 0.15 : 0.06,
+            ),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
+            spreadRadius: -2,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: context.isDarkMode ? 0.08 : 0.03,
+            ),
+            blurRadius: 6.r,
+            offset: Offset(0, 2.h),
+            spreadRadius: -1,
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -567,16 +631,18 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
           ),
           SizedBox(height: 8.h),
           SizedBox(
-            height: 28.h,
+            height: 32.h,
             child: ElevatedButton(
               onPressed: _retryLoadPrayerTimes,
               style: ElevatedButton.styleFrom(
                 backgroundColor: ThemeConstants.error,
                 foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 12.w),
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.r),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
+                elevation: 0,
+                shadowColor: Colors.transparent,
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -598,14 +664,32 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
 
   Widget _buildCompactEmptyCard(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(14.r),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: context.cardColor,
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: context.dividerColor.withOpacity(0.3),
-          width: 1.w,
+          color: context.dividerColor.withOpacity(0.1),
+          width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: context.isDarkMode ? 0.15 : 0.06,
+            ),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
+            spreadRadius: -2,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: context.isDarkMode ? 0.08 : 0.03,
+            ),
+            blurRadius: 6.r,
+            offset: Offset(0, 2.h),
+            spreadRadius: -1,
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -625,21 +709,23 @@ class _PrayerTimesCardState extends State<PrayerTimesCard>
           ),
           SizedBox(height: 8.h),
           SizedBox(
-            height: 28.h,
+            height: 32.h,
             child: ElevatedButton.icon(
               onPressed: _retryLoadPrayerTimes,
               style: ElevatedButton.styleFrom(
                 backgroundColor: context.primaryColor,
                 foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 12.w),
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.r),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
+                elevation: 0,
+                shadowColor: Colors.transparent,
               ),
-              icon: Icon(Icons.refresh, size: 14.sp),
+              icon: Icon(Icons.refresh, size: 16.sp),
               label: Text(
                 'تحديث',
-                style: TextStyle(fontSize: 11.sp),
+                style: TextStyle(fontSize: 12.sp),
               ),
             ),
           ),

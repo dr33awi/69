@@ -416,15 +416,26 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
     ];
     
     return Container(
-      margin: EdgeInsets.all(12.w),
+      margin: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(20.r),
         color: context.cardColor,
+        border: Border.all(
+          color: context.dividerColor.withValues(alpha: 0.1),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8.r,
-            offset: Offset(0, 3.h),
+            color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
+            spreadRadius: -2,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+            blurRadius: 6.r,
+            offset: Offset(0, 2.h),
+            spreadRadius: -1,
           ),
         ],
       ),
@@ -432,14 +443,25 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.all(12.w),
+            padding: EdgeInsets.all(16.w),
             child: Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(8.w),
+                  padding: EdgeInsets.all(10.w),
                   decoration: BoxDecoration(
                     color: _primaryGreenColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10.r),
+                    borderRadius: BorderRadius.circular(14.r),
+                    border: Border.all(
+                      color: _primaryGreenColor.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _primaryGreenColor.withValues(alpha: 0.15),
+                        blurRadius: 6.r,
+                        offset: Offset(0, 2.h),
+                      ),
+                    ],
                   ),
                   child: Icon(
                     Icons.mosque,
@@ -495,16 +517,27 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
     
     return ExpansionTile(
       leading: Container(
-        width: 36.w,
-        height: 36.w,
+        width: 40.w,
+        height: 40.w,
         decoration: BoxDecoration(
           color: _primaryGreenColor.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8.r),
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(
+            color: _primaryGreenColor.withValues(alpha: 0.2),
+            width: 1,
+          ),
+          boxShadow: isEnabled ? [
+            BoxShadow(
+              color: _primaryGreenColor.withValues(alpha: 0.15),
+              blurRadius: 6.r,
+              offset: Offset(0, 2.h),
+            ),
+          ] : null,
         ),
         child: Icon(
           icon,
           color: _primaryGreenColor,
-          size: 18.sp,
+          size: 20.sp,
         ),
       ),
       title: Text(name, style: TextStyle(fontSize: 13.sp)),

@@ -1,5 +1,5 @@
 // lib/core/infrastructure/services/text/screens/widgets/content_type_selector.dart
-import 'package:athkar_app/core/infrastructure/services/text/models/text_settings_models.dart' as models;
+import 'package:athkar_app/core/infrastructure/services/text_settings/models/text_settings_models.dart' as models;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -25,15 +25,30 @@ class ContentTypeSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      padding: EdgeInsets.all(3.w),
+      padding: EdgeInsets.all(4.w),
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(
+          color: context.dividerColor.withValues(alpha: 0.1),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(
+              alpha: context.isDarkMode ? 0.15 : 0.06,
+            ),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
+            spreadRadius: -2,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: context.isDarkMode ? 0.08 : 0.03,
+            ),
+            blurRadius: 6.r,
+            offset: Offset(0, 2.h),
+            spreadRadius: -1,
           ),
         ],
       ),
@@ -50,7 +65,7 @@ class ContentTypeSelector extends StatelessWidget {
                 HapticFeedback.selectionClick();
               },
               child: Container(
-                padding: EdgeInsets.symmetric(vertical: 12.h),
+                padding: EdgeInsets.symmetric(vertical: 14.h),
                 decoration: BoxDecoration(
                   gradient: isSelected
                       ? LinearGradient(
@@ -62,13 +77,13 @@ class ContentTypeSelector extends StatelessWidget {
                           ],
                         )
                       : null,
-                  borderRadius: BorderRadius.circular(13.r),
+                  borderRadius: BorderRadius.circular(16.r),
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
                             color: color.withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
+                            blurRadius: 10.r,
+                            offset: Offset(0, 3.h),
                           ),
                         ]
                       : null,
@@ -77,12 +92,21 @@ class ContentTypeSelector extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      padding: EdgeInsets.all(isSelected ? 9.r : 7.r),
+                      padding: EdgeInsets.all(isSelected ? 10.r : 8.r),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? Colors.white.withOpacity(0.25)
                             : color.withOpacity(0.12),
                         shape: BoxShape.circle,
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: Colors.white.withValues(alpha: 0.15),
+                                  blurRadius: 6.r,
+                                  offset: Offset(0, 2.h),
+                                ),
+                              ]
+                            : null,
                       ),
                       child: Icon(
                         icon,

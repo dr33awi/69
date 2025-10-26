@@ -128,7 +128,7 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
     final shouldSkip = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24.r)),
         title: Text(
           'تخطي الأذونات؟',
           style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
@@ -150,7 +150,7 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: ThemeConstants.primary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(12.r),
               ),
             ),
             child: Text(
@@ -361,33 +361,61 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
           color: isActive 
-              ? ThemeConstants.primary.withOpacity(0.3)
-              : context.dividerColor.withOpacity(0.2),
-          width: isActive ? 2.w : 1.w,
+              ? ThemeConstants.primary.withOpacity(0.15)
+              : context.dividerColor.withOpacity(0.1),
+          width: 1,
         ),
-        boxShadow: isActive ? [
+        boxShadow: [
           BoxShadow(
-            color: ThemeConstants.primary.withOpacity(0.1),
-            blurRadius: 20.r,
-            offset: Offset(0, 10.h),
+            color: Colors.black.withValues(
+              alpha: context.isDarkMode ? 0.15 : 0.06,
+            ),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
+            spreadRadius: -2,
           ),
-        ] : [],
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: context.isDarkMode ? 0.08 : 0.03,
+            ),
+            blurRadius: 6.r,
+            offset: Offset(0, 2.h),
+            spreadRadius: -1,
+          ),
+          if (isActive)
+            BoxShadow(
+              color: ThemeConstants.primary.withOpacity(0.1),
+              blurRadius: 16.r,
+              offset: Offset(0, 8.h),
+            ),
+        ],
       ),
       child: Padding(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.all(18.w),
         child: Column(
           children: [
             Row(
               children: [
                 Container(
-                  width: 50.w,
-                  height: 50.w,
+                  width: 52.w,
+                  height: 52.w,
                   decoration: BoxDecoration(
                     color: iconColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12.r),
+                    borderRadius: BorderRadius.circular(14.r),
+                    border: Border.all(
+                      color: iconColor.withOpacity(0.2),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: iconColor.withValues(alpha: 0.15),
+                        blurRadius: 6.r,
+                        offset: Offset(0, 2.h),
+                      ),
+                    ],
                   ),
                   child: Icon(
                     icon,
@@ -414,12 +442,19 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
                             SizedBox(width: 8.w),
                             Container(
                               padding: EdgeInsets.symmetric(
-                                horizontal: 8.w,
-                                vertical: 2.h,
+                                horizontal: 10.w,
+                                vertical: 4.h,
                               ),
                               decoration: BoxDecoration(
                                 color: ThemeConstants.success,
                                 borderRadius: BorderRadius.circular(12.r),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: ThemeConstants.success.withValues(alpha: 0.3),
+                                    blurRadius: 6.r,
+                                    offset: Offset(0, 2.h),
+                                  ),
+                                ],
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -427,7 +462,7 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
                                   Icon(
                                     Icons.check,
                                     color: Colors.white,
-                                    size: 12.sp,
+                                    size: 14.sp,
                                   ),
                                   SizedBox(width: 4.w),
                                   Text(
@@ -481,7 +516,7 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
               ),
             )),
             if (onRequest != null && isActive) ...[
-              SizedBox(height: 12.h),
+              SizedBox(height: 16.h),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -489,11 +524,12 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: ThemeConstants.primary,
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 14.h),
+                    padding: EdgeInsets.symmetric(vertical: 16.h),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(14.r),
                     ),
                     elevation: 0,
+                    shadowColor: Colors.transparent,
                   ),
                   child: _isLoading
                       ? SizedBox(
@@ -529,9 +565,20 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
         color: context.surfaceColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10.r,
-            offset: Offset(0, -5.h),
+            color: Colors.black.withValues(
+              alpha: context.isDarkMode ? 0.15 : 0.06,
+            ),
+            blurRadius: 12.r,
+            offset: Offset(0, -4.h),
+            spreadRadius: -2,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: context.isDarkMode ? 0.08 : 0.03,
+            ),
+            blurRadius: 6.r,
+            offset: Offset(0, -2.h),
+            spreadRadius: -1,
           ),
         ],
       ),
@@ -547,11 +594,12 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: ThemeConstants.success,
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 16.h),
+                    padding: EdgeInsets.symmetric(vertical: 18.h),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(14.r),
                     ),
                     elevation: 0,
+                    shadowColor: Colors.transparent,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -576,13 +624,13 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
                     child: OutlinedButton(
                       onPressed: _skipPermissions,
                       style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                        padding: EdgeInsets.symmetric(vertical: 16.h),
                         side: BorderSide(
-                          color: context.dividerColor,
-                          width: 1.w,
+                          color: context.dividerColor.withOpacity(0.3),
+                          width: 1,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.r),
+                          borderRadius: BorderRadius.circular(14.r),
                         ),
                       ),
                       child: Text(
@@ -608,11 +656,12 @@ class _PermissionsSetupScreenState extends State<PermissionsSetupScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: ThemeConstants.primary,
                         foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                        padding: EdgeInsets.symmetric(vertical: 16.h),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.r),
+                          borderRadius: BorderRadius.circular(14.r),
                         ),
                         elevation: 0,
+                        shadowColor: Colors.transparent,
                       ),
                       child: Text(
                         'التالي',

@@ -5,7 +5,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../app/themes/app_theme.dart';
 
 // Splash & Onboarding
-import '../../features/splash/screens/splash_screen.dart';
 import '../../features/onboarding/screens/onboarding_screen.dart';
 import '../../features/onboarding/screens/permissions_setup_screen.dart';
 
@@ -80,8 +79,7 @@ class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       // ==================== Splash & Onboarding ====================
-      case splash:
-        return _fadeRoute(const SplashScreen(), settings);
+
         
       case onboarding:
         return _fadeRoute(const OnboardingScreen(), settings);

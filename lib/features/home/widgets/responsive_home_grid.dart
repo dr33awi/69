@@ -87,7 +87,28 @@ class ResponsiveCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: backgroundColor ?? Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(borderRadius),
-            boxShadow: boxShadow,
+            border: Border.all(
+              color: Theme.of(context).dividerColor.withOpacity(0.1),
+              width: 1,
+            ),
+            boxShadow: boxShadow ?? [
+              BoxShadow(
+                color: Colors.black.withOpacity(
+                  Theme.of(context).brightness == Brightness.dark ? 0.15 : 0.06,
+                ),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+                spreadRadius: -2,
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(
+                  Theme.of(context).brightness == Brightness.dark ? 0.08 : 0.03,
+                ),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+                spreadRadius: -1,
+              ),
+            ],
           ),
           child: Material(
             color: Colors.transparent,
@@ -109,22 +130,22 @@ class ResponsiveCard extends StatelessWidget {
   double _getBorderRadius(DeviceType deviceType) {
     switch (deviceType) {
       case DeviceType.mobile:
-        return 12.r;
+        return 16.r;
       case DeviceType.tablet:
-        return 16.r; // ✅ زوايا أكبر للايباد
+        return 20.r; // ✅ زوايا أكبر للايباد
       case DeviceType.desktop:
-        return 20.r;
+        return 24.r;
     }
   }
 
   double _getPadding(DeviceType deviceType) {
     switch (deviceType) {
       case DeviceType.mobile:
-        return 16.w;
+        return 18.w;
       case DeviceType.tablet:
-        return 20.w; // ✅ حشو أكبر للايباد
+        return 22.w; // ✅ حشو أكبر للايباد
       case DeviceType.desktop:
-        return 24.w;
+        return 26.w;
     }
   }
 }

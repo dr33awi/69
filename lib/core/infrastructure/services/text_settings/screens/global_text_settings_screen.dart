@@ -1,10 +1,7 @@
 // lib/core/infrastructure/services/text/screens/global_text_settings_screen.dart
-import 'package:athkar_app/core/infrastructure/services/text/constants/text_settings_constants.dart'; // ✅ المسار الصحيح
-import 'package:athkar_app/core/infrastructure/services/text/widgets/content_type_selector.dart';
-import 'package:athkar_app/core/infrastructure/services/text/widgets/font_selector_widget.dart';
-import 'package:athkar_app/core/infrastructure/services/text/widgets/presets_section.dart';
-import 'package:athkar_app/core/infrastructure/services/text/widgets/shared_widgets.dart';
-import 'package:athkar_app/core/infrastructure/services/text/widgets/text_preview_widget.dart';
+import 'package:athkar_app/core/infrastructure/services/text_settings/constants/text_settings_constants.dart'; // ✅ المسار الصحيح
+import 'package:athkar_app/core/infrastructure/services/text_settings/widgets/shared_widgets.dart';
+import 'package:athkar_app/core/infrastructure/services/text_settings/widgets/text_preview_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -30,8 +27,10 @@ class GlobalTextSettingsScreen extends StatefulWidget {
       _GlobalTextSettingsScreenState();
 }
 
-class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
+class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> 
+    with SingleTickerProviderStateMixin {
   late final TextSettingsService _textService;
+  late TabController _tabController;
   
   final Map<ContentType, TextSettings> _currentSettings = {};
   final Map<ContentType, DisplaySettings> _currentDisplaySettings = {};
@@ -43,7 +42,6 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
   bool _hasChanges = false;
   
   final Map<ContentType, String?> _selectedPresets = {};
-  ContentType _selectedContentType = ContentType.athkar;
   
   // نصوص المعاينة
   final Map<ContentType, String> _previewTexts = {
@@ -62,19 +60,39 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
     ContentType.asmaAllah: ThemeConstants.tertiary,
   };
 
-  // خريطة الأيقونات
-  final Map<ContentType, IconData> _iconMap = {
-    ContentType.athkar: Icons.article_rounded,
-    ContentType.dua: Icons.volunteer_activism_rounded,
-    ContentType.asmaAllah: Icons.star_rounded,
-  };
-
   @override
   void initState() {
     super.initState();
     _textService = getIt<TextSettingsService>();
-    _selectedContentType = widget.initialContentType ?? ContentType.athkar;
+    
+    // تهيئة TabController
+    _tabController = TabController(
+      length: ContentType.values.length,
+      vsync: this,
+    );
+    
+    // تعيين التاب الافتراضي
+    if (widget.initialContentType != null) {
+      final index = ContentType.values.indexOf(widget.initialContentType!);
+      _tabController.index = index;
+    }
+    
+    _tabController.addListener(_onTabChanged);
+    
     _loadAllSettings();
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_onTabChanged);
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging) {
+      setState(() {});
+    }
   }
 
   Future<void> _loadAllSettings() async {
@@ -177,15 +195,26 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20.r),
+          borderRadius: BorderRadius.circular(24.r),
         ),
         title: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(8.r),
+              padding: EdgeInsets.all(10.r),
               decoration: BoxDecoration(
                 color: ThemeConstants.warning.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(14.r),
+                border: Border.all(
+                  color: ThemeConstants.warning.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: ThemeConstants.warning.withValues(alpha: 0.15),
+                    blurRadius: 6.r,
+                    offset: Offset(0, 2.h),
+                  ),
+                ],
               ),
               child: Icon(
                 Icons.warning_amber_rounded,
@@ -228,8 +257,10 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
               foregroundColor: Colors.white,
               padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(12.r),
               ),
+              elevation: 0,
+              shadowColor: Colors.transparent,
             ),
             child: Text('حفظ وخروج', style: TextStyle(fontSize: 14.sp)),
           ),
@@ -264,24 +295,22 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
           child: Column(
             children: [
               _buildCustomAppBar(),
+              _buildTabBar(),
               Expanded(
                 child: _isLoading
                     ? _buildLoadingState()
-                    : SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            ContentTypeSelector(
-                              selectedContentType: _selectedContentType,
-                              onChanged: (type) {
-                                setState(() => _selectedContentType = type);
-                              },
-                              colorMap: _colorMap,
-                              iconMap: _iconMap,
+                    : TabBarView(
+                        controller: _tabController,
+                        children: ContentType.values.map((contentType) {
+                          return SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                _buildContentTypeSettings(contentType),
+                                SizedBox(height: 60.h),
+                              ],
                             ),
-                            _buildContentTypeSettings(_selectedContentType),
-                            SizedBox(height: 60.h),
-                          ],
-                        ),
+                          );
+                        }).toList(),
                       ),
               ),
             ],
@@ -308,7 +337,7 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
           SizedBox(width: 8.w),
           
           Container(
-            padding: EdgeInsets.all(6.r),
+            padding: EdgeInsets.all(10.r),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -318,12 +347,27 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(14.r),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.2),
+                width: 1,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: ThemeConstants.info.withOpacity(0.25),
+                  color: Colors.black.withValues(
+                    alpha: context.isDarkMode ? 0.15 : 0.06,
+                  ),
+                  blurRadius: 12.r,
+                  offset: Offset(0, 4.h),
+                  spreadRadius: -2,
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(
+                    alpha: context.isDarkMode ? 0.08 : 0.03,
+                  ),
                   blurRadius: 6.r,
-                  offset: Offset(0, 3.h),
+                  offset: Offset(0, 2.h),
+                  spreadRadius: -1,
                 ),
               ],
             ),
@@ -364,32 +408,44 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
               margin: EdgeInsets.only(left: 6.w),
               child: Material(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(14.r),
                 child: InkWell(
                   onTap: () {
                     HapticFeedback.lightImpact();
                     _saveAllSettings();
                   },
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(14.r),
                   child: Container(
-                    padding: EdgeInsets.all(6.r),
+                    padding: EdgeInsets.all(10.r),
                     decoration: BoxDecoration(
                       color: context.cardColor,
-                      borderRadius: BorderRadius.circular(10.r),
+                      borderRadius: BorderRadius.circular(14.r),
                       border: Border.all(
-                        color: context.dividerColor.withOpacity(0.3),
+                        color: context.dividerColor.withValues(alpha: 0.15),
+                        width: 1,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 3.r,
-                          offset: Offset(0, 1.5.h),
+                          color: Colors.black.withValues(
+                            alpha: context.isDarkMode ? 0.15 : 0.06,
+                          ),
+                          blurRadius: 12.r,
+                          offset: Offset(0, 4.h),
+                          spreadRadius: -2,
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withValues(
+                            alpha: context.isDarkMode ? 0.08 : 0.03,
+                          ),
+                          blurRadius: 6.r,
+                          offset: Offset(0, 2.h),
+                          spreadRadius: -1,
                         ),
                       ],
                     ),
                     child: Icon(
                       Icons.save,
-                      color: ThemeConstants.primary,
+                      color: ThemeConstants.success,
                       size: 20.sp,
                     ),
                   ),
@@ -402,29 +458,41 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
               margin: EdgeInsets.only(left: 6.w),
               child: Material(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(14.r),
                 child: InkWell(
-                  onTap: _showResetAllDialog,
-                  borderRadius: BorderRadius.circular(10.r),
+                  onTap: _showResetDialog,
+                  borderRadius: BorderRadius.circular(14.r),
                   child: Container(
-                    padding: EdgeInsets.all(6.r),
+                    padding: EdgeInsets.all(10.r),
                     decoration: BoxDecoration(
                       color: context.cardColor,
-                      borderRadius: BorderRadius.circular(10.r),
+                      borderRadius: BorderRadius.circular(14.r),
                       border: Border.all(
-                        color: context.dividerColor.withOpacity(0.3),
+                        color: context.dividerColor.withValues(alpha: 0.15),
+                        width: 1,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 3.r,
-                          offset: Offset(0, 1.5.h),
+                          color: Colors.black.withValues(
+                            alpha: context.isDarkMode ? 0.15 : 0.06,
+                          ),
+                          blurRadius: 12.r,
+                          offset: Offset(0, 4.h),
+                          spreadRadius: -2,
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withValues(
+                            alpha: context.isDarkMode ? 0.08 : 0.03,
+                          ),
+                          blurRadius: 6.r,
+                          offset: Offset(0, 2.h),
+                          spreadRadius: -1,
                         ),
                       ],
                     ),
                     child: Icon(
                       Icons.restore_rounded,
-                      color: ThemeConstants.error,
+                      color: ThemeConstants.warning,
                       size: 20.sp,
                     ),
                   ),
@@ -432,6 +500,55 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTabBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: context.backgroundColor,
+        border: Border(
+          bottom: BorderSide(
+            color: context.dividerColor.withValues(alpha: 0.2),
+            width: 1.w,
+          ),
+        ),
+      ),
+      child: TabBar(
+        controller: _tabController,
+        isScrollable: true,
+        labelColor: ThemeConstants.accent,
+        unselectedLabelColor: context.textSecondaryColor,
+        indicatorColor: ThemeConstants.accent,
+        indicatorWeight: 3.h,
+        labelStyle: TextStyle(
+          fontSize: 14.sp,
+          fontWeight: ThemeConstants.semiBold,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontSize: 14.sp,
+          fontWeight: ThemeConstants.regular,
+        ),
+        padding: EdgeInsets.symmetric(horizontal: 8.w),
+        tabs: ContentType.values.map((type) {
+          final icon = type == ContentType.athkar 
+              ? Icons.article_rounded 
+              : type == ContentType.dua 
+                  ? Icons.volunteer_activism_rounded 
+                  : Icons.star_rounded;
+          
+          return Tab(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 18.sp),
+                SizedBox(width: 4.w),
+                Text(type.displayName),
+              ],
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -450,188 +567,46 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
       padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 20.h),
       child: Column(
         children: [
-          // معاينة النص المحسّنة
+          // معاينة النص المحسّنة مع جميع التحكمات
           TextPreviewWidget(
             contentType: contentType,
             textSettings: textSettings,
             displaySettings: displaySettings,
             accentColor: accentColor,
             previewTexts: _previewTexts,
-          ),
-          
-          SizedBox(height: 20.h),
-          
-          // القوالب الجاهزة
-          PresetsSection(
-            contentType: contentType,
             currentPresetName: _getCurrentPresetName(contentType),
             onPresetSelected: (preset) => _applyPreset(contentType, preset),
-            accentColor: ThemeConstants.accent,
+            onFontChanged: (newFont) {
+              _updateSettings(
+                contentType,
+                textSettings: textSettings.copyWith(fontFamily: newFont),
+              );
+            },
+            onFontSizeChanged: (newSize) {
+              _updateSettings(
+                contentType,
+                textSettings: textSettings.copyWith(fontSize: newSize),
+              );
+            },
+            onLineHeightChanged: (newHeight) {
+              _updateSettings(
+                contentType,
+                textSettings: textSettings.copyWith(lineHeight: newHeight),
+              );
+            },
+            onLetterSpacingChanged: (newSpacing) {
+              _updateSettings(
+                contentType,
+                textSettings: textSettings.copyWith(letterSpacing: newSpacing),
+              );
+            },
           ),
           
           SizedBox(height: 20.h),
           
-          // إعدادات الخط
-          _buildFontSettingsSection(contentType, textSettings, accentColor),
-          
-          SizedBox(height: 20.h),
-          
-          // إعدادات العرض
+          // إعدادات العرض فقط (تم نقل إعدادات الخط والقوالب إلى كارد المعاينة)
           _buildDisplaySettingsSection(contentType, displaySettings, accentColor),
         ],
-      ),
-    );
-  }
-
-  Widget _buildFontSettingsSection(
-    ContentType contentType,
-    TextSettings textSettings,
-    Color accentColor,
-  ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: context.cardColor,
-        borderRadius: BorderRadius.circular(24.r),
-      ),
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          initiallyExpanded: false,
-          tilePadding: EdgeInsets.all(20.w),
-          childrenPadding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 20.w),
-          title: Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(12.r),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      ThemeConstants.info,
-                      ThemeConstants.info.withOpacity(0.7),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(14.r),
-                  boxShadow: [
-                    BoxShadow(
-                      color: ThemeConstants.info.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: Offset(0, 3.h),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  Icons.font_download_rounded,
-                  color: Colors.white,
-                  size: 22.sp,
-                ),
-              ),
-              SizedBox(width: 14.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'تخصيص الخط',
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: ThemeConstants.bold,
-                        color: context.textPrimaryColor,
-                      ),
-                    ),
-                    Text(
-                      'حجم الخط والتباعد والنوع',
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: context.textSecondaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          trailing: Icon(
-            Icons.keyboard_arrow_down_rounded,
-            color: ThemeConstants.info,
-            size: 28.sp,
-          ),
-          children: [
-            Column(
-              children: [
-                EnhancedSlider(
-                  title: 'حجم الخط',
-                  icon: Icons.format_size_rounded,
-                  value: textSettings.fontSize,
-                  min: TextSettingsConstants.minFontSize,
-                  max: TextSettingsConstants.maxFontSize,
-                  divisions: 12,
-                  label: '${textSettings.fontSize.round()}',
-                  color: ThemeConstants.primary,
-                  onChanged: (value) {
-                    _updateSettings(
-                      contentType,
-                      textSettings: textSettings.copyWith(fontSize: value),
-                    );
-                  },
-                ),
-                
-                SizedBox(height: 24.h),
-                
-                FontSelectorWidget(
-                  contentType: contentType,
-                  currentFont: textSettings.fontFamily,
-                  onChanged: (value) {
-                    _updateSettings(
-                      contentType,
-                      textSettings: textSettings.copyWith(fontFamily: value!),
-                    );
-                  },
-                  accentColor: accentColor,
-                ),
-                
-                SizedBox(height: 24.h),
-                
-                EnhancedSlider(
-                  title: 'تباعد الأسطر',
-                  icon: Icons.format_line_spacing_rounded,
-                  value: textSettings.lineHeight,
-                  min: TextSettingsConstants.minLineHeight,
-                  max: TextSettingsConstants.maxLineHeight,
-                  divisions: 20,
-                  label: textSettings.lineHeight.toStringAsFixed(1),
-                  color: ThemeConstants.accent,
-                  onChanged: (value) {
-                    _updateSettings(
-                      contentType,
-                      textSettings: textSettings.copyWith(lineHeight: value),
-                    );
-                  },
-                ),
-                
-                SizedBox(height: 24.h),
-                
-                EnhancedSlider(
-                  title: 'تباعد الأحرف',
-                  icon: Icons.space_bar_rounded,
-                  value: textSettings.letterSpacing,
-                  min: TextSettingsConstants.minLetterSpacing,
-                  max: TextSettingsConstants.maxLetterSpacing,
-                  divisions: 20,
-                  label: textSettings.letterSpacing.toStringAsFixed(1),
-                  color: ThemeConstants.tertiary,
-                  onChanged: (value) {
-                    _updateSettings(
-                      contentType,
-                      textSettings: textSettings.copyWith(letterSpacing: value),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -846,6 +821,10 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen> {
       _updateSettings(contentType, textSettings: updatedSettings);
       HapticFeedback.mediumImpact();
     }
+  }
+
+  void _showResetDialog() async {
+    _showResetAllDialog();
   }
 
   void _showResetAllDialog() async {

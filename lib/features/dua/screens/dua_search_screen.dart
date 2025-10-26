@@ -144,9 +144,9 @@ class _DuaSearchScreenState extends State<DuaSearchScreen> {
         color: context.backgroundColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8.r,
-            offset: Offset(0, 2.h),
+            color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
           ),
         ],
       ),
@@ -161,19 +161,28 @@ class _DuaSearchScreenState extends State<DuaSearchScreen> {
               SizedBox(width: 10.w),
               
               Container(
-                padding: EdgeInsets.all(7.r),
+                padding: EdgeInsets.all(9.r),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [ThemeConstants.tertiary, ThemeConstants.tertiaryLight],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(14.r),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: ThemeConstants.tertiary.withOpacity(0.3),
-                      blurRadius: 6.r,
+                      color: ThemeConstants.tertiary.withValues(alpha: 0.3),
+                      blurRadius: 8.r,
                       offset: Offset(0, 3.h),
+                    ),
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 4.r,
+                      offset: Offset(0, 2.h),
                     ),
                   ],
                 ),
@@ -188,19 +197,24 @@ class _DuaSearchScreenState extends State<DuaSearchScreen> {
               
               Expanded(
                 child: Container(
-                  height: 44.h,
+                  height: 48.h,
                   decoration: BoxDecoration(
                     color: context.cardColor,
-                    borderRadius: BorderRadius.circular(10.r),
+                    borderRadius: BorderRadius.circular(14.r),
                     border: Border.all(
                       color: _searchFocus.hasFocus
-                          ? ThemeConstants.tertiary.withOpacity(0.5)
-                          : context.dividerColor.withOpacity(0.3),
-                      width: 1.w,
+                          ? ThemeConstants.tertiary.withValues(alpha: 0.5)
+                          : context.dividerColor.withValues(alpha: 0.15),
+                      width: 1,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+                        blurRadius: 8.r,
+                        offset: Offset(0, 3.h),
+                      ),
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
                         blurRadius: 4.r,
                         offset: Offset(0, 2.h),
                       ),
@@ -537,19 +551,33 @@ class _DuaSearchScreenState extends State<DuaSearchScreen> {
   Widget _buildSearchResultCard(DuaItem dua) {
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(12.r),
+      borderRadius: BorderRadius.circular(18.r),
       child: InkWell(
         onTap: () => _openDuaDetails(dua),
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(18.r),
         child: Container(
-          padding: EdgeInsets.all(12.w),
+          padding: EdgeInsets.all(14.w),
           decoration: BoxDecoration(
             color: context.cardColor,
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(18.r),
             border: Border.all(
-              color: context.dividerColor.withOpacity(0.3),
-              width: 1.w,
+              color: context.dividerColor.withValues(alpha: 0.1),
+              width: 1,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+                blurRadius: 12.r,
+                offset: Offset(0, 4.h),
+                spreadRadius: -2,
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+                blurRadius: 6.r,
+                offset: Offset(0, 2.h),
+                spreadRadius: -1,
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

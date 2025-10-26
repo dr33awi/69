@@ -1,6 +1,6 @@
 // lib/core/infrastructure/services/text/widgets/presets_section.dart
-import 'package:athkar_app/core/infrastructure/services/text/models/text_settings_models.dart';
-import 'package:athkar_app/core/infrastructure/services/text/constants/text_settings_constants.dart'; // ✅ المسار الصحيح
+import 'package:athkar_app/core/infrastructure/services/text_settings/models/text_settings_models.dart';
+import 'package:athkar_app/core/infrastructure/services/text_settings/constants/text_settings_constants.dart'; // ✅ المسار الصحيح
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -142,21 +142,43 @@ class PresetCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(20.r),
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
           decoration: BoxDecoration(
             color: isSelected 
                 ? context.textPrimaryColor
                 : context.cardColor,
             borderRadius: BorderRadius.circular(20.r),
-            border: isSelected ? null : Border.all(
-              color: context.dividerColor.withOpacity(0.3),
-              width: 1.w,
+            border: Border.all(
+              color: isSelected 
+                  ? Colors.transparent
+                  : context.dividerColor.withValues(alpha: 0.15),
+              width: 1,
             ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(
+                        alpha: context.isDarkMode ? 0.15 : 0.06,
+                      ),
+                      blurRadius: 12.r,
+                      offset: Offset(0, 4.h),
+                      spreadRadius: -2,
+                    ),
+                    BoxShadow(
+                      color: Colors.black.withValues(
+                        alpha: context.isDarkMode ? 0.08 : 0.03,
+                      ),
+                      blurRadius: 6.r,
+                      offset: Offset(0, 2.h),
+                      spreadRadius: -1,
+                    ),
+                  ]
+                : null,
           ),
           child: Text(
             preset.name,
             style: TextStyle(
-              fontSize: 13.sp,
+              fontSize: 14.sp,
               fontWeight: isSelected 
                   ? ThemeConstants.semiBold 
                   : ThemeConstants.medium,

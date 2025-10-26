@@ -7,8 +7,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
-import '../../../core/infrastructure/services/text/extensions/text_settings_extensions.dart';
-import '../../../core/infrastructure/services/text/models/text_settings_models.dart';
+import '../../../core/infrastructure/services/text_settings/extensions/text_settings_extensions.dart';
+import '../../../core/infrastructure/services/text_settings/models/text_settings_models.dart';
 import '../services/dua_service.dart';
 import '../models/dua_model.dart';
 import '../widgets/dua_item_card.dart';
@@ -220,7 +220,7 @@ ${dua.virtue != null ? '\nالفضيلة: ${dua.virtue}' : ''}
               
               // أيقونة الفئة
               Container(
-                padding: EdgeInsets.all(7.r),
+                padding: EdgeInsets.all(9.r),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
@@ -230,12 +230,27 @@ ${dua.virtue != null ? '\nالفضيلة: ${dua.virtue}' : ''}
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(14.r),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: categoryColor.withOpacity(0.3),
+                      color: Colors.black.withValues(
+                        alpha: context.isDarkMode ? 0.15 : 0.06,
+                      ),
+                      blurRadius: 12.r,
+                      offset: Offset(0, 4.h),
+                      spreadRadius: -2,
+                    ),
+                    BoxShadow(
+                      color: Colors.black.withValues(
+                        alpha: context.isDarkMode ? 0.08 : 0.03,
+                      ),
                       blurRadius: 6.r,
-                      offset: Offset(0, 3.h),
+                      offset: Offset(0, 2.h),
+                      spreadRadius: -1,
                     ),
                   ],
                 ),
@@ -303,31 +318,42 @@ ${dua.virtue != null ? '\nالفضيلة: ${dua.virtue}' : ''}
         margin: EdgeInsets.only(left: 6.w),
         child: Material(
           color: Colors.transparent,
-          borderRadius: BorderRadius.circular(10.r),
+          borderRadius: BorderRadius.circular(14.r),
           child: InkWell(
             onTap: () {
               HapticFeedback.lightImpact();
               onTap();
             },
-            borderRadius: BorderRadius.circular(10.r),
+            borderRadius: BorderRadius.circular(14.r),
             child: Container(
-              padding: EdgeInsets.all(7.r),
+              padding: EdgeInsets.all(8.w),
               decoration: BoxDecoration(
                 color: color != null 
                     ? color.withOpacity(0.1)
                     : context.cardColor,
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(14.r),
                 border: Border.all(
                   color: color != null 
-                      ? color.withOpacity(0.3)
-                      : context.dividerColor.withOpacity(0.3),
-                  width: 1.w,
+                      ? color.withValues(alpha: 0.15)
+                      : context.dividerColor.withValues(alpha: 0.15),
+                  width: 1,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 3.r,
+                    color: Colors.black.withValues(
+                      alpha: context.isDarkMode ? 0.15 : 0.06,
+                    ),
+                    blurRadius: 12.r,
+                    offset: Offset(0, 4.h),
+                    spreadRadius: -2,
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withValues(
+                      alpha: context.isDarkMode ? 0.08 : 0.03,
+                    ),
+                    blurRadius: 6.r,
                     offset: Offset(0, 2.h),
+                    spreadRadius: -1,
                   ),
                 ],
               ),
@@ -353,16 +379,27 @@ ${dua.virtue != null ? '\nالفضيلة: ${dua.virtue}' : ''}
         ),
         decoration: BoxDecoration(
           color: context.cardColor,
-          borderRadius: BorderRadius.circular(10.r),
+          borderRadius: BorderRadius.circular(14.r),
           border: Border.all(
-            color: context.dividerColor.withOpacity(0.3),
-            width: 1.w,
+            color: context.dividerColor.withValues(alpha: 0.15),
+            width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 4.r,
+              color: Colors.black.withValues(
+                alpha: context.isDarkMode ? 0.15 : 0.06,
+              ),
+              blurRadius: 12.r,
+              offset: Offset(0, 4.h),
+              spreadRadius: -2,
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(
+                alpha: context.isDarkMode ? 0.08 : 0.03,
+              ),
+              blurRadius: 6.r,
               offset: Offset(0, 2.h),
+              spreadRadius: -1,
             ),
           ],
         ),

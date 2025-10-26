@@ -1,9 +1,9 @@
 // lib/features/athkar/screens/athkar_details_screen.dart
 import 'package:athkar_app/core/infrastructure/services/share/share_extensions.dart';
-import 'package:athkar_app/core/infrastructure/services/text/extensions/text_settings_extensions.dart';
-import 'package:athkar_app/core/infrastructure/services/text/models/text_settings_models.dart';
 import 'package:athkar_app/core/infrastructure/services/favorites/models/favorite_models.dart';
 import 'package:athkar_app/core/infrastructure/services/favorites/extensions/favorites_extensions.dart';
+import 'package:athkar_app/core/infrastructure/services/text_settings/extensions/text_settings_extensions.dart';
+import 'package:athkar_app/core/infrastructure/services/text_settings/models/text_settings_models.dart';
 import 'package:athkar_app/features/athkar/utils/athkar_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -42,6 +42,7 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
   bool _loading = true;
   bool _allCompleted = false;
   bool _wasCompletedOnLoad = false;
+  bool _dialogShown = false; // علم لتجنب عرض الحوار مرتين
   
   // إعدادات النص الموحدة
   TextSettings? _textSettings;
@@ -218,9 +219,22 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
       total += item.count;
     }
     
+    final wasCompleted = _allCompleted;
+    final isNowCompleted = completed >= total && total > 0;
+    
     setState(() {
-      _allCompleted = completed >= total && total > 0;
+      _allCompleted = isNowCompleted;
     });
+    
+    // عرض حوار الإكمال عندما يكمل المستخدم لأول مرة
+    if (!wasCompleted && isNowCompleted && !_dialogShown && !_wasCompletedOnLoad) {
+      _dialogShown = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _showCompletionDialog();
+        }
+      });
+    }
   }
 
   void _onItemTap(AthkarItem item) {
@@ -281,9 +295,13 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
       _completedItems.clear();
       _allCompleted = false;
       _wasCompletedOnLoad = false;
+      _dialogShown = false;
       _updateVisibleItems();
     });
     _saveProgress();
+    
+    // إظهار رسالة تأكيد
+    context.showAthkarInfoSnackBar('تم إعادة تعيين جميع الأذكار');
   }
 
   Future<void> _resetAllSilently() async {
@@ -299,6 +317,163 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
       fadl: item.fadl,
       source: item.source,
       categoryTitle: _category!.title,
+    );
+  }
+
+  /// عرض حوار الإكمال
+  void _showCompletionDialog() {
+    if (!mounted) return;
+    
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(28.r),
+        ),
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.symmetric(horizontal: 24.w),
+        child: Container(
+          constraints: BoxConstraints(
+            maxWidth: 400.w,
+          ),
+          decoration: BoxDecoration(
+            color: context.cardColor,
+            borderRadius: BorderRadius.circular(28.r),
+            border: Border.all(
+              color: ThemeConstants.success.withOpacity(0.3),
+              width: 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: ThemeConstants.success.withOpacity(0.3),
+                blurRadius: 24.r,
+                offset: Offset(0, 8.h),
+                spreadRadius: -4,
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 12.r,
+                offset: Offset(0, 4.h),
+              ),
+            ],
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.all(24.r),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // أيقونة النجاح
+                  Container(
+                    width: 100.r,
+                    height: 100.r,
+                    decoration: BoxDecoration(
+                      color: ThemeConstants.success.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: ThemeConstants.success.withOpacity(0.3),
+                        width: 3,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: ThemeConstants.success.withOpacity(0.2),
+                          blurRadius: 20.r,
+                          offset: Offset(0, 8.h),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.check_circle_rounded,
+                      size: 60.sp,
+                      color: ThemeConstants.success,
+                    ),
+                  ),
+                  
+                  SizedBox(height: 24.h),
+                  
+                  // العنوان
+                  Text(
+                    'بارك الله فيك',
+                    style: TextStyle(
+                      color: ThemeConstants.success,
+                      fontWeight: ThemeConstants.bold,
+                      fontSize: 22.sp,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  
+                  SizedBox(height: 12.h),
+                  
+                  // النص
+                  Text(
+                    'أتممت جميع أذكار ${_category?.title ?? 'هذه الفئة'}',
+                    style: TextStyle(
+                      color: context.textPrimaryColor,
+                      fontSize: 16.sp,
+                      fontWeight: ThemeConstants.medium,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  
+                  SizedBox(height: 8.h),
+                                    
+                  SizedBox(height: 28.h),
+                  
+                  // الأزرار
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AppButton.success(
+                        text: 'البدء من جديد',
+                        icon: Icons.refresh_rounded,
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _resetAll();
+                        },
+                        isFullWidth: true,
+                      ),
+                      
+                      SizedBox(height: 12.h),
+                      
+                      AppButton.outline(
+                        text: 'مشاركة',
+                        icon: Icons.share_rounded,
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _shareProgress();
+                        },
+                        color: ThemeConstants.success,
+                        isFullWidth: true,
+                      ),
+                    ],
+                  ),
+                  
+                  SizedBox(height: 12.h),
+                  
+                  // زر الإغلاق
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 24.w,
+                        vertical: 12.h,
+                      ),
+                    ),
+                    child: Text(
+                      'إغلاق',
+                      style: TextStyle(
+                        color: context.textSecondaryColor,
+                        fontSize: 14.sp,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -443,6 +618,19 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
           ),
           
           if (category != null) ...[
+            // زر إعادة التعيين
+            if (_completedItems.isNotEmpty)
+              _buildActionButton(
+                icon: Icons.restart_alt_rounded,
+                color: ThemeConstants.warning,
+                onTap: () async {
+                  final shouldReset = await _showResetConfirmationDialog();
+                  if (shouldReset == true) {
+                    _resetAll();
+                  }
+                },
+              ),
+            
             // زر إعدادات النص
             _buildActionButton(
               icon: Icons.text_fields_rounded,
@@ -535,98 +723,90 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
     );
   }
 
-  Widget _buildContent(AthkarCategory category) {
-    if (_visibleItems.isEmpty && _completedItems.isNotEmpty) {
-      return Center(
-        child: Padding(
-          padding: EdgeInsets.all(20.r),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 110.r,
-                height: 110.r,
-                decoration: BoxDecoration(
-                  color: ThemeConstants.success.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: ThemeConstants.success.withValues(alpha: 0.3),
-                    width: 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: ThemeConstants.success.withValues(alpha: 0.2),
-                      blurRadius: 12.r,
-                      offset: Offset(0, 4.h),
-                    ),
-                    BoxShadow(
-                      color: ThemeConstants.success.withValues(alpha: 0.1),
-                      blurRadius: 6.r,
-                      offset: Offset(0, 2.h),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  Icons.check_circle_rounded,
-                  size: 54.sp,
-                  color: ThemeConstants.success,
+  /// عرض حوار تأكيد إعادة التعيين
+  Future<bool?> _showResetConfirmationDialog() {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24.r),
+        ),
+        backgroundColor: context.cardColor,
+        title: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(10.r),
+              decoration: BoxDecoration(
+                color: ThemeConstants.warning.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(14.r),
+                border: Border.all(
+                  color: ThemeConstants.warning.withOpacity(0.2),
+                  width: 1,
                 ),
               ),
-              
-              SizedBox(height: 20.h),
-              
-              Text(
-                'أحسنت! أكملت جميع الأذكار',
+              child: Icon(
+                Icons.restart_alt_rounded,
+                color: ThemeConstants.warning,
+                size: 24.sp,
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                'إعادة التعيين',
                 style: TextStyle(
-                  color: ThemeConstants.success,
+                  fontSize: 16.sp,
                   fontWeight: ThemeConstants.bold,
-                  fontSize: 18.sp,
                 ),
-                textAlign: TextAlign.center,
               ),
-              
-              SizedBox(height: 10.h),
-              
-              Text(
-                'جعله الله في ميزان حسناتك',
-                style: TextStyle(
-                  color: context.textSecondaryColor,
-                  fontSize: 14.sp,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              
-              SizedBox(height: 24.h),
-              
-              Row(
-                children: [
-                  Expanded(
-                    child: AppButton.outline(
-                      text: 'مشاركة',
-                      icon: Icons.share_rounded,
-                      onPressed: _shareProgress,
-                      color: ThemeConstants.success,
-                    ),
-                  ),
-                  
-                  SizedBox(width: 12.w),
-                  
-                  Expanded(
-                    child: AppButton.primary(
-                      text: 'البدء من جديد',
-                      icon: Icons.refresh_rounded,
-                      onPressed: _resetAll,
-                      backgroundColor: ThemeConstants.success,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            ),
+          ],
+        ),
+        content: Text(
+          'هل تريد إعادة تعيين تقدمك في هذه الأذكار؟\nسيتم حذف جميع العدادات والبدء من جديد.',
+          style: TextStyle(
+            fontSize: 14.sp,
+            height: 1.6,
+            color: context.textSecondaryColor,
           ),
         ),
-      );
-    }
-    
+        actionsPadding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+            ),
+            child: Text(
+              'إلغاء',
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: context.textSecondaryColor,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ThemeConstants.warning,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14.r),
+              ),
+              elevation: 0,
+            ),
+            child: Text(
+              'إعادة تعيين',
+              style: TextStyle(fontSize: 14.sp),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent(AthkarCategory category) {
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView.builder(

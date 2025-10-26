@@ -84,12 +84,34 @@ class _TasbihScreenState extends State<TasbihScreen> {
           SizedBox(width: 8.w),
           
           Container(
-            padding: EdgeInsets.all(6.r),
+            padding: EdgeInsets.all(9.r),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: _currentDhikr.gradient,
               ),
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(14.r),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.2),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(
+                    alpha: context.isDarkMode ? 0.15 : 0.06,
+                  ),
+                  blurRadius: 12.r,
+                  offset: Offset(0, 4.h),
+                  spreadRadius: -2,
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(
+                    alpha: context.isDarkMode ? 0.08 : 0.03,
+                  ),
+                  blurRadius: 6.r,
+                  offset: Offset(0, 2.h),
+                  spreadRadius: -1,
+                ),
+              ],
             ),
             child: Icon(
               FlutterIslamicIcons.solidTasbihHand,
@@ -128,18 +150,37 @@ class _TasbihScreenState extends State<TasbihScreen> {
                 margin: EdgeInsets.only(left: 6.w),
                 child: Material(
                   color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(14.r),
                   child: InkWell(
                     onTap: _showResetDialog,
-                    borderRadius: BorderRadius.circular(10.r),
+                    borderRadius: BorderRadius.circular(14.r),
                     child: Container(
-                      padding: EdgeInsets.all(6.r),
+                      padding: EdgeInsets.all(8.r),
                       decoration: BoxDecoration(
                         color: context.cardColor,
-                        borderRadius: BorderRadius.circular(10.r),
+                        borderRadius: BorderRadius.circular(14.r),
                         border: Border.all(
-                          color: context.dividerColor.withOpacity(0.3),
+                          color: context.dividerColor.withValues(alpha: 0.15),
+                          width: 1,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(
+                              alpha: context.isDarkMode ? 0.15 : 0.06,
+                            ),
+                            blurRadius: 12.r,
+                            offset: Offset(0, 4.h),
+                            spreadRadius: -2,
+                          ),
+                          BoxShadow(
+                            color: Colors.black.withValues(
+                              alpha: context.isDarkMode ? 0.08 : 0.03,
+                            ),
+                            blurRadius: 6.r,
+                            offset: Offset(0, 2.h),
+                            spreadRadius: -1,
+                          ),
+                        ],
                       ),
                       child: Icon(
                         Icons.refresh_rounded,

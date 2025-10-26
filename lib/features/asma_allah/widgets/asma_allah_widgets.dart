@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:athkar_app/app/themes/app_theme.dart';
-import '../../../core/infrastructure/services/text/extensions/text_settings_extensions.dart';
-import '../../../core/infrastructure/services/text/models/text_settings_models.dart';
+import '../../../core/infrastructure/services/text_settings/extensions/text_settings_extensions.dart';
+import '../../../core/infrastructure/services/text_settings/models/text_settings_models.dart';
 import '../models/asma_allah_model.dart';
 import '../extensions/asma_allah_extensions.dart';
 
@@ -82,12 +82,12 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
                 setState(() => _isPressed = false);
                 _controller.reverse();
               },
-              borderRadius: BorderRadius.circular(18.r),
+              borderRadius: BorderRadius.circular(20.r),
               child: Container(
                 padding: EdgeInsets.all(14.w),
                 decoration: BoxDecoration(
                   color: context.cardColor,
-                  borderRadius: BorderRadius.circular(18.r),
+                  borderRadius: BorderRadius.circular(20.r),
                   border: Border.all(
                     color: _isPressed 
                         ? color.withValues(alpha: 0.4)
@@ -98,9 +98,9 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
                     BoxShadow(
                       color: _isPressed 
                           ? color.withValues(alpha: 0.15)
-                          : Colors.black.withValues(alpha: context.isDarkMode ? 0.12 : 0.05),
+                          : Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
                       blurRadius: _isPressed ? 14.r : 12.r,
-                      offset: Offset(0, _isPressed ? 4.h : 3.h),
+                      offset: Offset(0, _isPressed ? 6.h : 4.h),
                       spreadRadius: -2,
                     ),
                     BoxShadow(
@@ -138,12 +138,27 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.2),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.25),
-            blurRadius: 4.r,
+            color: Colors.black.withValues(
+              alpha: context.isDarkMode ? 0.15 : 0.06,
+            ),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
+            spreadRadius: -2,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: context.isDarkMode ? 0.08 : 0.03,
+            ),
+            blurRadius: 6.r,
             offset: Offset(0, 2.h),
+            spreadRadius: -1,
           ),
         ],
       ),
@@ -199,10 +214,10 @@ class _CompactAsmaAllahCardState extends State<CompactAsmaAllahCard>
             color.withOpacity(0.1),
           ],
         ),
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(14.r),
         border: Border.all(
           color: color.withOpacity(0.3),
-          width: 1.5.w,
+          width: 1,
         ),
       ),
       child: Row(

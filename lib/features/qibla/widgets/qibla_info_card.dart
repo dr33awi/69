@@ -49,7 +49,7 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
   Widget build(BuildContext context) {
     return AppCard(
       padding: EdgeInsets.zero,
-      borderRadius: 18.r,
+      borderRadius: 20.r,
       child: Column(
         children: [
           _buildHeader(context),
@@ -71,16 +71,27 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
           ],
         ),
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(18.r),
+          top: Radius.circular(20.r),
         ),
       ),
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(6.w),
+            padding: EdgeInsets.all(10.r),
             decoration: BoxDecoration(
               color: _getAccuracyColor().withOpacity(0.1),
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(14.r),
+              border: Border.all(
+                color: _getAccuracyColor().withValues(alpha: 0.2),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: _getAccuracyColor().withValues(alpha: 0.15),
+                  blurRadius: 6.r,
+                  offset: Offset(0, 2.h),
+                ),
+              ],
             ),
             child: Icon(
               Icons.location_on,
@@ -219,7 +230,7 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(14.r),
         child: Padding(
           padding: EdgeInsets.all(6.w),
           child: Column(
@@ -270,8 +281,11 @@ class _QiblaInfoCardState extends State<QiblaInfoCard>
       padding: EdgeInsets.all(10.w),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: color.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1,
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

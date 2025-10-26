@@ -8,8 +8,8 @@ import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../../../core/infrastructure/services/favorites/models/favorite_models.dart';
 import '../../../core/infrastructure/services/favorites/extensions/favorites_extensions.dart';
-import '../../../core/infrastructure/services/text/extensions/text_settings_extensions.dart';
-import '../../../core/infrastructure/services/text/models/text_settings_models.dart';
+import '../../../core/infrastructure/services/text_settings/extensions/text_settings_extensions.dart';
+import '../../../core/infrastructure/services/text_settings/models/text_settings_models.dart';
 import '../services/dua_service.dart';
 import '../models/dua_model.dart';
 import 'dua_list_screen.dart';
@@ -93,9 +93,9 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
         color: context.backgroundColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8.r,
-            offset: Offset(0, 2.h),
+            color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
           ),
         ],
       ),
@@ -110,19 +110,28 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
               SizedBox(width: 10.w),
               
               Container(
-                padding: EdgeInsets.all(7.r),
+                padding: EdgeInsets.all(9.r),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [ThemeConstants.tertiary, ThemeConstants.tertiaryLight],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(14.r),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: ThemeConstants.tertiary.withOpacity(0.3),
-                      blurRadius: 6.r,
+                      color: ThemeConstants.tertiary.withValues(alpha: 0.3),
+                      blurRadius: 8.r,
                       offset: Offset(0, 3.h),
+                    ),
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 4.r,
+                      offset: Offset(0, 2.h),
                     ),
                   ],
                 ),
@@ -191,19 +200,24 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
       },
       child: Container(
         padding: EdgeInsets.symmetric(
-          horizontal: 14.w,
-          vertical: 12.h,
+          horizontal: 16.w,
+          vertical: 14.h,
         ),
         decoration: BoxDecoration(
           color: context.cardColor,
-          borderRadius: BorderRadius.circular(10.r),
+          borderRadius: BorderRadius.circular(14.r),
           border: Border.all(
-            color: context.dividerColor.withOpacity(0.3),
-            width: 1.w,
+            color: context.dividerColor.withValues(alpha: 0.15),
+            width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+              blurRadius: 8.r,
+              offset: Offset(0, 3.h),
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
               blurRadius: 4.r,
               offset: Offset(0, 2.h),
             ),
@@ -239,26 +253,31 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
       margin: EdgeInsets.only(left: 2.w),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(14.r),
         child: InkWell(
           onTap: () {
             HapticFeedback.lightImpact();
             onTap();
           },
-          borderRadius: BorderRadius.circular(10.r),
+          borderRadius: BorderRadius.circular(14.r),
           child: Container(
-            padding: EdgeInsets.all(6.w),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               color: context.cardColor,
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(14.r),
               border: Border.all(
-                color: context.dividerColor.withValues(alpha: 0.3),
-                width: 1.w,
+                color: context.dividerColor.withValues(alpha: 0.15),
+                width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 3.r,
+                  color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+                  blurRadius: 8.r,
+                  offset: Offset(0, 3.h),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+                  blurRadius: 4.r,
                   offset: Offset(0, 2.h),
                 ),
               ],
@@ -359,8 +378,10 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
                   vertical: 12.h,
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20.r),
+                  borderRadius: BorderRadius.circular(14.r),
                 ),
+                elevation: 0,
+                shadowColor: Colors.transparent,
               ),
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('إعادة المحاولة'),
@@ -419,15 +440,29 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
           ),
           padding: EdgeInsets.symmetric(
             horizontal: 16.w,
-            vertical: 12.h,
+            vertical: 14.h,
           ),
           decoration: BoxDecoration(
             color: context.cardColor,
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(18.r),
             border: Border.all(
-              color: context.dividerColor.withOpacity(0.3),
-              width: 1.w,
+              color: context.dividerColor.withValues(alpha: 0.1),
+              width: 1,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+                blurRadius: 12.r,
+                offset: Offset(0, 4.h),
+                spreadRadius: -2,
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+                blurRadius: 6.r,
+                offset: Offset(0, 2.h),
+                spreadRadius: -1,
+              ),
+            ],
           ),
           child: Row(
             children: [
@@ -499,41 +534,57 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
     
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(16.r),
+      borderRadius: BorderRadius.circular(20.r),
       child: InkWell(
         onTap: () => _openCategory(category),
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(20.r),
         child: Container(
-          padding: EdgeInsets.all(12.w),
+          padding: EdgeInsets.all(14.w),
           decoration: BoxDecoration(
             color: context.cardColor,
-            borderRadius: BorderRadius.circular(16.r),
+            borderRadius: BorderRadius.circular(20.r),
             border: Border.all(
-              color: categoryColor.withOpacity(0.2),
-              width: 1.w,
+              color: categoryColor.withValues(alpha: 0.15),
+              width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 8.r,
+                color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+                blurRadius: 12.r,
+                offset: Offset(0, 4.h),
+                spreadRadius: -2,
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+                blurRadius: 6.r,
                 offset: Offset(0, 2.h),
+                spreadRadius: -1,
               ),
             ],
           ),
           child: Row(
             children: [
               Container(
-                width: 44.w,
-                height: 44.h,
+                width: 48.w,
+                height: 48.h,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [categoryColor, categoryColor.withOpacity(0.8)],
                   ),
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: BorderRadius.circular(16.r),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: categoryColor.withOpacity(0.3),
-                      blurRadius: 6.r,
+                      color: categoryColor.withValues(alpha: 0.3),
+                      blurRadius: 8.r,
+                      offset: Offset(0, 3.h),
+                    ),
+                    BoxShadow(
+                      color: categoryColor.withValues(alpha: 0.15),
+                      blurRadius: 4.r,
                       offset: Offset(0, 2.h),
                     ),
                   ],
@@ -541,7 +592,7 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
                 child: Icon(
                   categoryIcon,
                   color: Colors.white,
-                  size: 20.sp,
+                  size: 22.sp,
                 ),
               ),
               
@@ -579,12 +630,16 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
               
               Container(
                 padding: EdgeInsets.symmetric(
-                  horizontal: 10.w,
-                  vertical: 6.h,
+                  horizontal: 12.w,
+                  vertical: 8.h,
                 ),
                 decoration: BoxDecoration(
                   color: categoryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20.r),
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(
+                    color: categoryColor.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
                 ),
                 child: Row(
                   children: [

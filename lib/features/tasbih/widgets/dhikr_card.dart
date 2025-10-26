@@ -26,15 +26,15 @@ class DhikrCardSimple extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18.r),
+        borderRadius: BorderRadius.circular(20.r),
         boxShadow: _buildShadows(context),
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(18.r),
+        borderRadius: BorderRadius.circular(20.r),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(18.r),
+          borderRadius: BorderRadius.circular(20.r),
           child: Container(
             decoration: _buildContainerDecoration(context),
             child: Padding(
@@ -80,13 +80,13 @@ class DhikrCardSimple extends StatelessWidget {
     }
     return [
       BoxShadow(
-        color: Colors.black.withValues(alpha: context.isDarkMode ? 0.12 : 0.05),
+        color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
         blurRadius: 12.r,
-        offset: Offset(0, 3.h),
+        offset: Offset(0, 4.h),
         spreadRadius: -2,
       ),
       BoxShadow(
-        color: Colors.black.withValues(alpha: context.isDarkMode ? 0.06 : 0.02),
+        color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
         blurRadius: 6.r,
         offset: Offset(0, 2.h),
         spreadRadius: -1,
@@ -104,14 +104,14 @@ class DhikrCardSimple extends StatelessWidget {
             )
           : null,
       color: !isSelected ? context.cardColor : null,
-      borderRadius: BorderRadius.circular(18.r),
+      borderRadius: BorderRadius.circular(20.r),
       border: isSelected 
           ? Border.all(
               color: Colors.white.withValues(alpha: 0.3),
               width: 1,
             )
           : Border.all(
-              color: context.dividerColor.withValues(alpha: 0.12),
+              color: context.dividerColor.withValues(alpha: 0.1),
               width: 1,
             ),
     );

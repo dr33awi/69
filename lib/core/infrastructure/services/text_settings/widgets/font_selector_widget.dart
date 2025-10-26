@@ -1,8 +1,6 @@
 // lib/core/infrastructure/services/text/screens/widgets/font_selector_widget.dart
-import 'dart:io';
-
-import 'package:athkar_app/core/infrastructure/services/text/constants/text_settings_constants.dart';
-import 'package:athkar_app/core/infrastructure/services/text/models/text_settings_models.dart';
+import 'package:athkar_app/core/infrastructure/services/text_settings/constants/text_settings_constants.dart';
+import 'package:athkar_app/core/infrastructure/services/text_settings/models/text_settings_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -33,16 +31,34 @@ class _FontSelectorWidgetState extends State<FontSelectorWidget> {
   @override
   Widget build(BuildContext context) {
     final recommendedFonts = 
-        TextSettingsConstants.getRecommendedFontsForContentType(widget.contentType as ContentType);
+        TextSettingsConstants.getRecommendedFontsForContentType(widget.contentType);
     
     return Container(
       decoration: BoxDecoration(
         color: context.backgroundColor,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: context.dividerColor.withOpacity(0.2),
-          width: 1.w,
+          color: context.dividerColor.withValues(alpha: 0.1),
+          width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: context.isDarkMode ? 0.15 : 0.06,
+            ),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
+            spreadRadius: -2,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: context.isDarkMode ? 0.08 : 0.03,
+            ),
+            blurRadius: 6.r,
+            offset: Offset(0, 2.h),
+            spreadRadius: -1,
+          ),
+        ],
       ),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -188,14 +204,21 @@ class _FontSelectorWidgetState extends State<FontSelectorWidget> {
                               horizontal: 8.w,
                               vertical: 3.h,
                             ),
-                            decoration: BoxDecoration(
-                              color: ThemeConstants.success.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(6.r),
-                              border: Border.all(
-                                color: ThemeConstants.success.withOpacity(0.3),
-                                width: 1.w,
+                              decoration: BoxDecoration(
+                                color: ThemeConstants.success.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8.r),
+                                border: Border.all(
+                                  color: ThemeConstants.success.withValues(alpha: 0.2),
+                                  width: 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: ThemeConstants.success.withValues(alpha: 0.15),
+                                    blurRadius: 6.r,
+                                    offset: Offset(0, 2.h),
+                                  ),
+                                ],
                               ),
-                            ),
                             child: Text(
                               'موصى به',
                               style: TextStyle(
@@ -223,13 +246,13 @@ class _FontSelectorWidgetState extends State<FontSelectorWidget> {
               SizedBox(width: 12.w),
               if (isSelected)
                 Container(
-                  padding: EdgeInsets.all(6.r),
+                  padding: EdgeInsets.all(8.r),
                   decoration: BoxDecoration(
                     color: widget.accentColor,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: widget.accentColor.withOpacity(0.4),
+                        color: widget.accentColor.withValues(alpha: 0.4),
                         blurRadius: 8.r,
                         offset: Offset(0, 2.h),
                       ),

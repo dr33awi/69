@@ -324,27 +324,38 @@ class _HomeScreenState extends State<HomeScreen>
           
           Material(
             color: Colors.transparent,
-            borderRadius: BorderRadius.circular(10.r),
+            borderRadius: BorderRadius.circular(14.r),
             child: InkWell(
               onTap: () {
                 HapticFeedback.lightImpact();
                 Navigator.pushNamed(context, '/settings');
               },
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(14.r),
               child: Container(
-                padding: EdgeInsets.all(6.r),
+                padding: EdgeInsets.all(10.r),
                 decoration: BoxDecoration(
                   color: context.cardColor,
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(14.r),
                   border: Border.all(
-                    color: context.dividerColor.withValues(alpha: 0.3),
-                    width: 1.w,
+                    color: context.dividerColor.withValues(alpha: 0.15),
+                    width: 1,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 3.r,
-                      offset: Offset(0, 1.5.h),
+                      color: Colors.black.withValues(
+                        alpha: context.isDarkMode ? 0.15 : 0.06,
+                      ),
+                      blurRadius: 12.r,
+                      offset: Offset(0, 4.h),
+                      spreadRadius: -2,
+                    ),
+                    BoxShadow(
+                      color: Colors.black.withValues(
+                        alpha: context.isDarkMode ? 0.08 : 0.03,
+                      ),
+                      blurRadius: 6.r,
+                      offset: Offset(0, 2.h),
+                      spreadRadius: -1,
                     ),
                   ],
                 ),
@@ -364,16 +375,34 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildSectionsHeader(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: 12.w,
-        vertical: 10.h,
+        horizontal: 16.w,
+        vertical: 12.h,
       ),
       decoration: BoxDecoration(
         color: context.cardColor,
-        borderRadius: BorderRadius.circular(14.r),
+        borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: context.dividerColor.withValues(alpha: 0.2),
-          width: 1.w,
+          color: context.dividerColor.withValues(alpha: 0.1),
+          width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: context.isDarkMode ? 0.15 : 0.06,
+            ),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
+            spreadRadius: -2,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: context.isDarkMode ? 0.08 : 0.03,
+            ),
+            blurRadius: 6.r,
+            offset: Offset(0, 2.h),
+            spreadRadius: -1,
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -387,11 +416,21 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           SizedBox(width: 10.w),
           Container(
-            width: 32.r,
-            height: 32.r,
+            padding: EdgeInsets.all(10.r),
             decoration: BoxDecoration(
               color: context.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(14.r),
+              border: Border.all(
+                color: context.primaryColor.withValues(alpha: 0.2),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: context.primaryColor.withValues(alpha: 0.15),
+                  blurRadius: 6.r,
+                  offset: Offset(0, 2.h),
+                ),
+              ],
             ),
             child: Icon(
               Icons.apps_rounded,

@@ -83,14 +83,26 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24.r)),
+        backgroundColor: context.cardColor,
         title: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(8.r),
+              padding: EdgeInsets.all(10.r),
               decoration: BoxDecoration(
                 color: ThemeConstants.warning.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(14.r),
+                border: Border.all(
+                  color: ThemeConstants.warning.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: ThemeConstants.warning.withValues(alpha: 0.15),
+                    blurRadius: 8.r,
+                    offset: Offset(0, 3.h),
+                  ),
+                ],
               ),
               child: Icon(Icons.warning_amber_rounded, color: ThemeConstants.warning, size: 24.sp),
             ),
@@ -125,7 +137,9 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
               backgroundColor: ThemeConstants.primary,
               foregroundColor: Colors.white,
               padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
+              elevation: 0,
+              shadowColor: Colors.transparent,
             ),
             child: Text('حفظ وخروج', style: TextStyle(fontSize: 14.sp)),
           ),
@@ -271,26 +285,32 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
               margin: EdgeInsets.only(left: 6.w),
               child: Material(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(14.r),
                 child: InkWell(
                   onTap: () {
                     HapticFeedback.lightImpact();
                     _saveSettings();
                   },
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(14.r),
                   child: Container(
-                    padding: EdgeInsets.all(6.r),
+                    padding: EdgeInsets.all(8.r),
                     decoration: BoxDecoration(
                       color: context.cardColor,
-                      borderRadius: BorderRadius.circular(10.r),
+                      borderRadius: BorderRadius.circular(14.r),
                       border: Border.all(
-                        color: context.dividerColor.withOpacity(0.3),
+                        color: context.dividerColor.withValues(alpha: 0.15),
+                        width: 1,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 3.r,
-                          offset: Offset(0, 1.5.h),
+                          color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+                          blurRadius: 8.r,
+                          offset: Offset(0, 3.h),
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+                          blurRadius: 4.r,
+                          offset: Offset(0, 2.h),
                         ),
                       ],
                     ),
@@ -500,14 +520,25 @@ class SettingsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 8.h),
+          padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 12.h),
           child: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(6.r),
+                padding: EdgeInsets.all(10.r),
                 decoration: BoxDecoration(
                   color: ThemeConstants.success.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(14.r),
+                  border: Border.all(
+                    color: ThemeConstants.success.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: ThemeConstants.success.withValues(alpha: 0.15),
+                      blurRadius: 6.r,
+                      offset: Offset(0, 2.h),
+                    ),
+                  ],
                 ),
                 child: Icon(
                   icon,
@@ -515,7 +546,7 @@ class SettingsSection extends StatelessWidget {
                   size: 20.sp,
                 ),
               ),
-              SizedBox(width: 10.w),
+              SizedBox(width: 12.w),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -544,12 +575,33 @@ class SettingsSection extends StatelessWidget {
           ),
         ),
         
-        Card(
+        Container(
           margin: EdgeInsets.symmetric(
-            horizontal: 12.w,
+            horizontal: 16.w,
             vertical: 6.h,
           ),
-          color: context.cardColor,
+          decoration: BoxDecoration(
+            color: context.cardColor,
+            borderRadius: BorderRadius.circular(20.r),
+            border: Border.all(
+              color: context.dividerColor.withValues(alpha: 0.1),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+                blurRadius: 12.r,
+                offset: Offset(0, 4.h),
+                spreadRadius: -2,
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+                blurRadius: 6.r,
+                offset: Offset(0, 2.h),
+                spreadRadius: -1,
+              ),
+            ],
+          ),
           child: Column(children: children),
         ),
       ],
@@ -583,19 +635,52 @@ class CalculationMethodDialog extends StatelessWidget {
     
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(24.r),
       ),
+      backgroundColor: context.cardColor,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: EdgeInsets.all(14.r),
-            child: Text(
-              'اختر طريقة الحساب',
-              style: TextStyle(
-                fontWeight: ThemeConstants.semiBold,
-                fontSize: 16.sp,
-              ),
+            padding: EdgeInsets.all(18.r),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(10.r),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [ThemeConstants.success, ThemeConstants.success.withOpacity(0.8)],
+                    ),
+                    borderRadius: BorderRadius.circular(14.r),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: ThemeConstants.success.withValues(alpha: 0.3),
+                        blurRadius: 8.r,
+                        offset: Offset(0, 3.h),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.calculate,
+                    color: Colors.white,
+                    size: 22.sp,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Text(
+                    'اختر طريقة الحساب',
+                    style: TextStyle(
+                      fontWeight: ThemeConstants.bold,
+                      fontSize: 16.sp,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           
