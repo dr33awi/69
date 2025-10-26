@@ -213,15 +213,24 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
           SizedBox(width: 8.w),
           
           Container(
-            padding: EdgeInsets.all(6.r),
+            padding: EdgeInsets.all(8.r),
             decoration: BoxDecoration(
               gradient: gradient,
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(14.r),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.2),
+                width: 1,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: ThemeConstants.primary.withOpacity(0.25),
-                  blurRadius: 6.r,
+                  color: ThemeConstants.primary.withValues(alpha: 0.3),
+                  blurRadius: 8.r,
                   offset: Offset(0, 3.h),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 4.r,
+                  offset: Offset(0, 2.h),
                 ),
               ],
             ),

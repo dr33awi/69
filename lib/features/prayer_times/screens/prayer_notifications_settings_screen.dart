@@ -152,14 +152,26 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24.r)),
+        backgroundColor: context.cardColor,
         title: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(8.r),
+              padding: EdgeInsets.all(10.r),
               decoration: BoxDecoration(
                 color: ThemeConstants.warning.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(14.r),
+                border: Border.all(
+                  color: ThemeConstants.warning.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: ThemeConstants.warning.withValues(alpha: 0.15),
+                    blurRadius: 8.r,
+                    offset: Offset(0, 3.h),
+                  ),
+                ],
               ),
               child: Icon(Icons.warning_amber_rounded, color: ThemeConstants.warning, size: 24.sp),
             ),
@@ -194,7 +206,9 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
               backgroundColor: ThemeConstants.primary,
               foregroundColor: Colors.white,
               padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
+              elevation: 0,
+              shadowColor: Colors.transparent,
             ),
             child: Text('حفظ وخروج', style: TextStyle(fontSize: 14.sp)),
           ),
