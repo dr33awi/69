@@ -45,3 +45,20 @@ app.*.map.json
 /android/app/release
 build/ 
 build/ 
+
+# ========== SECURITY: Never commit these files! ==========
+# Keystore files (contain your app signing keys)
+**/*.jks
+**/*.keystore
+android/my-key.jks
+android/key.properties
+
+# Local configuration (contains personal paths)
+android/local.properties
+
+# Firebase configuration (contains API keys)
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+
+# Gradle wrapper (optional, but can be regenerated)
+android/gradle-wrapper.jar
