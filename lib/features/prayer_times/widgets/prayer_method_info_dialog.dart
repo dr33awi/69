@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
-import '../models/prayer_time_model.dart';
 
 /// Dialog يعرض شرح تفصيلي لطرق حساب الصلاة
 class PrayerMethodInfoDialog extends StatelessWidget {
@@ -201,19 +200,6 @@ class PrayerMethodInfoDialog extends StatelessWidget {
         child: ExpansionTile(
           tilePadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 4.h),
           childrenPadding: EdgeInsets.fromLTRB(14.w, 0, 14.w, 14.h),
-          leading: Container(
-            width: 36.w,
-            height: 36.w,
-            decoration: BoxDecoration(
-              color: method.color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10.r),
-            ),
-            child: Icon(
-              method.icon,
-              color: method.color,
-              size: 20.sp,
-            ),
-          ),
           title: Text(
             method.name,
             style: TextStyle(
@@ -280,10 +266,10 @@ class PrayerMethodInfoDialog extends StatelessWidget {
                         vertical: 4.h,
                       ),
                       decoration: BoxDecoration(
-                        color: method.color.withOpacity(0.1),
+                        color: ThemeConstants.primary,
                         borderRadius: BorderRadius.circular(6.r),
                         border: Border.all(
-                          color: method.color.withOpacity(0.3),
+                          color: ThemeConstants.primary.withOpacity(0.3),
                           width: 1,
                         ),
                       ),
@@ -291,7 +277,7 @@ class PrayerMethodInfoDialog extends StatelessWidget {
                         country,
                         style: TextStyle(
                           fontSize: 10.sp,
-                          color: method.color,
+                          color: Colors.white,
                         ),
                       ),
                     )).toList(),
@@ -429,8 +415,6 @@ class PrayerMethodInfoDialog extends StatelessWidget {
         region: 'معيار دولي',
         fajrAngle: '18°',
         ishaAngle: '17°',
-        icon: Icons.public,
-        color: ThemeConstants.primary,
         description: 'المعيار الأكثر استخداماً عالمياً. تأسست عام 1962 في مكة المكرمة وتُعتبر مرجعاً موثوقاً لحساب أوقات الصلاة.',
         countries: ['أوروبا', 'أمريكا', 'أفريقيا', 'آسيا'],
       ),
@@ -439,8 +423,6 @@ class PrayerMethodInfoDialog extends StatelessWidget {
         region: 'السعودية',
         fajrAngle: '18.5°',
         ishaAngle: '90 دقيقة بعد المغرب',
-        icon: Icons.mosque,
-        color: ThemeConstants.success,
         description: 'تقويم أم القرى الرسمي في المملكة العربية السعودية. يستخدم وقتاً ثابتاً للعشاء (90 دقيقة بعد المغرب) خلال فترة رمضان.',
         countries: ['السعودية', 'دول الخليج'],
       ),
@@ -449,8 +431,6 @@ class PrayerMethodInfoDialog extends StatelessWidget {
         region: 'مصر والشرق الأوسط',
         fajrAngle: '19.5°',
         ishaAngle: '17.5°',
-        icon: Icons.place,
-        color: Colors.orange,
         description: 'الهيئة المصرية العامة للمساحة. معتمدة في مصر ومعظم دول الشرق الأوسط وأفريقيا.',
         countries: ['مصر', 'السودان', 'لبنان', 'سوريا', 'العراق'],
       ),
@@ -459,8 +439,6 @@ class PrayerMethodInfoDialog extends StatelessWidget {
         region: 'باكستان والهند',
         fajrAngle: '18°',
         ishaAngle: '18°',
-        icon: Icons.school,
-        color: Colors.green,
         description: 'جامعة العلوم الإسلامية في كراتشي. مناسبة للمناطق ذات خطوط العرض المتوسطة.',
         countries: ['باكستان', 'الهند', 'بنغلاديش', 'أفغانستان'],
       ),
@@ -469,8 +447,6 @@ class PrayerMethodInfoDialog extends StatelessWidget {
         region: 'الإمارات',
         fajrAngle: '18.2°',
         ishaAngle: '18.2°',
-        icon: Icons.location_city,
-        color: Colors.blue,
         description: 'طريقة دائرة الشؤون الإسلامية والعمل الخيري في دبي.',
         countries: ['الإمارات'],
       ),
@@ -479,8 +455,6 @@ class PrayerMethodInfoDialog extends StatelessWidget {
         region: 'قطر',
         fajrAngle: '18°',
         ishaAngle: '90 دقيقة بعد المغرب',
-        icon: Icons.flag,
-        color: Colors.purple,
         description: 'معتمدة من وزارة الأوقاف القطرية.',
         countries: ['قطر'],
       ),
@@ -489,8 +463,6 @@ class PrayerMethodInfoDialog extends StatelessWidget {
         region: 'الكويت',
         fajrAngle: '18°',
         ishaAngle: '17.5°',
-        icon: Icons.location_on,
-        color: Colors.teal,
         description: 'معتمدة من وزارة الأوقاف الكويتية.',
         countries: ['الكويت'],
       ),
@@ -499,8 +471,6 @@ class PrayerMethodInfoDialog extends StatelessWidget {
         region: 'جنوب شرق آسيا',
         fajrAngle: '20°',
         ishaAngle: '18°',
-        icon: Icons.explore,
-        color: Colors.red,
         description: 'مجلس الشؤون الدينية الإسلامية في سنغافورة. مناسبة للمناطق الاستوائية.',
         countries: ['سنغافورة', 'ماليزيا', 'إندونيسيا'],
       ),
@@ -509,8 +479,6 @@ class PrayerMethodInfoDialog extends StatelessWidget {
         region: 'أمريكا وكندا',
         fajrAngle: '15°',
         ishaAngle: '15°',
-        icon: Icons.map,
-        color: Colors.indigo,
         description: 'الجمعية الإسلامية لأمريكا الشمالية (ISNA). مُحسّنة لخطوط العرض العالية.',
         countries: ['الولايات المتحدة', 'كندا', 'المكسيك'],
       ),
@@ -523,8 +491,6 @@ class _MethodInfo {
   final String region;
   final String fajrAngle;
   final String ishaAngle;
-  final IconData icon;
-  final Color color;
   final String description;
   final List<String> countries;
 
@@ -533,8 +499,6 @@ class _MethodInfo {
     required this.region,
     required this.fajrAngle,
     required this.ishaAngle,
-    required this.icon,
-    required this.color,
     required this.description,
     required this.countries,
   });

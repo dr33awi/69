@@ -8,6 +8,7 @@ import '../../../app/di/service_locator.dart';
 import '../services/prayer_times_service.dart';
 import '../models/prayer_time_model.dart';
 import '../widgets/prayer_method_info_dialog.dart';
+import '../widgets/juristic_method_info_dialog.dart';
 
 class PrayerSettingsScreen extends StatefulWidget {
   const PrayerSettingsScreen({super.key});
@@ -427,6 +428,22 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
     return SettingsSection(
       title: 'المذهب الفقهي',
       icon: Icons.school,
+      subtitle: 'اختر المذهب لحساب وقت العصر',
+      action: TextButton.icon(
+        onPressed: () {
+          HapticFeedback.lightImpact();
+          showDialog(
+            context: context,
+            builder: (context) => const JuristicMethodInfoDialog(),
+          );
+        },
+        icon: Icon(Icons.info_outline, size: 16.sp),
+        label: Text('شرح المذاهب', style: TextStyle(fontSize: 12.sp)),
+        style: TextButton.styleFrom(
+          foregroundColor: ThemeConstants.info,
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+        ),
+      ),
       children: [
         RadioListTile<AsrJuristic>(
           contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 2.h),

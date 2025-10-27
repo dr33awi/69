@@ -227,7 +227,7 @@ static LinearGradient getCategoryGradient(String categoryId) {
       case 'dhuhr':
       case 'الظهر':
         return const LinearGradient(
-          colors: [accentLight, accent],
+          colors: [Color(0xFFDAA520), accent],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         );
@@ -248,7 +248,7 @@ static LinearGradient getCategoryGradient(String categoryId) {
       case 'isha':
       case 'العشاء':
         return const LinearGradient(
-          colors: [darkCard, darkBackground],
+          colors: [Color(0xFF2D352D), darkBackground],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         );
