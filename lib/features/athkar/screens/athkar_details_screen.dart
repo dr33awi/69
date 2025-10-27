@@ -271,150 +271,324 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
   void _showCompletionDialog() {
     if (!mounted) return;
     
+    // اهتزاز خفيف عند الإكمال
+    if (_displaySettings?.enableVibration ?? true) {
+      HapticFeedback.heavyImpact();
+    }
+    
     showDialog(
       context: context,
       barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.6),
       builder: (context) => Dialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28.r),
+          borderRadius: BorderRadius.circular(32.r),
         ),
         backgroundColor: Colors.transparent,
-        insetPadding: EdgeInsets.symmetric(horizontal: 24.w),
+        insetPadding: EdgeInsets.symmetric(horizontal: 20.w),
         child: Container(
           constraints: BoxConstraints(
             maxWidth: 400.w,
           ),
           decoration: BoxDecoration(
-            color: context.cardColor,
-            borderRadius: BorderRadius.circular(28.r),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: context.isDarkMode
+                  ? [
+                      context.cardColor,
+                      context.cardColor.withOpacity(0.95),
+                    ]
+                  : [
+                      context.cardColor,
+                      Colors.white.withOpacity(0.98),
+                    ],
+            ),
+            borderRadius: BorderRadius.circular(32.r),
             border: Border.all(
-              color: ThemeConstants.success.withOpacity(0.3),
-              width: 2,
+              color: ThemeConstants.success.withOpacity(0.4),
+              width: 2.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: ThemeConstants.success.withOpacity(0.3),
-                blurRadius: 24.r,
-                offset: Offset(0, 8.h),
+                color: ThemeConstants.success.withOpacity(0.35),
+                blurRadius: 28.r,
+                offset: Offset(0, 10.h),
+                spreadRadius: -2,
+              ),
+              BoxShadow(
+                color: ThemeConstants.success.withOpacity(0.2),
+                blurRadius: 40.r,
+                offset: Offset(0, 20.h),
                 spreadRadius: -4,
               ),
               BoxShadow(
                 color: Colors.black.withOpacity(0.15),
-                blurRadius: 12.r,
-                offset: Offset(0, 4.h),
+                blurRadius: 16.r,
+                offset: Offset(0, 6.h),
               ),
             ],
           ),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.all(24.r),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 100.r,
-                    height: 100.r,
-                    decoration: BoxDecoration(
-                      color: ThemeConstants.success.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: ThemeConstants.success.withOpacity(0.3),
-                        width: 3,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: ThemeConstants.success.withOpacity(0.2),
-                          blurRadius: 20.r,
-                          offset: Offset(0, 8.h),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(32.r),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 28.h),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // أيقونة النجاح مع تأثيرات محسنة
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // دائرة خلفية متوهجة
+                        Container(
+                          width: 120.r,
+                          height: 120.r,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              colors: [
+                                ThemeConstants.success.withOpacity(0.15),
+                                ThemeConstants.success.withOpacity(0.05),
+                                Colors.transparent,
+                              ],
+                            ),
+                          ),
+                        ),
+                        // الأيقونة الرئيسية
+                        Container(
+                          width: 96.r,
+                          height: 96.r,
+                          decoration: BoxDecoration(
+                            color: ThemeConstants.success.withOpacity(0.12),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: ThemeConstants.success.withOpacity(0.4),
+                              width: 3.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: ThemeConstants.success.withOpacity(0.3),
+                                blurRadius: 24.r,
+                                offset: Offset(0, 10.h),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            Icons.check_circle_rounded,
+                            size: 56.sp,
+                            color: ThemeConstants.success,
+                          ),
                         ),
                       ],
                     ),
-                    child: Icon(
-                      Icons.check_circle_rounded,
-                      size: 60.sp,
-                      color: ThemeConstants.success,
-                    ),
-                  ),
-                  
-                  SizedBox(height: 24.h),
-                  
-                  Text(
-                    'بارك الله فيك',
-                    style: TextStyle(
-                      color: ThemeConstants.success,
-                      fontWeight: ThemeConstants.bold,
-                      fontSize: 22.sp,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  
-                  SizedBox(height: 12.h),
-                  
-                  Text(
-                    'أتممت جميع  ${_category?.title ?? 'هذه الفئة'}',
-                    style: TextStyle(
-                      color: context.textPrimaryColor,
-                      fontSize: 16.sp,
-                      fontWeight: ThemeConstants.medium,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  
-                  SizedBox(height: 20.h),
-                  
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      AppButton.success(
-                        text: 'قراءة الأذكار مرة أخرى',
-                        icon: Icons.refresh_rounded,
-                        onPressed: () {
-                          Navigator.pop(context);
-                          _resetAllAndStartAgain();
-                        },
-                        isFullWidth: true,
-                      ),
-                      
-                      SizedBox(height: 12.h),
-                      
-                      AppButton.outline(
-                        text: 'مشاركة الإنجاز',
-                        icon: Icons.share_rounded,
-                        onPressed: () async {
-                          await _shareProgress();
-                          if (mounted) {
-                            Navigator.pop(context);
-                            _resetAllAndStartAgain();
-                          }
-                        },
-                        color: ThemeConstants.success,
-                        isFullWidth: true,
-                      ),
-                    ],
-                  ),
-                  
-                  SizedBox(height: 12.h),
-                  
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context); // إغلاق الديالوغ
-                      Navigator.pop(context); // إغلاق صفحة الذكر
-                    },
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 24.w,
-                        vertical: 12.h,
-                      ),
-                    ),
-                    child: Text(
-                      'إغلاق',
+                    
+                    SizedBox(height: 28.h),
+                    
+                    // العنوان الرئيسي
+                    Text(
+                      'بارك الله فيك',
                       style: TextStyle(
-                        color: context.textSecondaryColor,
-                        fontSize: 14.sp,
+                        color: ThemeConstants.success,
+                        fontWeight: ThemeConstants.bold,
+                        fontSize: 24.sp,
+                        letterSpacing: 0.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    
+                    SizedBox(height: 10.h),
+                    
+                    // العنوان الفرعي
+                    Text(
+                      'أتممت جميع ${_category?.title ?? 'هذه الفئة'}',
+                      style: TextStyle(
+                        color: context.textPrimaryColor,
+                        fontSize: 17.sp,
+                        fontWeight: ThemeConstants.medium,
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    
+                    SizedBox(height: 8.h),
+                    
+                    // رسالة تحفيزية
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                      decoration: BoxDecoration(
+                        color: ThemeConstants.success.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      child: Text(
+                        'تقبل الله منك وجعله في ميزان حسناتك',
+                        style: TextStyle(
+                          color: context.textSecondaryColor,
+                          fontSize: 13.sp,
+                          height: 1.5,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
-                  ),
-                ],
+                    
+                    SizedBox(height: 24.h),
+                    
+                    // الأزرار
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // زر قراءة الأذكار مرة أخرى
+                        Container(
+                          width: double.infinity,
+                          height: 46.h,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                ThemeConstants.success,
+                                ThemeConstants.success.withOpacity(0.85),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(14.r),
+                            boxShadow: [
+                              BoxShadow(
+                                color: ThemeConstants.success.withOpacity(0.3),
+                                blurRadius: 10.r,
+                                offset: Offset(0, 4.h),
+                              ),
+                            ],
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                if (_displaySettings?.enableVibration ?? true) {
+                                  HapticFeedback.mediumImpact();
+                                }
+                                Navigator.pop(context);
+                                _resetAllAndStartAgain();
+                              },
+                              borderRadius: BorderRadius.circular(14.r),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.refresh_rounded,
+                                    color: Colors.white,
+                                    size: 19.sp,
+                                  ),
+                                  SizedBox(width: 8.w),
+                                  Text(
+                                    'قراءة الأذكار مرة أخرى',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14.sp,
+                                      fontWeight: ThemeConstants.bold,
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        
+                        SizedBox(height: 10.h),
+                        
+                        // زر مشاركة الإنجاز
+                        Container(
+                          width: double.infinity,
+                          height: 46.h,
+                          decoration: BoxDecoration(
+                            color: context.cardColor,
+                            borderRadius: BorderRadius.circular(14.r),
+                            border: Border.all(
+                              color: ThemeConstants.success.withOpacity(0.5),
+                              width: 1.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.06),
+                                blurRadius: 6.r,
+                                offset: Offset(0, 3.h),
+                              ),
+                            ],
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () async {
+                                if (_displaySettings?.enableVibration ?? true) {
+                                  HapticFeedback.lightImpact();
+                                }
+                                await _shareProgress();
+                                if (mounted) {
+                                  Navigator.pop(context);
+                                  _resetAllAndStartAgain();
+                                }
+                              },
+                              borderRadius: BorderRadius.circular(14.r),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.share_rounded,
+                                    color: ThemeConstants.success,
+                                    size: 18.sp,
+                                  ),
+                                  SizedBox(width: 8.w),
+                                  Text(
+                                    'مشاركة الإنجاز',
+                                    style: TextStyle(
+                                      color: ThemeConstants.success,
+                                      fontSize: 14.sp,
+                                      fontWeight: ThemeConstants.bold,
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    SizedBox(height: 6.h),
+                    
+                    // زر الإغلاق
+                    TextButton.icon(
+                      onPressed: () {
+                        if (_displaySettings?.enableVibration ?? true) {
+                          HapticFeedback.lightImpact();
+                        }
+                        Navigator.pop(context); // إغلاق الديالوغ
+                        Navigator.pop(context); // إغلاق صفحة الذكر
+                      },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20.w,
+                          vertical: 10.h,
+                        ),
+                      ),
+                      icon: Icon(
+                        Icons.close_rounded,
+                        size: 18.sp,
+                        color: context.textSecondaryColor,
+                      ),
+                      label: Text(
+                        'إغلاق',
+                        style: TextStyle(
+                          color: context.textSecondaryColor,
+                          fontSize: 14.sp,
+                          fontWeight: ThemeConstants.medium,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

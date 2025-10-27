@@ -7,6 +7,7 @@ import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../services/prayer_times_service.dart';
 import '../models/prayer_time_model.dart';
+import '../widgets/prayer_method_info_dialog.dart';
 
 class PrayerSettingsScreen extends StatefulWidget {
   const PrayerSettingsScreen({super.key});
@@ -148,19 +149,17 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
     );
     
     if (result == 'save') {
-      // حفظ التغييرات
       await _saveSettings();
       return !_hasChanges;
     } else if (result == 'discard') {
-      // تجاهل التغييرات - إرجاع الإعدادات للحالة الأصلية
       setState(() {
         _calculationSettings = _originalSettings;
         _hasChanges = false;
       });
-      return true; // السماح بالخروج
+      return true;
     }
     
-    return false; // إلغاء (result == 'cancel' or null)
+    return false;
   }
 
   @override
@@ -280,6 +279,33 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
             ),
           ),
           
+          // زر المساعدة/الشرح
+          IconButton(
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              showDialog(
+                context: context,
+                builder: (context) => const PrayerMethodInfoDialog(),
+              );
+            },
+            icon: Container(
+              padding: EdgeInsets.all(8.r),
+              decoration: BoxDecoration(
+                color: ThemeConstants.info.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10.r),
+                border: Border.all(
+                  color: ThemeConstants.info.withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              child: Icon(
+                Icons.help_outline_rounded,
+                color: ThemeConstants.info,
+                size: 20.sp,
+              ),
+            ),
+          ),
+          
           if (_hasChanges && !_isSaving)
             Container(
               margin: EdgeInsets.only(left: 6.w),
@@ -309,7 +335,7 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
                         ),
                         BoxShadow(
                           color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
-                          blurRadius: 4.r,
+                          blurRadius: 6.r,
                           offset: Offset(0, 2.h),
                         ),
                       ],
@@ -332,6 +358,22 @@ class _PrayerSettingsScreenState extends State<PrayerSettingsScreen> {
     return SettingsSection(
       title: 'طريقة الحساب',
       icon: Icons.calculate,
+      subtitle: 'اختر الطريقة المناسبة لمنطقتك',
+      action: TextButton.icon(
+        onPressed: () {
+          HapticFeedback.lightImpact();
+          showDialog(
+            context: context,
+            builder: (context) => const PrayerMethodInfoDialog(),
+          );
+        },
+        icon: Icon(Icons.info_outline, size: 16.sp),
+        label: Text('شرح الطرق', style: TextStyle(fontSize: 12.sp)),
+        style: TextButton.styleFrom(
+          foregroundColor: ThemeConstants.info,
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+        ),
+      ),
       children: [
         _buildCalculationMethodTile(),
       ],
@@ -505,6 +547,7 @@ class SettingsSection extends StatelessWidget {
   final String? subtitle;
   final IconData icon;
   final List<Widget> children;
+  final Widget? action;
 
   const SettingsSection({
     super.key,
@@ -512,6 +555,7 @@ class SettingsSection extends StatelessWidget {
     this.subtitle,
     required this.icon,
     required this.children,
+    this.action,
   });
 
   @override
@@ -571,6 +615,7 @@ class SettingsSection extends StatelessWidget {
                   ],
                 ),
               ),
+              if (action != null) action!,
             ],
           ),
         ),
