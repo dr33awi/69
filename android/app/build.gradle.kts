@@ -18,12 +18,12 @@ plugins {
 }
 
 android {
-    namespace = "com.dhakarani.app"
+    namespace = "com.dhakarani1.app"
     compileSdk = 35
     ndkVersion = "27.0.12077973"
 
     defaultConfig {
-        applicationId = "com.dhakarani.app"
+        applicationId = "com.dhakarani1.app"
         minSdk = 23
         targetSdk = 35
         versionCode = 1
@@ -63,6 +63,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Enable native debug symbols for crash reporting
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
         }
         debug {
             isMinifyEnabled = false
