@@ -190,16 +190,6 @@ class EventNavigationHandler {
       path: 'dhakaranifeedback@gmail.com',
       queryParameters: {
         'subject': 'ملاحظات على النسخة التجريبية',
-        'body': '''مرحباً فريق ذكرني،
-
-لدي الملاحظات التالية:
-
----
-- نوع الملاحظة: (اقتراح / مشكلة / استفسار)
-- التفاصيل: 
-- الجهاز: 
-
-شكراً لكم ❤️''',
       },
     );
     

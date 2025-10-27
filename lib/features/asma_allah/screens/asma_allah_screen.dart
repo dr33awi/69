@@ -4,8 +4,6 @@ import 'package:athkar_app/app/themes/app_theme.dart';
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
 import 'package:athkar_app/core/infrastructure/services/text_settings/extensions/text_settings_extensions.dart';
 import 'package:athkar_app/core/infrastructure/services/text_settings/models/text_settings_models.dart';
-import 'package:athkar_app/core/infrastructure/services/favorites/models/favorite_models.dart';
-import 'package:athkar_app/core/infrastructure/services/favorites/extensions/favorites_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
@@ -179,13 +177,7 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
               
               SizedBox(width: 2.w),
               
-              // زر المفضلة
-              _buildActionButton(
-                icon: Icons.bookmark_rounded,
-                color: context.textSecondaryColor,
-                tooltip: 'المفضلة',
-                onTap: _openFavorites,
-              ),
+              // زر إعدادات النص تم نقله هنا
             ],
           ),
           
@@ -557,10 +549,5 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
     context.showGlobalTextSettings(
       initialContentType: ContentType.asmaAllah,
     );
-  }
-
-  void _openFavorites() {
-    HapticFeedback.lightImpact();
-    context.openFavoritesScreen(FavoriteContentType.asmaAllah);
   }
 }

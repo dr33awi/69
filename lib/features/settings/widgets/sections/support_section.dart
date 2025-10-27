@@ -23,20 +23,19 @@ class SupportSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SettingsSection(
-      title: 'الدعم والمعلومات',
-      subtitle: 'معلومات التطبيق والدعم',
+      title: 'حول التطبيق',
       icon: Icons.info_outline,
       children: [
         SettingsTile(
           icon: Icons.share_outlined,
           title: 'مشاركة التطبيق',
-          subtitle: 'شارك التطبيق مع الأصدقاء والعائلة',
+          subtitle: 'شارك الخير مع الآخرين',
           onTap: onShare,
         ),
         SettingsTile(
           icon: Icons.star_outline,
           title: 'تقييم التطبيق',
-          subtitle: 'قيم التطبيق على المتجر وادعمنا',
+          subtitle: 'ادعمنا بتقييمك على المتجر',
           onTap: onRate,
         ),
         SettingsTile(
@@ -48,7 +47,7 @@ class SupportSection extends StatelessWidget {
         SettingsTile(
           icon: Icons.info_outline,
           title: 'عن التطبيق',
-          subtitle: 'معلومات الإصدار والمطور',
+          subtitle: 'معلومات حول الإصدار والمطور',
           onTap: onAbout,
         ),
       ],

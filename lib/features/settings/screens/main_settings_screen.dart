@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../app/di/service_locator.dart';
 import '../../../app/themes/app_theme.dart';
@@ -74,10 +75,100 @@ class _MainSettingsScreenState extends State<MainSettingsScreen> {
               onContact: _contactUs,
               onAbout: _showAboutDialog,
             ),
+            
+            // Footer Section
+            _buildFooterSection(),
           ],
         ),
       ),
     );
+  }
+
+  // ==================== Footer Section ====================
+  Widget _buildFooterSection() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
+      child: Column(
+        children: [
+          // Divider
+          Container(
+            height: 1.h,
+            margin: EdgeInsets.only(bottom: 20.h),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  context.dividerColor.withOpacitySafe(0),
+                  context.dividerColor,
+                  context.dividerColor.withOpacitySafe(0),
+                ],
+              ),
+            ),
+          ),
+          
+          // Made with Love
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'صُنع بـ',
+                style: context.bodySmall?.copyWith(
+                  color: context.textSecondaryColor.withOpacitySafe(0.7),
+                  fontSize: 12.sp,
+                ),
+              ),
+              SizedBox(width: 4.w),
+              Icon(
+                Icons.favorite,
+                size: 14.sp,
+                color: AppColors.error.withOpacitySafe(0.8),
+              ),
+              SizedBox(width: 4.w),
+              Text(
+                'لوجه الله تعالى',
+                style: context.bodySmall?.copyWith(
+                  color: context.textSecondaryColor.withOpacitySafe(0.7),
+                  fontSize: 12.sp,
+                ),
+              ),
+            ],
+          ),
+          
+          SizedBox(height: 12.h),
+          
+          // Version
+          FutureBuilder<String>(
+            future: _getAppVersion(),
+            builder: (context, snapshot) {
+              final version = snapshot.data ?? '1.0.0';
+              return Container(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                decoration: BoxDecoration(
+                  color: context.primaryColor.withOpacitySafe(0.08),
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Text(
+                  'الإصدار $version',
+                  style: context.labelSmall?.copyWith(
+                    color: context.textSecondaryColor.withOpacitySafe(0.7),
+                    fontSize: 11.sp,
+                    fontWeight: ThemeConstants.medium,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<String> _getAppVersion() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      return packageInfo.version;
+    } catch (e) {
+      return '1.0.0';
+    }
   }
 
   // ==================== Event Handlers ====================

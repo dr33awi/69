@@ -1,7 +1,5 @@
 // lib/features/athkar/screens/athkar_details_screen.dart
 import 'package:athkar_app/core/infrastructure/services/share/share_extensions.dart';
-import 'package:athkar_app/core/infrastructure/services/favorites/models/favorite_models.dart';
-import 'package:athkar_app/core/infrastructure/services/favorites/extensions/favorites_extensions.dart';
 import 'package:athkar_app/core/infrastructure/services/text_settings/extensions/text_settings_extensions.dart';
 import 'package:athkar_app/core/infrastructure/services/text_settings/models/text_settings_models.dart';
 import 'package:athkar_app/features/athkar/utils/athkar_extensions.dart';
@@ -37,7 +35,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
   AthkarCategory? _category;
   final Map<int, int> _counts = {};
   final Set<int> _completedItems = {};
-  final Map<String, bool> _favoriteStates = {};
   List<AthkarItem> _visibleItems = [];
   bool _loading = true;
   bool _allCompleted = false;
@@ -69,7 +66,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
       final savedProgress = _loadSavedProgress();
       
       await _loadTextSettings();
-      await _loadFavoriteStates();
       
       bool wasAlreadyCompleted = false;
       if (cat != null) {
@@ -127,63 +123,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
   Future<void> _loadTextSettings() async {
     _textSettings = await context.getTextSettings(ContentType.athkar);
     _displaySettings = await context.getDisplaySettings(ContentType.athkar);
-  }
-
-  Future<void> _loadFavoriteStates() async {
-    if (_category == null) return;
-    
-    try {
-      for (final item in _category!.athkar) {
-        final isFavorite = await _service.isFavorite(item.id.toString());
-        _favoriteStates[item.id.toString()] = isFavorite;
-      }
-      
-      if (mounted) {
-        setState(() {});
-      }
-    } catch (e) {
-      // في حالة الخطأ، نتجاهل ونواصل
-    }
-  }
-
-  Future<void> _toggleFavorite(AthkarItem item) async {
-    try {
-      HapticFeedback.lightImpact();
-      
-      final wasAdded = await _service.toggleFavorite(
-        athkarId: item.id.toString(),
-        text: item.text,
-        fadl: item.fadl,
-        source: item.source ?? _category?.title,
-        categoryId: _category?.id,
-        count: item.count,
-      );
-      
-      setState(() {
-        _favoriteStates[item.id.toString()] = wasAdded;
-      });
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              wasAdded ? 'تمت إضافة الذكر للمفضلة' : 'تمت إزالة الذكر من المفضلة',
-            ),
-            duration: const Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('حدث خطأ أثناء تحديث المفضلة'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    }
   }
 
   void _updateVisibleItems() {
@@ -412,7 +351,7 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
                   SizedBox(height: 12.h),
                   
                   Text(
-                    'أتممت جميع أذكار ${_category?.title ?? 'هذه الفئة'}',
+                    'أتممت جميع  ${_category?.title ?? 'هذه الفئة'}',
                     style: TextStyle(
                       color: context.textPrimaryColor,
                       fontSize: 16.sp,
@@ -421,42 +360,7 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
                     textAlign: TextAlign.center,
                   ),
                   
-                  SizedBox(height: 8.h),
-                  
-                  Container(
-                    margin: EdgeInsets.symmetric(vertical: 12.h),
-                    padding: EdgeInsets.all(12.r),
-                    decoration: BoxDecoration(
-                      color: ThemeConstants.info.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12.r),
-                      border: Border.all(
-                        color: ThemeConstants.info.withOpacity(0.2),
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          size: 18.sp,
-                          color: ThemeConstants.info,
-                        ),
-                        SizedBox(width: 8.w),
-                        Expanded(
-                          child: Text(
-                            'يمكنك قراءة الأذكار مرة أخرى، وعند فتح التطبيق لاحقاً ستظهر الأذكار تلقائياً',
-                            style: TextStyle(
-                              color: ThemeConstants.info,
-                              fontSize: 11.sp,
-                              height: 1.4,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                                    
-                  SizedBox(height: 16.h),
+                  SizedBox(height: 20.h),
                   
                   Column(
                     mainAxisSize: MainAxisSize.min,
@@ -493,8 +397,8 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
                   
                   TextButton(
                     onPressed: () {
-                      Navigator.pop(context);
-                      _resetAllAndStartAgain();
+                      Navigator.pop(context); // إغلاق الديالوغ
+                      Navigator.pop(context); // إغلاق صفحة الذكر
                     },
                     style: TextButton.styleFrom(
                       padding: EdgeInsets.symmetric(
@@ -503,7 +407,7 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
                       ),
                     ),
                     child: Text(
-                      'إغلاق والبدء من جديد',
+                      'إغلاق',
                       style: TextStyle(
                         color: context.textSecondaryColor,
                         fontSize: 14.sp,
@@ -695,14 +599,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
               },
             ),
             
-            _buildActionButton(
-              icon: Icons.bookmark_rounded,
-              color: context.textSecondaryColor,
-              onTap: () {
-                HapticFeedback.lightImpact();
-                context.openFavoritesScreen(FavoriteContentType.athkar);
-              },
-            ),
             
             _buildActionButton(
               icon: Icons.notifications_outlined,
@@ -880,8 +776,6 @@ class _AthkarDetailsScreenState extends State<AthkarDetailsScreen> {
               onTap: () => _onItemTap(item),
               onLongPress: () => _onItemLongPress(item),
               onShare: () => _shareItem(item),
-              onFavorite: () => _toggleFavorite(item),
-              isFavorite: _favoriteStates[item.id.toString()] ?? false,
             ),
           );
         },

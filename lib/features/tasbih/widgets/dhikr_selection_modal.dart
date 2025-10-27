@@ -239,7 +239,7 @@ class _DhikrSelectionModalState extends State<DhikrSelectionModal> {
                     ],
                   ),
                 ),
-                Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 18.sp),
+                Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 18.sp),
               ],
             ),
           ),

@@ -3,8 +3,6 @@
 import 'package:athkar_app/core/infrastructure/services/share/share_extensions.dart';
 import 'package:athkar_app/core/infrastructure/services/text_settings/extensions/text_settings_extensions.dart';
 import 'package:athkar_app/core/infrastructure/services/text_settings/models/text_settings_models.dart';
-import 'package:athkar_app/core/infrastructure/services/favorites/models/favorite_models.dart';
-import 'package:athkar_app/core/infrastructure/services/favorites/extensions/favorites_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -72,21 +70,6 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
   Future<void> _loadTextSettings() async {
     _textSettings = await context.getTextSettings(ContentType.dua);
     _displaySettings = await context.getDisplaySettings(ContentType.dua);
-  }
-
-  Future<void> _toggleFavorite() async {
-    final isFavorite = await _service.toggleFavorite(_currentDua.id);
-    
-    setState(() {
-      _currentDua = _currentDua.copyWith(isFavorite: isFavorite);
-      if (_currentIndex >= 0 && _currentIndex < _categoryDuas.length) {
-        _categoryDuas[_currentIndex] = _currentDua;
-      }
-    });
-    
-    context.showSuccessSnackBar(
-      isFavorite ? 'تمت الإضافة للمفضلة' : 'تمت الإزالة من المفضلة',
-    );
   }
 
   void _copyDua() {
@@ -268,13 +251,6 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
             onTap: _copyDua,
           ),
           
-          // زر المفضلة
-          _buildActionButton(
-            icon: _currentDua.isFavorite ? Icons.bookmark : Icons.bookmark_outline,
-            color: context.textSecondaryColor,
-            onTap: _toggleFavorite,
-          ),
-          
           // زر المشاركة
           _buildActionButton(
             icon: Icons.share_rounded,
@@ -340,11 +316,6 @@ class _DuaDetailsScreenState extends State<DuaDetailsScreen> {
 
   Widget _buildContentPage(DuaItem dua, Color categoryColor) {
     final showTashkeel = _displaySettings?.showTashkeel ?? true;
-    final textStyle = _textSettings?.toTextStyle() ?? TextStyle(
-      fontSize: 20.sp,
-      fontFamily: ThemeConstants.fontFamilyArabic,
-      height: 2.2,
-    );
     
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),

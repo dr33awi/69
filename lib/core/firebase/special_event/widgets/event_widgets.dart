@@ -59,20 +59,35 @@ class EventHeader extends StatelessWidget {
   
   Widget _buildIconContainer() {
     return Container(
-      width: 48.r,
-      height: 48.r,
+      width: 54.r,
+      height: 54.r,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: Colors.white.withOpacity(0.25),
         shape: BoxShape.circle,
         border: Border.all(
-          color: Colors.white.withOpacity(0.3),
-          width: 1.5.w,
+          color: Colors.white.withOpacity(0.4),
+          width: 2.w,
         ),
+        // ✅ ظلال متعددة الطبقات
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 12.r,
+            spreadRadius: 0,
+            offset: Offset(0, 4.h),
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 6.r,
+            spreadRadius: 0,
+            offset: Offset(0, 2.h),
+          ),
+        ],
       ),
       child: Center(
         child: Text(
           event.icon,
-          style: TextStyle(fontSize: 24.sp),
+          style: TextStyle(fontSize: 26.sp),
         ),
       ),
     );
@@ -84,13 +99,19 @@ class EventHeader extends StatelessWidget {
       style: context.titleMedium?.copyWith(
         color: Colors.white,
         fontWeight: ThemeConstants.bold,
-        fontSize: 16.sp,
+        fontSize: 17.sp,
         height: 1.3,
+        letterSpacing: 0.2,
         shadows: [
           Shadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withOpacity(0.3),
             offset: Offset(0, 2.h),
-            blurRadius: 4.r,
+            blurRadius: 6.r,
+          ),
+          Shadow(
+            color: Colors.black.withOpacity(0.15),
+            offset: Offset(0, 1.h),
+            blurRadius: 3.r,
           ),
         ],
       ),
@@ -115,16 +136,25 @@ class EventDescription extends StatelessWidget {
     
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: 12.w,
-        vertical: 8.h,
+        horizontal: 14.w,
+        vertical: 10.h,
       ),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12.r),
+        color: Colors.white.withOpacity(0.18),
+        borderRadius: BorderRadius.circular(14.r),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
-          width: 1.w,
+          color: Colors.white.withOpacity(0.3),
+          width: 1.5.w,
         ),
+        // ✅ ظلال للعمق
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8.r,
+            spreadRadius: 0,
+            offset: Offset(0, 2.h),
+          ),
+        ],
       ),
       child: lines.length > 1 
         ? Column(
@@ -139,8 +169,8 @@ class EventDescription extends StatelessWidget {
                   Text(
                     '• ',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
-                      fontSize: 12.sp,
+                      color: Colors.white.withOpacity(0.95),
+                      fontSize: 13.sp,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -148,9 +178,10 @@ class EventDescription extends StatelessWidget {
                     child: Text(
                       entry.value.trim(),
                       style: context.bodySmall?.copyWith(
-                        color: Colors.white.withOpacity(0.95),
-                        fontSize: 12.sp,
-                        height: 1.4,
+                        color: Colors.white.withOpacity(0.97),
+                        fontSize: 13.sp,
+                        height: 1.5,
+                        letterSpacing: 0.1,
                       ),
                     ),
                   ),
@@ -161,9 +192,10 @@ class EventDescription extends StatelessWidget {
         : Text(
             lines.isNotEmpty ? lines.first : '',
             style: context.bodySmall?.copyWith(
-              color: Colors.white.withOpacity(0.95),
-              fontSize: 12.sp,
-              height: 1.4,
+              color: Colors.white.withOpacity(0.97),
+              fontSize: 13.sp,
+              height: 1.5,
+              letterSpacing: 0.1,
             ),
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
@@ -189,12 +221,27 @@ class EventActionButton extends StatelessWidget {
       alignment: Alignment.centerLeft,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.25),
+          color: Colors.white.withOpacity(0.28),
           borderRadius: BorderRadius.circular(999.r),
           border: Border.all(
-            color: Colors.white.withOpacity(0.4),
-            width: 1.w,
+            color: Colors.white.withOpacity(0.5),
+            width: 1.5.w,
           ),
+          // ✅ ظلال للزر
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 10.r,
+              spreadRadius: 0,
+              offset: Offset(0, 3.h),
+            ),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 5.r,
+              spreadRadius: 0,
+              offset: Offset(0, 1.h),
+            ),
+          ],
         ),
         child: Material(
           color: Colors.transparent,
@@ -205,8 +252,8 @@ class EventActionButton extends StatelessWidget {
             splashColor: Colors.white.withOpacity(0.3),
             child: Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: 14.w,
-                vertical: 6.h,
+                horizontal: 16.w,
+                vertical: 8.h,
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -216,14 +263,15 @@ class EventActionButton extends StatelessWidget {
                     style: context.labelMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: ThemeConstants.semiBold,
-                      fontSize: 12.sp,
+                      fontSize: 13.sp,
+                      letterSpacing: 0.2,
                     ),
                   ),
-                  SizedBox(width: 6.w),
+                  SizedBox(width: 7.w),
                   Icon(
                     Icons.arrow_forward_rounded,
                     color: Colors.white,
-                    size: 14.sp,
+                    size: 16.sp,
                   ),
                 ],
               ),
@@ -308,30 +356,44 @@ class EventRemainingBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(top: 4.h),
+      margin: EdgeInsets.only(top: 5.h),
       padding: EdgeInsets.symmetric(
-        horizontal: 8.w,
-        vertical: 2.h,
+        horizontal: 10.w,
+        vertical: 4.h,
       ),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: Colors.white.withOpacity(0.25),
         borderRadius: BorderRadius.circular(999.r),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.3),
+          width: 1.w,
+        ),
+        // ✅ ظلال خفيفة
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 6.r,
+            spreadRadius: 0,
+            offset: Offset(0, 2.h),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             Icons.schedule_rounded,
-            color: Colors.white.withOpacity(0.9),
-            size: 10.sp,
+            color: Colors.white.withOpacity(0.95),
+            size: 11.sp,
           ),
-          SizedBox(width: 4.w),
+          SizedBox(width: 5.w),
           Text(
             TimeFormatter.formatRemainingTime(duration),
             style: context.labelSmall?.copyWith(
-              color: Colors.white.withOpacity(0.9),
-              fontSize: 9.sp,
+              color: Colors.white.withOpacity(0.95),
+              fontSize: 10.sp,
               fontWeight: ThemeConstants.medium,
+              letterSpacing: 0.1,
             ),
           ),
         ],

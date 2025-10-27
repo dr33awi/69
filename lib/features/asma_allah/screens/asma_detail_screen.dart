@@ -33,7 +33,6 @@ class _UnifiedAsmaAllahDetailsScreenState
   late AsmaAllahModel _currentItem;
   late PageController _pageController;
   late int _currentIndex;
-  bool _isFavorite = false;
   
   // إعدادات النص الموحدة
   TextSettings? _textSettings;
@@ -50,21 +49,6 @@ class _UnifiedAsmaAllahDetailsScreenState
 
     _pageController = PageController(initialPage: _currentIndex);
     _loadTextSettings();
-    _loadFavoriteStatus();
-  }
-
-  /// تحميل حالة المفضلة
-  Future<void> _loadFavoriteStatus() async {
-    try {
-      final isFavorite = await widget.service.isFavorite(_currentItem.id.toString());
-      if (mounted) {
-        setState(() {
-          _isFavorite = isFavorite;
-        });
-      }
-    } catch (e) {
-      // في حالة الخطأ، نبقي الحالة الافتراضية
-    }
   }
   
   Future<void> _loadTextSettings() async {
@@ -98,8 +82,6 @@ class _UnifiedAsmaAllahDetailsScreenState
                     _currentIndex = index;
                     _currentItem = widget.service.asmaAllahList[index];
                   });
-                  // تحديث حالة المفضلة عند تغيير الصفحة
-                  _loadFavoriteStatus();
                   HapticFeedback.lightImpact();
                 },
                 itemBuilder: (_, index) {
@@ -212,12 +194,6 @@ class _UnifiedAsmaAllahDetailsScreenState
           _buildActionButton(
             icon: Icons.copy_rounded,
             onTap: () => _copyContent(_currentItem),
-            isSecondary: true,
-          ),
-          
-          _buildActionButton(
-            icon: _isFavorite ? Icons.bookmark : Icons.bookmark_outline,
-            onTap: _toggleFavorite,
             isSecondary: true,
           ),
           
@@ -614,41 +590,7 @@ class _UnifiedAsmaAllahDetailsScreenState
   }
 
   /// تبديل حالة المفضلة
-  Future<void> _toggleFavorite() async {
-    try {
-      HapticFeedback.lightImpact();
-      
-      final newState = await widget.service.toggleFavorite(_currentItem);
-      
-      if (mounted) {
-        setState(() {
-          _isFavorite = newState;
-        });
-      }
-      
-      // إظهار رسالة تأكيد
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _isFavorite ? 'تمت إضافة الاسم للمفضلة' : 'تمت إزالة الاسم من المفضلة',
-            ),
-            duration: const Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('حدث خطأ أثناء تحديث المفضلة'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    }
-  }
+  /// مشاركة المحتوى
 
   void _copyContent(AsmaAllahModel item) {
     context.copyAsmaAllah(

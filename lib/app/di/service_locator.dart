@@ -20,7 +20,6 @@ import 'package:athkar_app/core/infrastructure/services/share/share_service.dart
 import 'package:athkar_app/core/infrastructure/services/review/review_service.dart';
 import 'package:athkar_app/core/infrastructure/services/review/review_manager.dart';
 import 'package:athkar_app/core/infrastructure/services/text_settings/service/text_settings_service.dart';
-import 'package:athkar_app/core/infrastructure/services/favorites/favorites_service.dart';
 import 'package:athkar_app/features/athkar/services/athkar_service.dart';
 import 'package:athkar_app/features/dua/services/dua_service.dart';
 import 'package:athkar_app/features/asma_allah/services/asma_allah_service.dart';
@@ -97,7 +96,6 @@ class ServiceLocator {
       _registerErrorHandler();
       _registerShareService();
       _registerTextSettingsService();
-      _registerFavoritesService();
       _registerReviewServices();
       _registerPrayerTimesService();
 
@@ -313,21 +311,6 @@ class ServiceLocator {
       }
     } catch (e) {
       debugPrint('❌ Error registering TextSettingsService: $e');
-    }
-  }
-
-  void _registerFavoritesService() {
-    debugPrint('ServiceLocator: Registering favorites service...');
-    
-    try {
-      if (!getIt.isRegistered<FavoritesService>()) {
-        getIt.registerLazySingleton<FavoritesService>(
-          () => FavoritesService(storage: getIt<StorageService>()),
-        );
-        debugPrint('✅ FavoritesService registered successfully');
-      }
-    } catch (e) {
-      debugPrint('❌ Error registering FavoritesService: $e');
     }
   }
 

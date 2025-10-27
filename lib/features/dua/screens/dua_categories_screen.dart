@@ -6,8 +6,6 @@ import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
-import '../../../core/infrastructure/services/favorites/models/favorite_models.dart';
-import '../../../core/infrastructure/services/favorites/extensions/favorites_extensions.dart';
 import '../../../core/infrastructure/services/text_settings/extensions/text_settings_extensions.dart';
 import '../../../core/infrastructure/services/text_settings/models/text_settings_models.dart';
 import '../services/dua_service.dart';
@@ -168,17 +166,56 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
               ),
               
               // زر إعدادات النصوص
-              _buildActionButton(
-                icon: Icons.text_fields_rounded,
-                color: ThemeConstants.info,
-                onTap: _openTextSettings,
-              ),
-              
-              // زر المفضلة
-              _buildActionButton(
-                icon: Icons.bookmark_rounded,
-                color: context.textSecondaryColor,
-                onTap: _openFavorites,
+              Container(
+                margin: EdgeInsets.only(left: 2.w),
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(14.r),
+                  child: InkWell(
+                    onTap: () async {
+                      HapticFeedback.lightImpact();
+                      await context.showGlobalTextSettings(
+                        initialContentType: ContentType.dua,
+                      );
+                      setState(() {});
+                    },
+                    borderRadius: BorderRadius.circular(14.r),
+                    child: Container(
+                      padding: EdgeInsets.all(8.w),
+                      decoration: BoxDecoration(
+                        color: context.cardColor,
+                        borderRadius: BorderRadius.circular(14.r),
+                        border: Border.all(
+                          color: context.dividerColor.withValues(alpha: 0.15),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(
+                              alpha: context.isDarkMode ? 0.15 : 0.06,
+                            ),
+                            blurRadius: 12.r,
+                            offset: Offset(0, 4.h),
+                            spreadRadius: -2,
+                          ),
+                          BoxShadow(
+                            color: Colors.black.withValues(
+                              alpha: context.isDarkMode ? 0.08 : 0.03,
+                            ),
+                            blurRadius: 6.r,
+                            offset: Offset(0, 2.h),
+                            spreadRadius: -1,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.text_fields_rounded,
+                        color: ThemeConstants.info,
+                        size: 20.sp,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -239,55 +276,6 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      margin: EdgeInsets.only(left: 2.w),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(14.r),
-        child: InkWell(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            onTap();
-          },
-          borderRadius: BorderRadius.circular(14.r),
-          child: Container(
-            padding: EdgeInsets.all(8.w),
-            decoration: BoxDecoration(
-              color: context.cardColor,
-              borderRadius: BorderRadius.circular(14.r),
-              border: Border.all(
-                color: context.dividerColor.withValues(alpha: 0.15),
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
-                  blurRadius: 8.r,
-                  offset: Offset(0, 3.h),
-                ),
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
-                  blurRadius: 4.r,
-                  offset: Offset(0, 2.h),
-                ),
-              ],
-            ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 20.sp,
-            ),
-          ),
         ),
       ),
     );
@@ -713,17 +701,6 @@ class _DuaCategoriesScreenState extends State<DuaCategoriesScreen> {
       MaterialPageRoute(
         builder: (context) => const DuaSearchScreen(),
       ),
-    );
-  }
-
-  void _openFavorites() {
-    HapticFeedback.lightImpact();
-    context.openFavoritesScreen(FavoriteContentType.dua);
-  }
-
-  void _openTextSettings() {
-    context.showGlobalTextSettings(
-      initialContentType: ContentType.dua,
     );
   }
 }

@@ -159,7 +159,7 @@ class _BannerCard extends StatelessWidget {
         elevation: 0,
         color: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24.r),
+          borderRadius: BorderRadius.circular(28.r),
         ),
         child: Stack(
           children: [
@@ -178,7 +178,33 @@ class _BannerCard extends StatelessWidget {
                        banner.backgroundImage!.trim().isNotEmpty
                     ? (isDark ? Colors.black : Colors.white).withOpacity(0.7) // ✅ كان 0.85
                     : (isDark ? Colors.grey[900] : Colors.white),
-                borderRadius: BorderRadius.circular(24.r),
+                borderRadius: BorderRadius.circular(28.r),
+                // ✅ حدود رفيعة للوضوح
+                border: Border.all(
+                  color: isDark 
+                      ? Colors.white.withOpacity(0.1) 
+                      : Colors.black.withOpacity(0.05),
+                  width: 1.5,
+                ),
+                // ✅ ظلال متعددة الطبقات للعمق
+                boxShadow: [
+                  BoxShadow(
+                    color: isDark 
+                        ? Colors.black.withOpacity(0.6) 
+                        : Colors.black.withOpacity(0.15),
+                    blurRadius: 24.r,
+                    spreadRadius: 0,
+                    offset: Offset(0, 8.h),
+                  ),
+                  BoxShadow(
+                    color: isDark 
+                        ? Colors.black.withOpacity(0.4) 
+                        : Colors.black.withOpacity(0.08),
+                    blurRadius: 12.r,
+                    spreadRadius: -4.r,
+                    offset: Offset(0, 4.h),
+                  ),
+                ],
               ),
               child: Stack(
                 children: [
@@ -196,17 +222,31 @@ class _BannerCard extends StatelessWidget {
                               HapticFeedback.lightImpact();
                               onDismiss();
                             },
-                            borderRadius: BorderRadius.circular(20.r),
+                            borderRadius: BorderRadius.circular(24.r),
                             child: Container(
-                              padding: EdgeInsets.all(8.w),
+                              padding: EdgeInsets.all(10.w),
                               decoration: BoxDecoration(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: Colors.grey.withOpacity(isDark ? 0.15 : 0.1),
                                 shape: BoxShape.circle,
+                                // ✅ حدود رقيقة
+                                border: Border.all(
+                                  color: Colors.grey.withOpacity(isDark ? 0.2 : 0.15),
+                                  width: 1,
+                                ),
+                                // ✅ ظلال للزر
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
+                                    blurRadius: 8.r,
+                                    spreadRadius: 0,
+                                    offset: Offset(0, 2.h),
+                                  ),
+                                ],
                               ),
                               child: Icon(
                                 Icons.close,
                                 size: 20.sp,
-                                color: Colors.grey[600],
+                                color: isDark ? Colors.grey[300] : Colors.grey[700],
                               ),
                             ),
                           ),
@@ -217,7 +257,7 @@ class _BannerCard extends StatelessWidget {
                       
                       // ✅ مساحة ثابتة للأيقونة (سواء موجودة أو لا)
                       SizedBox(
-                        height: 72.h,
+                        height: 80.h,
                         child: _hasIcon() ? _buildIcon(isDark) : const SizedBox(),
                       ),
                       
@@ -279,7 +319,7 @@ class _BannerCard extends StatelessWidget {
   Widget _buildBackgroundImage() {
     return Positioned.fill(
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24.r),
+        borderRadius: BorderRadius.circular(28.r),
         child: Image.network(
           banner.backgroundImage!,
           fit: BoxFit.cover,
@@ -323,30 +363,43 @@ class _BannerCard extends StatelessWidget {
     // التحقق من وجود emoji وأنه ليس فارغاً
     if (banner.emoji != null && banner.emoji!.trim().isNotEmpty) {
       return Container(
-        width: 72.w,
-        height: 72.w,
+        width: 80.w,
+        height: 80.w,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              mainColor.withOpacity(0.2),
-              mainColor.withOpacity(0.08),
+              mainColor.withOpacity(0.25),
+              mainColor.withOpacity(0.12),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           shape: BoxShape.circle,
+          // ✅ حدود متدرجة
+          border: Border.all(
+            color: mainColor.withOpacity(0.3),
+            width: 2,
+          ),
+          // ✅ ظلال محسّنة متعددة الطبقات
           boxShadow: [
             BoxShadow(
-              color: mainColor.withOpacity(0.15),
-              blurRadius: 12,
+              color: mainColor.withOpacity(0.25),
+              blurRadius: 16.r,
               spreadRadius: 2,
+              offset: Offset(0, 4.h),
+            ),
+            BoxShadow(
+              color: mainColor.withOpacity(0.15),
+              blurRadius: 8.r,
+              spreadRadius: 0,
+              offset: Offset(0, 2.h),
             ),
           ],
         ),
         child: Center(
           child: Text(
             banner.emoji!,
-            style: TextStyle(fontSize: 36.sp),
+            style: TextStyle(fontSize: 40.sp),
           ),
         ),
       );
@@ -357,32 +410,45 @@ class _BannerCard extends StatelessWidget {
       final isGif = banner.imageUrl!.toLowerCase().endsWith('.gif');
       
       return Container(
-        width: 72.w,
-        height: 72.w,
+        width: 80.w,
+        height: 80.w,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              mainColor.withOpacity(0.2),
-              mainColor.withOpacity(0.08),
+              mainColor.withOpacity(0.25),
+              mainColor.withOpacity(0.12),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           shape: BoxShape.circle,
+          // ✅ حدود متدرجة
+          border: Border.all(
+            color: mainColor.withOpacity(0.3),
+            width: 2,
+          ),
+          // ✅ ظلال محسّنة متعددة الطبقات
           boxShadow: [
             BoxShadow(
-              color: mainColor.withOpacity(0.15),
-              blurRadius: 12,
+              color: mainColor.withOpacity(0.25),
+              blurRadius: 16.r,
               spreadRadius: 2,
+              offset: Offset(0, 4.h),
+            ),
+            BoxShadow(
+              color: mainColor.withOpacity(0.15),
+              blurRadius: 8.r,
+              spreadRadius: 0,
+              offset: Offset(0, 2.h),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(36.r),
+          borderRadius: BorderRadius.circular(40.r),
           child: Image.network(
             banner.imageUrl!,
-            width: 72.w,
-            height: 72.w,
+            width: 80.w,
+            height: 80.w,
             fit: BoxFit.cover,
             gaplessPlayback: true,
             isAntiAlias: true,
@@ -450,21 +516,57 @@ class _BannerCard extends StatelessWidget {
     required bool isPrimary,
     required Color mainColor,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return isPrimary 
-        ? AppButton.custom(
-            text: text,
-            onPressed: onPressed,
-            isFullWidth: true,
-            size: ButtonSize.small,
-            backgroundColor: mainColor,
-            textColor: Colors.white,
+        ? Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14.r),
+              // ✅ ظلال للزر
+              boxShadow: [
+                BoxShadow(
+                  color: mainColor.withOpacity(0.4),
+                  blurRadius: 12.r,
+                  spreadRadius: 0,
+                  offset: Offset(0, 4.h),
+                ),
+                BoxShadow(
+                  color: mainColor.withOpacity(0.2),
+                  blurRadius: 6.r,
+                  spreadRadius: 0,
+                  offset: Offset(0, 2.h),
+                ),
+              ],
+            ),
+            child: AppButton.custom(
+              text: text,
+              onPressed: onPressed,
+              isFullWidth: true,
+              size: ButtonSize.small,
+              backgroundColor: mainColor,
+              textColor: Colors.white,
+            ),
           )
-        : AppButton.outline(
-            text: text,
-            onPressed: onPressed,
-            isFullWidth: true,
-            size: ButtonSize.small,
-            color: Colors.grey[600],
+        : Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14.r),
+              // ✅ ظلال للزر outline
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(isDark ? 0.2 : 0.06),
+                  blurRadius: 8.r,
+                  spreadRadius: 0,
+                  offset: Offset(0, 2.h),
+                ),
+              ],
+            ),
+            child: AppButton.outline(
+              text: text,
+              onPressed: onPressed,
+              isFullWidth: true,
+              size: ButtonSize.small,
+              color: Colors.grey[600],
+            ),
           );
   }
 
@@ -475,16 +577,36 @@ class _BannerCard extends StatelessWidget {
       right: 6.w,
       child: Container(
         padding: EdgeInsets.symmetric(
-          horizontal: 10.w,
-          vertical: 5.h,
+          horizontal: 12.w,
+          vertical: 6.h,
         ),
         decoration: BoxDecoration(
-          color: Colors.red.shade600,
-          borderRadius: BorderRadius.circular(16.r),
+          gradient: LinearGradient(
+            colors: [
+              Colors.red.shade600,
+              Colors.red.shade700,
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(18.r),
+          // ✅ حدود للوضوح
+          border: Border.all(
+            color: Colors.white.withOpacity(0.3),
+            width: 1,
+          ),
+          // ✅ ظلال محسّنة
           boxShadow: [
             BoxShadow(
-              color: Colors.red.withOpacity(0.4),
+              color: Colors.red.withOpacity(0.5),
+              blurRadius: 10.r,
+              spreadRadius: 1,
+              offset: Offset(0, 3.h),
+            ),
+            BoxShadow(
+              color: Colors.red.withOpacity(0.3),
               blurRadius: 6.r,
+              spreadRadius: 0,
               offset: Offset(0, 1.5.h),
             ),
           ],
@@ -495,15 +617,16 @@ class _BannerCard extends StatelessWidget {
             Icon(
               Icons.priority_high_rounded,
               color: Colors.white,
-              size: 14.sp,
+              size: 15.sp,
             ),
-            SizedBox(width: 3.w),
+            SizedBox(width: 4.w),
             Text(
               'عاجل',
               style: TextStyle(
-                fontSize: 10.sp,
+                fontSize: 11.sp,
                 fontWeight: ThemeConstants.bold,
                 color: Colors.white,
+                letterSpacing: 0.3,
               ),
             ),
           ],

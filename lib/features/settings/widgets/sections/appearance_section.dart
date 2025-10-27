@@ -108,7 +108,7 @@ class _AppearanceSectionState extends State<AppearanceSection> {
           subtitle: 'تخصيص حجم الخط وتباعد الأسطر',
           iconColor: ThemeConstants.info,
           trailing: Icon(
-            Icons.arrow_forward_ios,
+            Icons.arrow_back_ios_rounded,
             color: context.textSecondaryColor,
             size: 14.sp,
           ),

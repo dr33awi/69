@@ -70,7 +70,7 @@ class _SpecialEventCardState extends State<SpecialEventCard> {
     }
     
     return Container(
-      margin: EdgeInsets.only(bottom: 20.h),
+      margin: EdgeInsets.only(bottom: 24.h),
       child: EventCardContent(event: _event),
     );
   }

@@ -726,7 +726,7 @@ class _AthkarAppState extends State<AthkarApp> with WidgetsBindingObserver {
           splitScreenMode: true,
           builder: (context, _) {
             return MaterialApp(
-              title: 'حصن المسلم',
+              title: 'ذكرني',
               debugShowCheckedModeBanner: false,
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,

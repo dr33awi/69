@@ -6,8 +6,6 @@ import '../../../app/themes/app_theme.dart';
 import '../../../app/di/service_locator.dart';
 import '../../../app/routes/app_router.dart';
 import '../../../core/infrastructure/services/permissions/simple_permission_service.dart';
-import '../../../core/infrastructure/services/favorites/models/favorite_models.dart';
-import '../../../core/infrastructure/services/favorites/extensions/favorites_extensions.dart';
 import '../../../core/infrastructure/services/text_settings/extensions/text_settings_extensions.dart';
 import '../../../core/infrastructure/services/text_settings/models/text_settings_models.dart';
 import '../services/athkar_service.dart';
@@ -176,13 +174,6 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
             icon: Icons.text_fields_rounded,
             color: ThemeConstants.info,
             onTap: _openTextSettings,
-          ),
-          
-          // زر المفضلة
-          _buildActionButton(
-            icon: Icons.bookmark_rounded,
-            color: context.textSecondaryColor,
-            onTap: _openFavorites,
           ),
           
           // زر الإشعارات
@@ -610,11 +601,6 @@ class _AthkarCategoriesScreenState extends State<AthkarCategoriesScreen> {
       AppRouter.athkarDetails,
       arguments: category.id,
     );
-  }
-
-  void _openFavorites() {
-    HapticFeedback.lightImpact();
-    context.openFavoritesScreen(FavoriteContentType.athkar);
   }
 
   void _openTextSettings() {

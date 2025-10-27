@@ -28,6 +28,11 @@
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
   <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
   
+  <!-- ==================== إعلان عدم استخدام المعرّف الإعلاني (Android 13+) ==================== -->
+  <!-- يُعلم Google Play بأن التطبيق لا يستخدم المعرّف الإعلاني -->
+  <uses-permission android:name="com.google.android.gms.permission.AD_ID" 
+      tools:node="remove" />
+  
   <!-- ==================== الميزات المطلوبة ==================== -->
   <uses-feature 
       android:name="android.hardware.location" 

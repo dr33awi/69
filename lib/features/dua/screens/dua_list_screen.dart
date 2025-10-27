@@ -66,29 +66,6 @@ class _DuaListScreenState extends State<DuaListScreen> {
     }
   }
 
-  Future<void> _toggleFavorite(DuaItem dua) async {
-    final isFavorite = await _service.toggleFavorite(dua.id);
-    
-    setState(() {
-      final index = _duas.indexWhere((d) => d.id == dua.id);
-      if (index != -1) {
-        _duas[index] = _duas[index].copyWith(isFavorite: isFavorite);
-      }
-    });
-    
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isFavorite ? 'تمت الإضافة للمفضلة' : 'تمت الإزالة من المفضلة',
-          ),
-          duration: const Duration(seconds: 2),
-          backgroundColor: isFavorite ? ThemeConstants.success : null,
-        ),
-      );
-    }
-  }
-
   Future<void> _shareDua(DuaItem dua) async {
     final text = '''
 ${dua.arabicText}
@@ -135,13 +112,6 @@ ${dua.virtue != null ? '\nالفضيلة: ${dua.virtue}' : ''}
       MaterialPageRoute(
         builder: (context) => const DuaSearchScreen(),
       ),
-    );
-  }
-
-  void _openTextSettings() {
-    HapticFeedback.lightImpact();
-    context.showGlobalTextSettings(
-      initialContentType: ContentType.dua,
     );
   }
 
@@ -288,11 +258,56 @@ ${dua.virtue != null ? '\nالفضيلة: ${dua.virtue}' : ''}
               ),
               
               // زر إعدادات النصوص
-              _buildActionButton(
-                icon: Icons.text_fields_rounded,
-                onTap: _openTextSettings,
-                color: ThemeConstants.info,
-                tooltip: 'إعدادات النص',
+              Container(
+                margin: EdgeInsets.only(left: 2.w),
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(14.r),
+                  child: InkWell(
+                    onTap: () async {
+                      HapticFeedback.lightImpact();
+                      await context.showGlobalTextSettings(
+                        initialContentType: ContentType.dua,
+                      );
+                      setState(() {});
+                    },
+                    borderRadius: BorderRadius.circular(14.r),
+                    child: Container(
+                      padding: EdgeInsets.all(8.w),
+                      decoration: BoxDecoration(
+                        color: context.cardColor,
+                        borderRadius: BorderRadius.circular(14.r),
+                        border: Border.all(
+                          color: context.dividerColor.withValues(alpha: 0.15),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(
+                              alpha: context.isDarkMode ? 0.15 : 0.06,
+                            ),
+                            blurRadius: 12.r,
+                            offset: Offset(0, 4.h),
+                            spreadRadius: -2,
+                          ),
+                          BoxShadow(
+                            color: Colors.black.withValues(
+                              alpha: context.isDarkMode ? 0.08 : 0.03,
+                            ),
+                            blurRadius: 6.r,
+                            offset: Offset(0, 2.h),
+                            spreadRadius: -1,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.text_fields_rounded,
+                        color: ThemeConstants.info,
+                        size: 20.sp,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -302,69 +317,6 @@ ${dua.virtue != null ? '\nالفضيلة: ${dua.virtue}' : ''}
           // شريط البحث
           _buildSearchBar(),
         ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required VoidCallback onTap,
-    Color? color,
-    String? tooltip,
-  }) {
-    return Tooltip(
-      message: tooltip ?? '',
-      child: Container(
-        margin: EdgeInsets.only(left: 6.w),
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(14.r),
-          child: InkWell(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              onTap();
-            },
-            borderRadius: BorderRadius.circular(14.r),
-            child: Container(
-              padding: EdgeInsets.all(8.w),
-              decoration: BoxDecoration(
-                color: color != null 
-                    ? color.withOpacity(0.1)
-                    : context.cardColor,
-                borderRadius: BorderRadius.circular(14.r),
-                border: Border.all(
-                  color: color != null 
-                      ? color.withValues(alpha: 0.15)
-                      : context.dividerColor.withValues(alpha: 0.15),
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(
-                      alpha: context.isDarkMode ? 0.15 : 0.06,
-                    ),
-                    blurRadius: 12.r,
-                    offset: Offset(0, 4.h),
-                    spreadRadius: -2,
-                  ),
-                  BoxShadow(
-                    color: Colors.black.withValues(
-                      alpha: context.isDarkMode ? 0.08 : 0.03,
-                    ),
-                    blurRadius: 6.r,
-                    offset: Offset(0, 2.h),
-                    spreadRadius: -1,
-                  ),
-                ],
-              ),
-              child: Icon(
-                icon,
-                color: color ?? context.textPrimaryColor,
-                size: 20.sp,
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -466,7 +418,6 @@ ${dua.virtue != null ? '\nالفضيلة: ${dua.virtue}' : ''}
               dua: dua,
               categoryColor: categoryColor,
               onTap: () => _openDuaDetails(dua),
-              onFavorite: () => _toggleFavorite(dua),
               onShare: () => _shareDua(dua),
               onCopy: () => _copyDua(dua),
             ),

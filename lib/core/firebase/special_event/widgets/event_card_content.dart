@@ -33,31 +33,45 @@ class EventCardContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isInteractive = event.actionUrl.isNotEmpty;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(24.r),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: event.gradientColors.map((c) => c.withOpacity(0.95)).toList(),
         ),
+        // ✅ حدود رفيعة للوضوح
+        border: Border.all(
+          color: Colors.white.withOpacity(0.15),
+          width: 1.5,
+        ),
+        // ✅ ظلال متعددة الطبقات للعمق
         boxShadow: [
           BoxShadow(
-            color: event.gradientColors.first.withOpacity(0.3),
-            blurRadius: 20.r,
-            offset: Offset(0, 10.h),
+            color: event.gradientColors.first.withOpacity(isDark ? 0.4 : 0.35),
+            blurRadius: 24.r,
+            spreadRadius: 0,
+            offset: Offset(0, 12.h),
+          ),
+          BoxShadow(
+            color: event.gradientColors.first.withOpacity(isDark ? 0.3 : 0.2),
+            blurRadius: 12.r,
+            spreadRadius: -4.r,
+            offset: Offset(0, 6.h),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(24.r),
         child: Material(
           color: Colors.transparent,
           child: isInteractive 
             ? InkWell(
                 onTap: () => _handleTap(context),
-                borderRadius: BorderRadius.circular(20.r),
+                borderRadius: BorderRadius.circular(24.r),
                 splashColor: Colors.white.withOpacity(0.2),
                 child: _buildContent(context),
               )
@@ -85,7 +99,7 @@ class EventCardContent extends StatelessWidget {
         
         // المحتوى الرئيسي
         Container(
-          padding: EdgeInsets.all(16.r),
+          padding: EdgeInsets.all(20.r),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

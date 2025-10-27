@@ -6,9 +6,6 @@ import '../../../app/themes/constants/app_constants.dart';
 import '../../../core/infrastructure/services/storage/storage_service.dart';
 import '../../../core/infrastructure/services/notifications/notification_manager.dart';
 import '../../../core/infrastructure/services/notifications/models/notification_models.dart';
-import '../../../core/infrastructure/services/favorites/favorites_service.dart';
-import '../../../core/infrastructure/services/favorites/models/favorite_models.dart';
-import '../../../app/di/service_locator.dart';
 import '../models/athkar_model.dart';
 import '../models/athkar_progress.dart';
 import '../constants/athkar_constants.dart';
@@ -23,9 +20,6 @@ class AthkarService {
   final Map<String, AthkarProgress> _progressCache = {};
   final Map<String, TimeOfDay> _customTimesCache = {};
   DateTime? _lastSyncTime;
-
-  // النظام الموحد للمفضلة
-  FavoritesService get _favoritesService => getIt<FavoritesService>();
 
   AthkarService({
     required StorageService storage,
@@ -298,91 +292,6 @@ class AthkarService {
   /// الحصول على معلومات البيانات
   AthkarData? getAthkarData() {
     return _athkarDataCache;
-  }
-
-  // ==================== إدارة المفضلة ====================
-
-  /// إضافة ذكر إلى المفضلة
-  Future<bool> addToFavorites({
-    required String athkarId,
-    required String text,
-    String? fadl,
-    String? source,
-    String? categoryId,
-    int? count,
-  }) async {
-    try {
-      final favoriteItem = FavoriteItem.fromAthkar(
-        athkarId: athkarId,
-        text: text,
-        fadl: fadl,
-        source: source,
-        categoryId: categoryId,
-        count: count,
-      );
-
-      return await _favoritesService.addFavorite(favoriteItem);
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// إزالة ذكر من المفضلة
-  Future<bool> removeFromFavorites(String athkarId) async {
-    try {
-      return await _favoritesService.removeFavorite(athkarId);
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// تبديل حالة المفضلة للذكر
-  Future<bool> toggleFavorite({
-    required String athkarId,
-    required String text,
-    String? fadl,
-    String? source,
-    String? categoryId,
-    int? count,
-  }) async {
-    try {
-      final favoriteItem = FavoriteItem.fromAthkar(
-        athkarId: athkarId,
-        text: text,
-        fadl: fadl,
-        source: source,
-        categoryId: categoryId,
-        count: count,
-      );
-
-      await _favoritesService.toggleFavorite(favoriteItem);
-      return await _favoritesService.isFavorite(athkarId);
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// التحقق من وجود ذكر في المفضلة
-  Future<bool> isFavorite(String athkarId) async {
-    return await _favoritesService.isFavorite(athkarId);
-  }
-
-  /// الحصول على الأذكار المفضلة
-  Future<List<FavoriteItem>> getFavoriteAthkar() async {
-    try {
-      return await _favoritesService.getFavoritesByType(FavoriteContentType.athkar);
-    } catch (e) {
-      return [];
-    }
-  }
-
-  /// الحصول على عدد الأذكار المفضلة
-  Future<int> getFavoritesCount() async {
-    try {
-      return await _favoritesService.getCountByType(FavoriteContentType.athkar);
-    } catch (e) {
-      return 0;
-    }
   }
 
   // ==================== التنظيف ====================

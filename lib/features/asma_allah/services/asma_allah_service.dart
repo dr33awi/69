@@ -1,9 +1,6 @@
 // lib/features/asma_allah/services/asma_allah_service.dart 
 import 'package:flutter/material.dart';
 import 'package:athkar_app/core/infrastructure/services/storage/storage_service.dart';
-import '../../../core/infrastructure/services/favorites/favorites_service.dart';
-import '../../../core/infrastructure/services/favorites/models/favorite_models.dart';
-import '../../../app/di/service_locator.dart';
 import '../models/asma_allah_model.dart';
 import '../data/asma_allah_data.dart';
 
@@ -17,9 +14,6 @@ class AsmaAllahService extends ChangeNotifier {
   // حالة التحميل
   bool _isLoading = false;
   bool get isLoading => _isLoading;
-  
-  // النظام الموحد للمفضلة
-  FavoritesService get _favoritesService => getIt<FavoritesService>();
   
   AsmaAllahService({
     required StorageService storage,
@@ -42,6 +36,7 @@ class AsmaAllahService extends ChangeNotifier {
         .map((data) => AsmaAllahModel.fromJson(data))
         .toList();
     } catch (e) {
+      debugPrint('Error loading Asma Allah: $e');
     } finally {
       _setLoading(false);
     }
@@ -53,94 +48,6 @@ class AsmaAllahService extends ChangeNotifier {
       return _asmaAllahList.firstWhere((item) => item.id == id);
     } catch (_) {
       return null;
-    }
-  }
-  
-  // ==================== إدارة المفضلة ====================
-
-  /// إضافة اسم إلى المفضلة
-  Future<bool> addToFavorites(AsmaAllahModel asmaAllah) async {
-    try {
-      final favoriteItem = FavoriteItem.fromAsmaAllah(
-        nameId: asmaAllah.id.toString(),
-        arabicName: asmaAllah.name,
-        explanation: asmaAllah.explanation,
-      );
-
-      return await _favoritesService.addFavorite(favoriteItem);
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// إزالة اسم من المفضلة
-  Future<bool> removeFromFavorites(String nameId) async {
-    try {
-      return await _favoritesService.removeFavorite(nameId);
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// تبديل حالة المفضلة
-  Future<bool> toggleFavorite(AsmaAllahModel item) async {
-    try {
-      final favoriteItem = FavoriteItem.fromAsmaAllah(
-        nameId: 'asma_allah_${item.id}',
-        arabicName: item.name,
-        explanation: item.explanation,
-        transliteration: null,
-      );
-
-      return await _favoritesService.toggleFavorite(favoriteItem);
-    } catch (e) {
-      debugPrint('خطأ في تبديل المفضلة: $e');
-      return false;
-    }
-  }
-
-  /// التحقق من وجود اسم في المفضلة
-  Future<bool> isFavorite(String nameId) async {
-    return await _favoritesService.isFavorite(nameId);
-  }
-
-  /// الحصول على أسماء الله المفضلة
-  Future<List<FavoriteItem>> getFavoriteNames() async {
-    try {
-      return await _favoritesService.getFavoritesByType(FavoriteContentType.asmaAllah);
-    } catch (e) {
-      return [];
-    }
-  }
-
-  /// الحصول على عدد أسماء الله المفضلة
-  Future<int> getFavoritesCount() async {
-    try {
-      return await _favoritesService.getCountByType(FavoriteContentType.asmaAllah);
-    } catch (e) {
-      return 0;
-    }
-  }
-
-  /// الحصول على أسماء الله المفضلة كـ AsmaAllahModel
-  Future<List<AsmaAllahModel>> getFavoriteAsmaAllahModels() async {
-    try {
-      final favoriteItems = await getFavoriteNames();
-      final favoriteModels = <AsmaAllahModel>[];
-      
-      for (final item in favoriteItems) {
-        final nameId = int.tryParse(item.id);
-        if (nameId != null) {
-          final model = getNameById(nameId);
-          if (model != null) {
-            favoriteModels.add(model);
-          }
-        }
-      }
-      
-      return favoriteModels;
-    } catch (e) {
-      return [];
     }
   }
   

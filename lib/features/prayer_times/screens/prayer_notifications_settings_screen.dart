@@ -263,22 +263,25 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
     );
     
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: ThemeConstants.space3,
+        vertical: ThemeConstants.space3,
+      ),
       child: Row(
         children: [
           AppBackButton(
             onPressed: () async {
               final canPop = await _showUnsavedChangesDialog();
               if (canPop && mounted) {
-                Navigator.pop(context);
+                Navigator.of(context).pop();
               }
             },
           ),
           
-          SizedBox(width: 8.w),
+          SizedBox(width: ThemeConstants.space2),
           
           Container(
-            padding: EdgeInsets.all(8.r),
+            padding: EdgeInsets.all(ThemeConstants.space2 - 2.w),
             decoration: BoxDecoration(
               gradient: gradient,
               borderRadius: BorderRadius.circular(14.r),
@@ -302,18 +305,18 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
             child: Icon(
               Icons.notifications_active,
               color: Colors.white,
-              size: 20.sp,
+              size: ThemeConstants.iconSm,
             ),
           ),
           
-          SizedBox(width: 8.w),
+          SizedBox(width: ThemeConstants.space2),
           
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'إعدادات إشعارات الصلوات',
+                  'إشعارات الصلوات',
                   style: TextStyle(
                     fontWeight: ThemeConstants.bold,
                     color: context.textPrimaryColor,
@@ -331,9 +334,9 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
             ),
           ),
           
-          if (_hasChanges && !_isSaving)
+          if (_hasChanges && !_isSaving && _hasNotificationPermission)
             Container(
-              margin: EdgeInsets.only(left: 6.w),
+              margin: EdgeInsets.only(left: ThemeConstants.space2 - 2.w),
               child: Material(
                 color: Colors.transparent,
                 borderRadius: BorderRadius.circular(14.r),
@@ -344,7 +347,7 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
                   },
                   borderRadius: BorderRadius.circular(14.r),
                   child: Container(
-                    padding: EdgeInsets.all(8.r),
+                    padding: EdgeInsets.all(ThemeConstants.space2 - 2.w),
                     decoration: BoxDecoration(
                       color: context.cardColor,
                       borderRadius: BorderRadius.circular(14.r),
@@ -368,9 +371,22 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
                     child: Icon(
                       Icons.save,
                       color: ThemeConstants.primary,
-                      size: 20.sp,
+                      size: ThemeConstants.iconSm,
                     ),
                   ),
+                ),
+              ),
+            ),
+          
+          if (_isSaving)
+            Container(
+              margin: EdgeInsets.only(left: ThemeConstants.space2 - 2.w),
+              child: SizedBox(
+                width: ThemeConstants.iconSm,
+                height: ThemeConstants.iconSm,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.w,
+                  valueColor: const AlwaysStoppedAnimation<Color>(ThemeConstants.primary),
                 ),
               ),
             ),
@@ -380,29 +396,56 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
   }
 
   Widget _buildContent() {
-    return CustomScrollView(
-      slivers: [
-        // ✅ عرض بطاقة التحذير إذا لم يكن هناك إذن
-        if (!_hasNotificationPermission)
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(12.w),
-              child: PermissionWarningCard.notification(
+    return RefreshIndicator(
+      onRefresh: () async {
+        _loadSettings();
+        await _checkNotificationPermission();
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.all(ThemeConstants.space3),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ✅ عرض بطاقة التحذير إذا لم يكن هناك إذن
+            if (!_hasNotificationPermission) ...[
+              PermissionWarningCard.notification(
                 onGrantPermission: _requestNotificationPermission,
                 isCompact: false,
               ),
-            ),
-          ),
-        
-        if (_hasNotificationPermission)
-          SliverToBoxAdapter(
-            child: _buildPrayerNotificationsSection(),
-          ),
-        
-        SliverToBoxAdapter(
-          child: SizedBox(height: 60.h),
+              SizedBox(height: ThemeConstants.space3),
+            ],
+            
+            if (_hasNotificationPermission) ...[
+              _buildQuickStats(),
+              SizedBox(height: ThemeConstants.space3),
+              
+              Text(
+                'إعدادات الصلوات (5)',
+                style: TextStyle(
+                  fontWeight: ThemeConstants.bold,
+                  color: context.textPrimaryColor,
+                  fontSize: ThemeConstants.textSizeMd,
+                ),
+              ),
+              
+              SizedBox(height: ThemeConstants.space2 - 2.h),
+              
+              Text(
+                'فعّل التنبيهات وخصص أوقاتها',
+                style: TextStyle(
+                  color: context.textSecondaryColor,
+                  fontSize: ThemeConstants.textSizeXs,
+                ),
+              ),
+              
+              SizedBox(height: ThemeConstants.space3),
+              
+              _buildPrayerNotificationsSection(),
+            ],
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -415,11 +458,26 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
       (PrayerType.isha, 'العشاء', Icons.bedtime),
     ];
     
+    return Column(
+      children: prayers
+          .map((prayer) => _buildPrayerNotificationTile(
+                prayer.$1,
+                prayer.$2,
+                prayer.$3,
+              ))
+          .toList(),
+    );
+  }
+
+  Widget _buildQuickStats() {
+    final enabledCount = _notificationSettings.enabledPrayers.values.where((e) => e).length;
+    final disabledCount = 5 - enabledCount; // 5 صلوات
+    
     return Container(
-      margin: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(ThemeConstants.space3),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20.r),
         color: context.cardColor,
+        borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
           color: context.dividerColor.withValues(alpha: 0.1),
           width: 1,
@@ -439,17 +497,95 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Padding(
-            padding: EdgeInsets.all(16.w),
-            child: Row(
+          Expanded(
+            child: _StatItem(
+              icon: Icons.notifications_active,
+              count: enabledCount,
+              label: 'مفعلة',
+              color: ThemeConstants.success,
+            ),
+          ),
+          
+          Container(
+            width: ThemeConstants.borderLight,
+            height: 32.h,
+            color: context.dividerColor,
+          ),
+          
+          Expanded(
+            child: _StatItem(
+              icon: Icons.notifications_off,
+              count: disabledCount,
+              label: 'معطلة',
+              color: context.textSecondaryColor,
+            ),
+          ),
+          
+          Container(
+            width: ThemeConstants.borderLight,
+            height: 32.h,
+            color: context.dividerColor,
+          ),
+          
+          Expanded(
+            child: _StatItem(
+              icon: Icons.mosque,
+              count: 5,
+              label: 'الكل',
+              color: context.primaryColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPrayerNotificationTile(
+    PrayerType type,
+    String name,
+    IconData icon,
+  ) {
+    final isEnabled = _notificationSettings.enabledPrayers[type] ?? false;
+    final minutesBefore = _notificationSettings.minutesBefore[type] ?? 0;
+    
+    return Padding(
+      padding: EdgeInsets.only(bottom: ThemeConstants.space2 + ThemeConstants.space1),
+      child: Container(
+        padding: EdgeInsets.all(ThemeConstants.space3),
+        decoration: BoxDecoration(
+          color: context.cardColor,
+          borderRadius: BorderRadius.circular(20.r),
+          border: Border.all(
+            color: context.dividerColor.withValues(alpha: 0.1),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: context.isDarkMode ? 0.15 : 0.06),
+              blurRadius: 12.r,
+              offset: Offset(0, 4.h),
+              spreadRadius: -2,
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: context.isDarkMode ? 0.08 : 0.03),
+              blurRadius: 6.r,
+              offset: Offset(0, 2.h),
+              spreadRadius: -1,
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(10.w),
+                  width: 36.r,
+                  height: 36.r,
                   decoration: BoxDecoration(
-                    color: _primaryGreenColor.withOpacity(0.1),
+                    color: _primaryGreenColor.withOpacity(ThemeConstants.opacity10),
                     borderRadius: BorderRadius.circular(14.r),
                     border: Border.all(
                       color: _primaryGreenColor.withValues(alpha: 0.2),
@@ -464,168 +600,213 @@ class _PrayerNotificationsSettingsScreenState extends State<PrayerNotificationsS
                     ],
                   ),
                   child: Icon(
-                    Icons.mosque,
+                    icon,
                     color: _primaryGreenColor,
-                    size: 20.sp,
+                    size: ThemeConstants.iconSm,
                   ),
                 ),
-                SizedBox(width: 10.w),
+                
+                SizedBox(width: ThemeConstants.space2 + ThemeConstants.space1),
+                
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'إعدادات إشعارات الصلوات',
+                        name,
                         style: TextStyle(
                           fontWeight: ThemeConstants.semiBold,
-                          fontSize: 14.sp,
+                          fontSize: ThemeConstants.textSizeSm,
                         ),
                       ),
                       Text(
-                        'تخصيص الإشعارات لكل صلاة على حدة',
+                        isEnabled && _notificationSettings.enabled
+                            ? 'تنبيه قبل $minutesBefore دقيقة'
+                            : 'التنبيه معطل',
                         style: TextStyle(
                           color: context.textSecondaryColor,
-                          fontSize: 10.sp,
+                          fontSize: ThemeConstants.textSizeXs,
                         ),
                       ),
                     ],
                   ),
                 ),
+                
+                Transform.scale(
+                  scale: 0.85,
+                  child: Switch(
+                    value: isEnabled,
+                    onChanged: _notificationSettings.enabled && _hasNotificationPermission
+                        ? (value) {
+                            setState(() {
+                              final updatedPrayers = Map<PrayerType, bool>.from(
+                                _notificationSettings.enabledPrayers,
+                              );
+                              updatedPrayers[type] = value;
+                              
+                              _notificationSettings = _notificationSettings.copyWith(
+                                enabledPrayers: updatedPrayers,
+                              );
+                            });
+                            _checkForChanges();
+                          }
+                        : null,
+                    activeColor: _primaryGreenColor,
+                  ),
+                ),
               ],
             ),
-          ),
-          
-          const Divider(),
-          
-          ...prayers.map((prayer) => _buildPrayerNotificationTile(
-            prayer.$1,
-            prayer.$2,
-            prayer.$3,
-          )),
-        ],
+            
+            if (isEnabled && _notificationSettings.enabled) ...[
+              SizedBox(height: ThemeConstants.space2 + ThemeConstants.space1),
+              _buildTimeSelector(
+                type: type,
+                minutesBefore: minutesBefore,
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildPrayerNotificationTile(
-    PrayerType type,
-    String name,
-    IconData icon,
-  ) {
-    final isEnabled = _notificationSettings.enabledPrayers[type] ?? false;
-    final minutesBefore = _notificationSettings.minutesBefore[type] ?? 0;
-    
-    return ExpansionTile(
-      leading: Container(
-        width: 40.w,
-        height: 40.w,
-        decoration: BoxDecoration(
-          color: _primaryGreenColor.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(
-            color: _primaryGreenColor.withValues(alpha: 0.2),
-            width: 1,
+  Widget _buildTimeSelector({
+    required PrayerType type,
+    required int minutesBefore,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(ThemeConstants.space2 + ThemeConstants.space1 + 2.w),
+      decoration: BoxDecoration(
+        color: _primaryGreenColor.withOpacity(ThemeConstants.opacity10),
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(
+          color: _primaryGreenColor.withValues(alpha: 0.25),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: _primaryGreenColor.withValues(alpha: 0.12),
+            blurRadius: 6.r,
+            offset: Offset(0, 2.h),
           ),
-          boxShadow: isEnabled ? [
-            BoxShadow(
-              color: _primaryGreenColor.withValues(alpha: 0.15),
-              blurRadius: 6.r,
-              offset: Offset(0, 2.h),
-            ),
-          ] : null,
-        ),
-        child: Icon(
-          icon,
-          color: _primaryGreenColor,
-          size: 20.sp,
-        ),
+        ],
       ),
-      title: Text(name, style: TextStyle(fontSize: 13.sp)),
-      subtitle: Text(
-        isEnabled && _notificationSettings.enabled
-            ? 'تنبيه قبل $minutesBefore دقيقة'
-            : 'التنبيه معطل',
-        style: TextStyle(fontSize: 10.sp),
-      ),
-      trailing: Switch(
-        value: isEnabled,
-        onChanged: _notificationSettings.enabled
-            ? (value) {
-                setState(() {
-                  final updatedPrayers = Map<PrayerType, bool>.from(
-                    _notificationSettings.enabledPrayers,
-                  );
-                  updatedPrayers[type] = value;
-                  
-                  _notificationSettings = _notificationSettings.copyWith(
-                    enabledPrayers: updatedPrayers,
-                  );
-                });
-                _checkForChanges();
-              }
-            : null,
-        activeColor: _primaryGreenColor,
-      ),
-      children: [
-        if (isEnabled && _notificationSettings.enabled)
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 12.w,
-              vertical: 6.h,
-            ),
-            child: Row(
+      child: Row(
+        children: [
+          Icon(
+            Icons.access_time,
+            size: ThemeConstants.iconSm,
+            color: _primaryGreenColor,
+          ),
+          SizedBox(width: ThemeConstants.space2 - 2.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('التنبيه قبل', style: TextStyle(fontSize: 12.sp)),
-                SizedBox(width: 10.w),
-                SizedBox(
-                  width: 70.w,
-                  child: DropdownButtonFormField<int>(
-                    value: minutesBefore,
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: context.textPrimaryColor,
-                    ),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 10.w,
-                        vertical: 6.h,
-                      ),
-                    ),
-                    items: [0, 5, 10, 15, 20, 25, 30, 45, 60]
-                        .map((minutes) => DropdownMenuItem(
-                              value: minutes,
-                              child: Text(
-                                '$minutes',
-                                style: TextStyle(
-                                  color: context.textPrimaryColor,
-                                  fontSize: 12.sp,
-                                ),
-                              ),
-                            ))
-                        .toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          final updatedMinutes = Map<PrayerType, int>.from(
-                            _notificationSettings.minutesBefore,
-                          );
-                          updatedMinutes[type] = value;
-                          
-                          _notificationSettings = _notificationSettings.copyWith(
-                            minutesBefore: updatedMinutes,
-                          );
-                        });
-                        _checkForChanges();
-                      }
-                    },
+                Text(
+                  'التنبيه قبل $minutesBefore دقيقة',
+                  style: TextStyle(
+                    color: _primaryGreenColor,
+                    fontWeight: ThemeConstants.medium,
+                    fontSize: ThemeConstants.textSizeSm,
                   ),
                 ),
-                SizedBox(width: 6.w),
-                Text('دقيقة', style: TextStyle(fontSize: 12.sp)),
               ],
             ),
           ),
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: ThemeConstants.space2,
+              vertical: ThemeConstants.space1,
+            ),
+            decoration: BoxDecoration(
+              color: _primaryGreenColor.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10.r),
+            ),
+            child: DropdownButton<int>(
+              value: minutesBefore,
+              isDense: true,
+              underline: const SizedBox(),
+              style: TextStyle(
+                fontSize: ThemeConstants.textSizeXs,
+                color: _primaryGreenColor,
+                fontWeight: ThemeConstants.semiBold,
+              ),
+              dropdownColor: context.cardColor,
+              borderRadius: BorderRadius.circular(12.r),
+              items: [0, 5, 10, 15, 20, 25, 30, 45, 60]
+                  .map((minutes) => DropdownMenuItem(
+                        value: minutes,
+                        child: Text(
+                          '$minutes دقيقة',
+                          style: TextStyle(
+                            color: context.textPrimaryColor,
+                            fontSize: ThemeConstants.textSizeXs,
+                          ),
+                        ),
+                      ))
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    final updatedMinutes = Map<PrayerType, int>.from(
+                      _notificationSettings.minutesBefore,
+                    );
+                    updatedMinutes[type] = value;
+                    
+                    _notificationSettings = _notificationSettings.copyWith(
+                      minutesBefore: updatedMinutes,
+                    );
+                  });
+                  _checkForChanges();
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatItem extends StatelessWidget {
+  final IconData icon;
+  final int count;
+  final String label;
+  final Color color;
+
+  const _StatItem({
+    required this.icon,
+    required this.count,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Icon(
+          icon,
+          color: color,
+          size: ThemeConstants.iconSm,
+        ),
+        SizedBox(height: 3.h),
+        Text(
+          '$count',
+          style: TextStyle(
+            color: color,
+            fontWeight: ThemeConstants.bold,
+            fontSize: ThemeConstants.textSizeMd,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            color: context.textSecondaryColor,
+            fontSize: 10.sp,
+          ),
+        ),
       ],
     );
   }

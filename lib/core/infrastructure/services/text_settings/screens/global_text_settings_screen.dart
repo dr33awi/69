@@ -4,6 +4,7 @@ import 'package:athkar_app/core/infrastructure/services/text_settings/widgets/sh
 import 'package:athkar_app/core/infrastructure/services/text_settings/widgets/text_preview_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_islamic_icons/flutter_islamic_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:ui';
 import '../../../../../app/themes/app_theme.dart';
@@ -550,10 +551,10 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
         padding: EdgeInsets.symmetric(horizontal: 8.w),
         tabs: ContentType.values.map((type) {
           final icon = type == ContentType.athkar 
-              ? Icons.article_rounded 
+              ? Icons.menu_book_rounded 
               : type == ContentType.dua 
-                  ? Icons.volunteer_activism_rounded 
-                  : Icons.star_rounded;
+                  ? FlutterIslamicIcons.solidPrayer 
+                  : FlutterIslamicIcons.solidAllah;
           
           return Tab(
             child: Row(

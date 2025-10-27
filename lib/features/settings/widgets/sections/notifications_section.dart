@@ -39,7 +39,7 @@ class _NotificationsSectionState extends State<NotificationsSection> {
             context,
             AppRouter.prayerNotificationsSettings,
           ),
-          trailing: Icon(Icons.arrow_forward_ios, size: 14.sp),
+          trailing: Icon(Icons.arrow_back_ios_rounded, size: 14.sp),
         ),
         SettingsTile(
           icon: Icons.menu_book,
@@ -49,7 +49,7 @@ class _NotificationsSectionState extends State<NotificationsSection> {
             context,
             AppRouter.athkarNotificationsSettings,
           ),
-          trailing: Icon(Icons.arrow_forward_ios, size: 14.sp),
+          trailing: Icon(Icons.arrow_back_ios_rounded, size: 14.sp),
         ),
         SettingsTile(
           icon: Icons.vibration,
