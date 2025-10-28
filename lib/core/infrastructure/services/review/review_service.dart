@@ -38,7 +38,7 @@ class ReviewService {
   static const int _minDaysBetweenRequests = 30;
 
   /// معرف التطبيق على Google Play (يجب تحديثه)
-  static const String _androidPackageName = 'com.dhakarani.app';
+  static const String _androidPackageName = 'com.dhakarani1.app';
 
   /// معرف التطبيق على App Store (يجب تحديثه إذا كان iOS)
   static const String _iosAppId = 'YOUR_IOS_APP_ID';

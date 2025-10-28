@@ -1,0 +1,22 @@
+// This file is used to upload native debug symbols to Firebase Crashlytics
+// It will be automatically included in the build process
+
+// Apply Firebase Crashlytics Gradle Plugin if not already applied
+apply plugin: 'com.google.firebase.crashlytics'
+
+// Configure Crashlytics to upload native symbols
+android {
+    buildTypes {
+        release {
+            // Upload native debug symbols to Crashlytics
+            firebaseCrashlytics {
+                // Upload native symbol files for better crash reports
+                nativeSymbolUploadEnabled true
+                
+                // Uncomment if you want to upload symbol files for all ABIs
+                // By default, it uploads only for the ABIs in your APK/AAB
+                // unstrippedNativeLibsDir file('build/intermediates/merged_native_libs/release/out/lib')
+            }
+        }
+    }
+}

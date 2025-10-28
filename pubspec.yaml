@@ -1,8 +1,8 @@
 name: athkar_app
-description: "تطبيق أذكار إسلامية مع مواقيت الصلاة واتجاه القبلة"
+description: "تطبيق ذكرني"
 publish_to: 'none'
 
-version: 1.0.0+2
+version: 1.0.0+1
 
 environment:
   sdk: ">=3.0.0 <4.0.0"

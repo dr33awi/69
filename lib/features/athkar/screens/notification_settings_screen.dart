@@ -420,6 +420,20 @@ Future<void> _saveChanges() async {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
+            textButtonTheme: TextButtonThemeData(
+              style: ButtonStyle(
+                textStyle: WidgetStateProperty.all(
+                  TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                padding: WidgetStateProperty.all(
+                  EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                ),
+              ),
+            ),
             timePickerTheme: TimePickerThemeData(
               backgroundColor: context.surfaceColor,
               hourMinuteTextColor: context.textPrimaryColor,
@@ -427,8 +441,45 @@ Future<void> _saveChanges() async {
               dialBackgroundColor: context.cardColor,
               helpTextStyle: TextStyle(
                 color: context.textPrimaryColor,
-                fontSize: ThemeConstants.textSizeMd,
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
               ),
+              cancelButtonStyle: ButtonStyle(
+                textStyle: WidgetStateProperty.all(
+                  TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                foregroundColor: WidgetStateProperty.all(context.textPrimaryColor),
+                padding: WidgetStateProperty.all(
+                  EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
+                ),
+              ),
+              confirmButtonStyle: ButtonStyle(
+                textStyle: WidgetStateProperty.all(
+                  TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                foregroundColor: WidgetStateProperty.all(ThemeConstants.primary),
+                padding: WidgetStateProperty.all(
+                  EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
+                ),
+              ),
+              dayPeriodTextStyle: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.bold,
+              ),
+              hourMinuteTextStyle: TextStyle(
+                fontSize: 48.sp,
+                fontWeight: FontWeight.bold,
+              ),
+              dayPeriodTextColor: context.textPrimaryColor,
             ),
           ),
           child: child!,

@@ -128,79 +128,44 @@ class EnhancedSwitch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 8.h),
+      margin: EdgeInsets.symmetric(vertical: 6.h),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(14.r),
         child: InkWell(
           onTap: () => onChanged(!value),
-          borderRadius: BorderRadius.circular(20.r),
+          borderRadius: BorderRadius.circular(14.r),
           child: Container(
-            padding: EdgeInsets.all(14.w),
+            padding: EdgeInsets.all(10.w),
             decoration: BoxDecoration(
-              gradient: value
-                  ? LinearGradient(
-                      colors: [
-                        accentColor.withOpacity(0.05),
-                        accentColor.withOpacity(0.08),
-                      ],
-                    )
-                  : null,
-              color: value ? null : context.backgroundColor,
-              borderRadius: BorderRadius.circular(20.r),
+              color: value 
+                  ? accentColor.withOpacity(0.06)
+                  : context.backgroundColor,
+              borderRadius: BorderRadius.circular(14.r),
               border: Border.all(
                 color: value
                     ? accentColor.withValues(alpha: 0.15)
                     : context.dividerColor.withValues(alpha: 0.1),
                 width: 1,
               ),
-              boxShadow: value
-                  ? [
-                      BoxShadow(
-                        color: Colors.black.withValues(
-                          alpha: context.isDarkMode ? 0.15 : 0.06,
-                        ),
-                        blurRadius: 12.r,
-                        offset: Offset(0, 4.h),
-                        spreadRadius: -2,
-                      ),
-                      BoxShadow(
-                        color: Colors.black.withValues(
-                          alpha: context.isDarkMode ? 0.08 : 0.03,
-                        ),
-                        blurRadius: 6.r,
-                        offset: Offset(0, 2.h),
-                        spreadRadius: -1,
-                      ),
-                    ]
-                  : null,
             ),
             child: Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(10.r),
+                  padding: EdgeInsets.all(8.r),
                   decoration: BoxDecoration(
                     color: value
                         ? accentColor.withOpacity(0.1)
                         : context.dividerColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(14.r),
-                    boxShadow: value
-                        ? [
-                            BoxShadow(
-                              color: accentColor.withValues(alpha: 0.2),
-                              blurRadius: 8.r,
-                              offset: Offset(0, 2.h),
-                            ),
-                          ]
-                        : null,
+                    borderRadius: BorderRadius.circular(10.r),
                   ),
                   child: Icon(
                     icon,
-                    size: 22.sp,
+                    size: 18.sp,
                     color: value ? accentColor : context.textSecondaryColor,
                   ),
                 ),
-                SizedBox(width: 14.w),
+                SizedBox(width: 10.w),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -208,7 +173,7 @@ class EnhancedSwitch extends StatelessWidget {
                       Text(
                         title,
                         style: TextStyle(
-                          fontSize: 15.sp,
+                          fontSize: 14.sp,
                           fontWeight: ThemeConstants.medium,
                           color: context.textPrimaryColor,
                         ),
@@ -217,16 +182,16 @@ class EnhancedSwitch extends StatelessWidget {
                       Text(
                         subtitle,
                         style: TextStyle(
-                          fontSize: 13.sp,
+                          fontSize: 11.sp,
                           color: context.textSecondaryColor,
                         ),
                       ),
                     ],
                   ),
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: 6.w),
                 Transform.scale(
-                  scale: 0.9,
+                  scale: 0.85,
                   child: Switch(
                     value: value,
                     onChanged: onChanged,

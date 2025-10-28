@@ -59,7 +59,7 @@
       <!-- ==================== خدمات Firebase Cloud Messaging ==================== -->
       
       <service
-          android:name="com.dhakarani.app.MyFirebaseMessagingService"
+          android:name="com.dhakarani1.app.MyFirebaseMessagingService"
           android:exported="false"
           android:directBootAware="true">
           <intent-filter>
@@ -74,7 +74,7 @@
           android:permission="com.google.android.c2dm.permission.SEND">
           <intent-filter>
               <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-              <category android:name="com.dhakarani.app" />
+              <category android:name="com.dhakarani1.app" />
           </intent-filter>
       </receiver>
 
@@ -95,7 +95,7 @@
 
       <!-- ==================== خدمة الموقع في الخلفية ==================== -->
       <service
-          android:name="com.dhakarani.app.LocationBackgroundService"
+          android:name="com.dhakarani1.app.LocationBackgroundService"
           android:enabled="true"
           android:exported="false"
           android:foregroundServiceType="location" />

@@ -1,5 +1,5 @@
 // lib/core/firebase/special_event/widgets/event_card_content.dart
-// ✅ محدث - دعم العنوان الفارغ
+// ✅ محدث - نفس تصميم كارد "الأقسام الرئيسية"
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -35,48 +35,49 @@ class EventCardContent extends StatelessWidget {
     final bool isInteractive = event.actionUrl.isNotEmpty;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
+    // ✅ نفس تصميم كارد "الأقسام الرئيسية"
     return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: 16.w,
+        vertical: 12.h,
+      ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24.r),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: event.gradientColors.map((c) => c.withOpacity(0.95)).toList(),
         ),
-        // ✅ حدود رفيعة للوضوح
+        borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
           color: Colors.white.withOpacity(0.15),
-          width: 1.5,
+          width: 1,
         ),
-        // ✅ ظلال متعددة الطبقات للعمق
         boxShadow: [
           BoxShadow(
-            color: event.gradientColors.first.withOpacity(isDark ? 0.4 : 0.35),
-            blurRadius: 24.r,
-            spreadRadius: 0,
-            offset: Offset(0, 12.h),
+            color: event.gradientColors.first.withOpacity(isDark ? 0.3 : 0.25),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
+            spreadRadius: -2,
           ),
           BoxShadow(
-            color: event.gradientColors.first.withOpacity(isDark ? 0.3 : 0.2),
-            blurRadius: 12.r,
-            spreadRadius: -4.r,
-            offset: Offset(0, 6.h),
+            color: Colors.black.withOpacity(isDark ? 0.08 : 0.03),
+            blurRadius: 6.r,
+            offset: Offset(0, 2.h),
+            spreadRadius: -1,
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24.r),
-        child: Material(
-          color: Colors.transparent,
-          child: isInteractive 
-            ? InkWell(
-                onTap: () => _handleTap(context),
-                borderRadius: BorderRadius.circular(24.r),
-                splashColor: Colors.white.withOpacity(0.2),
-                child: _buildContent(context),
-              )
-            : _buildContent(context),
-        ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20.r),
+        child: isInteractive 
+          ? InkWell(
+              onTap: () => _handleTap(context),
+              borderRadius: BorderRadius.circular(20.r),
+              splashColor: Colors.white.withOpacity(0.2),
+              child: _buildContent(context),
+            )
+          : _buildContent(context),
       ),
     );
   }
@@ -90,41 +91,144 @@ class EventCardContent extends StatelessWidget {
     
     return Stack(
       children: [
-        // ✅ خلفية الصورة مع دعم GIF
+        // ✅ خلفية الصورة مع دعم GIF (خفيفة جداً في الخلفية)
         if (event.backgroundImage.isNotEmpty)
-          EventBackground(
-            imageUrl: event.backgroundImage,
-            isGif: event.isGif,
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20.r),
+              child: Opacity(
+                opacity: 0.08,
+                child: EventBackground(
+                  imageUrl: event.backgroundImage,
+                  isGif: event.isGif,
+                ),
+              ),
+            ),
           ),
         
-        // المحتوى الرئيسي
-        Container(
-          padding: EdgeInsets.all(20.r),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ✅ عرض الهيدر إذا كان هناك عنوان أو أيقونة
-              if (hasTitle || hasIcon)
-                EventHeader(event: event),
-              
-              // ✅ مسافة بين الهيدر والوصف فقط إذا كان الاثنان موجودان
-              if ((hasTitle || hasIcon) && hasDescription)
-                SizedBox(height: 12.h),
-              
-              // ✅ عرض الوصف
-              if (hasDescription)
-                EventDescription(event: event),
-              
-              // ✅ زر الإجراء
-              if (event.actionText.isNotEmpty && event.actionUrl.isNotEmpty) ...[
-                SizedBox(height: 16.h),
-                EventActionButton(
-                  text: event.actionText,
-                  onTap: () => _handleTap(context),
+        // ✅ المحتوى الرئيسي - بدون شريط جانبي
+        Row(
+          children: [
+            // الأيقونة (إذا كانت موجودة)
+            if (hasIcon)
+              Container(
+                padding: EdgeInsets.all(10.r),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(14.r),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.3),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white.withOpacity(0.15),
+                      blurRadius: 6.r,
+                      offset: Offset(0, 2.h),
+                    ),
+                  ],
                 ),
-              ],
-            ],
-          ),
+                child: Text(
+                  event.icon,
+                  style: TextStyle(fontSize: 18.sp),
+                ),
+              ),
+            
+            if (hasIcon)
+              SizedBox(width: 10.w),
+            
+            // النص (العنوان والوصف)
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // العنوان
+                  if (hasTitle)
+                    Text(
+                      event.title,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        fontSize: 14.sp,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withOpacity(0.2),
+                            offset: Offset(0, 1.h),
+                            blurRadius: 2.r,
+                          ),
+                        ],
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  
+                  // الوصف (سطر واحد)
+                  if (hasDescription)
+                    Text(
+                      event.descriptionLines.first,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 10.sp,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withOpacity(0.2),
+                            offset: Offset(0, 1.h),
+                            blurRadius: 2.r,
+                          ),
+                        ],
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
+            ),
+            
+            // ✅ زر أو نص الإجراء (action_text)
+            if (event.actionText.isNotEmpty && event.actionUrl.isNotEmpty)
+              Container(
+                margin: EdgeInsets.only(left: 8.w),
+                padding: EdgeInsets.symmetric(
+                  horizontal: 12.w,
+                  vertical: 6.h,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.25),
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.4),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      event.actionText,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11.sp,
+                        fontWeight: FontWeight.w600,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withOpacity(0.2),
+                            offset: Offset(0, 1.h),
+                            blurRadius: 2.r,
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: 4.w),
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: Colors.white,
+                      size: 10.sp,
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ),
       ],
     );

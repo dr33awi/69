@@ -1,4 +1,4 @@
-package com.dhakarani.app
+package com.dhakarani1.app
 
 import android.app.NotificationChannel
 import android.app.NotificationManager

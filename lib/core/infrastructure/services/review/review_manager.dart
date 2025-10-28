@@ -71,7 +71,7 @@ class ReviewManager {
   Future<void> _handleFeedbackAction() async {
     final Uri emailUri = Uri(
       scheme: 'mailto',
-      path: 'dhakaranifeedback@gmail.com',
+      path: 'dhakarani.app@gmail.com',
       queryParameters: {
         'subject': 'ملاحظات على تطبيق ذكرني',
         'body': 'أود مشاركة ملاحظاتي التالية:\n\n',

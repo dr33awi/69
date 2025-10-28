@@ -156,7 +156,7 @@ class JuristicMethodInfoDialog extends StatelessWidget {
             ),
           ),
           SizedBox(height: 6.h),
-          Row(
+              Row(
             children: [
               Container(
                 padding: EdgeInsets.all(4.r),
@@ -169,7 +169,7 @@ class JuristicMethodInfoDialog extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 10.sp,
                     fontWeight: ThemeConstants.bold,
-                    color: const Color(0xFF5D7052),
+                    color: ThemeConstants.primary,
                   ),
                 ),
               ),
@@ -187,12 +187,12 @@ class JuristicMethodInfoDialog extends StatelessWidget {
             ],
           ),
           SizedBox(height: 4.h),
-          Row(
+            Row(
             children: [
               Container(
                 padding: EdgeInsets.all(4.r),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF5D7052).withOpacity(0.1),
+                  color: ThemeConstants.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6.r),
                 ),
                 child: Text(
@@ -200,7 +200,7 @@ class JuristicMethodInfoDialog extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 10.sp,
                     fontWeight: ThemeConstants.bold,
-                    color: const Color(0xFF5D7052),
+                    color: ThemeConstants.primary,
                   ),
                 ),
               ),
@@ -405,10 +405,10 @@ class JuristicMethodInfoDialog extends StatelessWidget {
         Container(
           padding: EdgeInsets.all(8.r),
           decoration: BoxDecoration(
-            color: const Color(0xFF5D7052).withOpacity(0.05),
+            color: ThemeConstants.primary.withOpacity(0.05),
             borderRadius: BorderRadius.circular(10.r),
             border: Border.all(
-              color: const Color(0xFF5D7052).withOpacity(0.2),
+              color: ThemeConstants.primary.withOpacity(0.2),
               width: 1,
             ),
           ),
@@ -417,7 +417,7 @@ class JuristicMethodInfoDialog extends StatelessWidget {
               Icon(
                 Icons.info_outline,
                 size: 14.sp,
-                color: const Color(0xFF5D7052),
+                color: ThemeConstants.primary,
               ),
               SizedBox(width: 6.w),
               Expanded(
@@ -425,7 +425,7 @@ class JuristicMethodInfoDialog extends StatelessWidget {
                   'الفرق: حوالي 12 دقيقة فقط، وهو اختلاف بسيط مقارنة بالعصر',
                   style: TextStyle(
                     fontSize: 11.sp,
-                    color: const Color.fromARGB(255, 255, 255, 255),
+                    color: context.textSecondaryColor,
                     fontWeight: ThemeConstants.medium,
                   ),
                 ),
@@ -574,29 +574,29 @@ class JuristicMethodInfoDialog extends StatelessWidget {
                     child: Container(
                       padding: EdgeInsets.all(8.r),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF5D7052).withOpacity(0.05),
+                        color: ThemeConstants.primary.withOpacity(0.05),
                         borderRadius: BorderRadius.circular(8.r),
                         border: Border.all(
-                          color: const Color(0xFF5D7052).withOpacity(0.2),
+                          color: ThemeConstants.primary.withOpacity(0.2),
                         ),
                       ),
                       child: Column(
                         children: [
-                          Icon(Icons.wb_cloudy, size: 20.sp, color: const Color(0xFF5D7052)),
+                          Icon(Icons.wb_cloudy, size: 20.sp, color: ThemeConstants.primary),
                           SizedBox(height: 4.h),
                           Text(
                             'العصر',
                             style: TextStyle(
                               fontSize: 11.sp,
                               fontWeight: ThemeConstants.semiBold,
-                              color: const Color.fromARGB(255, 255, 255, 255),
+                              color: context.textPrimaryColor,
                             ),
                           ),
                           Text(
                             '30-80 دقيقة',
                             style: TextStyle(
                               fontSize: 10.sp,
-                              color: const Color.fromARGB(255, 255, 255, 255),
+                              color: context.textSecondaryColor,
                             ),
                           ),
                         ],
@@ -608,29 +608,29 @@ class JuristicMethodInfoDialog extends StatelessWidget {
                     child: Container(
                       padding: EdgeInsets.all(8.r),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF5D7052).withOpacity(0.05),
+                        color: ThemeConstants.primary.withOpacity(0.05),
                         borderRadius: BorderRadius.circular(8.r),
                         border: Border.all(
-                          color: const Color(0xFF5D7052).withOpacity(0.2),
+                          color: ThemeConstants.primary.withOpacity(0.2),
                         ),
                       ),
                       child: Column(
                         children: [
-                          Icon(Icons.nights_stay, size: 20.sp, color: const Color(0xFF5D7052)),
+                          Icon(Icons.nights_stay, size: 20.sp, color: ThemeConstants.primary),
                           SizedBox(height: 4.h),
                           Text(
                             'العشاء',
                             style: TextStyle(
                               fontSize: 11.sp,
                               fontWeight: ThemeConstants.semiBold,
-                              color: const Color.fromARGB(255, 255, 255, 255),
+                              color: context.textPrimaryColor,
                             ),
                           ),
                           Text(
                             '12 دقيقة',
                             style: TextStyle(
                               fontSize: 10.sp,
-                              color: const Color.fromARGB(255, 255, 255, 255),
+                              color: context.textSecondaryColor,
                             ),
                           ),
                         ],
@@ -662,10 +662,8 @@ class JuristicMethodInfoDialog extends StatelessWidget {
         color: context.cardColor,
         borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
-          color: madhab.isDefault 
-            ? madhab.color.withOpacity(0.3)
-            : context.dividerColor.withOpacity(0.1),
-          width: madhab.isDefault ? 1.5 : 1,
+          color: context.dividerColor.withOpacity(0.1),
+          width: 1,
         ),
         boxShadow: [
           BoxShadow(
@@ -695,41 +693,12 @@ class JuristicMethodInfoDialog extends StatelessWidget {
               size: 20.sp,
             ),
           ),
-          title: Row(
-            children: [
-              Text(
-                madhab.name,
-                style: TextStyle(
-                  fontWeight: ThemeConstants.semiBold,
-                  fontSize: 13.sp,
-                ),
-              ),
-              if (madhab.isDefault) ...[
-                SizedBox(width: 6.w),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 6.w,
-                    vertical: 2.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: madhab.color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4.r),
-                    border: Border.all(
-                      color: madhab.color.withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    'الافتراضي',
-                    style: TextStyle(
-                      fontSize: 9.sp,
-                      color: madhab.color,
-                      fontWeight: ThemeConstants.semiBold,
-                    ),
-                  ),
-                ),
-              ],
-            ],
+          title: Text(
+            madhab.name,
+            style: TextStyle(
+              fontWeight: ThemeConstants.semiBold,
+              fontSize: 13.sp,
+            ),
           ),
           subtitle: Text(
             madhab.subtitle,

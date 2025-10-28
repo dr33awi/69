@@ -1,6 +1,5 @@
 // lib/core/infrastructure/services/text/screens/global_text_settings_screen.dart
 import 'package:athkar_app/core/infrastructure/services/text_settings/constants/text_settings_constants.dart'; // ✅ المسار الصحيح
-import 'package:athkar_app/core/infrastructure/services/text_settings/widgets/shared_widgets.dart';
 import 'package:athkar_app/core/infrastructure/services/text_settings/widgets/text_preview_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -71,11 +70,11 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
     },
   };
 
-  // خريطة الألوان
+  // خريطة الألوان - موحدة للجميع
   final Map<ContentType, Color> _colorMap = {
     ContentType.athkar: ThemeConstants.primary,
-    ContentType.dua: ThemeConstants.accent,
-    ContentType.asmaAllah: ThemeConstants.tertiary,
+    ContentType.dua: ThemeConstants.primary,
+    ContentType.asmaAllah: ThemeConstants.primary,
   };
 
   @override
@@ -510,7 +509,7 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
                     ),
                     child: Icon(
                       Icons.restore_rounded,
-                      color: ThemeConstants.warning,
+                      color: ThemeConstants.error,
                       size: 20.sp,
                     ),
                   ),
@@ -619,171 +618,39 @@ class _GlobalTextSettingsScreenState extends State<GlobalTextSettingsScreen>
                 textSettings: textSettings.copyWith(letterSpacing: newSpacing),
               );
             },
+            // Callbacks لخيارات العرض
+            onShowTashkeelChanged: (value) {
+              _updateSettings(
+                contentType,
+                displaySettings: displaySettings.copyWith(showTashkeel: value),
+              );
+            },
+            onShowFadlChanged: (value) {
+              _updateSettings(
+                contentType,
+                displaySettings: displaySettings.copyWith(showFadl: value),
+              );
+            },
+            onShowSourceChanged: (value) {
+              _updateSettings(
+                contentType,
+                displaySettings: displaySettings.copyWith(showSource: value),
+              );
+            },
+            onShowCounterChanged: (value) {
+              _updateSettings(
+                contentType,
+                displaySettings: displaySettings.copyWith(showCounter: value),
+              );
+            },
+            onEnableVibrationChanged: (value) {
+              _updateSettings(
+                contentType,
+                displaySettings: displaySettings.copyWith(enableVibration: value),
+              );
+            },
           ),
-          
-          SizedBox(height: 20.h),
-          
-          // إعدادات العرض فقط (تم نقل إعدادات الخط والقوالب إلى كارد المعاينة)
-          _buildDisplaySettingsSection(contentType, displaySettings, accentColor),
         ],
-      ),
-    );
-  }
-
-  Widget _buildDisplaySettingsSection(
-    ContentType contentType,
-    DisplaySettings displaySettings,
-    Color accentColor,
-  ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: context.cardColor,
-        borderRadius: BorderRadius.circular(24.r),
-      ),
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          tilePadding: EdgeInsets.all(20.w),
-          childrenPadding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 20.w),
-          title: Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(12.r),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      ThemeConstants.success,
-                      ThemeConstants.success.withOpacity(0.7),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(14.r),
-                  boxShadow: [
-                    BoxShadow(
-                      color: ThemeConstants.success.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: Offset(0, 3.h),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  Icons.tune_rounded,
-                  color: Colors.white,
-                  size: 22.sp,
-                ),
-              ),
-              SizedBox(width: 14.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'خيارات العرض',
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: ThemeConstants.bold,
-                        color: context.textPrimaryColor,
-                      ),
-                    ),
-                    Text(
-                      'التشكيل والعداد والمصدر',
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: context.textSecondaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          trailing: Icon(
-            Icons.keyboard_arrow_down_rounded,
-            color: ThemeConstants.success,
-            size: 28.sp,
-          ),
-          children: [
-            Column(
-              children: [
-                EnhancedSwitch(
-                  title: 'إظهار التشكيل',
-                  subtitle: 'عرض الحركات والتشكيل على النص',
-                  icon: Icons.abc_rounded,
-                  value: displaySettings.showTashkeel,
-                  onChanged: (value) {
-                    _updateSettings(
-                      contentType,
-                      displaySettings: 
-                          displaySettings.copyWith(showTashkeel: value),
-                    );
-                  },
-                  accentColor: accentColor,
-                ),
-                
-                EnhancedSwitch(
-                  title: 'إظهار الفضيلة',
-                  subtitle: 'عرض فضل الذكر إن وجد',
-                  icon: Icons.stars_rounded,
-                  value: displaySettings.showFadl,
-                  onChanged: (value) {
-                    _updateSettings(
-                      contentType,
-                      displaySettings: displaySettings.copyWith(showFadl: value),
-                    );
-                  },
-                  accentColor: accentColor,
-                ),
-                
-                EnhancedSwitch(
-                  title: 'إظهار المصدر',
-                  subtitle: 'عرض مصدر النص',
-                  icon: Icons.library_books_rounded,
-                  value: displaySettings.showSource,
-                  onChanged: (value) {
-                    _updateSettings(
-                      contentType,
-                      displaySettings: 
-                          displaySettings.copyWith(showSource: value),
-                    );
-                  },
-                  accentColor: accentColor,
-                ),
-                
-                if (contentType == ContentType.athkar)
-                  EnhancedSwitch(
-                    title: 'إظهار العداد',
-                    subtitle: 'عرض عداد التكرار للأذكار',
-                    icon: Icons.looks_one_rounded,
-                    value: displaySettings.showCounter,
-                    onChanged: (value) {
-                      _updateSettings(
-                        contentType,
-                        displaySettings: 
-                            displaySettings.copyWith(showCounter: value),
-                      );
-                    },
-                    accentColor: accentColor,
-                  ),
-                
-                EnhancedSwitch(
-                  title: 'الاهتزاز',
-                  subtitle: 'تفعيل الاهتزاز عند اللمس',
-                  icon: Icons.vibration_rounded,
-                  value: displaySettings.enableVibration,
-                  onChanged: (value) {
-                    _updateSettings(
-                      contentType,
-                      displaySettings: 
-                          displaySettings.copyWith(enableVibration: value),
-                    );
-                  },
-                  accentColor: accentColor,
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }

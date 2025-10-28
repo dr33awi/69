@@ -1,5 +1,5 @@
 // android/app/src/main/kotlin/com/example/test_athkar_app/MainActivity.kt
-package com.dhakarani.app
+package com.dhakarani1.app
 
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -12,7 +12,7 @@ import androidx.core.content.ContextCompat
 import android.util.Log
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.dhakarani.app/permissions"
+    private val CHANNEL = "com.dhakarani1.app/permissions"
     private val TAG = "MainActivity"
     private val NOTIFICATION_PERMISSION_CODE = 1001
     

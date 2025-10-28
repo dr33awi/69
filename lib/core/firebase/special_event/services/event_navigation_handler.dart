@@ -187,7 +187,7 @@ class EventNavigationHandler {
   static Future<void> _handleFeedback(BuildContext context) async {
     final Uri emailUri = Uri(
       scheme: 'mailto',
-      path: 'dhakaranifeedback@gmail.com',
+      path: 'dhakarani.app@gmail.com',
       queryParameters: {
         'subject': 'ملاحظات على النسخة التجريبية',
       },

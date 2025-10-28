@@ -193,17 +193,33 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     }
     
     try {
+      // تحديث الموقع أولاً (forceUpdate: true يضمن الحصول على موقع جديد)
       await _prayerService.getCurrentLocation(forceUpdate: true);
+      
+      // تحديث مواقيت الصلاة بناءً على الموقع الجديد
       await _prayerService.updatePrayerTimes();
       
       if (mounted) {
-        context.showSuccessSnackBar('تم تحديث مواقيت الصلاة بنجاح');
+        context.showSuccessSnackBar('تم تحديث الموقع ومواقيت الصلاة بنجاح');
       }
     } catch (e) {
       if (mounted) {
+        // عرض رسالة خطأ أكثر تفصيلاً
+        String errorMessage = 'فشل في تحديث المواقيت';
+        
+        if (e.toString().contains('PERMISSION_DENIED')) {
+          errorMessage = 'لم يتم منح إذن الوصول إلى الموقع';
+        } else if (e.toString().contains('SERVICE_DISABLED')) {
+          errorMessage = 'خدمة الموقع معطلة. يرجى تفعيلها من الإعدادات';
+        } else if (e.toString().contains('timeout')) {
+          errorMessage = 'انتهت مهلة الحصول على الموقع. يرجى المحاولة مرة أخرى';
+        }
+        
         setState(() {
-          _errorMessage = 'فشل في تحديث المواقيت';
+          _errorMessage = errorMessage;
         });
+        
+        context.showErrorSnackBar(errorMessage);
       }
     } finally {
       if (mounted) {
